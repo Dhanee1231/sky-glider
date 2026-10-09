@@ -1,0 +1,99 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ff5fb4"><title>Our Fun Zone</title>
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon-192.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:"Baloo 2","Comic Sans MS","Trebuchet MS",system-ui,sans-serif;color:#fff;
+background:radial-gradient(ellipse at 20% 0%,#ff8fd0 0%,transparent 55%),radial-gradient(ellipse at 100% 100%,#c58bff 0%,transparent 50%),linear-gradient(160deg,#ff4fa8,#9b1f8e 60%,#4a0f5c);
+display:flex;flex-direction:column;padding:max(10px,env(safe-area-inset-top)) 14px max(10px,env(safe-area-inset-bottom));user-select:none}
+#sky{position:fixed;inset:0;pointer-events:none;z-index:0}
+header{position:relative;z-index:1;display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.title{flex:1;min-width:0}
+h1{font-size:clamp(24px,4.2vmin + 10px,48px);line-height:1;letter-spacing:1px;
+background:linear-gradient(90deg,#fff6c4,#f5c542,#fff,#e8e8f2,#f5c542,#fff6c4);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+animation:shine 5s linear infinite;filter:drop-shadow(0 2px 0 #7a1066) drop-shadow(0 0 8px rgba(255,255,255,.4))}
+@keyframes shine{to{background-position:300% 0}}
+#greet{font-size:clamp(15px,2vmin + 8px,26px);margin-top:4px;cursor:pointer;display:inline-flex;gap:6px;align-items:center;background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.45);border-radius:99px;padding:2px 12px}
+#greet b{color:#fff3a8}
+.btn{flex:0 0 auto;width:48px;height:48px;border-radius:50%;border:3px solid #e9e9f5;background:linear-gradient(145deg,#fff,#d8d8e8);font-size:22px;cursor:pointer;box-shadow:0 3px 0 #9a8fb0}
+main{position:relative;z-index:1;flex:1;min-height:0;display:grid;gap:12px;margin-top:10px;grid-template-columns:1fr 1fr;grid-auto-rows:1fr}
+@media (min-aspect-ratio:4/3){main{grid-template-columns:repeat(4,1fr)}}
+a.card{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;text-decoration:none;color:#fff;
+border-radius:26px;padding:10px;min-height:0;overflow:hidden;
+border:4px solid transparent;background:var(--bg) padding-box,linear-gradient(135deg,#fff8d0,#f5c542,#fff,#c0c0d0,#f5c542) border-box;
+box-shadow:0 6px 0 rgba(80,0,70,.45),0 10px 22px rgba(60,0,60,.35);animation:bob 3.2s ease-in-out infinite;animation-delay:var(--d);transition:transform .12s}
+a.card:active{transform:scale(.94)}
+a.card.pop{animation:pop .35s ease}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(.9)}100%{transform:scale(1.06)}}
+a.card::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.45) 50%,transparent 65%);background-size:250% 100%;animation:gleam 4s ease-in-out infinite;animation-delay:var(--d);pointer-events:none}
+@keyframes gleam{0%,60%{background-position:150% 0}100%{background-position:-100% 0}}
+.icon{flex:1 1 auto;min-height:0;width:100%;display:flex;align-items:center;justify-content:center}
+.icon svg{height:100%;max-height:200px;width:auto;max-width:90%;filter:drop-shadow(0 4px 4px rgba(0,0,0,.25))}
+.name{font-size:clamp(17px,2.4vmin + 8px,30px);font-weight:800;line-height:1.05;text-shadow:0 2px 0 rgba(0,0,0,.25);flex:0 0 auto;margin-top:4px}
+.desc{font-size:clamp(12px,1.2vmin + 7px,18px);opacity:.95;line-height:1.15;flex:0 0 auto;margin-top:3px}
+dialog{margin:auto;border:4px solid #f5c542;border-radius:24px;padding:18px;background:linear-gradient(160deg,#ffe0f1,#fff);color:#8a1270;text-align:center;font:inherit;width:min(90vw,340px)}
+dialog::backdrop{background:rgba(40,0,40,.6)}
+dialog input{font:inherit;font-size:22px;width:100%;margin:12px 0;padding:8px;border-radius:14px;border:3px solid #ff7ac8;text-align:center;color:#8a1270}
+dialog button{font:inherit;font-size:20px;padding:6px 18px;border-radius:99px;border:none;background:linear-gradient(#ff7ac8,#d6339f);color:#fff;margin:0 4px;cursor:pointer}
+@media (prefers-reduced-motion:reduce){a.card,a.card::after,h1{animation:none}}
+</style></head><body>
+<canvas id="sky"></canvas>
+<header><div class="title"><h1>Our Fun Zone</h1><div id="greet" role="button" tabindex="0">Hi, <b id="nm">Superstar</b>! 💖 <span style="font-size:.8em">✏️</span></div></div>
+<button class="btn" id="mute" aria-label="Sound on/off">🔊</button></header>
+<main>
+<a class="card" href="../tiles/" style="--bg:linear-gradient(160deg,#ff8acb,#e0359b);--d:0s">
+<div class="icon"><svg viewBox="0 0 120 120"><defs><linearGradient id="t1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#e3e3ef"/></linearGradient><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9ed6"/><stop offset="1" stop-color="#e0006e"/></linearGradient></defs>
+<rect x="20" y="12" width="26" height="96" rx="6" fill="url(#t1)" stroke="#f5c542" stroke-width="3"/><rect x="74" y="12" width="26" height="96" rx="6" fill="url(#t1)" stroke="#f5c542" stroke-width="3"/><rect x="44" y="20" width="32" height="70" rx="7" fill="#3a1040" stroke="#f5c542" stroke-width="3"/>
+<path d="M60 84 L40 60 Q34 44 48 40 Q56 38 60 48 Q64 38 72 40 Q86 44 80 60Z" fill="url(#hg)" stroke="#fff3a8" stroke-width="3" stroke-linejoin="round"/><path d="M60 48V84M40 56H80M48 40L60 62L72 40" stroke="#fff" stroke-width="1.5" opacity=".6" fill="none"/><circle cx="50" cy="50" r="3" fill="#fff"/></svg></div>
+<div class="name">Gem Tiles</div><div class="desc">Tap sparkly tiles to the music!</div></a>
+<a class="card" href="../" style="--bg:linear-gradient(160deg,#8fd3ff,#6a6cf0);--d:.4s">
+<div class="icon"><svg viewBox="0 0 120 120"><path d="M8 92 Q40 70 60 80 T112 70" stroke="#fff" stroke-width="3" stroke-dasharray="4 7" fill="none" opacity=".8"/><circle cx="96" cy="26" r="11" fill="#fff3a8"/>
+<path d="M14 60 L110 28 L62 98 L54 70Z" fill="#fff" stroke="#c0c0d0" stroke-width="2.5" stroke-linejoin="round"/><path d="M54 70 L110 28 L44 76Z" fill="#ffb6dd" stroke="#e05aa8" stroke-width="2" stroke-linejoin="round"/><path d="M54 70 L58 88 L62 98" fill="none" stroke="#c0c0d0" stroke-width="2"/></svg></div>
+<div class="name">Sky Glider</div><div class="desc">Fly your paper plane through the clouds!</div></a>
+<a class="card" href="../crystal-cave/" style="--bg:linear-gradient(160deg,#c49bff,#7a2fd6);--d:.8s">
+<div class="icon"><svg viewBox="0 0 120 120"><defs><linearGradient id="cr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e9fbff"/><stop offset=".5" stop-color="#8fe3ff"/><stop offset="1" stop-color="#5b7cff"/></linearGradient></defs>
+<path d="M60 6 L88 34 L74 112 L46 112 L32 34Z" fill="url(#cr)" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M32 34 L60 46 L88 34 M60 46 V112" stroke="#fff" stroke-width="2" opacity=".7" fill="none"/><path d="M20 70 L30 58 L38 76 L28 104 Z" fill="#ff8fd0" stroke="#fff" stroke-width="2"/><path d="M100 70 L90 58 L82 76 L92 104 Z" fill="#ffd36b" stroke="#fff" stroke-width="2"/>
+<circle cx="60" cy="74" r="17" fill="#fff" stroke="#f5c542" stroke-width="3"/><path d="M52 66 L68 82 M68 66 L52 82" stroke="#d6339f" stroke-width="5" stroke-linecap="round"/></svg></div>
+<div class="name">Crystal Cave</div><div class="desc">Solve times tables, win gems!</div></a>
+<a class="card" href="../yoga/" style="--bg:linear-gradient(160deg,#ffd36b,#ff8a3d);--d:1.2s">
+<div class="icon"><svg viewBox="0 0 120 120"><g stroke="#fff3a8" stroke-width="4" stroke-linecap="round"><path d="M60 4V14M60 106V116M4 60H14M106 60H116M20 20L27 27M93 93L100 100M100 20L93 27M20 100L27 93"/></g>
+<circle cx="60" cy="54" r="28" fill="#ffe14d" stroke="#fff" stroke-width="3"/><circle cx="50" cy="50" r="3.5" fill="#5a2a00"/><circle cx="70" cy="50" r="3.5" fill="#5a2a00"/><path d="M48 60 Q60 72 72 60" stroke="#5a2a00" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="43" cy="60" r="4" fill="#ff8fb0" opacity=".7"/><circle cx="77" cy="60" r="4" fill="#ff8fb0" opacity=".7"/>
+<path d="M38 36 Q46 10 56 18 M82 36 Q74 10 64 18" stroke="#ffe14d" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M56 80 L50 108 M64 80 L80 92 L66 98" stroke="#ffe14d" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="name">Coach Sunny</div><div class="desc">Stretch and do yoga together!</div></a>
+</main>
+<dialog id="dlg"><div style="font-size:22px;font-weight:800">What's your name? 💎</div><input id="nmIn" maxlength="16" autocomplete="off"><div><button id="ok">Save</button><button id="cancel" style="background:#c0c0d0">Cancel</button></div></dialog>
+<script>
+(()=>{
+const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+const nm=document.getElementById('nm'),dlg=document.getElementById('dlg'),inp=document.getElementById('nmIn'),mute=document.getElementById('mute');
+let name=LS.get('funzone-name','Superstar');nm.textContent=name;
+let muted=LS.get('funzone-muted','0')==='1';const setM=()=>mute.textContent=muted?'🔇':'🔊';setM();
+let ac=null;
+function chime(){if(muted)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const t=ac.currentTime;
+[880,1320,1760].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t+i*.06);g.gain.linearRampToValueAtTime(.12,t+i*.06+.01);g.gain.exponentialRampToValueAtTime(.0005,t+i*.06+.35);o.connect(g).connect(ac.destination);o.start(t+i*.06);o.stop(t+i*.06+.4);});}catch(e){}}
+mute.onclick=()=>{muted=!muted;LS.set('funzone-muted',muted?'1':'0');setM();chime();};
+const open=()=>{inp.value=name==='Superstar'?'':name;if(dlg.showModal)dlg.showModal();else dlg.setAttribute('open','');setTimeout(()=>inp.focus(),50)};
+const close=()=>{dlg.close?dlg.close():dlg.removeAttribute('open')};
+document.getElementById('greet').onclick=open;document.getElementById('greet').onkeydown=e=>{if(e.key==='Enter')open()};
+document.getElementById('ok').onclick=()=>{name=inp.value.trim()||'Superstar';LS.set('funzone-name',name);nm.textContent=name;close();chime()};
+document.getElementById('cancel').onclick=close;inp.onkeydown=e=>{if(e.key==='Enter')document.getElementById('ok').click()};
+document.querySelectorAll('a.card').forEach(a=>a.addEventListener('click',e=>{if(e.metaKey||e.ctrlKey)return;e.preventDefault();chime();burst(e.clientX,e.clientY);a.classList.add('pop');setTimeout(()=>location.href=a.getAttribute('href'),muted?220:380)}));
+// sparkles
+const c=document.getElementById('sky'),x=c.getContext('2d');let W,H,D,P=[],B=[];
+const rs=()=>{D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*D;c.height=H*D;x.setTransform(D,0,0,D,0,0)};rs();addEventListener('resize',rs);
+const cols=['#fff','#fff3a8','#f5c542','#ffd1ec','#e8e8f5'];
+for(let i=0;i<40;i++)P.push({x:Math.random(),y:Math.random(),s:2+Math.random()*4,p:Math.random()*6.28,v:.3+Math.random()*.7,c:cols[i%5],h:i%7===0});
+function burst(px,py){for(let i=0;i<18;i++){const a=Math.random()*6.28,s=2+Math.random()*4;B.push({x:px,y:py,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,l:1,c:cols[i%5],h:i%3===0})}}
+function star(X,Y,r){x.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,R=i%2?r*.35:r;x.lineTo(X+Math.cos(a)*R,Y+Math.sin(a)*R)}x.fill()}
+function heart(X,Y,r){x.beginPath();x.moveTo(X,Y+r*.9);x.bezierCurveTo(X-r*1.4,Y-r*.2,X-r*.6,Y-r*1.2,X,Y-r*.4);x.bezierCurveTo(X+r*.6,Y-r*1.2,X+r*1.4,Y-r*.2,X,Y+r*.9);x.fill()}
+const red=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function f(t){x.clearRect(0,0,W,H);const T=t/1000;
+for(const p of P){const a=.25+.75*Math.abs(Math.sin(T*p.v*2+p.p));x.globalAlpha=a;x.fillStyle=p.h?'#ff9ed6':p.c;const y=red?p.y*H:((p.y*H-T*8*p.v)%H+H)%H;p.h?heart(p.x*W,y,p.s*1.3):star(p.x*W,y,p.s*(.6+a*.6))}
+B=B.filter(b=>b.l>0);for(const b of B){b.x+=b.vx;b.y+=b.vy;b.vy+=.15;b.l-=.03;x.globalAlpha=Math.max(b.l,0);x.fillStyle=b.h?'#ff5fb4':b.c;b.h?heart(b.x,b.y,6):star(b.x,b.y,6)}
+x.globalAlpha=1;requestAnimationFrame(f)}requestAnimationFrame(f);
+if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{scope:'./'}).catch(()=>{}));
+})();
+</script></body></html>
