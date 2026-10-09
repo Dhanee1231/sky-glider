@@ -20,12 +20,12 @@ h2{margin:6px 0 10px;font-size:26px;color:#fff;text-shadow:0 2px 0 var(--pink),0
 .top{width:100%;max-width:760px;display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .top .sp{flex:1}
 .pill{background:var(--card);border-radius:999px;padding:5px 12px;font-weight:800;font-size:16px;box-shadow:0 2px 0 rgba(255,79,163,.35);white-space:nowrap}
-.btn{border:0;font:inherit;font-weight:800;font-size:19px;color:#fff;padding:12px 20px;border-radius:22px;background:linear-gradient(180deg,#ff8cc6,#ff3d96);box-shadow:0 5px 0 #c2186b,0 8px 18px rgba(255,61,150,.35),inset 0 2px 0 rgba(255,255,255,.6);cursor:pointer;position:relative;overflow:hidden;min-height:52px}
+.btn{border:0;font:inherit;font-weight:800;font-size:19px;color:#fff;padding:12px 20px;border-radius:22px;background:linear-gradient(180deg,#ff8cc6,#ff3d96);box-shadow:0 5px 0 #c2186b,0 8px 18px rgba(255,61,150,.35),inset 0 2px 0 rgba(255,255,255,.6);cursor:pointer;position:relative;overflow:hidden;min-height:64px}
 .btn:active{transform:translateY(3px);box-shadow:0 2px 0 #c2186b}
 .btn.gold{background:linear-gradient(180deg,#ffe08a,#f0a91c);box-shadow:0 5px 0 #b57800,inset 0 2px 0 rgba(255,255,255,.7);color:#6b3b00}
 .btn.silver{background:linear-gradient(180deg,#ffffff,#c9d1de);box-shadow:0 5px 0 #8f9bb0,inset 0 2px 0 #fff;color:#4b5670}
-.btn.small{font-size:15px;padding:7px 12px;min-height:40px;border-radius:16px}
-.btn.icon{width:48px;min-height:48px;padding:0;font-size:24px;border-radius:50%}
+.btn.small{font-size:17px;padding:10px 16px;min-height:64px;border-radius:18px}
+.btn.icon{width:64px;min-height:64px;padding:0;font-size:24px;border-radius:50%}
 .btn::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);transform:skewX(-20deg);animation:glint 3.2s infinite}
 @keyframes glint{0%,70%{left:-60%}100%{left:130%}}
 .menu{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:440px;margin-top:10px}
@@ -33,7 +33,7 @@ h2{margin:6px 0 10px;font-size:26px;color:#fff;text-shadow:0 2px 0 var(--pink),0
 #mascotHome{width:200px;height:170px}
 .card{background:var(--card);border-radius:22px;padding:12px;box-shadow:0 4px 14px rgba(200,40,120,.18);border:2px solid rgba(255,255,255,.9)}
 .list{width:100%;max-width:760px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
-.song{display:flex;align-items:center;gap:10px;cursor:pointer;position:relative}
+.song{min-height:88px;display:flex;align-items:center;gap:10px;cursor:pointer;position:relative}
 .song .em{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;font-size:30px;flex:none;box-shadow:inset 0 -4px 0 rgba(0,0,0,.12),0 0 0 3px #fff}
 .song .ti{font-weight:800;font-size:18px;line-height:1.15;word-break:break-word}
 .song .sub{font-size:13px;opacity:.75}
@@ -41,7 +41,7 @@ h2{margin:6px 0 10px;font-size:26px;color:#fff;text-shadow:0 2px 0 var(--pink),0
 .song.locked{opacity:.6;filter:grayscale(.5)}
 .song .edit{margin-left:auto}
 .seg{display:flex;gap:6px;background:var(--card);padding:5px;border-radius:20px}
-.seg button{border:0;font:inherit;font-weight:800;font-size:16px;padding:8px 12px;border-radius:15px;background:transparent;color:var(--ink);cursor:pointer}
+.seg button{border:0;font:inherit;font-weight:800;font-size:18px;padding:8px 16px;min-height:60px;min-width:64px;border-radius:15px;background:transparent;color:var(--ink);cursor:pointer}
 .seg button.on{background:linear-gradient(180deg,#ff8cc6,#ff3d96);color:#fff}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;width:100%;max-width:760px;margin:6px 0}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:8px}
@@ -71,9 +71,9 @@ h2{margin:6px 0 10px;font-size:26px;color:#fff;text-shadow:0 2px 0 var(--pink),0
 input[type=text]{font:inherit;font-size:20px;font-weight:700;padding:10px 14px;border-radius:16px;border:3px solid #ffb3d9;width:100%;color:var(--ink)}
 input[type=range]{width:100%;accent-color:var(--pink)}
 .emojis{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
-.emojis button{font-size:26px;width:46px;height:46px;border-radius:14px;border:3px solid transparent;background:#fff;cursor:pointer}
+.emojis button{font-size:30px;width:64px;height:64px;border-radius:14px;border:3px solid transparent;background:#fff;cursor:pointer}
 .emojis button.on{border-color:var(--pink)}
-.swatch{width:40px;height:40px;border-radius:50%;border:4px solid #fff;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.swatch{width:60px;height:60px;border-radius:50%;border:4px solid #fff;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
 .swatch.on{outline:4px solid var(--pink)}
 .lbl{font-weight:800;margin:10px 0 4px;text-align:left;width:100%}
 .note{font-size:14px;opacity:.85;line-height:1.35}
@@ -107,6 +107,7 @@ input[type=range]{width:100%;accent-color:var(--pink)}
     <button class="btn silver" data-go="album" data-t="album">📒 Stickers</button>
     <button class="btn silver" data-go="badges" data-t="badges">🏅 Badges</button>
     <button class="btn silver" data-go="closet" data-t="closet">🎀 Gigi's closet</button>
+    <button class="btn gold" data-go="worlds">🌈 Worlds</button>
   </div>
 </section>
 
@@ -137,6 +138,8 @@ input[type=range]{width:100%;accent-color:var(--pink)}
 <section class="screen" id="settings">
   <div class="top"><button class="btn icon silver" data-go="home">⬅</button><h2 style="margin:0" data-t="settings">Settings</h2></div>
   <div class="card" style="width:100%;max-width:480px">
+    <div class="lbl">🐢 Speed</div><div class="seg" id="speedSeg"><button data-v="slow">🐢 Slow</button><button data-v="normal">🐇 Normal</button><button data-v="fast">🚀 Fast</button></div>
+<div class="lbl">💣 Obstacles</div><div class="seg" id="obsSeg"><button data-v="1">On</button><button data-v="0">Off</button></div><div class="lbl">💣 Obstacles in Practice</div><div class="seg" id="obsPSeg"><button data-v="1">On</button><button data-v="0">Off</button></div><div class="lbl">🧲 Power-ups</div><div class="seg" id="puSeg"><button data-v="1">On</button><button data-v="0">Off</button></div><div class="lbl">📳 Camera shake</div><div class="seg" id="shakeSeg"><button data-v="1">On</button><button data-v="0">Off</button></div><div class="lbl">✨ Background intensity</div><div class="seg" id="intSeg"><button data-v="low">Low</button><button data-v="med">Medium</button><button data-v="high">High</button></div><div class="lbl">🎆 Effect sounds (never on tile taps)</div><div class="seg" id="fxSeg"><button data-v="1">On</button><button data-v="0">Off</button></div><div class="lbl">🔉 Effects volume</div><input type="range" id="fxVol" min="0" max="100" step="5"><button class="btn small" data-go="lab">🧪 Test lab</button>
     <div class="lbl">🔊 <span data-t="sound">Sound</span></div><div class="seg" id="soundSeg"><button data-v="1">On</button><button data-v="0">Off</button></div>
     <div class="lbl">🎧 <span data-t="beat">Miss effect (song dips a little on a miss)</span></div><div class="seg" id="beatSeg"><button data-v="1">On</button><button data-v="0">Off</button></div>
     <div class="lbl">🗣️ Language / भाषा</div><div class="seg" id="langSeg"><button data-v="en">English</button><button data-v="hi">हिंदी</button></div>
@@ -146,6 +149,11 @@ input[type=range]{width:100%;accent-color:var(--pink)}
     <p class="note" data-t="syncNote">If tiles feel early or late (especially with Bluetooth headphones), run the tap test.</p>
     <p class="note">Gem Tiles has no ads, no links and no purchases. Your songs stay on this phone.</p>
   </div>
+</section>
+
+<section class="screen" id="lab">
+  <div class="top"><button class="btn icon silver" data-go="settings">⬅</button><h2 style="margin:0">🧪 Test lab</h2></div>
+  <div class="card" style="width:100%;max-width:760px" id="labBody"></div>
 </section>
 
 <section class="screen" id="calib">
@@ -183,7 +191,7 @@ input[type=range]{width:100%;accent-color:var(--pink)}
 </section>
 
 <div id="game"><canvas id="cv"></canvas><div id="prog"></div>
-  <div id="hud"><button class="pill" id="pauseBtn" style="border:0;font:inherit;font-weight:800">⏸</button><span class="pill" id="hHearts"></span><span class="sp"></span><span class="pill" id="hScore">0</span></div></div>
+  <div id="hud"><button class="pill" id="pauseBtn" style="border:0;font:inherit;font-weight:800;min-width:64px;min-height:56px;font-size:22px">⏸</button><span class="pill" id="hHearts"></span><span class="sp"></span><span class="pill" id="hScore">0</span></div></div>
 
 <div class="modal" id="mPause"><div class="card"><h2 data-t="paused">Paused</h2><div class="row"><button class="btn" id="resumeBtn" data-t="resume">▶ Keep playing</button><button class="btn silver" id="restartBtn" data-t="restart">↺ Restart</button><button class="btn silver" id="quitBtn" data-t="quit">🏠 Songs</button></div></div></div>
 <div class="modal" id="mOut"><div class="card"><canvas id="mascotOut" width="160" height="130" style="width:160px;height:130px"></canvas><h2 data-t="outHearts">Out of hearts!</h2><p data-t="outMsg">You're doing great. Want to keep going?</p><div class="row"><button class="btn" id="contBtn" data-t="cont">💗 Keep going (practice)</button><button class="btn silver" id="outRetry" data-t="restart">↺ Restart</button><button class="btn silver" id="outEnd" data-t="finish">🏁 Finish</button></div></div></div>

@@ -54,5 +54,18 @@
     const seq = { coin: [88, 93], star: [84, 88, 91, 96], miss: [62, 58], tap: [84], unlock: [79, 83, 86, 91, 95], gift: [72, 76, 79, 84, 88, 91] }[kind] || [84];
     seq.forEach((m, i) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = mf(m); const s = t + i * 0.07;
       g.gain.setValueAtTime(0, s); g.gain.linearRampToValueAtTime(0.16, s + 0.01); g.gain.exponentialRampToValueAtTime(0.001, s + 0.25); o.connect(g); g.connect(sfxBus); o.start(s); o.stop(s + 0.3); }); };
+  // gameplay effects (power-ups, poofs, combos, star power, world intro, results): own bus + volume. Never used for tile taps.
+  let fxBus = null; A.fxVol = 0.5; A.fxOn = true;
+  A.setFx = (on, vol) => { A.fxOn = on; A.fxVol = vol; if (fxBus) fxBus.gain.value = on ? vol * 0.5 : 0; };
+  A.fx = kind => { if (!ctx || !A.fxOn || A.fxVol <= 0) return; if (!fxBus) { fxBus = ctx.createGain(); fxBus.gain.value = A.fxVol * 0.5; fxBus.connect(master); }
+    const t = ctx.currentTime, tone = (m, s, d, type = 'sine', v = 0.12) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type; o.frequency.value = mf(m); g.gain.setValueAtTime(0, t + s); g.gain.linearRampToValueAtTime(v, t + s + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + s + d); o.connect(g); g.connect(fxBus); o.start(t + s); o.stop(t + s + d + 0.02); };
+    const sweep = (f0, f1, d, v = 0.12, type = 'triangle') => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + d); g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.001, t + d); o.connect(g); g.connect(fxBus); o.start(t); o.stop(t + d + 0.02); };
+    if (kind === 'powerup') { sweep(400, 1600, 0.25, 0.08, 'sine'); [84, 88, 91].forEach((m, i) => tone(m, 0.05 + i * 0.05, 0.25, 'sine', 0.07)); }
+    else if (kind === 'poof') { sweep(300, 70, 0.3, 0.14, 'square'); tone(55, 0, 0.2, 'sine', 0.12); }
+    else if (kind === 'combo') [79, 84, 88].forEach((m, i) => tone(m, i * 0.06, 0.3, 'triangle', 0.07));
+    else if (kind === 'starpower') { sweep(200, 2400, 0.6, 0.06, 'sawtooth'); [72, 76, 79, 84, 88, 91, 96].forEach((m, i) => tone(m, i * 0.05, 0.4, 'sine', 0.06)); }
+    else if (kind === 'intro') [60, 67, 72, 79].forEach((m, i) => tone(m, i * 0.12, 0.5, 'triangle', 0.07));
+    else if (kind === 'fanfare') [[72, 0], [76, 0.12], [79, 0.24], [84, 0.36], [79, 0.5], [84, 0.62], [88, 0.62]].forEach(([m, s]) => tone(m, s, 0.45, 'triangle', 0.09));
+    else if (kind === 'dodge') tone(91, 0, 0.12, 'sine', 0.04); };
   window.TAudio = A;
 })();
