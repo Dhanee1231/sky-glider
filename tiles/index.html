@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#ff5fae">
+<title>Gem Tiles</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon.svg">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<style>
+:root{--pink:#ff4fa3;--pink2:#ffd1ec;--gold:#f0b84a;--ink:#5a1747;--card:rgba(255,255,255,.82);--font:"Baloo 2","Nunito",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Noto Sans Devanagari","Mangal","Nirmala UI",sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#ffd6ec;font-family:var(--font);color:var(--ink);user-select:none;-webkit-user-select:none}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+.screen{position:fixed;inset:0;z-index:2;display:none;flex-direction:column;align-items:center;overflow-y:auto;padding:max(10px,env(safe-area-inset-top)) 12px 24px}
+.screen.on{display:flex}
+h1{font-size:clamp(34px,9vw,58px);margin:6px 0 0;line-height:1;background:linear-gradient(90deg,#ff4fa3,#f0b84a,#c9c9d6,#ff4fa3);background-size:300%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 4s linear infinite;filter:drop-shadow(0 3px 0 #fff)}
+@keyframes shine{to{background-position:300%}}
+h2{margin:6px 0 10px;font-size:26px;color:#fff;text-shadow:0 2px 0 var(--pink),0 0 12px rgba(255,79,163,.6)}
+.top{width:100%;max-width:760px;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.top .sp{flex:1}
+.pill{background:var(--card);border-radius:999px;padding:5px 12px;font-weight:800;font-size:16px;box-shadow:0 2px 0 rgba(255,79,163,.35);white-space:nowrap}
+.btn{border:0;font:inherit;font-weight:800;font-size:19px;color:#fff;padding:12px 20px;border-radius:22px;background:linear-gradient(180deg,#ff8cc6,#ff3d96);box-shadow:0 5px 0 #c2186b,0 8px 18px rgba(255,61,150,.35),inset 0 2px 0 rgba(255,255,255,.6);cursor:pointer;position:relative;overflow:hidden;min-height:52px}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #c2186b}
+.btn.gold{background:linear-gradient(180deg,#ffe08a,#f0a91c);box-shadow:0 5px 0 #b57800,inset 0 2px 0 rgba(255,255,255,.7);color:#6b3b00}
+.btn.silver{background:linear-gradient(180deg,#ffffff,#c9d1de);box-shadow:0 5px 0 #8f9bb0,inset 0 2px 0 #fff;color:#4b5670}
+.btn.small{font-size:15px;padding:7px 12px;min-height:40px;border-radius:16px}
+.btn.icon{width:48px;min-height:48px;padding:0;font-size:24px;border-radius:50%}
+.btn::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);transform:skewX(-20deg);animation:glint 3.2s infinite}
+@keyframes glint{0%,70%{left:-60%}100%{left:130%}}
+.menu{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:440px;margin-top:10px}
+.menu .btn.wide{grid-column:span 2;font-size:26px;min-height:68px}
+#mascotHome{width:200px;height:170px}
+.card{background:var(--card);border-radius:22px;padding:12px;box-shadow:0 4px 14px rgba(200,40,120,.18);border:2px solid rgba(255,255,255,.9)}
+.list{width:100%;max-width:760px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.song{display:flex;align-items:center;gap:10px;cursor:pointer;position:relative}
+.song .em{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;font-size:30px;flex:none;box-shadow:inset 0 -4px 0 rgba(0,0,0,.12),0 0 0 3px #fff}
+.song .ti{font-weight:800;font-size:18px;line-height:1.15;word-break:break-word}
+.song .sub{font-size:13px;opacity:.75}
+.song .stars{font-size:15px;letter-spacing:1px}
+.song.locked{opacity:.6;filter:grayscale(.5)}
+.song .edit{margin-left:auto}
+.seg{display:flex;gap:6px;background:var(--card);padding:5px;border-radius:20px}
+.seg button{border:0;font:inherit;font-weight:800;font-size:16px;padding:8px 12px;border-radius:15px;background:transparent;color:var(--ink);cursor:pointer}
+.seg button.on{background:linear-gradient(180deg,#ff8cc6,#ff3d96);color:#fff}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;width:100%;max-width:760px;margin:6px 0}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:8px}
+.grid{width:100%;max-width:760px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.item{text-align:center;cursor:pointer;position:relative}
+.item canvas{width:100%;height:110px;border-radius:14px;background:rgba(255,255,255,.4)}
+.item .nm{font-weight:800;font-size:15px}
+.item .pr{font-size:14px}
+.item.eq{outline:4px solid var(--gold)}
+.sticker{font-size:40px;text-align:center;padding:6px;border-radius:16px;background:var(--card);position:relative;aspect-ratio:1;display:grid;place-items:center}
+.sticker.rare{background:linear-gradient(135deg,#e9ddff,#fff);box-shadow:0 0 0 3px #b98cff}
+.sticker.golden{background:linear-gradient(135deg,#fff1b0,#f0b84a);box-shadow:0 0 0 3px #d4a017,0 0 16px #ffd76a}
+.sticker.none{filter:grayscale(1) brightness(1.5);opacity:.35}
+.sticker small{position:absolute;bottom:2px;right:6px;font-size:12px;font-weight:800}
+.album{width:100%;max-width:760px;display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px}
+.modal{position:fixed;inset:0;z-index:20;display:none;place-items:center;background:rgba(90,23,71,.45);padding:16px}
+.modal.on{display:grid}
+.modal .card{max-width:420px;width:100%;text-align:center;animation:pop .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+#game{position:fixed;inset:0;z-index:5;display:none;touch-action:none}
+#game.on{display:block}
+#cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+#hud{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:8px;padding:max(8px,env(safe-area-inset-top)) 10px 0;pointer-events:none;font-weight:800}
+#hud .pill{pointer-events:auto}
+#hud .sp{flex:1}
+#prog{position:absolute;left:0;top:0;height:5px;background:linear-gradient(90deg,#ff4fa3,#ffd76a,#fff);border-radius:0 4px 4px 0}
+input[type=text]{font:inherit;font-size:20px;font-weight:700;padding:10px 14px;border-radius:16px;border:3px solid #ffb3d9;width:100%;color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--pink)}
+.emojis{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.emojis button{font-size:26px;width:46px;height:46px;border-radius:14px;border:3px solid transparent;background:#fff;cursor:pointer}
+.emojis button.on{border-color:var(--pink)}
+.swatch{width:40px;height:40px;border-radius:50%;border:4px solid #fff;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.swatch.on{outline:4px solid var(--pink)}
+.lbl{font-weight:800;margin:10px 0 4px;text-align:left;width:100%}
+.note{font-size:14px;opacity:.85;line-height:1.35}
+.bar{height:16px;border-radius:9px;background:#ffe1f1;overflow:hidden;margin:10px 0}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff4fa3,#ffd76a);transition:width .2s}
+.badge{text-align:center;padding:8px}
+.badge .b{font-size:38px}
+.badge.off{opacity:.35;filter:grayscale(1)}
+.big-stars{font-size:46px;letter-spacing:4px;margin:4px 0}
+.big-stars span{display:inline-block;animation:pop .5s backwards}
+.stat{display:flex;justify-content:space-between;font-weight:700;padding:2px 6px}
+#tapPad{width:200px;height:200px;border-radius:50%;font-size:30px}
+.toast{position:fixed;left:50%;bottom:10%;transform:translateX(-50%);z-index:30;background:#fff;border-radius:20px;padding:10px 18px;font-weight:800;box-shadow:0 6px 20px rgba(255,79,163,.4);animation:pop .3s;pointer-events:none;text-align:center}
+.hidden{display:none!important}
+@media (orientation:landscape) and (max-height:500px){#mascotHome{width:140px;height:110px}h1{font-size:34px}.menu{grid-template-columns:repeat(4,1fr);max-width:760px}.menu .btn.wide{grid-column:span 4;min-height:54px}}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<section class="screen on" id="home">
+  <div class="top"><span class="pill" id="hStars">⭐ 0</span><span class="pill" id="hCoins">🪙 0</span><span class="sp"></span><button class="btn icon silver" data-go="settings" aria-label="Settings">⚙️</button></div>
+  <h1 data-t="title">Gem Tiles</h1>
+  <div class="note" style="font-weight:800;color:#fff;text-shadow:0 1px 3px #c2186b" data-t="tag">Tap the sparkly tiles to the music!</div>
+  <canvas id="mascotHome"></canvas>
+  <div class="menu">
+    <button class="btn wide" data-go="songs" data-t="play">▶ Play</button>
+    <button class="btn gold" id="giftBtn" data-t="gift">🎁 Daily gift</button>
+    <button class="btn" data-go="add" data-t="addSong">🎵 Add my song</button>
+    <button class="btn silver" data-go="shop" data-t="shop">🛍️ Shop</button>
+    <button class="btn silver" data-go="album" data-t="album">📒 Stickers</button>
+    <button class="btn silver" data-go="badges" data-t="badges">🏅 Badges</button>
+    <button class="btn silver" data-go="closet" data-t="closet">🎀 Gigi's closet</button>
+  </div>
+</section>
+
+<section class="screen" id="songs">
+  <div class="top"><button class="btn icon silver" data-go="home">⬅</button><span class="pill" id="sStars">⭐ 0</span><span class="sp"></span><button class="btn small" data-go="add" data-t="addSong">🎵 Add my song</button></div>
+  <div class="row"><div class="seg" id="diffSeg"><button data-d="easy" data-t="easy">Easy</button><button data-d="normal" data-t="normal">Normal</button><button data-d="hard" data-t="hard">Hard</button></div>
+    <div class="seg"><button id="practiceBtn" data-t="practice">💗 Practice</button></div></div>
+  <div class="list" id="songList"></div>
+</section>
+
+<section class="screen" id="shop">
+  <div class="top"><button class="btn icon silver" data-go="home">⬅</button><h2 style="margin:0" data-t="shop">Shop</h2><span class="sp"></span><span class="pill" id="shCoins">🪙 0</span></div>
+  <div class="tabs" id="shopTabs"></div>
+  <div class="grid" id="shopGrid"></div>
+</section>
+
+<section class="screen" id="album">
+  <div class="top"><button class="btn icon silver" data-go="home">⬅</button><h2 style="margin:0" data-t="album">Sticker Album</h2><span class="sp"></span><span class="pill" id="alCount"></span></div>
+  <div class="row"><button class="btn gold" id="openPack">🎁 Open mystery pack (<span id="packN">0</span>)</button><button class="btn silver small" id="buyPack">🪙 40 → 1 pack</button></div>
+  <div class="album" id="albumGrid"></div>
+</section>
+
+<section class="screen" id="badges">
+  <div class="top"><button class="btn icon silver" data-go="home">⬅</button><h2 style="margin:0" data-t="badges">Badges</h2></div>
+  <div class="grid" id="badgeGrid"></div>
+</section>
+
+<section class="screen" id="settings">
+  <div class="top"><button class="btn icon silver" data-go="home">⬅</button><h2 style="margin:0" data-t="settings">Settings</h2></div>
+  <div class="card" style="width:100%;max-width:480px">
+    <div class="lbl">🔊 <span data-t="sound">Sound</span></div><div class="seg" id="soundSeg"><button data-v="1">On</button><button data-v="0">Off</button></div>
+    <div class="lbl">🥁 <span data-t="beat">Backing beat (built-in songs)</span></div><div class="seg" id="beatSeg"><button data-v="1">On</button><button data-v="0">Off</button></div>
+    <div class="lbl">🗣️ Language / भाषा</div><div class="seg" id="langSeg"><button data-v="en">English</button><button data-v="hi">हिंदी</button></div>
+    <div class="lbl">⏱️ <span data-t="sync">Sync (tap timing)</span>: <span id="offVal">0</span> ms</div>
+    <input type="range" id="offRange" min="-250" max="350" step="5">
+    <button class="btn small" id="calibBtn" data-t="calib">👆 Tap test to sync</button>
+    <p class="note" data-t="syncNote">If tiles feel early or late (especially with Bluetooth headphones), run the tap test.</p>
+    <p class="note">Gem Tiles has no ads, no links and no purchases. Your songs stay on this phone.</p>
+  </div>
+</section>
+
+<section class="screen" id="calib">
+  <div class="top"><button class="btn icon silver" data-go="settings">⬅</button><h2 style="margin:0" data-t="calib">Tap test</h2></div>
+  <div class="card" style="max-width:420px;text-align:center">
+    <p data-t="calibHow">Tap the big gem every time you hear a click. 12 clicks!</p>
+    <button class="btn" id="tapPad">💎</button>
+    <div class="bar"><i id="calBar"></i></div>
+    <p id="calOut" class="note"></p>
+    <button class="btn gold small" id="calStart" data-t="start">Start</button>
+  </div>
+</section>
+
+<section class="screen" id="add">
+  <div class="top"><button class="btn icon silver" data-go="songs">⬅</button><h2 style="margin:0" data-t="addSong">Add my song</h2></div>
+  <div class="card" style="width:100%;max-width:480px;text-align:center" id="addPick">
+    <p data-t="addHow">Pick a song file from this phone (mp3, m4a, wav, ogg). Gem Tiles listens to it and makes tiles that follow the beat. The song never leaves the phone.</p>
+    <label class="btn gold" style="display:inline-block">📂 <span data-t="choose">Choose song</span><input type="file" id="fileIn" accept="audio/*,.mp3,.m4a,.wav,.ogg,.aac,.flac" hidden></label>
+    <div id="addBusy" class="hidden"><p id="addMsg">Listening to your song…</p><div class="bar"><i id="addBar"></i></div></div>
+    <p id="addErr" class="note" style="color:#c2185b"></p>
+  </div>
+</section>
+
+<section class="screen" id="edit">
+  <div class="top"><button class="btn icon silver" data-go="songs">⬅</button><h2 style="margin:0" data-t="mySong">My song</h2></div>
+  <div class="card" style="width:100%;max-width:480px">
+    <div class="lbl" data-t="name">Name</div><input type="text" id="edTitle" maxlength="60">
+    <div class="lbl" data-t="pic">Picture</div><div class="emojis" id="edEmoji"></div>
+    <div class="lbl" data-t="color">Color</div><div class="row" id="edColor"></div>
+    <div class="lbl"><span data-t="theme">Theme</span> <span class="note" id="edSuggest"></span></div><div class="emojis" id="edTheme" style="justify-content:flex-start"></div>
+    <div class="lbl"><span data-t="songSync">Song sync</span>: <span id="edOffVal">0</span> ms</div><input type="range" id="edOff" min="-300" max="300" step="10">
+    <p class="note" id="edInfo"></p>
+    <div class="row"><button class="btn gold" id="edSave" data-t="save">💾 Save</button><button class="btn silver small" id="edRegen" data-t="regen">🔀 Re-make tiles</button><button class="btn silver small" id="edDel" data-t="del">🗑️ Delete</button></div>
+  </div>
+</section>
+
+<div id="game"><canvas id="cv"></canvas><div id="prog"></div>
+  <div id="hud"><button class="pill" id="pauseBtn" style="border:0;font:inherit;font-weight:800">⏸</button><span class="pill" id="hHearts"></span><span class="sp"></span><span class="pill" id="hScore">0</span></div></div>
+
+<div class="modal" id="mPause"><div class="card"><h2 data-t="paused">Paused</h2><div class="row"><button class="btn" id="resumeBtn" data-t="resume">▶ Keep playing</button><button class="btn silver" id="restartBtn" data-t="restart">↺ Restart</button><button class="btn silver" id="quitBtn" data-t="quit">🏠 Songs</button></div></div></div>
+<div class="modal" id="mOut"><div class="card"><canvas id="mascotOut" width="160" height="130" style="width:160px;height:130px"></canvas><h2 data-t="outHearts">Out of hearts!</h2><p data-t="outMsg">You're doing great. Want to keep going?</p><div class="row"><button class="btn" id="contBtn" data-t="cont">💗 Keep going (practice)</button><button class="btn silver" id="outRetry" data-t="restart">↺ Restart</button><button class="btn silver" id="outEnd" data-t="finish">🏁 Finish</button></div></div></div>
+<div class="modal" id="mRes"><div class="card" id="resCard"></div></div>
+<div class="modal" id="mMsg"><div class="card" id="msgCard"></div></div>
+
+<script src="./songs.js"></script>
+<script src="./audio.js"></script>
+<script src="./analyze.js"></script>
+<script src="./art.js"></script>
+<script src="./app.js"></script>
+</body></html>

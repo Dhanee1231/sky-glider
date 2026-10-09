@@ -1,0 +1,27 @@
+// Built-in public-domain melodies, hand-charted. "Note:beats" (default 1 beat). R = rest.
+window.TILE_SONGS = [
+ { id: 'twinkle', title: 'Twinkle Twinkle Little Star', by: 'Traditional', emoji: '⭐', theme: 'moon', bpm: 96, cost: 0,
+   m: 'C5 C5 G5 G5 A5 A5 G5:2 F5 F5 E5 E5 D5 D5 C5:2 G5 G5 F5 F5 E5 E5 D5:2 G5 G5 F5 F5 E5 E5 D5:2 C5 C5 G5 G5 A5 A5 G5:2 F5 F5 E5 E5 D5 D5 C5:2' },
+ { id: 'mary', title: 'Mary Had a Little Lamb', by: 'Traditional', emoji: '🐑', theme: 'pinkgold', bpm: 104, cost: 0,
+   m: 'E5 D5 C5 D5 E5 E5 E5:2 D5 D5 D5:2 E5 G5 G5:2 E5 D5 C5 D5 E5 E5 E5 E5 D5 D5 E5 D5 C5:4' },
+ { id: 'row', title: 'Row, Row, Row Your Boat', by: 'Traditional', emoji: '⛵', theme: 'ocean', bpm: 100, cost: 0,
+   m: 'C5:1.5 C5:1.5 C5:1 D5:.5 E5:1.5 E5:1 D5:.5 E5:1 F5:.5 G5:3 C6:.5 C6:.5 C6:.5 G5:.5 G5:.5 G5:.5 E5:.5 E5:.5 E5:.5 C5:.5 C5:.5 C5:.5 G5:1 F5:.5 E5:1 D5:.5 C5:3' },
+ { id: 'london', title: 'London Bridge', by: 'Traditional', emoji: '🌉', theme: 'pinkgold', bpm: 108, cost: 0,
+   m: 'G5:1.5 A5:.5 G5 F5 E5 F5 G5:2 D5 E5 F5:2 E5 F5 G5:2 G5:1.5 A5:.5 G5 F5 E5 F5 G5:2 D5:2 G5:2 E5 C5:3' },
+ { id: 'ode', title: 'Ode to Joy', by: 'Beethoven', emoji: '🎻', theme: 'galaxy', bpm: 110, cost: 3,
+   m: 'E5 E5 F5 G5 G5 F5 E5 D5 C5 C5 D5 E5 E5:1.5 D5:.5 D5:2 E5 E5 F5 G5 G5 F5 E5 D5 C5 C5 D5 E5 D5:1.5 C5:.5 C5:2 D5 D5 E5 C5 D5 E5:.5 F5:.5 E5 C5 D5 E5:.5 F5:.5 E5 D5 C5 D5 G4:2 E5 E5 F5 G5 G5 F5 E5 D5 C5 C5 D5 E5 D5:1.5 C5:.5 C5:2' },
+ { id: 'brahms', title: 'Brahms Lullaby', by: 'Brahms', emoji: '🌙', theme: 'moon', bpm: 84, cost: 6,
+   m: 'E5:.5 E5:.5 G5:2 E5:.5 E5:.5 G5:2 E5:.5 G5:.5 C6 B5:1.5 A5:.5 A5 G5 D5:.5 E5:.5 F5 D5 D5:.5 E5:.5 F5:2 D5:.5 F5:.5 B5:.5 A5:.5 G5 B5 C6:3' },
+ { id: 'oldmac', title: 'Old MacDonald', by: 'Traditional', emoji: '🐮', theme: 'candy', bpm: 112, cost: 9,
+   m: 'G5 G5 G5 D5 E5 E5 D5:2 B5 B5 A5 A5 G5:3 D5 G5 G5 G5 D5 E5 E5 D5:2 B5 B5 A5 A5 G5:3' },
+ { id: 'jingle', title: 'Jingle Bells', by: 'J. Pierpont', emoji: '🔔', theme: 'galaxy', bpm: 120, cost: 12,
+   m: 'E5 E5 E5:2 E5 E5 E5:2 E5 G5 C5:1.5 D5:.5 E5:4 F5 F5 F5:1.5 F5:.5 F5 E5 E5 E5:.5 E5:.5 E5 D5 D5 E5 D5:2 G5:2 E5 E5 E5:2 E5 E5 E5:2 E5 G5 C5:1.5 D5:.5 E5:4 F5 F5 F5 F5 F5 E5 E5 E5:.5 E5:.5 G5 G5 F5 D5 C5:4' },
+ { id: 'elise', title: 'Für Elise', by: 'Beethoven', emoji: '🎹', theme: 'moon', bpm: 72, cost: 16,
+   m: 'E6:.5 D#6:.5 E6:.5 D#6:.5 E6:.5 B5:.5 D6:.5 C6:.5 A5:1 C5:.5 E5:.5 A5:.5 B5:1 E5:.5 G#5:.5 B5:.5 C6:1 E5:.5 E6:.5 D#6:.5 E6:.5 D#6:.5 E6:.5 B5:.5 D6:.5 C6:.5 A5:1 C5:.5 E5:.5 A5:.5 B5:1 E5:.5 C6:.5 B5:.5 A5:2' },
+ { id: 'cancan', title: 'Can-Can', by: 'Offenbach', emoji: '💃', theme: 'disco', bpm: 132, cost: 20,
+   m: 'C5:2 D5:.5 F5:.5 E5:.5 D5:.5 G5 G5 G5:.5 A5:.5 E5:.5 F5:.5 D5 D5 D5:.5 F5:.5 E5:.5 D5:.5 C5:.5 C6:.5 B5:.5 A5:.5 G5:.5 F5:.5 E5:.5 D5:.5 C5:2 D5:.5 F5:.5 E5:.5 D5:.5 G5 G5 G5:.5 A5:.5 E5:.5 F5:.5 D5 D5 D5:.5 F5:.5 E5:.5 D5:.5 C5:.5 G5:.5 D5:.5 E5:.5 C5:2' },
+ { id: 'mountain', title: 'Hall of the Mountain King', by: 'Grieg', emoji: '👑', theme: 'festival', bpm: 120, cost: 25,
+   m: 'B4:.5 C#5:.5 D5:.5 E5:.5 F#5:.5 D5:.5 F#5 F5:.5 C#5:.5 F5 E5:.5 C5:.5 E5 B4:.5 C#5:.5 D5:.5 E5:.5 F#5:.5 D5:.5 F#5:.5 B5:.5 A5:.5 F#5:.5 D5:.5 F#5:.5 A5:2 E5:.5 F#5:.5 G5:.5 A5:.5 B5:.5 G5:.5 B5 A#5:.5 F#5:.5 A#5 A5:.5 F5:.5 A5 E5:.5 F#5:.5 G5:.5 A5:.5 B5:.5 G5:.5 B5:.5 E6:.5 D6:.5 B5:.5 G5:.5 B5:.5 D6:2' },
+ { id: 'turkish', title: 'Turkish March', by: 'Mozart', emoji: '🥁', theme: 'disco', bpm: 64, cost: 30,
+   m: 'B4:.25 A4:.25 G#4:.25 A4:.25 C5:1 D5:.25 C5:.25 B4:.25 C5:.25 E5:1 F5:.25 E5:.25 D#5:.25 E5:.25 B5:.25 A5:.25 G#5:.25 A5:.25 B5:.25 A5:.25 G#5:.25 A5:.25 C6:2 A5:.5 C6:.5 B5:.5 A5:.5 G5:.5 A5:.5 B5:.5 A5:.5 G5:.5 A5:.5 B5:.5 A5:.5 G5:.5 F#5:.5 E5:2' }
+];
