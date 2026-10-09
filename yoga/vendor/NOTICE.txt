@@ -1,0 +1,4 @@
+Vendored third-party files (used fully on-device, offline):
+- vision_bundle.mjs, vision_wasm_internal.js, vision_wasm_internal.wasm: @mediapipe/tasks-vision 1.1.0, Apache License 2.0, (c) Google LLC.
+  Local patch: the built-in usage-logging uploader is disabled, so the library makes no network requests.
+- pose_landmarker_lite.task: MediaPipe Pose Landmarker (lite) model, Apache License 2.0, (c) Google LLC.
