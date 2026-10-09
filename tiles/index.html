@@ -10,7 +10,7 @@
 <style>
 :root{--pink:#ff4fa3;--pink2:#ffd1ec;--gold:#f0b84a;--ink:#5a1747;--card:rgba(255,255,255,.82);--font:"Baloo 2","Nunito",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Noto Sans Devanagari","Mangal","Nirmala UI",sans-serif}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;overflow:hidden;background:#ffd6ec;font-family:var(--font);color:var(--ink);user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;background:#ffd6ec;font-family:var(--font);color:var(--ink);user-select:none;-webkit-user-select:none}
 #bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
 .screen{position:fixed;inset:0;z-index:2;display:none;flex-direction:column;align-items:center;overflow-y:auto;padding:max(10px,env(safe-area-inset-top)) 12px 24px}
 .screen.on{display:flex}
@@ -63,7 +63,7 @@ h2{margin:6px 0 10px;font-size:26px;color:#fff;text-shadow:0 2px 0 var(--pink),0
 @keyframes pop{from{transform:scale(.6);opacity:0}}
 #game{position:fixed;inset:0;z-index:5;display:none;touch-action:none}
 #game.on{display:block}
-#cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+#cv,#bgcv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 #hud{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:8px;padding:max(8px,env(safe-area-inset-top)) 10px 0;pointer-events:none;font-weight:800}
 #hud .pill{pointer-events:auto}
 #hud .sp{flex:1}
@@ -190,7 +190,7 @@ input[type=range]{width:100%;accent-color:var(--pink)}
   </div>
 </section>
 
-<div id="game"><canvas id="cv"></canvas><div id="prog"></div>
+<div id="game"><canvas id="bgcv"></canvas><canvas id="cv"></canvas><div id="prog"></div>
   <div id="hud"><button class="pill" id="pauseBtn" style="border:0;font:inherit;font-weight:800;min-width:64px;min-height:56px;font-size:22px">⏸</button><span class="pill" id="hHearts"></span><span class="sp"></span><span class="pill" id="hScore">0</span></div></div>
 
 <div class="modal" id="mPause"><div class="card"><h2 data-t="paused">Paused</h2><div class="row"><button class="btn" id="resumeBtn" data-t="resume">▶ Keep playing</button><button class="btn silver" id="restartBtn" data-t="restart">↺ Restart</button><button class="btn silver" id="quitBtn" data-t="quit">🏠 Songs</button></div></div></div>

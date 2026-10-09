@@ -161,8 +161,10 @@
 (function () {
   const Art = window.Art, TAU = Math.PI * 2, cache = new Map();
   const mk = (w, h) => { const cv = document.createElement('canvas'); cv.width = Math.max(1, Math.ceil(w)); cv.height = Math.max(1, Math.ceil(h)); return cv; };
-  Art.spr = (key, w, h, fn) => { let s = cache.get(key); if (!s) { s = mk(w, h); fn(s.getContext('2d'), s.width, s.height); cache.set(key, s); if (cache.size > 400) cache.delete(cache.keys().next().value); } return s; };
-  Art.clearCache = () => cache.clear();
+  const big = new Map(); // large (screen-sized) sprites get their own tiny LRU so fold/unfold resizes can't pile up memory
+  Art.spr = (key, w, h, fn) => { const isBig = w * h > 250000, m = isBig ? big : cache; let s = m.get(key); if (s) { if (isBig) { m.delete(key); m.set(key, s); } return s; } s = mk(w, h); fn(s.getContext('2d'), s.width, s.height); m.set(key, s); if (m.size > (isBig ? 6 : 400)) m.delete(m.keys().next().value); return s; };
+  Art.cacheSize = () => cache.size + big.size;
+  Art.clearCache = () => { cache.clear(); big.clear(); };
   const slowBg = Art.bg;
   Art.sparkleImg = col => Art.spr('sp|' + col, 32, 32, (c) => { c.shadowColor = col; c.shadowBlur = 4; Art.sparkle(c, 16, 16, 12, col, 1); });
   Art.spark = (c, x, y, s, col, a) => { if (s < 0.5 || a <= 0.02) return; c.globalAlpha = a > 1 ? 1 : a; c.drawImage(Art.sparkleImg(col), x - s * 1.33, y - s * 1.33, s * 2.67, s * 2.67); c.globalAlpha = 1; };
