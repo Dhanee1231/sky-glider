@@ -67,7 +67,7 @@ h2{margin:6px 0 10px;font-size:26px;color:#fff;text-shadow:0 2px 0 var(--pink),0
 #hud{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:8px;padding:max(8px,env(safe-area-inset-top)) 10px 0;pointer-events:none;font-weight:800}
 #hud .pill{pointer-events:auto}
 #hud .sp{flex:1}
-#prog{position:absolute;left:0;top:0;height:5px;background:linear-gradient(90deg,#ff4fa3,#ffd76a,#fff);border-radius:0 4px 4px 0}
+#prog{position:absolute;left:0;top:0;height:5px;width:100%;transform-origin:0 0;transform:scaleX(0);will-change:transform;background:linear-gradient(90deg,#ff4fa3,#ffd76a,#fff);border-radius:0 4px 4px 0}
 input[type=text]{font:inherit;font-size:20px;font-weight:700;padding:10px 14px;border-radius:16px;border:3px solid #ffb3d9;width:100%;color:var(--ink)}
 input[type=range]{width:100%;accent-color:var(--pink)}
 .emojis{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
@@ -138,11 +138,11 @@ input[type=range]{width:100%;accent-color:var(--pink)}
   <div class="top"><button class="btn icon silver" data-go="home">⬅</button><h2 style="margin:0" data-t="settings">Settings</h2></div>
   <div class="card" style="width:100%;max-width:480px">
     <div class="lbl">🔊 <span data-t="sound">Sound</span></div><div class="seg" id="soundSeg"><button data-v="1">On</button><button data-v="0">Off</button></div>
-    <div class="lbl">🥁 <span data-t="beat">Backing beat (built-in songs)</span></div><div class="seg" id="beatSeg"><button data-v="1">On</button><button data-v="0">Off</button></div>
+    <div class="lbl">🎧 <span data-t="beat">Miss effect (song dips a little on a miss)</span></div><div class="seg" id="beatSeg"><button data-v="1">On</button><button data-v="0">Off</button></div>
     <div class="lbl">🗣️ Language / भाषा</div><div class="seg" id="langSeg"><button data-v="en">English</button><button data-v="hi">हिंदी</button></div>
     <div class="lbl">⏱️ <span data-t="sync">Sync (tap timing)</span>: <span id="offVal">0</span> ms</div>
     <input type="range" id="offRange" min="-250" max="350" step="5">
-    <button class="btn small" id="calibBtn" data-t="calib">👆 Tap test to sync</button>
+    <div class="lbl">👀 Screen offset: <span id="visVal">0</span> ms</div><button class="btn small" id="calibBtn" data-t="calib">👆 Tap test to sync</button>
     <p class="note" data-t="syncNote">If tiles feel early or late (especially with Bluetooth headphones), run the tap test.</p>
     <p class="note">Gem Tiles has no ads, no links and no purchases. Your songs stay on this phone.</p>
   </div>
@@ -151,11 +151,11 @@ input[type=range]{width:100%;accent-color:var(--pink)}
 <section class="screen" id="calib">
   <div class="top"><button class="btn icon silver" data-go="settings">⬅</button><h2 style="margin:0" data-t="calib">Tap test</h2></div>
   <div class="card" style="max-width:420px;text-align:center">
-    <p data-t="calibHow">Tap the big gem every time you hear a click. 12 clicks!</p>
+    <p data-t="calibHow">Sound test: tap the big gem on every click. Screen test: tap when the falling heart lands on the line.</p>
     <button class="btn" id="tapPad">💎</button>
     <div class="bar"><i id="calBar"></i></div>
     <p id="calOut" class="note"></p>
-    <button class="btn gold small" id="calStart" data-t="start">Start</button>
+    <canvas id="calCv" class="hidden" style="width:100%;height:160px"></canvas><div class="row"><button class="btn gold small" id="calStart">🔊 Sound test</button><button class="btn silver small" id="calVis">👀 Screen test</button></div>
   </div>
 </section>
 
@@ -187,6 +187,7 @@ input[type=range]{width:100%;accent-color:var(--pink)}
 
 <div class="modal" id="mPause"><div class="card"><h2 data-t="paused">Paused</h2><div class="row"><button class="btn" id="resumeBtn" data-t="resume">▶ Keep playing</button><button class="btn silver" id="restartBtn" data-t="restart">↺ Restart</button><button class="btn silver" id="quitBtn" data-t="quit">🏠 Songs</button></div></div></div>
 <div class="modal" id="mOut"><div class="card"><canvas id="mascotOut" width="160" height="130" style="width:160px;height:130px"></canvas><h2 data-t="outHearts">Out of hearts!</h2><p data-t="outMsg">You're doing great. Want to keep going?</p><div class="row"><button class="btn" id="contBtn" data-t="cont">💗 Keep going (practice)</button><button class="btn silver" id="outRetry" data-t="restart">↺ Restart</button><button class="btn silver" id="outEnd" data-t="finish">🏁 Finish</button></div></div></div>
+<div class="modal" id="mLoad"><div class="card"><h2>Get ready! 💎</h2><p id="loadMsg">Loading…</p><div class="bar"><i id="loadBar"></i></div></div></div>
 <div class="modal" id="mRes"><div class="card" id="resCard"></div></div>
 <div class="modal" id="mMsg"><div class="card" id="msgCard"></div></div>
 

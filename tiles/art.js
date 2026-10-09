@@ -157,3 +157,62 @@
   };
   window.Art = Art;
 })();
+// ================= v2: sprite caches + fast backgrounds (no per-frame gradients / shadowBlur) =================
+(function () {
+  const Art = window.Art, TAU = Math.PI * 2, cache = new Map();
+  const mk = (w, h) => { const cv = document.createElement('canvas'); cv.width = Math.max(1, Math.ceil(w)); cv.height = Math.max(1, Math.ceil(h)); return cv; };
+  Art.spr = (key, w, h, fn) => { let s = cache.get(key); if (!s) { s = mk(w, h); fn(s.getContext('2d'), s.width, s.height); cache.set(key, s); if (cache.size > 400) cache.delete(cache.keys().next().value); } return s; };
+  Art.clearCache = () => cache.clear();
+  const slowBg = Art.bg;
+  Art.sparkleImg = col => Art.spr('sp|' + col, 32, 32, (c) => { c.shadowColor = col; c.shadowBlur = 4; Art.sparkle(c, 16, 16, 12, col, 1); });
+  Art.spark = (c, x, y, s, col, a) => { if (s < 0.5 || a <= 0.02) return; c.globalAlpha = a > 1 ? 1 : a; c.drawImage(Art.sparkleImg(col), x - s * 1.33, y - s * 1.33, s * 2.67, s * 2.67); c.globalAlpha = 1; };
+  Art.gemImg = (shape, light, dark, s, glow) => { const b = Math.max(8, Math.round(s / 8) * 8); return Art.spr(`g|${shape}|${light}|${dark}|${b}|${glow || ''}`, b * 1.6, b * 1.6, c => Art.gem(c, shape, b * 0.8, b * 0.8, b, light, dark, glow)); };
+  Art.gemFast = (c, shape, x, y, s, light, dark, glow) => { const im = Art.gemImg(shape, light, dark, s, glow), k = s / (im.width / 1.6); c.drawImage(im, x - im.width * k / 2, y - im.height * k / 2, im.width * k, im.height * k); };
+  // a full tile (no hold) pre-rendered at a size bucket
+  Art.tileImg = (skin, glitter, frame, shape, w, h) => { const bw = Math.round(w / 4) * 4, bh = Math.round(h / 4) * 4;
+    return Art.spr(`t|${skin}|${glitter}|${frame}|${shape}|${bw}|${bh}`, bw + 24, bh + 24, c => { c.translate(12, 12); Art.tile(c, { x: 0, y: 0, w: bw, h: bh, skin, glitter, frame, shape, t: 0.3, seed: 7 }); }); };
+  Art.glowImg = col => Art.spr('glow|' + col, 128, 128, c => { const g = c.createRadialGradient(64, 64, 2, 64, 64, 64); g.addColorStop(0, col); g.addColorStop(0.35, col + '88'); g.addColorStop(1, col + '00'); c.fillStyle = g; c.fillRect(0, 0, 128, 128); });
+  const rnd = (i, k) => { const v = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return v - Math.floor(v); };
+  // static layer per theme+size (sky + things that don't move)
+  const staticLayer = (theme, W, H) => Art.spr(`bg|${theme}|${W}|${H}`, W, H, c => {
+    const T = Art.THEMES[theme] || Art.THEMES.pinkgold, g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, T.sky[0]); g.addColorStop(0.6, T.sky[1]); g.addColorStop(1, T.sky[2]); c.fillStyle = g; c.fillRect(0, 0, W, H);
+    if (theme === 'galaxy' || theme === 'moon') for (let i = 0; i < 70; i++) Art.sparkle(c, rnd(i, 1) * W, rnd(i, 2) * H, 1 + 2 * rnd(i, 3), '#fff', 0.5 + 0.5 * rnd(i, 4));
+    if (theme === 'galaxy') { const ng = c.createRadialGradient(W * 0.3, H * 0.4, 10, W * 0.3, H * 0.4, W * 0.7); ng.addColorStop(0, 'rgba(255,100,200,.3)'); ng.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = ng; c.fillRect(0, 0, W, H);
+      c.fillStyle = '#ffb3e6'; c.beginPath(); c.arc(W * 0.82, H * 0.22, 26, 0, TAU); c.fill(); c.strokeStyle = 'rgba(255,255,255,.6)'; c.lineWidth = 3; c.beginPath(); c.ellipse(W * 0.82, H * 0.22, 44, 10, -0.3, 0, TAU); c.stroke(); }
+    if (theme === 'moon') { c.shadowColor = '#fff6d8'; c.shadowBlur = 50; c.fillStyle = '#fff6e0'; c.beginPath(); c.arc(W * 0.78, H * 0.16, Math.min(W, H) * 0.08, 0, TAU); c.fill(); c.shadowBlur = 0; }
+    if (theme === 'rainbow') ['#ff6b9e', '#ffa94d', '#ffd43b', '#69db7c', '#4dabf7', '#9775fa'].forEach((col, k) => { c.strokeStyle = col; c.globalAlpha = 0.45; c.lineWidth = 16; c.beginPath(); c.arc(W / 2, H * 0.75, Math.max(4, Math.min(W, H) * 0.55 - k * 16), Math.PI, TAU); c.stroke(); c.globalAlpha = 1; });
+    if (theme === 'disco') { c.strokeStyle = 'rgba(255,61,242,.35)'; c.lineWidth = 2; const hz = H * 0.62; for (let i = -10; i <= 10; i++) { c.beginPath(); c.moveTo(W / 2 + i * 20, hz); c.lineTo(W / 2 + i * 160, H); c.stroke(); } }
+    if (theme === 'festival') { for (let gi = 0; gi < 2; gi++) for (let i = 0; i <= 26; i++) { const u = i / 26, x = u * W, y = 18 + gi * 18 + Math.sin(u * Math.PI) * (40 + gi * 20); c.fillStyle = i % 2 ? '#ff9f1c' : '#ffcf33'; c.beginPath(); c.arc(x, y, 9, 0, TAU); c.fill(); c.fillStyle = 'rgba(200,80,0,.5)'; c.beginPath(); c.arc(x, y, 3, 0, TAU); c.fill(); }
+      const nd = Math.max(4, Math.round(W / 90)); for (let i = 0; i < nd; i++) { const x = (i + 0.5) * W / nd, y = H - 26; c.fillStyle = '#b5541c'; c.beginPath(); c.ellipse(x, y, 22, 10, 0, 0, Math.PI); c.fill(); } }
+  });
+  const rangoli = R => Art.spr('rangoli|' + Math.round(R), R * 2, R * 2, c => { c.translate(R, R); c.globalAlpha = 0.35;
+    ['#ffd23f', '#ff5e7e', '#ff9f1c', '#2ec4b6', '#fff'].forEach((col, k) => { c.fillStyle = col; const rk = R * (1 - k * 0.18), petals = 8 + k * 4; for (let i = 0; i < petals; i++) { c.save(); c.rotate(i / petals * TAU); c.beginPath(); c.ellipse(rk * 0.6, 0, rk * 0.35, rk * 0.11, 0, 0, TAU); c.fill(); c.restore(); } }); });
+  const flame = () => Art.spr('flame', 40, 60, c => { const fg = c.createRadialGradient(20, 34, 1, 20, 34, 26); fg.addColorStop(0, '#fff6c0'); fg.addColorStop(0.4, '#ffb000'); fg.addColorStop(1, 'rgba(255,120,0,0)'); c.fillStyle = fg; c.beginPath(); c.ellipse(20, 32, 10, 24, 0, 0, TAU); c.fill(); });
+  const beam = col => Art.spr('beam|' + col, 120, 600, c => { const lg = c.createLinearGradient(0, 0, 0, 600); lg.addColorStop(0, col + 'aa'); lg.addColorStop(1, col + '00'); c.fillStyle = lg; c.beginPath(); c.moveTo(60, 0); c.lineTo(0, 600); c.lineTo(120, 600); c.fill(); });
+  const bubble = () => Art.spr('bubble', 40, 40, c => { c.strokeStyle = 'rgba(255,255,255,.6)'; c.lineWidth = 2; c.beginPath(); c.arc(20, 20, 17, 0, TAU); c.stroke(); c.fillStyle = 'rgba(255,255,255,.55)'; c.beginPath(); c.arc(14, 14, 4, 0, TAU); c.fill(); });
+  const candy = i => Art.spr('candy|' + i, 48, 48, c => { c.fillStyle = ['#ff8cc6', '#8fe3ff', '#ffe066', '#b4f8c8'][i]; c.beginPath(); c.arc(24, 24, 22, 0, TAU); c.fill(); c.strokeStyle = '#fff'; c.lineWidth = 4; c.beginPath(); c.arc(24, 24, 14, 0, 4); c.stroke(); });
+  const cloud = () => Art.spr('cloud', 120, 60, c => { c.fillStyle = 'rgba(255,255,255,.85)'; c.beginPath(); c.arc(60, 32, 24, 0, TAU); c.arc(84, 38, 18, 0, TAU); c.arc(36, 38, 18, 0, TAU); c.fill(); });
+  // one device-resolution layer = sky + static decor (+ rangoli) + caller's extra (the highway): a single full-screen blit per frame
+  Art.scene = (theme, W, H, dpr, key, extra) => Art.spr(`scene|${theme}|${W}|${H}|${dpr.toFixed(2)}|${key}`, W * dpr, H * dpr, (c) => { c.scale(dpr, dpr); c.drawImage(staticLayer(theme, Math.round(W), Math.round(H)), 0, 0, W, H);
+    if (theme === 'festival') { const R = Math.round(Math.min(W, H) * 0.34); c.drawImage(rangoli(R), W / 2 - R, H * 0.45 - R); } if (extra) extra(c); });
+  Art.bg = (c, theme, W, H, t, beat, energy = 0.5, lite) => {
+    W = Math.round(W); H = Math.round(H); const T = Art.THEMES[theme] || Art.THEMES.pinkgold, GL = Art.GLITTER[T.glitter], pulse = Math.pow(1 - (beat % 1 + 1) % 1, 3);
+    if (!lite) c.drawImage(staticLayer(theme, W, H), 0, 0, W, H);
+    if (theme === 'galaxy' || theme === 'moon') { for (let i = 0; i < 16; i++) Art.spark(c, rnd(i, 11) * W, rnd(i, 12) * H, 2 + 3 * rnd(i, 13), i % 3 ? '#ffffff' : GL[i % GL.length], 0.5 + 0.5 * Math.sin(t * 2.5 + i)); }
+    else if (theme === 'disco') { for (let i = 0; i < (lite ? 2 : 4); i++) { const a = Math.sin(t * 0.9 + i * 1.3) * 0.6, cx = W * (0.15 + i * 0.23); c.save(); c.translate(cx, 0); c.rotate(a); c.globalAlpha = 0.5 + 0.3 * pulse; c.drawImage(beam(['#ff3df2', '#3dfcff', '#ffe23d', '#a66bff'][i]), -H * 0.12, 0, H * 0.24, H * 1.1); c.restore(); } c.globalAlpha = 1;
+      c.strokeStyle = 'rgba(255,61,242,' + (0.25 + 0.5 * pulse).toFixed(2) + ')'; c.lineWidth = 2; const hz = H * 0.62; c.beginPath(); for (let k = 0; k < 8; k++) { const y = hz + Math.pow((k + (beat % 1)) / 8, 2) * (H - hz); c.moveTo(0, y); c.lineTo(W, y); } c.stroke(); }
+    else if (theme === 'festival') { if (!lite) { const R = Math.round(Math.min(W, H) * 0.34), im = rangoli(R), sc = 1 + 0.04 * pulse; c.save(); c.translate(W / 2, H * 0.45); c.rotate(t * 0.15); c.scale(sc, sc); c.drawImage(im, -R, -R); c.restore(); }
+      const nd = Math.max(4, Math.round(W / 90)), fl = flame(); for (let i = 0; i < nd; i++) { const k = 1 + 0.15 * Math.sin(t * 13 + i * 2) + 0.2 * pulse, x = (i + 0.5) * W / nd; c.drawImage(fl, x - 20 * k, H - 26 - 50 * k, 40 * k, 60 * k); } }
+    else if (theme === 'ocean') { c.fillStyle = 'rgba(255,255,255,.08)'; for (let k = 0; k < 2; k++) { c.beginPath(); c.moveTo(0, H); for (let x = 0; x <= W; x += 32) c.lineTo(x, H * (0.6 + k * 0.14) + Math.sin(x / 70 + t * (1 + k * 0.3) + beat * 0.5) * 14); c.lineTo(W, H); c.fill(); }
+      const b = bubble(); for (let i = 0; i < 18; i++) { const sp = 20 + rnd(i, 1) * 40, r = 6 + rnd(i, 4) * 16, x = rnd(i, 2) * W + Math.sin(t + i) * 10, y = H - ((t * sp + rnd(i, 3) * H) % (H + 40)); c.drawImage(b, x - r, y - r, r * 2, r * 2); } }
+    else if (theme === 'candy' || theme === 'rainbow') { for (let i = 0; i < 9; i++) { const x = rnd(i, 1) * W, y = ((rnd(i, 2) * H + t * (15 + rnd(i, 3) * 20)) % (H + 80)) - 40, s = 26 + rnd(i, 4) * 22;
+        if (theme === 'candy') { c.save(); c.translate(x, y); c.rotate(t * 0.5 + i); c.drawImage(candy(i % 4), -s / 2, -s / 2, s, s); c.restore(); } else c.drawImage(cloud(), x - s, y - s / 2, s * 2, s); } }
+    else { for (let i = 0; i < 8; i++) { const x = rnd(i, 1) * W, y = H - ((t * (12 + rnd(i, 2) * 18) + rnd(i, 3) * H) % (H + 80)) + 40, s = 18 + rnd(i, 4) * 26; Art.gemFast(c, i % 3 ? 'heart' : 'diamond', x + Math.sin(t + i) * 12, y, s * (1 + 0.08 * pulse), '#ffe3f3', i % 2 ? '#ff5fae' : '#f0b84a'); } }
+    const n = lite ? 14 : 26; for (let i = 0; i < n; i++) { const x = rnd(i, 7) * W + Math.sin(beat * 0.8 + i) * 8, y = ((rnd(i, 8) * H + beat * (24 + rnd(i, 9) * 30) * (0.6 + energy)) % (H + 20)) - 10; Art.spark(c, x, y, 2 + 3 * rnd(i, 5), GL[i % GL.length], 0.35 + 0.5 * (0.5 + 0.5 * Math.sin(t * 5 + i))); }
+  };
+  Art.bgSlow = slowBg;
+  // mascot sprite (per mood/outfit); animation is just transforms
+  Art.mascotFast = (c, x, y, s, mood, outfit, t) => { const b = Math.round(s / 8) * 8 || 8, im = Art.spr(`m|${mood}|${outfit}|${b}`, b * 1.4, b * 1.6, cc => Art.mascot(cc, b * 0.7, b * 0.95, b, mood, outfit, 0)), k = s / b;
+    const bob = Math.sin(t * 4) * s * 0.03 + (mood === 'wow' ? -Math.abs(Math.sin(t * 12)) * s * 0.08 : 0), sq = mood === 'oops' ? 1 + 0.05 * Math.sin(t * 20) : 1;
+    c.save(); c.translate(x, y + bob); c.scale(sq * k, k / sq); c.drawImage(im, -b * 0.7, -b * 0.95); c.restore(); };
+})();

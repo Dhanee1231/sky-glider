@@ -90,7 +90,13 @@
     const r = await off.startRendering(); return { mono: r.getChannelData(0), duration: buf.duration };
   }
   function analyzeMono(mono, onProgress) {
-    const F = features(mono, onProgress), env = onsetEnvelope(F), bpmRaw = tempo(env);
+    const F = features(mono, onProgress), env = onsetEnvelope(F); let bpmRaw = tempo(env);
+    // octave check: prefer 80-160 BPM; double if the half-beat positions carry real hits, halve if too fast
+    const gridMeans = bpm => { const P = FPS * 60 / bpm; let best = [0, 0];
+      for (let ph = 0; ph < P; ph += 1) { let on = 0, off = 0, n = 0; for (let x = ph; x + P / 2 < env.length; x += P) { on += env[Math.round(x)]; off += env[Math.round(x + P / 2)]; n++; } if (n && on / n > best[0]) best = [on / n, off / n]; }
+      return best; };
+    while (bpmRaw < 80) bpmRaw *= 2; while (bpmRaw > 160) bpmRaw /= 2;
+    { const [on, off] = gridMeans(bpmRaw); if (bpmRaw * 2 <= 160 && off >= 0.6 * on) bpmRaw *= 2; else if (bpmRaw / 2 >= 80 && bpmRaw > 135) { const [on2, off2] = gridMeans(bpmRaw / 2); if (off2 < 0.35 * on2) bpmRaw /= 2; } }
     const beatsF = beatTrack(env, bpmRaw); const peaks = pickPeaks(env, 0.06), softPeaks = pickPeaks(env, 0.012);
     // estimate the "loudness gate" so silent intros/outros get no tiles
     const sortedR = Array.from(F.rms).sort((a, b) => a - b), gate = sortedR[Math.floor(sortedR.length * 0.5)] * 0.25;
@@ -99,6 +105,10 @@
       for (let i = 0; i < 46; i++) { let e = 1e-9; for (let k = 0; k < B; k++) { const v = mono[a + i * B + k] || 0; e += v * v; } le.push(Math.log(e)); }
       let bi = -1, bv = 0; for (let i = 4; i < 46; i++) { const d = le[i] - (le[i - 1] + le[i - 2] + le[i - 3] + le[i - 4]) / 4; if (d > bv) { bv = d; bi = i; } }
       return bi < 0 || bv < 0.7 ? t : (a + bi * B) / SR; };
+    // drop weak 'echo' peaks (drum ring / pitch glide) shortly after a strong hit, and peaks in the fading tail
+    const keep = []; for (const f of peaks) { const p = keep[keep.length - 1]; if (p != null && (f - p) / FPS < 0.17 && env[f] < env[p] * 0.45) continue; keep.push(f); }
+    const lastLoud = (() => { for (let f = F.nF - 1; f >= 0; f--) if (F.rms[f] > 0.25 * (F.rms.reduce((a, b) => Math.max(a, b), 0))) return f; return F.nF; })();
+    peaks.length = 0; keep.filter(f => f <= lastLoud + Math.round(0.05 * FPS)).forEach(f => peaks.push(f));
     const onsets = peaks.map(f => ({ t: +refine(ft(f)).toFixed(4), s: env[f], c: F.cen[f], lo: F.low[f], hi: F.high[f] + F.mid[f] }));
     // keep only beats that land on a real attack: snap to the nearest onset within 80 ms (fixes drift across tempo
     // changes); beats with no attack nearby (alaap, rubato, quiet intros) are dropped and the chart falls back to melody onsets
@@ -154,5 +164,5 @@
     }
     return notes;
   }
-  G.TileAnalyze = { decodeToMono, analyzeMono, makeChart, SR };
+  G.TileAnalyze = { VERSION: 3, decodeToMono, analyzeMono, makeChart, SR };
 })(typeof window !== 'undefined' ? window : globalThis);
