@@ -27,6 +27,7 @@ const def = () => ({ v: 2, coins: 30, best: {}, plays: 0, owned: { skin: ['pinkg
   set: { sound: true, beat: true, missFx: true, vis: 0, calibrated: false, offset: 0, lang: 'en', practice: false, diff: 'easy' } });
 let S; try { S = Object.assign(def(), JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { S = def(); }
 for (const k in def().owned) if (!S.owned[k]) S.owned[k] = def().owned[k];
+for (const k of Object.keys(Art.THEMES)) if (!S.owned.theme.includes(k)) S.owned.theme.push(k); // all worlds unlocked
 if ((S.v || 1) < 3) { S.v = 3; S.set.speed = S.set.speed || 'slow'; }
 if ((S.v || 1) < 2) { S.v = 2; S.set = Object.assign({ missFx: true, vis: 0, calibrated: false }, S.set); }
 if (!S.set.calibrated && /Android/i.test(navigator.userAgent)) { S.set.offset = 25; S.set.vis = 10; } // sensible Android defaults (touch + display pipeline) until she runs the tap test
