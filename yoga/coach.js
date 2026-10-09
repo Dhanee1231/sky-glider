@@ -1,38 +1,36 @@
-// Coach voice (Web Speech API), captions, synthesized sounds, confetti.
+// Coach voice (natural pre-recorded clips via voice.js, browser speech as fallback), synced captions, sounds, confetti.
 import { S } from './store.js';
-let capEl = null, capTimer = 0, voice = null;
+import * as V from './voice.js';
+let capEl = null, capTimer = 0;
 export function setCaptionEl(el) { capEl = el; }
-function pickVoice() {
-  if (!('speechSynthesis' in window)) return null;
-  const vs = speechSynthesis.getVoices(); if (!vs.length) return null;
-  return vs.find(v => /en[-_]US/i.test(v.lang) && /female|samantha|google us/i.test(v.name)) || vs.find(v => /en[-_]US/i.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)) || null;
-}
-if ('speechSynthesis' in window) { speechSynthesis.onvoiceschanged = () => { voice = pickVoice(); }; voice = pickVoice(); }
 export function caption(text, ms = 0) { if (!capEl) return; capEl.textContent = text; capEl.classList.toggle('show', !!text); clearTimeout(capTimer); if (ms) capTimer = setTimeout(() => capEl.classList.remove('show'), ms); }
-// say: shows caption always; speaks if voice on. opts.interrupt cancels queued speech.
+export function voiceSettings() { V.configure({ voice: S.settings.voiceName || 'af_heart', rate: S.settings.rate || 1 }); }
+V.setHooks({
+  start: () => duck(true),
+  end: () => { duck(false); if (capEl) { clearTimeout(capTimer); capTimer = setTimeout(() => capEl.classList.remove('show'), 1800); } },
+  caption: s => caption(s)
+});
+// say(text, {speak}): caption shows `text`; the coach speaks `opts.speak` (or text). Captions follow each spoken sentence.
 export function say(text, opts = {}) {
-  caption(text, opts.capMs || Math.max(2500, text.length * 70));
-  if (!S.settings.voice || !('speechSynthesis' in window)) return;
-  try {
-    if (opts.interrupt !== false) speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text.replace(/[🦒🦩🦁🐻🐶🐄🐍🐭🦋🦫🐢🦉🐨🐘⭐🐒🐸🐼🦔]/gu, ''));
-    if (!voice) voice = pickVoice(); if (voice) u.voice = voice;
-    u.lang = 'en-US'; u.rate = (S.settings.rate || 1) * (opts.rate || 0.95); u.pitch = opts.kid ? 1.25 : 1.05;
-    speechSynthesis.speak(u);
-  } catch (e) { }
+  const spoken = opts.speak || text;
+  if (!S.settings.voice) { V.stop(); caption(text, opts.capMs || Math.max(2500, text.length * 70)); return; }
+  caption(text); voiceSettings(); V.speak(spoken);
 }
-export function hush() { try { speechSynthesis.cancel(); } catch (e) { } }
-
+export function hush() { V.stop(); }
+export { VOICES, lastSpoken } from './voice.js';
 // ---- sounds ----
 let ac = null;
-function ctx() { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } } if (ac.state === 'suspended') ac.resume().catch(() => { }); return ac; }
+let master = null, ducked = false;
+function ctx() { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); master = ac.createGain(); master.connect(ac.destination); } catch (e) { return null; } } if (ac.state === 'suspended') ac.resume().catch(() => { }); return ac; }
 function tone(f0, f1, dur, type = 'sine', vol = 0.18, when = 0) {
   const a = ctx(); if (!a || !S.settings.sounds) return;
   const t = a.currentTime + when, o = a.createOscillator(), g = a.createGain();
   o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t + dur);
   g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + 0.05);
+  o.connect(g).connect(master); o.start(t); o.stop(t + dur + 0.05);
 }
+// lower music + sound effects while the coach is talking
+export function duck(on) { ducked = on; if (!ac || !master) return; const t = ac.currentTime; master.gain.cancelScheduledValues(t); master.gain.setTargetAtTime(on ? 0.3 : 1, t, on ? 0.05 : 0.25); }
 export const sfx = {
   tap: () => tone(660, 880, 0.08, 'sine', 0.08),
   boing: () => { tone(180, 520, 0.18, 'triangle', 0.2); tone(520, 160, 0.25, 'triangle', 0.15, 0.18); },

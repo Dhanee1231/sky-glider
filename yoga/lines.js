@@ -1,0 +1,36 @@
+// Every fixed thing Coach Sunny says lives here, so the build script can pre-record natural voice clips for it.
+// Spoken lines never include anyone's real name (captions can); names are swapped for "grown-up" / "little yogi".
+export const L = {
+  begin: "Let's begin.", next: n => `Next: ${n}.`, otherSide: 'Now the other side.', hold: 'Hold and breathe.',
+  breatheIn: 'Breathe in… 2, 3, 4.', breatheOut: 'And breathe out… 2, 3, 4.',
+  halfKid: ['You are doing amazing!', 'So strong!', 'Wow, look at you!'],
+  halfAdult: ['Halfway there. Soften your face and shoulders.', 'Nice. Keep breathing slowly.', 'Remember: never push into pain.'],
+  fiveMore: 'Five more seconds.', release: 'Gently release.',
+  enc: ['Lovely work.', 'Great job!', 'Nice and easy.', 'Well done.', 'Beautiful.'],
+  upNext: n => `Up next: ${n}.`, restAdult: 'Shake it out and take a breath.', restKid: 'Wiggle wiggle! Shake it out!',
+  effort: "Great effort! We'll keep practicing that one.",
+  goodKid: 'Yes! Freeze right there!', goodAdult: "That's it! Hold it right there.",
+  praiseKid: ['Super statue!', 'You are so steady!', 'Amazing! Keep breathing.'],
+  praiseAdult: ['Great form. Keep breathing.', 'Steady and strong.', 'Lovely. Stay right there.'],
+  sideHint: 'Tip: turn sideways to the camera for this pose.', closer: 'Come a little closer so I can see you better.',
+  noOne: 'Step into view so I can see you.', oneOfTwo: 'I see one person. Both step into view!',
+  doneFam: 'Hooray! You did it! Here are your stickers!', doneAdult: 'Session complete. Great work today!',
+  camStart: n => `Let's check your ${n}.`, stepBack: 'Step back so I can see your whole body.',
+  getReady: 'Get ready.', count: ['One.', 'Two.', 'Three.'], go: 'Go!',
+  heldFor: (n, s) => `Wonderful! You held ${n} for ${s} seconds.`, formScore: n => `Your form score is ${n} percent.`,
+  freezeCall: k => `Freeze! Be a ${k}!`, dance: 'Dance, dance, dance!',
+  bothFroze: 'Both froze perfectly!', grownFroze: 'Great freeze, grown-up!', kidFroze: 'Great freeze, little yogi!',
+  wobbly: 'So wobbly! Try again!', statues: 'Great statues! Everybody gets a star!',
+  tie: "It's a tie! You are BOTH Freeze Champions!", grownWins: 'The grown-up is the Freeze Champion!', kidWins: 'The little yogi is the Freeze Champion!',
+  stickers: 'Everyone gets a sticker!',
+  grownLead: 'Grown-up, you lead this one! Everyone else, copy!', kidLead: 'Little yogi, you lead this one! Everyone else, copy!',
+  test: "Hi! I'm Coach Sunny. Breathe in… and breathe out.",
+  warmAdult: "Let's warm up. Sit or stand tall and take three slow breaths. Roll your shoulders gently.",
+  warmKid: "Warm-up time! Wiggle your fingers and toes, then take three big balloon breaths.",
+  coolAdult: "Cool-down. Let your breath slow down. Notice how your body feels right now.",
+  coolKid: "Cool-down time. Be a sleepy bunny and breathe slowly. You did so well!",
+  welcome: "Hi! I'm Coach Sunny. Let's stretch together.", paused: 'Paused.', resumed: "Let's keep going.",
+  tipsKid: ['Yoga is like being an animal for a little while. Which animal will you be today?', 'Breathe in like smelling a flower, breathe out like blowing out a candle!', 'Wobbling is part of the fun. Even flamingos wobble!'],
+  tipsAdult: ['Never push into pain. A gentle stretch should feel good, not sharp.', 'Breathe slowly through your nose. Your breath is your guide.', 'Little and often beats long and rare. Five minutes counts!', 'Bent knees are always allowed. Comfort first, shapes second.']
+};
+export const CHECK_TARGETS = [10, 20, 30, 45];

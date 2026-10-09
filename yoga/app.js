@@ -2,9 +2,12 @@
 import { POSES, POSE, JOURNEY, ROUTINES, MUSCLES, ADVENTURE_INTRO } from './poses.js';
 import { drawFigure, timeline, poseAt } from './figure.js';
 import { S, save, prof, isKid, today, logPose, logSession, logFlex, stats, muscleTotals, muscleWeeks, neglected, MILESTONES, BADGES, checkBadges, journeyDay, STICKERS, giveSticker, resetAll, resetProfile } from './store.js';
-import { say, hush, caption, setCaptionEl, sfx, music, confetti } from './coach.js';
+import { say, hush, caption, setCaptionEl, sfx, music, confetti, VOICES, voiceSettings, lastSpoken } from './coach.js';
+import { L, CHECK_TARGETS } from './lines.js';
+import { MEDIA, NO_REAL, mediaUrl, mediaBlob, LICENSE_TEXT } from './media.js';
 import { bodySVG } from './body.js';
 import { CHECKABLE } from './rules.js';
+const SIDE_VIEW = ['chair', 'lunge', 'downdog', 'child', 'seatedfold', 'cobra', 'bridge', 'forwardfold'];
 
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -25,27 +28,36 @@ const COACH_SVG = `<svg viewBox="0 0 100 100" class="face" aria-hidden="true"><g
 const coachSays = t => `<div class="coach">${COACH_SVG}<div class="bubble">${t}</div></div>`;
 
 // ---------- theme / profile ----------
+const darkMQ = matchMedia('(prefers-color-scheme: dark)');
+const appearance = () => prof().appearance || 'auto';
+const isDark = () => appearance() === 'dark' || (appearance() === 'auto' && darkMQ.matches);
+darkMQ.addEventListener?.('change', () => { if (appearance() === 'auto') { applyTheme(); route(); } });
 function applyTheme() {
   const t = S.settings.theme === 'auto' || !S.settings.theme ? (isKid() ? 'kids' : 'calm') : S.settings.theme;
   document.body.className = document.body.className.replace(/theme-\w+/g, '').trim() + ' theme-' + t;
+  document.body.classList.toggle('dark', isDark());
   document.body.classList.toggle('kidmode', isKid());
   $('#profBtn').textContent = (isKid() ? '🧒 ' : '🧔 ') + prof().name;
   $('#muteBtn').textContent = S.settings.voice ? '🔊' : '🔇';
-  $('meta[name=theme-color]').content = t === 'kids' ? '#ff5fa2' : '#3aa59a';
+  $('meta[name=theme-color]').content = getComputedStyle(document.body).getPropertyValue('--accbtn').trim() || '#23786f';
+  voiceSettings();
 }
-const figTheme = () => document.body.classList.contains('theme-kids') ? 'kids' : 'calm';
+const figTheme = () => (document.body.classList.contains('theme-kids') ? 'kids' : 'calm') + (document.body.classList.contains('dark') ? 'Dark' : '');
 $('#profBtn').onclick = () => modal(`<h2>Who's practicing?</h2><div class="grid">${['dad', 'kid'].map(id => `<button class="tile" data-p="${id}" style="min-height:140px"><div style="font-size:48px">${id === 'kid' ? '🧒' : '🧔'}</div><div class="nm">${esc(prof(id).name)}</div><div class="kn">${stats(id).sessions} sessions</div></button>`).join('')}</div><p class="muted small">Each person has their own progress. Family sessions count for both.</p><button class="btn alt block" data-close>Close</button>`, m => $$('[data-p]', m).forEach(b => b.onclick = () => { S.active = b.dataset.p; save(); applyTheme(); closeModal(); sfx.pop(); route(); }));
 $('#muteBtn').onclick = () => { S.settings.voice = !S.settings.voice; save(); applyTheme(); if (!S.settings.voice) hush(); toast(S.settings.voice ? 'Coach voice on' : 'Coach voice off (captions stay on)'); };
 $('#fsBtn').onclick = () => { const d = document; if (d.fullscreenElement) d.exitFullscreen?.(); else d.documentElement.requestFullscreen?.().catch(() => toast('Fullscreen is not available here')); };
 $('#setBtn').onclick = () => go('settings');
-$('#homeBtn').onclick = () => go('home');
+const ROOTS = ['home', 'journey', 'learn', 'family', 'progress'];
+$('#homeBtn').onclick = () => { if (ROOTS.includes(cur.name)) return go('home'); if (history.length > 1 && navStack > 0) history.back(); else go(cur.name === 'pose' || cur.name === 'camcheck' ? 'learn' : cur.name === 'freeze' ? 'family' : 'home'); };
+let navStack = 0;
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#modal').hidden) closeModal(); });
 $$('#tabs button').forEach(b => b.onclick = () => { sfx.tap(); go(b.dataset.go); });
 
 // ---------- router ----------
 let cur = { name: 'home', arg: null };
-function go(name, arg = null) { const h = '#' + name + (arg != null ? '/' + arg : ''); if (location.hash !== h) history.pushState(null, '', h); route(); }
-window.addEventListener('popstate', () => route());
-const TITLES = { home: 'Yoga Coach', journey: 'Beginner Journey', learn: 'Pose Library', pose: 'Pose Guide', family: 'Family Mode', progress: 'My Progress', muscles: 'My Muscles', settings: 'Settings', camcheck: 'Form Check', freeze: 'Freeze Game', play: 'Practice' };
+function go(name, arg = null) { const h = '#' + name + (arg != null ? '/' + arg : ''); if (location.hash !== h) { history.pushState(null, '', h); navStack++; } route(); }
+window.addEventListener('popstate', () => { navStack = Math.max(0, navStack - 1); route(); });
+const TITLES = { credits: 'Credits', home: 'Yoga Coach', journey: 'Beginner Journey', learn: 'Pose Library', pose: 'Pose Guide', family: 'Family Mode', progress: 'My Progress', muscles: 'My Muscles', settings: 'Settings', camcheck: 'Form Check', freeze: 'Freeze Game', play: 'Practice' };
 function route() {
   clean(); closeModal();
   const [name, arg] = (location.hash.slice(1) || 'home').split('/');
@@ -54,48 +66,75 @@ function route() {
   main.scrollTop = 0;
   SCREENS[cur.name](arg);
   $('#ttl').textContent = TITLES[cur.name] || 'Yoga Coach';
+  const root = ROOTS.includes(cur.name); $('#homeBtn').innerHTML = root ? '<span class="sun">🌞</span>' : '<span aria-hidden="true">⬅️</span>'; $('#homeBtn').setAttribute('aria-label', root ? 'Home' : 'Back');
 }
 
 // ---------- figure thumbnails ----------
 function thumb(pose, frame = 'pose', w = 340, h = 296) {
-  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const d = Math.min(2, devicePixelRatio || 1), c = document.createElement('canvas'); c.width = w * d; c.height = h * d;
   const x = c.getContext('2d'); const fr = pose.frames[frame] || pose.frames[Object.keys(pose.frames)[1]] || pose.frames.start;
-  drawFigure(x, fr, { x: 0, y: 0, w, h }, { anchor: pose.anchor, theme: figTheme() }); c.setAttribute('role', 'img'); c.setAttribute('aria-label', pose.name + ' illustration'); return c;
+  drawFigure(x, fr, { x: 0, y: 0, w: w * d, h: h * d }, { anchor: pose.anchor, theme: figTheme() }); c.setAttribute('role', 'img'); c.setAttribute('aria-label', pose.name + ' illustration'); return c;
 }
 function poseTile(p, extra = '') { return `<button class="tile" data-pose="${p.id}"><span class="th" data-th="${p.id}"></span><div class="nm">${isKid() ? p.emoji + ' ' + esc(p.kid) : esc(p.name)}</div><div class="kn">${isKid() ? esc(p.name) : p.emoji + ' ' + esc(p.kid)}</div>${extra}</button>`; }
 function fillThumbs(root = main) { $$('[data-th]', root).forEach(s => { if (!s.firstChild) s.appendChild(thumb(POSE[s.dataset.th])); }); }
 
-// ---------- animated video guide ----------
+// ---------- demo guide: animated figure or real-person video/photo ----------
+const demoPref = () => S.settings.demo || 'real';
 function makeGuide(holder, pose, opts = {}) {
-  holder.innerHTML = `<div class="stage"><canvas class="fig"></canvas><div class="tag">${pose.emoji} ${esc(isKid() ? pose.kid : pose.name)}</div><div class="side" hidden></div></div>
+  const md = MEDIA[pose.id];
+  holder.innerHTML = `<div class="stage"><canvas class="fig"></canvas><div class="demo ${md && md.portrait ? 'portrait' : ''}"></div><div class="tag">${pose.emoji} ${esc(isKid() ? pose.kid : pose.name)}</div><div class="side" hidden></div>
+   ${md ? `<div class="mode" role="group" aria-label="Demo type"><button data-m="real" aria-label="Real person demo">🎥 Real</button><button data-m="anim" aria-label="Animated demo">🎨 Animated</button></div>` : ''}
+   ${md ? `<div class="credit">${md.type === 'video' ? '🎥' : '📷'} ${esc(md.credit.author)} · ${esc(md.credit.license)} · <button data-credits>credits</button></div>` : ''}</div>
   ${opts.controls === false ? '' : `<div class="vctl"><button class="btn" data-a="play" aria-label="Play or pause">⏸ Pause</button><button class="btn alt" data-a="slow">🐢 Slow-mo</button><button class="btn alt" data-a="voice">${opts.voice ? '🔊 Cues on' : '🔈 Cues off'}</button><div class="cap" aria-live="polite"></div></div>`}`;
-  const cv = $('canvas', holder), ctx = cv.getContext('2d');
-  const tl = timeline(pose); let t = 0, playing = true, speed = 1, voice = !!opts.voice, lastIdx = -1, last = performance.now(), raf = 0, frozen = null;
+  const stage = $('.stage', holder), cv = $('canvas', holder), ctx = cv.getContext('2d'), demo = $('.demo', holder);
+  const tl = timeline(pose); let t = 0, playing = true, speed = 1, voice = !!opts.voice, lastIdx = -1, last = performance.now(), raf = 0, frozen = null, mode = 'anim', vid = null, dead = false;
   const capEl = $('.cap', holder);
-  function size() { const r = cv.getBoundingClientRect(); const d = Math.min(2, devicePixelRatio || 1); const W = Math.max(50, Math.round(r.width * d)), H = Math.max(50, Math.round(r.height * d)); if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; } }
+  function size() { const r = cv.getBoundingClientRect(); const d = Math.min(3, devicePixelRatio || 1); const W = Math.max(50, Math.round(r.width * d)), H = Math.max(50, Math.round(r.height * d)); if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; } }
   function frame(now) {
     raf = requestAnimationFrame(frame); const dt = Math.min(0.1, (now - last) / 1000); last = now;
     if (playing && !frozen) t += dt * speed;
-    size(); ctx.clearRect(0, 0, cv.width, cv.height);
     let p, seg, idx;
-    if (frozen) { const f = pose.frames[frozen]; p = { ...f, arch: (f.arch || 0) + Math.sin(now / 700) * 0.6 }; }
+    if (frozen) { const f = pose.frames[frozen]; p = { ...f, arch: (f.arch || 0) + Math.sin(now / 900) * 0.8 }; }
     else ({ p, seg, idx } = poseAt(pose, tl, t));
-    drawFigure(ctx, p, { x: 0, y: 0, w: cv.width, h: cv.height }, { anchor: pose.anchor, theme: figTheme() });
-    if (!frozen && idx !== lastIdx) { lastIdx = idx; if (capEl) capEl.textContent = seg.cap; if (voice) say(seg.cap, { kid: isKid(), rate: speed < 1 ? 0.85 : 0.95 }); }
+    if (mode === 'anim') { size(); ctx.clearRect(0, 0, cv.width, cv.height); drawFigure(ctx, p, { x: 0, y: 0, w: cv.width, h: cv.height }, { anchor: pose.anchor, theme: figTheme(), breath: 0.5 + 0.5 * Math.sin(now / 1270) }); }
+    if (!frozen && idx !== lastIdx) { lastIdx = idx; if (capEl) capEl.textContent = seg.cap; if (voice) say(seg.cap); }
   }
+  async function setMode(m, save_) {
+    if (!md) m = 'anim'; mode = m; stage.classList.toggle('real', m === 'real');
+    $$('.mode button', holder).forEach(b => { b.classList.toggle('on', b.dataset.m === m); b.setAttribute('aria-pressed', b.dataset.m === m); });
+    if (save_) { S.settings.demo = m; save(); }
+    if (m === 'real' && !demo.firstChild) {
+      demo.innerHTML = `<div class="loading">Loading…</div>`;
+      try {
+        if (md.type === 'video') {
+          const poster = mediaUrl(md.poster); const url = await mediaBlob(md.src); if (dead) return;
+          demo.innerHTML = `<video muted loop playsinline autoplay preload="auto" poster="${poster}" aria-label="${esc(pose.name)} demonstrated by a real person"></video>`;
+          vid = $('video', demo); vid.src = url; vid.playbackRate = speed; if (playing) vid.play().catch(() => { });
+        } else {
+          const url = await mediaBlob(md.src); if (dead) return;
+          demo.innerHTML = `<img class="kb" alt="${esc(pose.name)} shown by a real person" src="${url}">`;
+        }
+      } catch (e) { demo.innerHTML = ''; setMode('anim'); toast('Real-person demo not available offline yet. Showing the animation.'); }
+    }
+    if (vid) { if (m === 'real' && playing) vid.play().catch(() => { }); else vid.pause(); }
+  }
+  $$('.mode button', holder).forEach(b => b.onclick = e => { e.stopPropagation(); sfx.tap(); setMode(b.dataset.m, true); });
+  $('[data-credits]', holder)?.addEventListener('click', e => { e.stopPropagation(); go('credits', pose.id); });
   raf = requestAnimationFrame(frame);
+  setMode(opts.mode || (md ? demoPref() : 'anim'));
   const api = {
-    destroy() { cancelAnimationFrame(raf); },
-    play(on) { playing = on; const b = $('[data-a=play]', holder); if (b) b.textContent = on ? '⏸ Pause' : '▶ Play'; },
+    destroy() { dead = true; cancelAnimationFrame(raf); if (vid) { vid.pause(); vid.removeAttribute('src'); vid.load(); } },
+    play(on) { playing = on; const b = $('[data-a=play]', holder); if (b) b.textContent = on ? '⏸ Pause' : '▶ Play'; if (vid) on && mode === 'real' ? vid.play().catch(() => { }) : vid.pause(); const im = $('img.kb', demo); if (im) im.style.animationPlayState = on ? 'running' : 'paused'; },
     hold(fr) { frozen = fr; }, loop() { frozen = null; },
     side(txt) { const s = $('.side', holder); s.hidden = !txt; s.textContent = txt || ''; },
     restart() { t = 0; lastIdx = -1; },
-    state: () => ({ t, playing, speed, voice, cap: capEl ? capEl.textContent : '' })
+    mode: () => mode, setMode,
+    state: () => ({ t, playing, speed, voice, mode, cap: capEl ? capEl.textContent : '', video: vid ? { paused: vid.paused, time: vid.currentTime, ready: vid.readyState, w: vid.videoWidth } : null, img: !!$('img', demo) })
   };
   $$('[data-a]', holder).forEach(b => b.onclick = () => {
     sfx.tap(); const a = b.dataset.a;
     if (a === 'play') api.play(!playing);
-    if (a === 'slow') { speed = speed === 1 ? 0.5 : 1; b.textContent = speed === 1 ? '🐢 Slow-mo' : '🐇 Normal speed'; b.classList.toggle('alt', speed === 1); }
+    if (a === 'slow') { speed = speed === 1 ? 0.5 : 1; if (vid) vid.playbackRate = speed; b.textContent = speed === 1 ? '🐢 Slow-mo' : '🐇 Normal speed'; b.classList.toggle('alt', speed === 1); }
     if (a === 'voice') { voice = !voice; b.textContent = voice ? '🔊 Cues on' : '🔈 Cues off'; if (!voice) hush(); else lastIdx = -1; }
   });
   onClean(() => api.destroy());
@@ -143,10 +182,10 @@ function startRoutine(id) { const r = ROUTINES.find(x => x.id === id); startSess
 
 SCREENS.learn = () => {
   main.innerHTML = `<div class="wrap">${coachSays(isKid() ? 'Tap an animal to learn its shape!' : 'Tap any pose for a moving demo, step-by-step cues, muscles at work and a form check.')}
-  <div class="seg" style="margin:12px 0" id="flt"><button class="on" data-f="all">All</button><button data-f="stand">Standing</button><button data-f="floor">Floor</button><button data-f="cam">📷 Camera check</button></div>
+  <div class="seg" style="margin:12px 0" id="flt"><button class="on" data-f="all">All</button><button data-f="stand">Standing</button><button data-f="floor">Floor</button><button data-f="cam">📷 Camera check</button><button data-f="real">🎥 Real person</button></div>
   <div class="grid" id="pg"></div></div>`;
   const STAND = ['mountain', 'tree', 'warrior2', 'chair', 'forwardfold', 'star', 'sidebend', 'neck', 'shoulder'];
-  const show = f => { $('#pg').innerHTML = POSES.filter(p => f === 'all' || (f === 'stand' && STAND.includes(p.id)) || (f === 'floor' && !STAND.includes(p.id)) || (f === 'cam' && canCam(p.id))).map(p => poseTile(p, prof().poses[p.id]?.mastered ? '<div class="kn">⭐ mastered</div>' : canCam(p.id) ? '<div class="kn">📷 form check</div>' : '')).join(''); fillThumbs(); $$('#pg [data-pose]').forEach(b => b.onclick = () => go('pose', b.dataset.pose)); };
+  const show = f => { $('#pg').innerHTML = POSES.filter(p => f === 'all' || (f === 'stand' && STAND.includes(p.id)) || (f === 'floor' && !STAND.includes(p.id)) || (f === 'cam' && canCam(p.id)) || (f === 'real' && MEDIA[p.id])).map(p => poseTile(p, prof().poses[p.id]?.mastered ? '<div class="kn">⭐ mastered</div>' : '<div class="kn">' + [MEDIA[p.id] ? (MEDIA[p.id].type === 'video' ? '🎥 video' : '🖼️ photo') : '', canCam(p.id) ? '📷 check' : ''].filter(Boolean).join(' · ') + '</div>')).join(''); fillThumbs(); $$('#pg [data-pose]').forEach(b => b.onclick = () => go('pose', b.dataset.pose)); };
   $$('#flt button').forEach(b => b.onclick = () => { $$('#flt button').forEach(x => x.classList.toggle('on', x === b)); show(b.dataset.f); });
   show('all');
 };
@@ -164,9 +203,9 @@ SCREENS.pose = id => {
   const p = POSE[id] || POSES[0]; const ps = prof().poses[p.id];
   const yt = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(p.name + ' yoga pose for beginners');
   main.innerHTML = `<div class="wrap"><h1>${p.emoji} ${esc(isKid() ? p.kid : p.name)} <span class="muted" style="font-size:17px">${esc(isKid() ? p.name : p.kid)}</span></h1>
-  <div class="two"><div><h3 style="margin-top:0">🎬 Watch the moving demo</h3><div id="guide"></div>
+  <div class="two"><div><h3 style="margin-top:0">🎬 Watch the demo</h3><div id="guide"></div>
    <div class="row" style="margin-top:10px"><button class="btn" id="prac">▶ Practice${p.side ? ' (both sides)' : ''}</button>${canCam(p.id) ? '<button class="btn blue" id="chk">📷 Check my form</button>' : ''}
-   ${isKid() ? '' : `<a class="btn alt hide-kid" id="yt" href="${yt}" target="_blank" rel="noopener noreferrer">▶️ Watch a real video</a>`}</div>
+   ${isKid() || (MEDIA[p.id] && MEDIA[p.id].type === 'video') ? '' : `<a class="btn alt hide-kid" id="yt" href="${yt}" target="_blank" rel="noopener noreferrer">▶️ Watch a real video</a>`}</div>
    ${ps ? `<p class="muted small">Practiced ${ps.n}× · best hold ${Math.round(ps.best)}s${ps.scores.length ? ' · best form ' + Math.max(...ps.scores.map(s => s[1])) + '%' : ''}${ps.mastered ? ' · ⭐ mastered' : ''}</p>` : ''}
    <div class="card" style="margin-top:10px">📖 <i>${esc(p.story)}</i> <button class="btn alt" id="story" style="min-height:44px;padding:6px 12px">🔊 Read it</button></div></div>
   <div><div class="card"><h3>How to do it</h3><ol class="list">${p.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol></div>
@@ -175,7 +214,8 @@ SCREENS.pose = id => {
   window.__yoga.guide = makeGuide($('#guide'), p, { voice: false });
   $('#prac').onclick = () => startSession({ title: p.name, steps: [{ id: p.id, hold: isKid() ? 15 : 30 }], kind: 'pose' });
   $('#chk')?.addEventListener('click', () => go('camcheck', p.id));
-  $('#story').onclick = () => { sfx.boing(); say(p.story, { kid: true }); };
+  $('#story').onclick = () => { sfx.boing(); say(p.story); };
+  if (NO_REAL.includes(p.id)) $('#guide').insertAdjacentHTML('beforeend', '<p class="muted small" style="margin:6px 0 0">🎨 Animated demo (no openly-licensed real-person video for this one yet).</p>');
 };
 
 // ---------- session player ----------
@@ -192,53 +232,69 @@ const withTips = f => localStorage.getItem('yogaCoach.camTips') ? f() : camTipsM
 function scoreBg(ev) { return ev.good ? 'rgba(30,170,90,.9)' : ev.score > 0.5 ? 'rgba(200,150,0,.9)' : 'rgba(220,60,60,.9)'; }
 function chipsHTML(ev) { return ev.rules.map(r => `<span class="chip ${r.status}">${r.status === 'good' ? '✔ ' + esc(ruleLabel(r.id)) : (r.status === 'ok' ? '~ ' : '✖ ') + esc(r.fix)}</span>`).join(''); }
 
+let wakeLock = null;
+async function keepAwake(on) { try { if (on && 'wakeLock' in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener?.('release', () => { wakeLock = null; }); } else if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) { wakeLock = null; } }
 SCREENS.play = () => {
   if (!SESSION) return go('home');
   const cfg = SESSION, kid = isKid() && !cfg.family, kidVoice = isKid() || !!cfg.family;
   const steps = [];
+  const warm = S.settings.warm !== false && ['journey', 'routine', 'family'].includes(cfg.kind) && cfg.steps.length >= 3;
+  if (warm) steps.push({ p: POSE[cfg.steps[0].id === 'easyseat' ? 'mountain' : 'easyseat'], hold: isKid() || cfg.family ? 12 : 20, warm: 'warm' });
   for (const s of cfg.steps) { const p = POSE[s.id]; const hold = Math.max(10, Math.round(s.hold * (isKid() ? 0.6 : 1))); if (p.side) { steps.push({ p, hold, side: 'Right side' }); steps.push({ p, hold, side: 'Left side', again: true }); } else steps.push({ p, hold }); }
+  if (warm) steps.push({ p: POSE[cfg.steps[cfg.steps.length - 1].id === 'child' ? 'easyseat' : 'child'], hold: isKid() || cfg.family ? 15 : 25, warm: 'cool' });
   const camPossible = steps.some(s => canCam(s.p.id));
-  document.body.classList.add('fullplay');
-  main.innerHTML = `<div class="wrap player"><div><div id="pguide"></div><div class="cam" id="pcam" hidden><video playsinline muted></video><canvas></canvas><div class="msg"></div><div class="score" hidden></div><div class="hold" id="phold"></div></div></div>
+  const nm = p => kidVoice ? p.kid : p.name;
+  document.body.classList.add('fullplay'); keepAwake(true); onClean(() => keepAwake(false));
+  main.innerHTML = `<div class="wrap player"><div><div id="pguide"></div><div class="cam" id="pcam" hidden><video playsinline muted></video><canvas></canvas><div class="frame"></div><div class="msg"></div><div class="fixbar" id="pfix"></div><div class="score" hidden></div><div class="hold" id="phold"></div></div></div>
   <div><div class="card"><div class="muted small" id="pstep"></div><div style="font-size:24px;font-weight:900" id="pname"></div><div class="prog" style="margin:8px 0"><i id="pbar"></i></div>
    <div class="row" style="justify-content:center;gap:18px"><div class="ring" id="pring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" stroke="var(--line)" stroke-width="12" fill="none"/><circle id="parc" cx="60" cy="60" r="52" stroke="var(--acc)" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="327" stroke-dashoffset="327"/></svg><div class="num"><div><span id="pnum">…</span><small id="plbl">get ready</small></div></div></div>
    <div><div class="breath" id="pbreath"></div><div class="small muted" style="text-align:center" id="pbtxt">breathe</div></div></div>
-   <div id="pcue" class="bubble" style="margin:8px 0;min-height:56px;font-weight:700"></div><div id="pchips"></div></div>
+   <div id="pcue" class="bubble" style="margin:8px 0;min-height:56px;font-weight:700" aria-live="polite"></div><div id="pnext2"></div><div id="pchips"></div></div>
    <div class="pctl"><button class="btn alt" id="pprev" aria-label="Previous pose">⏮</button><button class="btn" id="ppause">⏸ Pause</button><button class="btn alt" id="pnext" aria-label="Skip">⏭</button>${camPossible ? '<button class="btn blue" id="pcamb">📷 Form check</button>' : ''}<button class="btn alt" id="pexit">✖ End</button></div>
    ${cfg.family ? `<p class="muted small" style="text-align:center">Family session: counts for ${esc(dadName())} and ${esc(kidName())}.</p>` : ''}</div></div>`;
   let guide = null;
-  let i = -1, phase = '', pt = 0, pdur = 0, paused = false, held = 0, elapsed = 0, raf = 0, last = performance.now();
+  let i = -1, phase = '', pt = 0, pdur = 0, paused = false, held = 0, elapsed = 0, raf = 0, last = performance.now(), restedInto = false, advDone = false;
   let lastSpeak = 0, breathT = 0, breathIn = false, said = {}, cam = null, camEval = null, scoreSum = 0, scoreN = 0, stepScores = [];
   const R = 327;
+  function setGuide(p, side) { guide?.destroy(); guide = makeGuide($('#pguide'), p, { controls: false }); guide.side(side); }
   function setStep(k) {
     i = k; if (i >= steps.length) return finish();
-    const s = steps[i]; guide?.destroy(); guide = makeGuide($('#pguide'), s.p, { controls: false }); guide.side(s.side);
-    if (cam) cam.poseId = canCam(s.p.id) ? s.p.id : null;
-    $('#pstep').textContent = `Pose ${i + 1} of ${steps.length}` + (cfg.title ? ' · ' + cfg.title : '');
-    $('#pname').textContent = (kidVoice ? s.p.emoji + ' ' + s.p.kid : s.p.name) + (s.side ? ' · ' + s.side : '');
+    const s = steps[i]; setGuide(s.p, s.warm ? (s.warm === 'warm' ? 'Warm-up' : 'Cool-down') : s.side);
+    if (cam) cam.poseId = canCam(s.p.id) && !s.warm ? s.p.id : null;
+    $('#pstep').textContent = `Step ${i + 1} of ${steps.length}` + (cfg.title ? ' · ' + cfg.title : '');
+    $('#pname').textContent = s.warm ? (s.warm === 'warm' ? '🌬️ Warm-up' : '🌙 Cool-down') : (kidVoice ? s.p.emoji + ' ' + s.p.kid : s.p.name) + (s.side ? ' · ' + s.side : '');
     $('#pbar').style.width = (i / steps.length * 100) + '%';
-    held = 0; scoreSum = 0; scoreN = 0; said = {}; $('#pchips').innerHTML = '';
+    held = 0; scoreSum = 0; scoreN = 0; said = {}; $('#pchips').innerHTML = ''; $('#pnext2').innerHTML = '';
     enter('intro');
   }
   function enter(ph) {
     phase = ph; pt = 0;
     const s = steps[i], p = s.p;
     if (ph === 'intro') {
-      let txt;
-      if (s.again) txt = `Now the other side. ${p.steps[1]}`;
-      else if (cfg.story) txt = `${i === 0 ? ADVENTURE_INTRO + ' ' : ''}${p.story}${cfg.family && cfg.together === false ? ' ' + (i % 2 ? kidName() : dadName()) + ', you lead this one! Everyone else, copy!' : ''}`;
-      else txt = `${i === 0 ? "Let's begin. " : 'Next: '}${kid ? p.kid : p.name}. ${p.steps[0]} ${p.steps[1]}`;
-      pdur = s.again ? 6 : Math.min(16, Math.max(8, txt.split(' ').length / 2.4));
-      guide.loop(); guide.restart(); say(txt, { kid: kidVoice }); $('#pcue').textContent = txt; $('#plbl').textContent = 'get ready'; $('#pnum').textContent = '…'; $('#parc').setAttribute('stroke-dashoffset', R);
+      let txt, spoken;
+      if (s.warm) txt = s.warm === 'warm' ? (kidVoice ? L.warmKid : L.warmAdult) : (kidVoice ? L.coolKid : L.coolAdult);
+      else if (s.again) txt = `${L.otherSide} ${p.steps[1]}`;
+      else if (cfg.story) { const lead = cfg.family && cfg.together === false ? (i % 2 ? L.kidLead : L.grownLead) : ''; txt = `${!advDone ? ADVENTURE_INTRO + ' ' : ''}${p.story}${lead ? ' ' + lead.replace('Little yogi', kidName()).replace('Grown-up', dadName()) : ''}`; spoken = `${!advDone ? ADVENTURE_INTRO + ' ' : ''}${p.story}${lead ? ' ' + lead : ''}`; advDone = true; }
+      else txt = `${restedInto ? nm(p) + '.' : i === 0 ? L.begin + ' ' + nm(p) + '.' : L.next(nm(p))} ${p.steps[0]} ${p.steps[1]}`;
+      restedInto = false;
+      pdur = s.again ? 6 : s.warm ? 7 : Math.min(16, Math.max(8, txt.split(' ').length / 2.4));
+      guide.loop(); guide.restart(); say(txt, { speak: spoken }); $('#pcue').textContent = txt; $('#plbl').textContent = 'get ready'; $('#pnum').textContent = '…'; $('#parc').setAttribute('stroke-dashoffset', R);
       if (cfg.family) sfx.boing();
     } else if (ph === 'hold') {
-      pdur = s.hold; const dyn = ['catcow', 'butterfly', 'neck', 'easyseat'].includes(p.id);
+      pdur = s.hold; const dyn = s.warm || ['catcow', 'butterfly', 'neck', 'easyseat'].includes(p.id);
       if (!dyn) guide.hold('pose'); else guide.loop();
-      const txt = s.again ? 'Hold and breathe.' : `${p.steps[2] || ''} ${p.steps[3] || ''}`.trim();
-      say(txt, { kid: kidVoice }); $('#pcue').textContent = txt; $('#plbl').textContent = cam && cam.poseId ? 'good-form secs' : 'seconds'; sfx.bell(); lastSpeak = performance.now();
+      const txt = s.warm ? L.breatheIn : s.again ? L.hold : `${p.steps[2] || ''} ${p.steps[3] || ''}`.trim();
+      say(txt); $('#pcue').textContent = txt; $('#plbl').textContent = cam && cam.poseId ? 'good-form secs' : 'seconds'; sfx.bell(); lastSpeak = performance.now();
     } else if (ph === 'out') {
-      pdur = 3; guide.loop(); const enc = ['Lovely work.', 'Great job!', 'Nice and easy.', 'Well done.', 'Beautiful.']; const txt = 'Gently release. ' + enc[i % enc.length]; say(txt, { kid: kidVoice }); $('#pcue').textContent = txt;
+      pdur = 2.6; guide.loop(); const txt = L.release + ' ' + L.enc[i % L.enc.length]; say(txt); $('#pcue').textContent = txt;
       stepScores.push({ id: s.p.id, held, score: scoreN > 1 ? scoreSum / scoreN * 100 : null, target: s.hold });
+    } else if (ph === 'rest') {
+      const n = steps[i + 1]; pdur = kidVoice ? 4 : 5; restedInto = true;
+      setGuide(n.p, 'Up next'); guide.loop();
+      const txt = `${L.upNext(n.warm ? (kidVoice ? 'Cool-down' : 'Cool-down') : nm(n.p))} ${kidVoice ? L.restKid : L.restAdult}`;
+      say(txt); $('#pcue').textContent = txt; $('#plbl').textContent = 'rest'; $('#parc').setAttribute('stroke-dashoffset', R);
+      $('#pnext2').innerHTML = `<div class="upnext card" style="margin:0 0 8px"><span class="th" data-th="${n.p.id}"></span><div><div class="muted small">Up next${n.side ? ' · ' + n.side : ''}</div><b style="font-size:20px">${n.p.emoji} ${esc(nm(n.p))}</b><div class="muted small">${n.hold}s hold · tap ⏭ to start now</div></div></div>`;
+      fillThumbs($('#pnext2'));
     }
   }
   function tick(now) {
@@ -253,40 +309,40 @@ SCREENS.play = () => {
       $('#pnum').textContent = Math.ceil(left); $('#parc').setAttribute('stroke-dashoffset', R * (1 - Math.min(1, held / s.hold)));
       if (camActive) $('#phold').textContent = Math.ceil(left) + 's';
       breathT += dt; if (breathT > 4) { breathT = 0; breathIn = !breathIn; $('#pbreath').classList.toggle('in', breathIn); $('#pbtxt').textContent = breathIn ? 'breathe in' : 'breathe out';
-        if (!camActive && now - lastSpeak > 10000 && left > 6) { lastSpeak = now; say(breathIn ? 'Breathe in… 2, 3, 4' : 'And breathe out… 2, 3, 4', { capMs: 3500, kid: kidVoice }); } else caption(breathIn ? 'Breathe in… 🌬️' : 'Breathe out… 🍃', 3500); }
-      if (!said.half && held > s.hold / 2 && s.hold >= 20) { said.half = 1; const e = kidVoice ? ['You are doing amazing!', 'So strong!', 'Wow, look at you!'] : ['Halfway there. Soften your face and shoulders.', 'Nice. Keep breathing slowly.', 'Remember: never push into pain.']; say(e[i % e.length], { kid: kidVoice }); lastSpeak = now; }
+        if (!camActive && now - lastSpeak > 10000 && left > 7) { lastSpeak = now; say(breathIn ? L.breatheIn : L.breatheOut, { capMs: 3500 }); } else caption(breathIn ? 'Breathe in… 🌬️' : 'Breathe out… 🍃', 3500); }
+      if (!said.half && held > s.hold / 2 && s.hold >= 20 && !s.warm) { said.half = 1; const e = kidVoice ? L.halfKid : L.halfAdult; say(e[i % e.length]); lastSpeak = now; }
+      if (!said.five && left <= 5.2 && left > 4 && s.hold >= 15) { said.five = 1; say(L.fiveMore); lastSpeak = now; }
       if (left <= 3 && left > 0 && !said['c' + Math.ceil(left)]) { said['c' + Math.ceil(left)] = 1; sfx.tick(); }
-      if (held >= s.hold || (camActive && pt > s.hold * 3)) { if (camActive && held < s.hold) say("Great effort! We'll keep practicing that one."); enter('out'); }
-    } else if (phase === 'out') { if (pt >= pdur) setStep(i + 1); }
+      if (held >= s.hold || (camActive && pt > s.hold * 3)) { if (camActive && held < s.hold) say(L.effort); enter('out'); }
+    } else if (phase === 'out') { if (pt >= pdur) { const n = steps[i + 1]; if (n && !n.again) enter('rest'); else setStep(i + 1); } }
+    else if (phase === 'rest') { $('#pnum').textContent = Math.ceil(Math.max(0, pdur - pt)); $('#parc').setAttribute('stroke-dashoffset', R * (1 - Math.min(1, pt / pdur))); if (pt >= pdur) setStep(i + 1); }
   }
-  $('#ppause').onclick = () => { paused = !paused; $('#ppause').textContent = paused ? '▶ Resume' : '⏸ Pause'; guide.play(!paused); if (paused) { hush(); caption('Paused', 1500); } };
+  const setPaused = v => { paused = v; $('#ppause').textContent = paused ? '▶ Resume' : '⏸ Pause'; guide.play(!paused); if (paused) { hush(); caption('Paused', 1500); } };
+  $('#ppause').onclick = () => setPaused(!paused);
   $('#pnext').onclick = () => { sfx.tap(); if (phase === 'hold') enter('out'); else if (phase === 'intro') enter('hold'); else setStep(i + 1); };
-  $('#pprev').onclick = () => { sfx.tap(); setStep(Math.max(0, phase === 'intro' ? i - 1 : i)); };
-  $('#pexit').onclick = () => { if (elapsed > 45) finish(true); else { SESSION = null; go('home'); } };
+  $('#pprev').onclick = () => { sfx.tap(); restedInto = false; setStep(Math.max(0, phase === 'intro' ? i - 1 : i)); };
+  const endNow = () => { if (elapsed > 45) finish(true); else { SESSION = null; go('home'); } };
+  $('#pexit').onclick = () => { if (elapsed < 20) return endNow(); const was = paused; setPaused(true); modal(`<h2>End this session?</h2><p>${elapsed > 45 ? 'Your practice so far will be saved.' : 'Less than a minute so far, so nothing will be saved yet.'}</p><div class="row"><button class="btn" id="mEnd">✖ End session</button><button class="btn alt" id="mKeep">▶ Keep going</button></div>`, m => { $('#mEnd', m).onclick = () => { closeModal(); endNow(); }; $('#mKeep', m).onclick = () => { closeModal(); setPaused(was); }; }); };
+  const onVis = () => { if (document.hidden && !paused) setPaused(true); };
+  document.addEventListener('visibilitychange', onVis); onClean(() => document.removeEventListener('visibilitychange', onVis));
+  const onKey = e => { if (e.key === ' ' && e.target === document.body) { e.preventDefault(); setPaused(!paused); } else if (e.key === 'ArrowRight') $('#pnext').click(); };
+  document.addEventListener('keydown', onKey); onClean(() => document.removeEventListener('keydown', onKey));
   const toggleCam = async () => {
     const btn = $('#pcamb');
     if (cam) { cam.stop(); cam = null; camEval = null; $('#pcam').hidden = true; $('#pguide').hidden = false; $('#pchips').innerHTML = ''; btn.textContent = '📷 Form check'; return; }
     const box = $('#pcam'); box.hidden = false; $('#pguide').hidden = true; btn.textContent = '🎬 Show demo';
     const { PoseCam } = await import('./camera.js');
-    cam = new PoseCam($('video', box), $('canvas', box), { poseId: canCam(steps[i]?.p.id) ? steps[i].p.id : null, facing: S.settings.facing, numPoses: cfg.family ? 2 : 1, onFrame: r => { camEval = r.evals.length ? (r.evals.length > 1 ? combine(r.evals) : r.evals[0]) : null; liveFeedback(box, camEval, cam && cam.poseId, phase === 'hold'); } });
+    cam = new PoseCam($('video', box), $('canvas', box), { poseId: canCam(steps[i]?.p.id) && !steps[i]?.warm ? steps[i].p.id : null, facing: S.settings.facing, numPoses: cfg.family ? 2 : 1, onFrame: r => { camEval = r.evals.length ? (r.evals.length > 1 ? combine(r.evals) : r.evals[0]) : null; liveFeedback(box, camEval, cam && cam.poseId, phase === 'hold'); } });
     window.__yoga.cam = cam;
     try { await cam.start(m => { $('.msg', box).textContent = m; }); } catch (e) { $('.msg', box).textContent = camErr(e); }
   };
   $('#pcamb')?.addEventListener('click', () => cam ? toggleCam() : withTips(toggleCam));
   onClean(() => { if (cam) cam.stop(); });
-  let lastFix = 0, wasGood = false;
+  const fb = makeFeedback(kidVoice);
   function liveFeedback(box, ev, poseId, holding) {
     const msg = $('.msg', box), sc = $('.score', box);
-    if (!poseId) { msg.textContent = "No camera check for this pose. Follow the demo!"; sc.hidden = true; $('#pchips').innerHTML = ''; return; }
-    if (!ev) { msg.textContent = 'Step into view so I can see you.'; sc.hidden = true; return; }
-    if (!ev.visible) { msg.textContent = ev.msg; sc.hidden = true; if (holding && performance.now() - lastFix > 6000) { lastFix = performance.now(); say(ev.msg); } return; }
-    msg.textContent = ''; sc.hidden = false; sc.textContent = Math.round(ev.score * 100) + '%'; sc.style.background = scoreBg(ev);
-    $('#pchips').innerHTML = chipsHTML(ev);
-    if (!holding) return;
-    const now = performance.now();
-    if (ev.good && !wasGood && now - lastFix > 2500) { lastFix = now; sfx.pop(); say(kidVoice ? 'Yes! Freeze right there!' : "That's it! Hold it right there."); }
-    else if (!ev.good && ev.worst && now - lastFix > 5000) { lastFix = now; say(ev.worst.fix); }
-    wasGood = ev.good;
+    if (!poseId) { msg.textContent = 'No camera check for this one. Follow the demo!'; sc.hidden = true; $('#pfix').textContent = ''; $('#pchips').innerHTML = ''; box.classList.remove('lost'); return; }
+    fb(box, ev, poseId, holding, msg, sc, $('#pfix'), $('#pchips'));
   }
   function finish(early) {
     cancelAnimationFrame(raf); if (cam) { cam.stop(); cam = null; }
@@ -301,13 +357,42 @@ SCREENS.play = () => {
       if (prof(pid).kid || cfg.family) stickers.push([pid, giveSticker(pid)]);
       earned.push(...checkBadges(pid).map(b => [pid, b]));
     }
-    save(); SESSION = null; document.body.classList.remove('fullplay');
+    save(); SESSION = null; document.body.classList.remove('fullplay'); keepAwake(false);
     showCelebration({ title: early ? 'Nice practice!' : 'Session complete!', min: elapsed / 60, poses: stepScores.length, avg, earned, stickers, family: cfg.family });
   }
-  window.__yoga.player = { state: () => ({ i, phase, held, elapsed, n: steps.length, cam: !!cam }) };
+  window.__yoga.player = { state: () => ({ i, phase, held, elapsed, n: steps.length, cam: !!cam, warm: steps[i]?.warm || null, pose: steps[i]?.p.id, mode: guide?.mode() }) };
   setStep(0); raf = requestAnimationFrame(tick);
   onClean(() => cancelAnimationFrame(raf));
 };
+
+// Shared live camera coaching: one clear fix at a time, praise while steady, framing help.
+function makeFeedback(kidVoice) {
+  let lastFix = 0, wasGood = false, lostSince = 0, lowSince = 0, lastPraise = 0, hinted = false, curFix = '', fixSince = 0;
+  return function (box, ev, poseId, holding, msg, sc, fixEl, chipsEl) {
+    const now = performance.now();
+    if (!ev || !ev.visible) {
+      lostSince = lostSince || now; box.classList.toggle('lost', now - lostSince > 800);
+      msg.textContent = ev ? ev.msg : L.noOne; sc.hidden = true; fixEl.textContent = '';
+      if (holding && now - lastFix > 6500) { lastFix = now; say(ev ? ev.msg : L.noOne); }
+      if (!hinted && SIDE_VIEW.includes(poseId) && now - lostSince > 8000) { hinted = true; say(L.sideHint); toast('Tip: turn sideways to the camera for this pose'); }
+      return;
+    }
+    lostSince = 0; box.classList.remove('lost'); msg.textContent = '';
+    sc.hidden = false; sc.textContent = Math.round(ev.score * 100) + '%'; sc.style.background = scoreBg(ev);
+    if (chipsEl) chipsEl.innerHTML = chipsHTML(ev);
+    // show only the single most important fix, and keep it on screen at least 2 s so it can be read
+    const worst = !ev.good && ev.worst ? ev.worst.fix : '';
+    if (worst !== curFix && (now - fixSince > 2000 || !curFix)) { curFix = worst; fixSince = now; }
+    fixEl.className = 'fixbar ' + (ev.good ? 'good' : curFix && ev.worst && ev.worst.status === 'ok' ? 'ok' : '');
+    fixEl.textContent = ev.good ? (kidVoice ? '✅ Super! Hold still' : '✅ Great form. Hold it') : curFix ? '👉 ' + curFix : '';
+    if (!ev.good && ev.score < 0.45) { lowSince = lowSince || now; if (!hinted && SIDE_VIEW.includes(poseId) && now - lowSince > 12000) { hinted = true; say(L.sideHint); } } else lowSince = 0;
+    if (!holding) { wasGood = false; return; }
+    if (ev.good && !wasGood && now - lastFix > 2500) { lastFix = now; lastPraise = now; sfx.pop(); say(kidVoice ? L.goodKid : L.goodAdult); }
+    else if (ev.good && now - lastPraise > 9000 && now - lastFix > 4000) { lastPraise = now; const a = kidVoice ? L.praiseKid : L.praiseAdult; say(a[Math.floor(now / 1000) % a.length]); }
+    else if (!ev.good && curFix && now - lastFix > 5000) { lastFix = now; say(curFix); }
+    wasGood = ev.good;
+  };
+}
 
 function showCelebration(r) {
   sfx.yay(); confetti();
@@ -319,7 +404,7 @@ function showCelebration(r) {
   ${r.stickers.length ? `<div class="card"><h3>New stickers!</h3>${r.stickers.map(([pid, s]) => `<div>${esc(prof(pid).name)}: <span class="stk">${s}</span></div>`).join('')}</div>` : ''}
   ${r.earned.length ? `<div class="card"><h3>🏆 New badges</h3>${r.earned.map(([pid, b]) => `<div class="chip good">${esc(prof(pid).name)}: ${esc(bName(b))}</div>`).join('')}</div>` : ''}
   <div class="row" style="justify-content:center"><button class="btn" id="cHome">🏠 Home</button><button class="btn alt" id="cProg">📈 See progress</button><button class="btn alt" id="cMus">💪 My muscles</button></div></div>`;
-  say(fam ? 'Hooray! You did it! Here are your stickers!' : 'Session complete. Great work today!', { kid: fam });
+  say(fam ? L.doneFam : L.doneAdult); $('#ttl').textContent = 'Well done!';
   $('#cHome').onclick = () => go('home'); $('#cProg').onclick = () => go('progress'); $('#cMus').onclick = () => go('progress', 'muscles');
 }
 
@@ -327,29 +412,31 @@ function showCelebration(r) {
 SCREENS.camcheck = id => {
   const pid = canCam(id) ? id : 'mountain'; let poseId = pid, target = isKid() ? 10 : 20, people = 1;
   main.innerHTML = `<div class="wrap"><div class="two"><div>
-   <div class="cam" id="cbox"><video playsinline muted></video><canvas></canvas><div class="msg">Camera is off. Everything else works without it.</div><div class="score" hidden></div><div class="hold" id="chold">${target}s</div><div class="ppl" id="cppl"></div></div>
+   <div class="cam" id="cbox"><video playsinline muted></video><canvas></canvas><div class="frame"></div><div class="msg">Camera is off. Everything else works without it.</div><div class="fixbar" id="cfix"></div><div class="count" id="ccount"></div><div class="score" hidden></div><div class="hold" id="chold">${target}s</div><div class="ppl" id="cppl"></div></div>
    <div class="row" style="margin-top:10px"><button class="btn" id="cstart">📷 Start camera</button><button class="btn alt" id="cflip">🔄 Flip camera</button><button class="btn alt" id="cppl2">👤 One person</button></div>
    <p class="privacy" style="margin-top:10px">🔒 Pose tracking runs entirely on this phone. Your video is never uploaded, recorded, or saved.</p></div>
   <div><div class="card"><label class="fld">Pose to check<select id="cpose">${CHECKABLE.map(k => `<option value="${k}" ${k === pid ? 'selected' : ''}>${POSE[k].emoji} ${esc(POSE[k].name)} · ${esc(POSE[k].kid)}</option>`).join('')}</select></label>
-   <div class="muted small">Hold target (timer only counts while your form is good)</div><div class="seg" id="ctgt">${[10, 20, 30, 45].map(s => `<button data-s="${s}" class="${s === target ? 'on' : ''}">${s}s</button>`).join('')}</div>
+   <div class="muted small">Hold target (timer only counts while your form is good)</div><div class="seg" id="ctgt">${CHECK_TARGETS.map(s => `<button data-s="${s}" class="${s === target ? 'on' : ''}">${s}s</button>`).join('')}</div>
    <div id="cfig" style="margin-top:10px"></div></div>
    <div class="card"><div id="cchips" class="muted">📍 Prop the phone up about 2 m (6–7 ft) away so your whole body, head to feet, is visible.</div></div>
    <div id="cres"></div></div></div></div>`;
   let guide = makeGuide($('#cfig'), POSE[poseId], { controls: false });
-  let cam = null, held = 0, sum = 0, n = 0, last = 0, lastSay = 0, wasGood = false, done = false, issues = {};
+  let cam = null, held = 0, sum = 0, n = 0, last = 0, lastSay = 0, done = false, issues = {}, ready = false, counting = false, fb = makeFeedback(isKid()), cdTimers = [];
   const box = $('#cbox');
-  const reset = () => { held = 0; sum = 0; n = 0; done = false; issues = {}; last = 0; $('#chold').textContent = target + 's'; $('#cres').innerHTML = ''; };
+  const reset = () => { held = 0; sum = 0; n = 0; done = false; issues = {}; last = 0; ready = false; counting = false; cdTimers.forEach(clearTimeout); $('#ccount').textContent = ''; fb = makeFeedback(isKid()); $('#chold').textContent = target + 's'; $('#cres').innerHTML = ''; };
+  onClean(() => cdTimers.forEach(clearTimeout));
+  const countdown = () => { counting = true; const seq = [['3', L.count[2]], ['2', L.count[1]], ['1', L.count[0]], ['Go!', L.go]]; seq.forEach(([t, w], k) => cdTimers.push(setTimeout(() => { $('#ccount').textContent = t; say(w); sfx.tick(); if (k === 3) cdTimers.push(setTimeout(() => { $('#ccount').textContent = ''; ready = true; counting = false; }, 700)); }, 600 + k * 1000))); };
   $('#cpose').onchange = e => { poseId = e.target.value; guide.destroy(); guide = makeGuide($('#cfig'), POSE[poseId], { controls: false }); if (cam) cam.poseId = poseId; reset(); };
   $$('#ctgt button').forEach(b => b.onclick = () => { target = +b.dataset.s; $$('#ctgt button').forEach(x => x.classList.toggle('on', x === b)); reset(); });
   $('#cppl2').onclick = async () => { people = people === 1 ? 2 : 1; $('#cppl2').textContent = people === 2 ? '👥 Two people' : '👤 One person'; if (cam) await cam.setPeople(people); };
   $('#cflip').onclick = async () => { if (!cam) { S.settings.facing = S.settings.facing === 'user' ? 'environment' : 'user'; save(); toast(S.settings.facing === 'user' ? 'Front camera selected' : 'Back camera selected'); return; } try { S.settings.facing = await cam.flip(); save(); } catch (e) { $('.msg', box).textContent = camErr(e); } };
   const startCam = async () => {
-    if (cam) { cam.stop(); cam = null; $('#cstart').textContent = '📷 Start camera'; $('.msg', box).textContent = 'Camera is off'; return; }
+    if (cam) { cam.stop(); cam = null; reset(); $('#cfix').textContent = ''; $('#cstart').textContent = '📷 Start camera'; $('.msg', box).textContent = 'Camera is off'; return; }
     const { PoseCam } = await import('./camera.js');
     cam = new PoseCam($('video', box), $('canvas', box), { poseId, facing: S.settings.facing, numPoses: people, onFrame });
     window.__yoga.cam = cam;
     $('#cstart').textContent = '⏹ Stop camera';
-    try { await cam.start(m => { $('.msg', box).textContent = m; }); reset(); say(`Let's check your ${POSE[poseId].name}. Step back so I can see your whole body.`); }
+    try { await cam.start(m => { $('.msg', box).textContent = m; }); reset(); say(L.camStart(POSE[poseId].name) + ' ' + L.stepBack); }
     catch (e) { $('.msg', box).textContent = camErr(e); cam = null; $('#cstart').textContent = '📷 Start camera'; }
   };
   $('#cstart').onclick = () => cam ? startCam() : withTips(startCam);
@@ -360,24 +447,19 @@ SCREENS.camcheck = id => {
     $('#cppl').innerHTML = r.evals.length > 1 ? r.evals.map((e, k) => `<span>${k === 0 ? '⬅️' : '➡️'} ${e && e.visible ? Math.round(e.score * 100) + '%' : '…'}</span>`).join('') : '';
     const ev = r.evals.length > 1 ? combine(r.evals) : r.evals[0];
     window.__yoga.lastEval = ev; window.__yoga.lastPeople = r.people.length;
-    if (!ev) { msg.textContent = 'Step into view so I can see you.'; sc.hidden = true; return; }
-    if (!ev.visible) { msg.textContent = ev.msg; sc.hidden = true; if (now - lastSay > 7000) { lastSay = now; say(ev.msg); } return; }
-    msg.textContent = people === 2 && r.evals.length < 2 ? 'I see one person. Both step into view!' : '';
-    sc.hidden = false; sc.textContent = Math.round(ev.score * 100) + '%'; sc.style.background = scoreBg(ev);
-    $('#cchips').innerHTML = chipsHTML(ev);
-    if (done) return;
+    fb(box, ev, poseId, ready && !done, msg, sc, $('#cfix'), null);
+    if (ev && ev.visible) { $('#cchips').innerHTML = chipsHTML(ev); if (people === 2 && r.evals.length < 2) msg.textContent = L.oneOfTwo; }
+    if (!ev || !ev.visible || done) return;
+    if (!ready) { if (!counting) countdown(); return; }
     sum += ev.score * dt; n += dt; for (const x of ev.rules) if (x.status !== 'good') issues[x.fix] = (issues[x.fix] || 0) + dt;
     if (ev.good) held += dt;
     $('#chold').textContent = Math.max(0, Math.ceil(target - held)) + 's';
-    if (ev.good && !wasGood && now - lastSay > 2500) { lastSay = now; sfx.pop(); say(isKid() ? 'Yes! Freeze right there!' : "That's it! Hold it there."); }
-    else if (!ev.good && ev.worst && now - lastSay > 4500) { lastSay = now; say(ev.worst.fix); }
-    wasGood = ev.good;
     if (held >= target) {
       done = true; const score = Math.round(sum / Math.max(0.001, n) * 100);
       logPose(S.active, poseId, held, { hold: target, full: true, score }); logSession(S.active, { sec: n, kind: 'camera', title: POSE[poseId].name + ' form check', poses: 1, score });
       const got = checkBadges(); save(); sfx.chime(); confetti(80);
       const top = Object.entries(issues).sort((a, b) => b[1] - a[1]).slice(0, 2).filter(x => x[1] > 1);
-      say(`Wonderful! You held ${POSE[poseId].name} for ${target} seconds. Your form score is ${score} percent.`);
+      say(L.heldFor(POSE[poseId].name, target) + ' ' + L.formScore(score));
       $('#cres').innerHTML = `<div class="card" id="cresult"><div class="big">${score}%</div><p style="text-align:center">Held ${target}s with good form ✅</p>${top.length ? `<p><b>Work on next time:</b></p><ul>${top.map(t => `<li>${esc(t[0])}</li>`).join('')}</ul>` : '<p>Beautiful alignment the whole way!</p>'}${got.length ? '<p>🏆 New badge earned!</p>' : ''}<button class="btn block" id="cagain">🔁 Try again</button></div>`;
       $('#cagain').onclick = reset;
     }
@@ -438,21 +520,21 @@ SCREENS.freeze = () => {
   function next() {
     round++; if (round > rounds) return end();
     phase = 'dance'; pt = 0; pdur = 3.5 + Math.random() * 3; music(true);
-    $('#fround').textContent = `Round ${round} of ${rounds}`; $('#fcall').textContent = '💃 Wiggle and dance! 🕺'; caption('Dance, dance, dance!', 2000);
+    $('#fround').textContent = `Round ${round} of ${rounds}`; $('#fcall').textContent = '💃 Wiggle and dance! 🕺'; caption(L.dance, 2000);
     guide.destroy(); guide = makeGuide($('#fz'), POSE.butterfly, { controls: false });
   }
   function freezeNow() {
     music(false); phase = 'freeze'; pt = 0; pdur = 7; acc = [[0, 0, 0], [0, 0, 0]];
     poseId = POOL[Math.floor(Math.random() * POOL.length)]; const p = POSE[poseId]; if (cam) cam.poseId = poseId;
-    sfx.whistle(); $('#fcall').textContent = `🧊 FREEZE like a ${p.emoji} ${p.kid}!`; say(`Freeze! Be a ${p.kid}!`, { kid: true });
+    sfx.whistle(); $('#fcall').textContent = `🧊 FREEZE like a ${p.emoji} ${p.kid}!`; say(L.freezeCall(p.kid));
     guide.destroy(); guide = makeGuide($('#fz'), p, { controls: false }); guide.hold('pose');
   }
   function judge() {
     const res = cam ? acc.map(a => a[2] > 5 && a[0] / a[2] >= 0.55 && a[1] / a[2] < 0.02) : [true, true];
     window.__yoga.freezeJudge = { acc: acc.map(a => a.slice()), res };
     res.forEach((ok, k) => { if (ok) stars[k]++; }); upd();
-    const msg = cam ? (res[0] && res[1] ? 'Both froze perfectly! ⭐⭐' : res[0] || res[1] ? `Great freeze, ${res[0] ? dadName() : kidName()}! ⭐` : 'So wobbly! Try again! 😂') : 'Great statues! Everybody gets a star! ⭐';
-    $('#fcall').textContent = msg; say(msg.replace(/[⭐😂]/gu, ''), { kid: true }); res.some(Boolean) ? sfx.chime() : sfx.fart();
+    const [msg, spk] = cam ? (res[0] && res[1] ? [L.bothFroze + ' ⭐⭐', L.bothFroze] : res[0] || res[1] ? [`Great freeze, ${res[0] ? dadName() : kidName()}! ⭐`, res[0] ? L.grownFroze : L.kidFroze] : [L.wobbly + ' 😂', L.wobbly]) : [L.statues + ' ⭐', L.statues];
+    $('#fcall').textContent = msg; say(msg, { speak: spk }); res.some(Boolean) ? sfx.chime() : sfx.fart();
     phase = 'result'; pt = 0; pdur = 3;
   }
   function end() {
@@ -461,8 +543,8 @@ SCREENS.freeze = () => {
     const stk = [];
     for (const pid of ['dad', 'kid']) { const k = pid === 'dad' ? 0 : 1; prof(pid).stars += stars[k]; stk.push([pid, giveSticker(pid)]); logSession(pid, { sec: rounds * 12, kind: 'game', title: 'Freeze Game', poses: rounds, family: true }); if (winners.includes(pid) && !prof(pid).badges.freeze) prof(pid).badges.freeze = Date.now(); checkBadges(pid); }
     save(); confetti(); sfx.yay();
-    const txt = winners.length === 2 ? "It's a tie! You are BOTH Freeze Champions!" : `${prof(winners[0]).name} is the Freeze Champion!`;
-    say(txt + ' Everyone gets a sticker!', { kid: true });
+    const txt = winners.length === 2 ? L.tie : `${prof(winners[0]).name} is the Freeze Champion!`;
+    say(txt + ' ' + L.stickers, { speak: (winners.length === 2 ? L.tie : winners[0] === 'dad' ? L.grownWins : L.kidWins) + ' ' + L.stickers });
     $('#fcall').textContent = '🏆 ' + txt; $('#fhelp').innerHTML = 'New stickers: ' + stk.map(([p, s]) => `${esc(prof(p).name)} <span class="stk">${s}</span>`).join(' ');
     $('#fgo').disabled = false; $('#fgo').textContent = '🔁 Play again';
   }
@@ -571,30 +653,53 @@ PTABS.flex = () => {
 
 // ---------- settings ----------
 SCREENS.settings = () => {
-  const st = S.settings;
-  main.innerHTML = `<div class="wrap" style="max-width:700px"><div class="card"><h3>👤 Profiles</h3><label class="fld">Grown-up name<input id="sDad" value="${esc(prof('dad').name)}" maxlength="20"></label><label class="fld">Child's name (optional)<input id="sKid" value="${esc(prof('kid').name)}" maxlength="20"></label></div>
-  <div class="card"><h3>🔊 Coach</h3><label class="toggle">Spoken coaching (captions always on)<input type="checkbox" id="sVoice" ${st.voice ? 'checked' : ''}></label><label class="toggle">Sound effects<input type="checkbox" id="sSnd" ${st.sounds ? 'checked' : ''}></label>
-   <label class="fld">Voice speed<select id="sRate">${[[0.8, 'Slow'], [1, 'Normal'], [1.15, 'Quick']].map(([v, l]) => `<option value="${v}" ${+st.rate === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label><button class="btn alt" id="sTest">🔊 Test voice</button></div>
-  <div class="card"><h3>🎨 Colors</h3><div class="seg" id="sTheme">${[['auto', 'Auto (kid colors for child)'], ['calm', 'Calm'], ['kids', 'Kid-friendly bright']].map(([v, l]) => `<button data-v="${v}" class="${(st.theme || 'auto') === v ? 'on' : ''}">${l}</button>`).join('')}</div></div>
+  const st = S.settings, P = prof();
+  main.innerHTML = `<div class="wrap" style="max-width:760px"><div class="card"><h3>🎨 Appearance <span class="muted small">(saved for ${esc(P.name)})</span></h3>
+   <div class="seg" id="sApp" role="group" aria-label="Light or dark mode">${[['light', '☀️ Light'], ['dark', '🌙 Dark'], ['auto', '🌓 Auto (system)']].map(([v, l]) => `<button data-v="${v}" class="${(P.appearance || 'auto') === v ? 'on' : ''}" aria-pressed="${(P.appearance || 'auto') === v}">${l}</button>`).join('')}</div>
+   <h3 style="margin-top:14px">Color style</h3><div class="seg" id="sTheme">${[['auto', 'Auto (kid colors for child)'], ['calm', 'Calm'], ['kids', 'Kid-friendly bright']].map(([v, l]) => `<button data-v="${v}" class="${(st.theme || 'auto') === v ? 'on' : ''}">${l}</button>`).join('')}</div></div>
+  <div class="card"><h3>🔊 Coach voice</h3><div class="vpick" id="sVoices">${VOICES.map(v => `<button data-v="${v.id}" class="${(st.voiceName || 'af_heart') === v.id ? 'on' : ''}">${v.id.startsWith('af') ? '👩' : '👨'} ${esc(v.label)}<br><span class="muted small">▶ tap to hear</span></button>`).join('')}</div>
+   <label class="toggle">Spoken coaching (captions always on)<input type="checkbox" id="sVoice" ${st.voice ? 'checked' : ''}></label><label class="toggle">Sound effects (softened while the coach talks)<input type="checkbox" id="sSnd" ${st.sounds ? 'checked' : ''}></label>
+   <label class="fld">Voice speed<select id="sRate">${[[0.85, 'Slow'], [1, 'Normal'], [1.15, 'Quick']].map(([v, l]) => `<option value="${v}" ${Math.abs(+st.rate - v) < 0.06 ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+   <p class="small muted">The coach uses natural recorded voices that work offline. Anything without a recording uses your phone's best built-in voice.</p></div>
+  <div class="card"><h3>🧘 Practice</h3><label class="toggle">Add a short warm-up and cool-down to routines<input type="checkbox" id="sWarm" ${st.warm !== false ? 'checked' : ''}></label>
+   <label class="fld">Default demo<select id="sDemo"><option value="real" ${(st.demo || 'real') === 'real' ? 'selected' : ''}>🎥 Real person (when available)</option><option value="anim" ${st.demo === 'anim' ? 'selected' : ''}>🎨 Animated coach</option></select></label></div>
+  <div class="card"><h3>👤 Profiles</h3><label class="fld">Grown-up name<input id="sDad" value="${esc(prof('dad').name)}" maxlength="20"></label><label class="fld">Child's name (optional)<input id="sKid" value="${esc(prof('kid').name)}" maxlength="20"></label></div>
   <div class="card"><h3>📷 Camera</h3><label class="fld">Default camera<select id="sFace"><option value="user" ${st.facing === 'user' ? 'selected' : ''}>Front (selfie)</option><option value="environment" ${st.facing === 'environment' ? 'selected' : ''}>Back</option></select></label>
    <p class="privacy">🔒 The camera form check uses an on-device AI model (MediaPipe Pose Landmarker). Video frames are analyzed in memory on this phone and immediately discarded. Nothing is uploaded, recorded, or saved, and the app works fully without the camera.</p><p class="small muted" id="sOff">Checking offline status…</p></div>
   <div class="card"><h3>🛟 Safety</h3><p class="small">Yoga Coach offers general beginner movement guidance, not medical advice. Move slowly, never push into pain, and skip any pose that doesn't feel right. Check with a doctor if you're pregnant, injured, or have a health condition. Kids should practice with a grown-up nearby.</p></div>
+  <div class="card"><h3>📜 Credits</h3><p class="small">Real-person videos and photos, voices and the pose model are used under their open licenses.</p><button class="btn alt" id="sCred">See credits & licenses</button></div>
   <div class="card"><h3>🗑️ Reset</h3><div class="row"><button class="btn alt" id="sResetMe">Reset ${esc(prof().name)}'s progress</button><button class="btn alt" id="sResetAll">Reset everything</button></div></div>
-  <p class="muted small" style="text-align:center">Yoga Coach v1 · works offline · no ads · no accounts · no purchases</p></div>`;
+  <p class="muted small" style="text-align:center">Yoga Coach v2 · works offline · no ads · no accounts · no purchases</p></div>`;
   const nm = (id, el) => el.onchange = () => { prof(id).name = el.value.trim() || (id === 'kid' ? 'Kiddo' : 'Dad'); save(); applyTheme(); };
   nm('dad', $('#sDad')); nm('kid', $('#sKid'));
   $('#sVoice').onchange = e => { st.voice = e.target.checked; save(); applyTheme(); };
   $('#sSnd').onchange = e => { st.sounds = e.target.checked; save(); };
-  $('#sRate').onchange = e => { st.rate = +e.target.value; save(); };
-  $('#sTest').onclick = () => say("Hi! I'm Coach Sunny. Breathe in… and breathe out.");
+  $('#sRate').onchange = e => { st.rate = +e.target.value; save(); voiceSettings(); say(L.test); };
+  $$('#sVoices button').forEach(b => b.onclick = () => { st.voiceName = b.dataset.v; save(); $$('#sVoices button').forEach(x => x.classList.toggle('on', x === b)); voiceSettings(); if (!st.voice) toast('Turn on spoken coaching to hear the coach'); say(L.test); });
+  $('#sWarm').onchange = e => { st.warm = e.target.checked; save(); };
+  $('#sDemo').onchange = e => { st.demo = e.target.value; save(); };
   $('#sFace').onchange = e => { st.facing = e.target.value; save(); };
+  $$('#sApp button').forEach(b => b.onclick = () => { P.appearance = b.dataset.v; save(); $$('#sApp button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', x === b); }); applyTheme(); });
   $$('#sTheme button').forEach(b => b.onclick = () => { st.theme = b.dataset.v; save(); $$('#sTheme button').forEach(x => x.classList.toggle('on', x === b)); applyTheme(); });
+  $('#sCred').onclick = () => go('credits');
   $('#sResetMe').onclick = () => { if (confirm('Erase all progress for ' + prof().name + '?')) { resetProfile(S.active); toast('Progress reset'); } };
   $('#sResetAll').onclick = () => { if (confirm('Erase everything for both profiles?')) { resetAll(); location.reload(); } };
-  (async () => { try { const c = await caches.open('yoga-coach-v1'); const ok = await c.match(new URL('./vendor/pose_landmarker_lite.task', location.href).href); $('#sOff').textContent = ok ? '✅ Saved for offline use, including the camera coach.' : 'The camera coach will be saved for offline use after it finishes downloading.'; } catch (e) { $('#sOff').textContent = ''; } })();
+  (async () => { try { const c = await caches.open('yoga-coach-v2'); const ok = await c.match(new URL('./vendor/pose_landmarker_lite.task', location.href).href); $('#sOff').textContent = ok ? '✅ Saved for offline use, including the camera coach. Real-person demos and voice clips are saved as you use them.' : 'The camera coach will be saved for offline use after it finishes downloading.'; } catch (e) { $('#sOff').textContent = ''; } })();
+};
+
+SCREENS.credits = focus => {
+  const lic = l => `${esc(l)}${LICENSE_TEXT[l] ? ` <span class="muted">(${esc(LICENSE_TEXT[l])})</span>` : ''}`;
+  main.innerHTML = `<div class="wrap" style="max-width:860px"><h1>📜 Credits & licenses</h1>
+  <div class="card"><h3>🎥 Real-person demos</h3><p class="small muted">Clips were trimmed, cropped (to remove on-screen text), muted and re-encoded. Photos are shown with a slow zoom. Thank you to these creators!</p><ul class="list credits">${POSES.filter(p => MEDIA[p.id]).map(p => { const c = MEDIA[p.id].credit; return `<li id="cr-${p.id}" ${focus === p.id ? 'style="background:var(--line);border-radius:10px;padding:6px"' : ''}><b>${p.emoji} ${esc(p.name)}</b> (${MEDIA[p.id].type}): “${esc(c.title)}”${c.part ? ', ' + esc(c.part) : ''} by ${esc(c.author)}, ${esc(c.site)}. License: ${lic(c.license)}.<br><span class="muted small">${esc(c.url)}</span></li>`; }).join('')}</ul>
+  <p class="small">Animated demo only (no suitable openly-licensed footage yet): ${NO_REAL.map(id => esc(POSE[id].name)).join(', ')}.</p></div>
+  <div class="card"><h3>🗣️ Coach voices</h3><p class="small">Natural voices generated on our own computer with <b>Kokoro-82M</b> (voices “af_heart” and “am_michael”) by hexgrad, licensed ${lic('Apache-2.0')}. Played back offline from small audio files.</p></div>
+  <div class="card"><h3>📷 Pose tracking</h3><p class="small"><b>MediaPipe Tasks Vision</b> and the <b>Pose Landmarker (lite)</b> model by Google, ${lic('Apache-2.0')}. Runs entirely on this device.</p></div>
+  <button class="btn alt" id="crBack">⬅️ Back</button></div>`;
+  $('#crBack').onclick = () => $('#homeBtn').click();
+  if (focus) $('#cr-' + focus)?.scrollIntoView({ block: 'center' });
 };
 
 // ---------- boot ----------
-window.__yoga = { S: () => S, POSES, go, save, stats, muscleTotals, neglected, startSession, prof };
+window.__yoga = { S: () => S, POSES, go, save, stats, muscleTotals, neglected, startSession, prof, lastSpoken: () => lastSpoken.slice() };
 applyTheme(); route();
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => { });

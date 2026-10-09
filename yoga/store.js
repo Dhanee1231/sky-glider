@@ -3,8 +3,8 @@ import { POSE, MUSCLES, JOURNEY } from './poses.js';
 const KEY = 'yogaCoach.v1';
 export const today = (d = new Date()) => { const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000); return z.toISOString().slice(0, 10); };
 export const dayDiff = (a, b) => Math.round((new Date(b + 'T12:00') - new Date(a + 'T12:00')) / 864e5);
-const blankProfile = (name, kid) => ({ name, kid, sessions: [], poses: {}, journey: 0, badges: {}, flex: [], stickers: [], stars: 0, muscles: {}, mdays: {}, mbadges: {} });
-function fresh() { return { v: 1, active: 'dad', settings: { voice: true, rate: 1, sounds: true, theme: 'auto', facing: 'user' }, profiles: { dad: blankProfile('Dad', false), kid: blankProfile('Kiddo', true) } }; }
+const blankProfile = (name, kid) => ({ name, kid, sessions: [], poses: {}, journey: 0, badges: {}, flex: [], stickers: [], stars: 0, muscles: {}, mdays: {}, mbadges: {}, appearance: 'auto' });
+function fresh() { return { v: 1, active: 'dad', settings: { voice: true, rate: 1, sounds: true, theme: 'auto', facing: 'user', voiceName: 'af_heart', demo: 'real', warm: true }, profiles: { dad: blankProfile('Dad', false), kid: blankProfile('Kiddo', true) } }; }
 export let S = load();
 function load() {
   try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.v === 1 && s.profiles) { for (const k of ['dad', 'kid']) s.profiles[k] = Object.assign(blankProfile(k === 'dad' ? 'Dad' : 'Kiddo', k === 'kid'), s.profiles[k]); s.settings = Object.assign(fresh().settings, s.settings); return s; } } catch (e) { }
