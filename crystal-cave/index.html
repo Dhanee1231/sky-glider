@@ -184,7 +184,7 @@ h1,h2,h3{margin:0}
 /* hint */
 .hint{position:absolute;inset:0;z-index:9;background:linear-gradient(180deg,#2a0f60,#1a0a46);border-radius:28px;border:3px solid rgba(160,255,170,.7);
  display:flex;flex-direction:column;padding:10px;gap:6px;animation:fadeIn .3s}
-.hint[hidden]{display:none}
+.hint[hidden]{display:none!important}
 .hint.wide{flex-direction:row}
 .hint .hl{display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;flex:none}
 .hint.wide .hl{width:42%}
@@ -273,6 +273,66 @@ h1,h2,h3{margin:0}
 #play.goldMode .secName{color:#ffe873}
 .card .btn{min-height:62px}
 @media (max-width:480px){.streak .sLbl{display:none}.streak{gap:4px;padding-right:8px}.streak .sNum{font-size:30px}.topbar{gap:8px}}
+/* ---- v2 ---- */
+.node .pips{display:flex;gap:4px;margin-top:3px}
+.node .pips i{width:14px;height:14px;border-radius:4px;transform:rotate(45deg);background:rgba(255,255,255,.18);border:2px solid rgba(255,255,255,.55)}
+.node .pips i.p1{background:#8be8ff;border-color:#fff}
+.node .pips i.p3{background:#ffd84a;border-color:#fff;box-shadow:0 0 8px #ffd84a}
+.node .crownT{position:absolute;width:56%;top:-26%;left:22%;transform:rotate(-8deg)}
+.node .crownT svg{width:100%;height:auto;filter:drop-shadow(0 3px 0 rgba(30,10,70,.6))}
+.node.queenN .gemWrap{filter:drop-shadow(0 0 14px rgba(255,180,230,.9))}
+.zoneTag.deep{background:linear-gradient(90deg,#b0186c,#6a1fc9);border-color:#ffd84a}
+.card .small,p.small{font-size:16px;opacity:.9}
+.lvls{display:flex;gap:12px;width:100%;justify-content:center}
+.lvCard{flex:1 1 0;min-width:0;flex-direction:column;gap:4px;padding:10px 8px!important;min-height:150px;border-radius:22px;white-space:normal;text-align:center;line-height:1.1}
+.lvCard:nth-child(1){--c1:#8cf27f;--c2:#29b85a;--sh:#167237}
+.lvCard:nth-child(2){--c1:#5ef0e6;--c2:#14a9bb;--sh:#0c6c7a}
+.lvCard:nth-child(3){--c1:#ff8fb8;--c2:#e5357a;--sh:#93184a}
+.btn.lvCard.gray{--c1:#9a92bd;--c2:#6a6292;--sh:#433c66;opacity:.75}
+.lvCard .lvG{display:flex;gap:2px;justify-content:center}
+.lvCard .lvT{font-size:24px;font-weight:900;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.lvCard .lvD{font-size:14px;font-weight:700;opacity:.95}
+.lvCard .st{display:flex;gap:2px;justify-content:center}
+.lvCard .st svg{width:24px;height:24px}
+.lvCard.sel{box-shadow:0 0 0 5px #fff,0 0 22px 6px #ffd84a}
+.lvCard .selT{font-size:13px;background:#fff;color:#3a1a84;border-radius:10px;padding:1px 8px}
+.dIc{flex:none;display:inline-block;width:30px;height:30px;vertical-align:middle}
+.dIc svg{width:100%;height:100%}
+.dIc.dBig{width:46px;height:46px;display:block;line-height:0}.dIc svg{display:block}
+.news{text-align:left;margin:0;padding:0 4px;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:clamp(16px,3.4vmin,20px)}
+.news li{display:flex;align-items:center;gap:8px}
+.news li svg{width:34px;height:34px;flex:none}
+.bigStars.small svg{width:40px;height:40px}
+.card.queenC{background:linear-gradient(180deg,#c43a9a,#5a1fb0);border-color:#ffd84a}
+.card.champ{max-width:min(620px,96vw)}
+.sp{display:inline-flex;align-items:center;gap:3px;color:#fff27a}
+.sp svg{width:20px;height:20px}
+.hintB{position:absolute;top:4px;left:4px;z-index:8;width:60px;height:60px;padding:0}
+.hintB svg{width:46px;height:46px}
+.q .slot{display:inline-block;min-width:1.25em;padding:0 .1em;border:4px dashed #fff27a;border-radius:.25em;color:#fff27a;line-height:1.05;background:rgba(255,242,122,.12)}
+.q .slot.full{border-style:solid;background:rgba(255,242,122,.3)}
+.q.missQ .eq{font-size:.8em}
+.speed{position:absolute;left:12%;right:12%;bottom:6%;height:12px;border-radius:8px;background:rgba(255,255,255,.18);z-index:3;display:flex;align-items:center}
+.speed i{display:block;height:100%;width:100%;border-radius:8px;background:linear-gradient(90deg,#fff27a,#ffad1a);transform-origin:left center}
+.speed span{position:absolute;left:-28px;width:24px;height:24px;display:block}.speed span svg{width:100%;height:100%}
+.speed.go i{animation:speedDown var(--t,7s) linear forwards}
+.speed.gone{opacity:.25}
+@keyframes speedDown{to{transform:scaleX(0)}}
+#play.queenMode .stage{background:radial-gradient(ellipse at 50% 45%,rgba(120,20,90,.75) 0,rgba(150,60,200,.35) 45%,rgba(255,150,220,.12) 80%,transparent 100%)}
+.choices.n3{grid-template-columns:1fr 1fr 1fr}
+@media (max-aspect-ratio:1/1){.lvls{flex-direction:column}.lvCard{flex:none;min-height:84px;flex-direction:row;flex-wrap:wrap;justify-content:center;column-gap:10px}.lvCard .lvD{flex-basis:100%}.choices.n3{grid-template-columns:1fr 1fr 1fr}}
+@media (min-aspect-ratio:1/1) and (max-height:520px){.lvCard{min-height:120px}.lvCard .lvD{font-size:13px}.choices.n3 .btn{min-height:min(130px,calc(100vh - 140px))}}
+.tbl.lk{opacity:.6}
+.tbl .tn{font-size:16px;font-weight:900}
+.lvst{display:flex;align-items:center;gap:2px;font-size:12px}
+.lvst span{min-width:62px}
+.lvst svg{width:16px;height:16px}
+@media (max-height:520px){.card.newsC .art{width:84px;height:84px;position:absolute;right:14px;top:8px}.card.newsC{position:relative;gap:6px}.card.newsC h2{padding-right:80px}.news{gap:3px}.news li svg{width:28px;height:28px}}
+.door.queen .q{top:61%}
+.tbl>svg.gem{flex:none;width:40px;height:40px}
+.lvst span{white-space:nowrap}
+@media (max-aspect-ratio:1/1){.lvCard[data-d]{min-height:70px;padding:6px 8px!important;gap:2px}.lvCard[data-d] .dIc.dBig{width:34px;height:34px}.lvCard[data-d] .lvD{font-size:14px}}
+.tile.champT{background:rgba(255,216,74,.18)}
 </style>
 </head>
 <body>
@@ -295,6 +355,7 @@ h1,h2,h3{margin:0}
   <button class="btn ibtn purple" id="mHome" aria-label="Home"></button>
   <div class="panelTitle">The Crystal Cave</div>
   <div class="mapStats" id="mStats"></div>
+  <button class="btn ibtn gold" id="mDiff" aria-label="Difficulty"></button>
   <button class="btn ibtn teal" id="mBag" aria-label="Backpack"></button>
   <button class="btn ibtn blue" id="mSet" aria-label="Settings"></button>
  </div>
@@ -311,6 +372,7 @@ h1,h2,h3{margin:0}
   <div class="stage" id="stage">
    <div class="stageHead"><div class="secName" id="secName"></div><div class="dots" id="dots"></div></div>
    <button class="btn ibtn gold padT" id="padT" aria-label="Number pad">123</button>
+   <button class="btn ibtn green hintB" id="hintB" aria-label="Ask Glimmer for help" hidden></button>
    <div class="doorBox" id="doorBox"></div>
    <div class="lantern" id="pLantern"></div>
    <div class="bubble" id="bubble"></div>
@@ -343,12 +405,24 @@ const cleanName=v=>String(v||'').replace(/[^\p{L}\p{N} '\-]/gu,'').trim().slice(
 
 // ================= data =================
 const TABLES=[1,2,5,10,3,4,6,7,8,9];
-const ZONES=[{from:0,name:'Sparkle Shallows'},{from:4,name:'Amethyst Hollow'},{from:6,name:'Deep Crystal Caverns'}];
 const GEMS={
  1:{name:'Moon Quartz',c:'#c8b4ff',cut:'oval'},2:{name:'Ruby',c:'#ff2d55',cut:'heart'},5:{name:'Citrine',c:'#ffc400',cut:'trillion'},
  10:{name:'Peridot',c:'#8be43c',cut:'hex'},3:{name:'Sapphire',c:'#2f6bff',cut:'round'},4:{name:'Emerald',c:'#10c47a',cut:'emerald'},
  6:{name:'Amethyst',c:'#a347ff',cut:'pear'},7:{name:'Aquamarine',c:'#2fd8e8',cut:'marquise'},8:{name:'Pink Tourmaline',c:'#ff6fcf',cut:'cushion'},
- 9:{name:'Diamond',c:'#dff4ff',cut:'diamond'}};
+ 9:{name:'Diamond',c:'#dff4ff',cut:'diamond'},
+ mix:{name:'Garnet',c:'#e0194f',cut:'cushion',grad:['#ff6a8a','#e0194f','#9c0a35']},sq:{name:'Tanzanite',c:'#6a5cff',cut:'emerald',grad:['#9d8cff','#5b4dff','#3a2fd6']},
+ miss:{name:'Topaz',c:'#ff8a1f',cut:'pear',grad:['#ffd36b','#ff8a1f','#e8590c']},queen:{name:'Queen Star',c:'#ffd84a',cut:'star',grad:['#fff4b0','#ffb3e6','#c79bff']}};
+const GEM_ORDER=[1,2,5,10,3,4,6,7,8,9,'mix','sq','miss','queen'];
+const STAGES=TABLES.map(t=>({id:'t'+t,kind:'table',t,gem:t,name:GEMS[t].name+' Tunnel',short:'×'+t,sub:'the '+t+'s'}));
+STAGES.push({id:'mix',kind:'mix',gem:'mix',name:'Mixed Mines',short:'Mix',sub:'tables all mixed up',pools:[[2,3,4,5],[6,7,8,9],[2,3,4,5,6,7,8,9]],lvNames:['2s to 5s','6s to 9s','Everything!']});
+STAGES.push({id:'sq',kind:'sq',gem:'sq',name:'Squares Grotto',short:'n×n',sub:'numbers times themselves',lvNames:['Squares 1 to 5','Squares 1 to 9','Secret squares']});
+STAGES.push({id:'miss',kind:'miss',gem:'miss',name:'Missing Gem Pools',short:'?',sub:'find the missing number',pools:[[2,5,10],[3,4,6],[7,8,9]],lvNames:['2s, 5s, 10s','3s, 4s, 6s','7s, 8s, 9s']});
+STAGES.push({id:'queen',kind:'queen',gem:'queen',name:"Crystal Queen's Throne",short:'',sub:'the grand boss',levels:1,lvNames:['Grand Boss']});
+const nLv=st=>st.levels||3;
+const LVN=['Learn','Practice','Challenge'];
+const LVD=['In order, with lots of help','Mixed up, both ways round','Missing numbers and speedy bonus'];
+const ZONES=[{from:0,name:'Sparkle Shallows'},{from:4,name:'Amethyst Hollow'},{from:6,name:'Deep Crystal Caverns'},{from:10,name:'Treasure Depths'}];
+const DIFFS=[{name:'Easy',desc:'3 choices. Glimmer helps right away.',cls:'green'},{name:'Normal',desc:'4 choices. Glimmer helps after a miss.',cls:'blue'},{name:'Tricky',desc:'Close choices. Number pad on Challenge. Ask Glimmer for help.',cls:'red'}];
 const RARES=[
  {id:'opal',name:'Rainbow Opal',grad:['#ffd6f0','#b9f0ff','#e3c8ff','#c8ffe0'],cut:'round'},
  {id:'moon',name:'Moonstone',grad:['#ffffff','#a9c8ff','#e8f0ff'],cut:'oval'},
@@ -360,20 +434,33 @@ const RARES=[
  {id:'star',name:'Star Sapphire',grad:['#0b3bd9','#6aa2ff','#2a5cff'],cut:'round',dots:1}];
 const GOLD={name:'Golden Crystal',grad:['#fff6c4','#ffcf3a','#ff9d2e']};
 const TREASURES=[{id:'crown',name:'Crystal Crown'},{id:'geode',name:'Rainbow Geode'},{id:'wand',name:'Star Wand'},{id:'egg',name:'Dragon Egg'},{id:'locket',name:'Heart Locket'},{id:'castle',name:'Crystal Castle'}];
+const CHAMP={id:'qcrown',name:"Crystal Queen's Crown"};
 const PRAISE=['Sparkly!','You got it!','Crystal clear!','Gem-tastic!','Brilliant!','Shiny work!','Wow, super!','Dazzling!','Amazing!'];
 
-// ================= save =================
-const KEY='crystalcave.v1';
-const DEF={v:1,name:'',muted:false,pad:false,sec:{},facts:{},gems:{},rare:{},golden:0,keys:0,treasures:[],streak:0,best:0,run:0,correct:0,answered:0,started:false};
-function load(){let d=null;try{d=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}
- const s=JSON.parse(JSON.stringify(DEF));if(d&&typeof d==='object')for(const k in DEF){if(d[k]!=null&&typeof d[k]===typeof DEF[k])s[k]=d[k];}
- if(!Array.isArray(s.treasures))s.treasures=[];return s;}
+// ================= save (v2, migrates v1) =================
+const KEY='crystalcave.v2',V1KEY='crystalcave.v1';
+const DEF={v:2,name:'',muted:false,pad:false,diff:0,lv:{},facts:{},gems:{},rare:{},golden:0,keys:0,treasures:[],streak:0,best:0,run:0,correct:0,answered:0,started:false,seenV2:false,champ:0,migrated:0};
+function load(){const get=k=>{try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}};
+ const s=JSON.parse(JSON.stringify(DEF)),copy=d=>{for(const k in DEF){if(k!=='v'&&d[k]!=null&&typeof d[k]===typeof DEF[k])s[k]=d[k];}};
+ const d=get(KEY);
+ if(d&&typeof d==='object')copy(d);
+ else{const o=get(V1KEY);
+  if(o&&typeof o==='object'){copy(o);s.v=2;s.migrated=1;s.seenV2=false;
+   // every finished v1 table becomes a finished Learn level (stars kept), so Practice opens right away
+   const sec=(o.sec&&typeof o.sec==='object')?o.sec:{};
+   TABLES.forEach(t=>{const r=sec[t];if(r&&r.done)s.lv['t'+t+'-0']={stars:Math.max(1,Math.min(3,r.stars|0)),done:true,plays:r.plays|0};});
+   try{localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}}
+ if(!Array.isArray(s.treasures))s.treasures=[];if(!(s.diff>=0&&s.diff<=2))s.diff=0;return s;}
 let save=load();
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
-const secRec=t=>save.sec[t]||{stars:0,done:false,plays:0};
-const unlocked=i=>i===0||!!(save.sec[TABLES[i-1]]&&save.sec[TABLES[i-1]].done);
+const lvRec=(si,k)=>save.lv[STAGES[si].id+'-'+k]||{stars:0,done:false,plays:0};
+const stageOpen=si=>si===0||lvRec(si-1,0).done;
+const lvOpen=(si,k)=>stageOpen(si)&&(k===0||lvRec(si,k-1).done);
+const stageDone=si=>{let n=0;for(let k=0;k<nLv(STAGES[si]);k++)if(lvRec(si,k).done)n++;return n;};
+const stageMastered=si=>{for(let k=0;k<nLv(STAGES[si]);k++)if(lvRec(si,k).stars<3)return false;return true;};
+const unlocked=i=>stageOpen(i); // tables are stages 0..9
 const gemCount=t=>{const g=save.gems[t];return g?(g.b|0)+(g.s|0):0;};
-function totalGems(){let n=0;for(const t of TABLES)n+=gemCount(t);for(const k in save.rare)n+=save.rare[k]|0;return n+(save.golden|0);}
+function totalGems(){let n=0;for(const k in save.gems)n+=gemCount(k);for(const k in save.rare)n+=save.rare[k]|0;return n+(save.golden|0);}
 function addGem(t,big,n){n=n||1;const g=save.gems[t]||(save.gems[t]={b:0,s:0});if(big)g.b+=n;else g.s+=n;}
 
 // ================= art =================
@@ -403,6 +490,7 @@ SHAPES.round=(function(){const c16=ring(16,a=>46*Math.cos(a),a=>46*Math.sin(a)),
 SHAPES.diamond={outline:[[-46,-12],[-26,-36],[26,-36],[46,-12],[0,44]],facets:[
  [[[-46,-12],[-26,-36],[-15,-12]],1.18],[[[-26,-36],[0,-36],[-15,-12]],1.38],[[[0,-36],[-15,-12],[15,-12]],1.05],[[[0,-36],[26,-36],[15,-12]],1.3],[[[26,-36],[46,-12],[15,-12]],0.95],
  [[[-46,-12],[-15,-12],[0,44]],0.82],[[[-15,-12],[15,-12],[0,44]],1.06],[[[15,-12],[46,-12],[0,44]],0.66]]};
+SHAPES.star=stepCut((function(){const o=[];for(let i=0;i<10;i++){const a=i*Math.PI/5-Math.PI/2,r=i%2?23:49;o.push([r*Math.cos(a),r*Math.sin(a)+4]);}return o;})(),0.5,0);
 let uid=0;
 function gradDef(id,cols,vert){return '<linearGradient id="'+id+'" x1="0" y1="0" x2="'+(vert?0:1)+'" y2="1">'+cols.map((c,i)=>'<stop offset="'+(i/(cols.length-1)).toFixed(2)+'" stop-color="'+c+'"/>').join('')+'</linearGradient>';}
 function facetSVG(sh){let s='';for(const ft of sh.facets){const f=ft[1],col=f>=1?'#fff':'#16053a',op=f>=1?Math.min(.7,(f-1)*1.15):(1-f)*0.95;
@@ -447,7 +535,8 @@ function wormSVG(){return '<svg viewBox="0 0 140 92" aria-hidden="true">'+
  '<path d="M100 54 Q107 61 114 54" stroke="#2b1257" stroke-width="3" fill="none" stroke-linecap="round"/>'+
  '<path d="M96 20 l6 -6 l6 6 l6 -6 l6 6" fill="#ff6fcf" stroke="#fff" stroke-width="1.5"/></svg>';}
 function treasureSVG(id){let s='<svg viewBox="-60 -60 120 120" aria-hidden="true">';const u='u'+(++uid);
- if(id==='crown')s+='<defs>'+gradDef(u,['#fff6c4','#ffcf3a','#e08a00'],1)+'</defs><polygon points="-46,30 -50,-22 -24,4 0,-38 24,4 50,-22 46,30" fill="url(#'+u+')" stroke="#a35f00" stroke-width="4" stroke-linejoin="round"/><rect x="-46" y="24" width="92" height="16" rx="5" fill="url(#'+u+')" stroke="#a35f00" stroke-width="4"/><circle cx="0" cy="-8" r="9" fill="#ff2d55" stroke="#fff" stroke-width="2"/><circle cx="-26" cy="14" r="7" fill="#2fd8e8" stroke="#fff" stroke-width="2"/><circle cx="26" cy="14" r="7" fill="#a347ff" stroke="#fff" stroke-width="2"/><circle cx="0" cy="-42" r="5" fill="#fff"/>';
+ if(id==='qcrown')s+='<defs>'+gradDef(u,['#fff6c4','#ffd84a','#ff9ee6'],1)+'</defs><path d="M-54,34 L-58,-26 L-30,2 L-14,-40 L0,-10 L14,-40 L30,2 L58,-26 L54,34 Z" fill="url(#'+u+')" stroke="#a35f00" stroke-width="4" stroke-linejoin="round"/><rect x="-54" y="28" width="108" height="18" rx="6" fill="#ffd84a" stroke="#a35f00" stroke-width="4"/><g transform="translate(0,6) scale(.36)">'+gemInner({c:'#ff6fcf',cut:'star'})+'</g><circle cx="-34" cy="37" r="5" fill="#2fd8e8" stroke="#fff" stroke-width="1.5"/><circle cx="34" cy="37" r="5" fill="#8be43c" stroke="#fff" stroke-width="1.5"/><circle cx="0" cy="37" r="5" fill="#ff2d55" stroke="#fff" stroke-width="1.5"/><circle cx="-58" cy="-30" r="5" fill="#fff"/><circle cx="58" cy="-30" r="5" fill="#fff"/><circle cx="-14" cy="-44" r="4" fill="#fff"/><circle cx="14" cy="-44" r="4" fill="#fff"/>';
+ else if(id==='crown')s+='<defs>'+gradDef(u,['#fff6c4','#ffcf3a','#e08a00'],1)+'</defs><polygon points="-46,30 -50,-22 -24,4 0,-38 24,4 50,-22 46,30" fill="url(#'+u+')" stroke="#a35f00" stroke-width="4" stroke-linejoin="round"/><rect x="-46" y="24" width="92" height="16" rx="5" fill="url(#'+u+')" stroke="#a35f00" stroke-width="4"/><circle cx="0" cy="-8" r="9" fill="#ff2d55" stroke="#fff" stroke-width="2"/><circle cx="-26" cy="14" r="7" fill="#2fd8e8" stroke="#fff" stroke-width="2"/><circle cx="26" cy="14" r="7" fill="#a347ff" stroke="#fff" stroke-width="2"/><circle cx="0" cy="-42" r="5" fill="#fff"/>';
  else if(id==='geode'){const pts=[];for(let i=0;i<16;i++){const a=i*Math.PI/8,r=i%2?18:36;pts.push([r*Math.cos(a),r*Math.sin(a)]);}
   s+='<defs>'+gradDef(u,['#ff8fd8','#a58bff','#6be7ff','#8cf27f'])+'</defs><circle r="50" fill="#8a6a5a" stroke="#4d3328" stroke-width="5"/><circle r="40" fill="#c7a8ff"/><polygon points="'+P(pts)+'" fill="url(#'+u+')" stroke="#fff" stroke-width="2"/><circle r="10" fill="#fff" opacity=".8"/>';}
  else if(id==='wand'){const pts=[];for(let i=0;i<10;i++){const a=i*Math.PI/5-Math.PI/2,r=i%2?14:34;pts.push([r*Math.cos(a)-14,r*Math.sin(a)-18]);}
@@ -462,19 +551,22 @@ function chestSVG(){const u='u'+(++uid);return '<svg viewBox="-80 -60 160 120" a
  '<g class="lid"><path d="M-66,-4 Q-66,-52 0,-52 Q66,-52 66,-4 Z" fill="url(#'+u+')" stroke="#2b1257" stroke-width="5"/><path d="M-66,-10 Q0,-22 66,-10" stroke="#ffcf3a" stroke-width="7" fill="none"/>'+
  '<polygon points="-30,-36 -24,-44 -18,-36 -24,-28" fill="#2fd8e8" stroke="#fff" stroke-width="1.5"/><polygon points="24,-36 30,-44 36,-36 30,-28" fill="#ff6fcf" stroke="#fff" stroke-width="1.5"/></g></svg>';}
 function gemInner(g){const sh=SHAPES[g.cut];return '<polygon points="'+P(sh.outline)+'" fill="'+g.c+'" stroke="'+shade(g.c,0.5)+'" stroke-width="4"/>'+facetSVG(sh);}
-function doorSVG(kind){const a='u'+(++uid),b='u'+(++uid);const gold=kind==='gold',boss=kind==='boss';
- const slab=gold?['#fffbe0','#ffd84a','#ff9d2e']:boss?['#ffd6f5','#c79bff','#6be7ff']:['#d9f9ff','#b79bff','#ff9fe0'];
- const rock=gold?['#c2862a','#7a4a10']:boss?['#7b4fc4','#3a1f78']:['#6b4aa8','#3a2470'];
+function doorSVG(kind,locks){const a='u'+(++uid),b='u'+(++uid);const gold=kind==='gold',queen=kind==='queen',boss=kind==='boss'||queen;locks=locks||3;
+ const slab=gold?['#fffbe0','#ffd84a','#ff9d2e']:queen?['#fff4c9','#ffb3e6','#b98cff']:boss?['#ffd6f5','#c79bff','#6be7ff']:['#d9f9ff','#b79bff','#ff9fe0'];
+ const rock=gold?['#c2862a','#7a4a10']:queen?['#e2a93a','#8a4a8a']:boss?['#7b4fc4','#3a1f78']:['#6b4aa8','#3a2470'];
  let s='<svg class="dsvg" viewBox="0 0 300 360" aria-hidden="true"><defs>'+gradDef(a,slab)+gradDef(b,rock,1)+'</defs>'+
   '<path d="M14 360 L14 150 Q14 12 150 12 Q286 12 286 150 L286 360 Z" fill="url(#'+b+')" stroke="#24104f" stroke-width="4"/>';
- for(let i=0;i<11;i++){const t=i/10*Math.PI,x=150-132*Math.cos(t),y=150-124*Math.sin(t);s+='<circle cx="'+x.toFixed(0)+'" cy="'+(y+(i%2?6:0)).toFixed(0)+'" r="'+(i%3?9:12)+'" fill="'+shade(rock[0],0.8)+'" opacity=".8"/>';}
+ for(let i=0;i<11;i++){const t=i/10*Math.PI,x=150-132*Math.cos(t),y=150-124*Math.sin(t);s+='<circle cx="'+x.toFixed(0)+'" cy="'+(y+(i%2?6:0)).toFixed(0)+'" r="'+(i%3?9:12)+'" fill="'+(queen?['#ff9ee6','#7ff3ff','#ffe873'][i%3]:shade(rock[0],0.8))+'" opacity=".85"/>';}
  s+='<path class="slab" d="M42 360 L42 155 Q42 44 150 44 Q258 44 258 155 L258 360 Z" fill="url(#'+a+')" stroke="#fff" stroke-opacity=".85" stroke-width="4"/>';
  s+='<g class="fac" stroke="#fff" stroke-opacity=".45" stroke-width="2.5" fill="none"><path d="M42 205 L108 150 L150 44"/><path d="M108 150 L192 172 L258 128"/><path d="M192 172 L232 360"/><path d="M108 150 L78 360"/><path d="M150 268 L192 172"/><path d="M150 268 L42 305"/><path d="M150 268 L258 285"/><path d="M150 268 L150 360"/></g>';
  s+='<g class="fac" fill="#fff"><path d="M84,96 l3,-9 l3,9 l9,3 l-9,3 l-3,9 l-3,-9 l-9,-3z"/><path d="M214,226 l2,-6 l2,6 l6,2 l-6,2 l-2,6 l-2,-6 l-6,-2z"/><circle cx="200" cy="90" r="3"/><circle cx="70" cy="250" r="2.5"/></g>';
- [[60,48,'#ff6fcf',-30],[150,8,gold?'#fff6c4':'#6be7ff',0],[240,48,'#c79bff',30]].forEach(c=>{s+='<g transform="translate('+c[0]+','+c[1]+') rotate('+c[3]+')"><polygon points="-10,10 -10,-12 0,-26 10,-12 10,10" fill="'+c[2]+'" stroke="#fff" stroke-width="2"/></g>';});
- if(boss){s+='<g class="fac"><ellipse cx="118" cy="112" rx="11" ry="14" fill="#3a1d6e"/><ellipse cx="182" cy="112" rx="11" ry="14" fill="#3a1d6e"/><circle cx="122" cy="107" r="4" fill="#fff"/><circle cx="186" cy="107" r="4" fill="#fff"/>'+
+ if(queen)s+='<g transform="translate(150,10)"><polygon points="-52,26 -58,-22 -28,2 0,-34 28,2 58,-22 52,26" fill="#ffd84a" stroke="#a35f00" stroke-width="4" stroke-linejoin="round"/><circle cx="0" cy="-6" r="8" fill="#ff2d55" stroke="#fff" stroke-width="2"/><circle cx="-30" cy="12" r="6" fill="#2fd8e8" stroke="#fff" stroke-width="2"/><circle cx="30" cy="12" r="6" fill="#a347ff" stroke="#fff" stroke-width="2"/></g>';
+ else [[60,48,'#ff6fcf',-30],[150,8,gold?'#fff6c4':'#6be7ff',0],[240,48,'#c79bff',30]].forEach(c=>{s+='<g transform="translate('+c[0]+','+c[1]+') rotate('+c[3]+')"><polygon points="-10,10 -10,-12 0,-26 10,-12 10,10" fill="'+c[2]+'" stroke="#fff" stroke-width="2"/></g>';});
+ if(boss){s+='<g class="fac"'+(queen?' transform="translate(150,62) scale(.8) translate(-150,-112)"':'')+'><ellipse cx="118" cy="112" rx="11" ry="14" fill="#3a1d6e"/><ellipse cx="182" cy="112" rx="11" ry="14" fill="#3a1d6e"/><circle cx="122" cy="107" r="4" fill="#fff"/><circle cx="186" cy="107" r="4" fill="#fff"/>'+
+  (queen?'<path d="M104 100 l-6 -6 M110 97 l-3 -8 M196 100 l6 -6 M190 97 l3 -8" stroke="#3a1d6e" stroke-width="3" stroke-linecap="round"/>':'')+
   '<ellipse cx="100" cy="134" rx="9" ry="5" fill="#ff7aa8" opacity=".7"/><ellipse cx="200" cy="134" rx="9" ry="5" fill="#ff7aa8" opacity=".7"/><path d="M134 134 Q150 146 166 134" stroke="#3a1d6e" stroke-width="5" fill="none" stroke-linecap="round"/></g>';
-  [95,150,205].forEach((x,i)=>{s+='<g class="lockGem" data-i="'+i+'"><circle cx="'+x+'" cy="318" r="22" fill="#2b1257" stroke="#fff" stroke-width="3"/><g transform="translate('+x+',318) scale(.34)">'+gemInner(GEMS[[2,3,8][i]])+'</g></g>';});}
+  const xs=locks>=5?[66,108,150,192,234]:locks===4?[84,128,172,216]:[95,150,205],r=locks>=5?18:22,lg=[2,3,8,7,6];
+  xs.forEach((x,i)=>{s+='<g class="lockGem" data-i="'+i+'"><circle cx="'+x+'" cy="318" r="'+r+'" fill="#2b1257" stroke="#fff" stroke-width="3"/><g transform="translate('+x+',318) scale('+(r/65).toFixed(3)+')">'+gemInner(GEMS[lg[i%5]])+'</g></g>';});}
  return s+'</svg>';}
 const IC={
  home:'<svg viewBox="0 0 24 24"><path d="M3 11 L12 3 L21 11 V21 H14 V15 H10 V21 H3 Z" fill="#fff" stroke="#2b1257" stroke-width="1.6" stroke-linejoin="round"/></svg>',
@@ -486,6 +578,7 @@ const IC={
  fs:'<svg viewBox="0 0 24 24"><path d="M3 9 V3 H9 M15 3 H21 V9 M21 15 V21 H15 M9 21 H3 V15" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
  lock:'<svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="12" rx="3" fill="#ffd84a" stroke="#2b1257" stroke-width="1.6"/><path d="M8 10 V7 a4 4 0 0 1 8 0 V10" fill="none" stroke="#2b1257" stroke-width="2.4"/><circle cx="12" cy="16" r="2" fill="#2b1257"/></svg>',
  crown:'<svg viewBox="0 0 24 16"><polygon points="2,15 1,3 7,8 12,1 17,8 23,3 22,15" fill="#ffd84a" stroke="#a35f00" stroke-width="1.4" stroke-linejoin="round"/><circle cx="12" cy="10" r="2" fill="#ff2d55"/></svg>',
+ bolt:'<svg viewBox="0 0 24 24"><path d="M14 2 L4 14 H11 L9 22 L20 9 H13 Z" fill="#ffe873" stroke="#b56a00" stroke-width="1.5" stroke-linejoin="round"/></svg>',
  flame:'<svg viewBox="0 0 24 24"><path d="M12 2 C14 7 19 9 19 15 a7 7 0 0 1 -14 0 C5 11 8 9 9 6 C10 9 11 10 12 10 C12 7 11 5 12 2Z" fill="#ffb11a" stroke="#fff" stroke-width="1.4"/><path d="M12 12 C13 14 15 15 15 17 a3 3 0 0 1 -6 0 C9 15 11 14 12 12Z" fill="#fff6a8"/></svg>'};
 
 // ================= sound =================
@@ -508,6 +601,9 @@ const Snd={c:null,
  golden(){[0,4,7,12,7,12,16,19,24].forEach((s,i)=>this.tone(523*Math.pow(2,s/12),0.3,i%2?'sine':'triangle',0.12,i*0.09));},
  chest(){this.tone(196,0.25,'triangle',0.15,0,392);this.golden();}};
 document.addEventListener('pointerdown',()=>Snd.init(),{capture:true});
+
+function diffIcon(d){let s='<svg viewBox="0 0 24 24" aria-hidden="true">';for(let i=0;i<3;i++){const h=6+i*5;s+='<rect x="'+(3+i*7)+'" y="'+(21-h)+'" width="5" height="'+h+'" rx="1.5" fill="'+(i<=d?['#8cf27f','#7cc4ff','#ff8a8a'][d]:'rgba(255,255,255,.35)')+'" stroke="#2b1257" stroke-width="1.2"/>';}return s+'</svg>';}
+function confetti(n){const cols=['#ff5a8a','#ffd84a','#5ef0e6','#b98cff','#8cf27f','#ff9ee6'];for(let i=0;i<n&&parts.length<400;i++)parts.push({x:rand(0,VW),y:rand(-40,VH*0.2),vx:rand(-60,60),vy:rand(40,220),life:rand(1.6,3),max:3,size:rand(5,11),col:pick(cols),rot:rand(0,6),vr:rand(-8,8),g:120});}
 
 // ================= background & particles =================
 (function buildBG(){const bg=$('#bg');const cols=[['#ff9ee6','#c04ad6'],['#7ff3ff','#2f8de0'],['#d5b3ff','#7a45e6'],['#fff2a8','#ffb23a'],['#a8ffcf','#24b37a']];
@@ -569,12 +665,14 @@ $('#nameIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('#startBtn').cl
 // ---------- map ----------
 $('#mHome').innerHTML=IC.home;$('#mBag').innerHTML=IC.bag;$('#mSet').innerHTML=IC.gear;
 on('#mHome',()=>{tapSnd();show('welcome');});on('#mBag',()=>{tapSnd();bagFrom='map';show('bag');});on('#mSet',()=>{tapSnd();show('settings');});
-function currentIdx(){for(let i=0;i<TABLES.length;i++)if(!secRec(TABLES[i]).done)return i;return -1;}
+on('#mDiff',()=>{tapSnd();openDiff();});
+function currentIdx(){for(let i=0;i<STAGES.length;i++)if(!lvRec(i,0).done)return stageOpen(i)?i:-1;return -1;}
+function nodeLabel(st,size){if(st.kind==='queen')return '<span class="crownT">'+IC.crown+'</span>';return '<span class="tbl">'+st.short+'</span>';}
 function renderMap(){const area=$('#mapArea'),inner=$('#mapInner');
- $('#mStats').innerHTML=gemSVG(GEMS[2],36)+'<span id="mTotal">'+totalGems()+'</span>';
- const w=area.clientWidth,h=area.clientHeight,n=TABLES.length;if(!w||!h)return;
- const cols=w>=h*1.3?5:(w>=560?4:2),rows=Math.ceil(n/cols);
- const node=Math.max(76,Math.min(w/cols*0.5,(h/rows)/2.05,124)),rowH=Math.max(node*1.95,h/rows);
+ $('#mStats').innerHTML=gemSVG(GEMS[2],36)+'<span id="mTotal">'+totalGems()+'</span>';$('#mDiff').innerHTML=diffIcon(save.diff);$('#mDiff').setAttribute('aria-label','Difficulty: '+DIFFS[save.diff].name);
+ const w=area.clientWidth,h=area.clientHeight,n=STAGES.length;if(!w||!h)return;
+ const cols=w>=h*1.3?5:(w>=560?4:2),rows=Math.ceil(n/cols),vis=Math.max(2,Math.min(rows,w>=h*1.3?2:(w>=560?3:5)));
+ const node=Math.max(76,Math.min(w/cols*0.5,(h/vis)/2.05,124)),rowH=Math.max(node*1.95,h/rows);
  const H=Math.max(h,rows*rowH);inner.style.height=H+'px';
  const pts=[];for(let i=0;i<n;i++){const r=Math.floor(i/cols),c=r%2?cols-1-(i%cols):i%cols;pts.push([(c+0.5)*w/cols,r*rowH+rowH*0.5]);}
  let d='M'+pts[0][0].toFixed(0)+' '+pts[0][1].toFixed(0);for(let i=1;i<n;i++){const a=pts[i-1],b=pts[i];
@@ -582,35 +680,70 @@ function renderMap(){const area=$('#mapArea'),inner=$('#mapInner');
   else{const sx=a[0]+(a[0]>w/2?1:-1)*w/cols*0.45;d+=' C'+sx.toFixed(0)+' '+a[1].toFixed(0)+' '+sx.toFixed(0)+' '+b[1].toFixed(0)+' '+b[0].toFixed(0)+' '+b[1].toFixed(0);}}
  const cur=currentIdx();
  let html='<svg class="path" viewBox="0 0 '+w+' '+H+'" aria-hidden="true"><path d="'+d+'" stroke="rgba(20,5,50,.55)" stroke-width="22" fill="none" stroke-linecap="round"/><path d="'+d+'" stroke="#fff6c4" stroke-opacity=".85" stroke-width="6" stroke-dasharray="2 16" fill="none" stroke-linecap="round"/></svg>';
- ZONES.forEach(z=>{const p=pts[z.from];html+='<div class="zoneTag" style="left:'+p[0].toFixed(0)+'px;top:'+Math.max(2,p[1]-node*0.5-32).toFixed(0)+'px">'+z.name+'</div>';});
- TABLES.forEach((t,i)=>{const p=pts[i],open=unlocked(i),rec=secRec(t),mast=rec.stars>=3,g=GEMS[t];
-  const cls='node'+(open?'':' locked')+(i===cur?' cur':'')+(mast?' mast':'');
-  html+='<button class="'+cls+'" data-i="'+i+'" style="left:'+(p[0]-node*0.6).toFixed(0)+'px;top:'+(p[1]-node*0.5).toFixed(0)+'px;width:'+(node*1.2).toFixed(0)+'px;--fs:'+Math.round(node*0.34)+'px" aria-label="'+t+' times table'+(open?'':' (locked)')+'">'+
-   '<span class="gemWrap" style="width:'+node.toFixed(0)+'px;height:'+node.toFixed(0)+'px">'+gemSVG(g,Math.round(node*0.92),{gray:!open})+'<span class="tbl">×'+t+'</span>'+(open?'':'<span class="lock">'+IC.lock+'</span>')+(mast?'<span class="crown">'+IC.crown+'</span>':'')+(i===cur?'<span class="lanternMini">'+lanternSVG()+'</span>':'')+'</span>'+
-   '<span class="nm">'+(open?g.name:'Locked')+'</span><span class="stars">'+[0,1,2].map(k=>starSVG(k<rec.stars)).join('')+'</span></button>';});
+ ZONES.forEach(z=>{const p=pts[z.from];html+='<div class="zoneTag'+(z.from>=10?' deep':'')+'" style="left:'+p[0].toFixed(0)+'px;top:'+Math.max(2,p[1]-node*0.5-32).toFixed(0)+'px">'+z.name+'</div>';});
+ STAGES.forEach((st,i)=>{const p=pts[i],open=stageOpen(i),dn=stageDone(i),mast=stageMastered(i),g=GEMS[st.gem],L=nLv(st);
+  const cls='node'+(open?'':' locked')+(i===cur?' cur':'')+(mast?' mast':'')+(st.kind==='queen'?' queenN':'');
+  let pips='';for(let k=0;k<L;k++){const r=lvRec(i,k);pips+='<i class="'+(r.done?(r.stars>=3?'p3':'p1'):'')+'"></i>';}
+  html+='<button class="'+cls+'" data-i="'+i+'" style="left:'+(p[0]-node*0.6).toFixed(0)+'px;top:'+(p[1]-node*0.5).toFixed(0)+'px;width:'+(node*1.2).toFixed(0)+'px;--fs:'+Math.round(node*(st.short.length>2?0.26:0.34))+'px" aria-label="'+st.name+(open?'':' (locked)')+'">'+
+   '<span class="gemWrap" style="width:'+node.toFixed(0)+'px;height:'+node.toFixed(0)+'px">'+gemSVG(g,Math.round(node*0.92),{gray:!open})+nodeLabel(st,node)+(open?'':'<span class="lock">'+IC.lock+'</span>')+(mast?'<span class="crown">'+IC.crown+'</span>':'')+(i===cur?'<span class="lanternMini">'+lanternSVG()+'</span>':'')+'</span>'+
+   '<span class="nm">'+(open?(st.kind==='table'?g.name:st.name.replace("Crystal Queen's Throne",'Crystal Queen')):'Locked')+'</span><span class="pips">'+pips+'</span></button>';});
  if(save.keys>0)html+='<button class="btn gold pulse" id="tunnelBtn">'+goldenSVG(40)+'Secret Tunnel'+(save.keys>1?' ×'+save.keys:'')+'</button>';
  inner.innerHTML=html;
- $$('#mapInner .node').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.i;if(!unlocked(i)){Snd.soft();cele(IC.lock+'<span>Finish the tunnel before this one to open it!</span>',1600);return;}tapSnd();startSection(i);}));
+ $$('#mapInner .node').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.i;if(!stageOpen(i)){Snd.soft();cele(IC.lock+'<span>Finish Learn in the tunnel before this one to open it!</span>',1800);return;}tapSnd();openStage(i);}));
  on('#tunnelBtn',()=>{tapSnd();save.keys--;persist();startTunnel(null);});
- if(cur>=0){const p=pts[cur];area.scrollTop=Math.max(0,p[1]-h*0.5);}}
+ if(cur>=0){const p=pts[cur];area.scrollTop=Math.max(0,p[1]-h*0.5);}
+ if(!save.seenV2)setTimeout(whatsNew,250);}
+function whatsNew(){if(save.seenV2||curScreen!=='map'||$('#modal').classList.contains('on'))return;
+ const c=modal('<div class="art"><div class="rays"></div>'+gemSVG(GEMS.queen,150)+'</div><h2>New in the Crystal Cave!</h2>'+
+  '<ul class="news"><li>'+gemSVG(GEMS[2],30)+'<span>Every tunnel has <b>3 levels</b>: Learn, Practice and Challenge</span></li>'+
+  '<li>'+gemSVG(GEMS.miss,30)+'<span>New deep caves: <b>Mixed Mines, Squares Grotto, Missing Gem Pools</b></span></li>'+
+  '<li>'+gemSVG(GEMS.queen,30)+'<span>Beat the <b>Crystal Queen</b> to win her crown!</span></li>'+
+  '<li><span class="dIc">'+diffIcon(save.diff)+'</span><span>Pick <b>Easy, Normal or Tricky</b> with the gold button</span></li></ul>'+
+  (save.migrated?'<p class="small">All your gems and finished tunnels came with you!</p>':'')+'<button class="btn gold big" id="newOk">Let\'s explore!</button>','newsC');
+ on('#newOk',()=>{tapSnd();save.seenV2=true;persist();closeModal();});}
+function lvLabel(st,k){return st.lvNames?st.lvNames[k]:LVD[k];}
+function openStage(si){const st=STAGES[si];
+ if(nLv(st)===1){const r=lvRec(si,0);modal('<div class="art"><div class="rays"></div>'+gemSVG(GEMS.queen,150)+'</div><h2>'+st.name+'</h2><p>The Crystal Queen mixes <b>everything</b>: tables, squares and missing numbers. Break her 5 gem locks to win her crown!</p>'+
+   '<div class="bigStars small">'+[0,1,2].map(k=>starSVG(k<r.stars)).join('')+'</div><div class="row"><button class="btn purple" id="lvClose">Not yet</button><button class="btn gold big" id="lvGo">I\'m ready!</button></div>','queenC');
+  on('#lvClose',()=>{tapSnd();closeModal();});on('#lvGo',()=>{tapSnd();closeModal();startLevel(si,0);});return;}
+ let h='<h2>'+st.name+'</h2><p class="small">'+st.sub[0].toUpperCase()+st.sub.slice(1)+'</p><div class="lvls">';
+ for(let k=0;k<3;k++){const open=lvOpen(si,k),r=lvRec(si,k);let gems='';for(let j=0;j<=k;j++)gems+=gemSVG(GEMS[st.gem],28,{gray:!open});
+  h+='<button class="btn lvCard '+(open?['green','blue','purple'][k]:'gray')+'" data-k="'+k+'" aria-label="'+LVN[k]+(open?'':' (locked)')+'"><span class="lvG">'+gems+'</span><span class="lvT">'+(k+1)+'. '+LVN[k]+'</span><span class="lvD">'+lvLabel(st,k)+'</span>'+
+   '<span class="st">'+(open?[0,1,2].map(j=>starSVG(j<r.stars)).join(''):IC.lock)+'</span></button>';}
+ h+='</div><div class="row"><button class="btn purple" id="lvClose">Back</button><button class="btn gold" id="lvDiff"><span class="dIc">'+diffIcon(save.diff)+'</span>'+DIFFS[save.diff].name+'</button></div>';
+ modal(h);
+ $$('.lvCard').forEach(b=>b.addEventListener('click',()=>{const k=+b.dataset.k;if(!lvOpen(si,k)){Snd.soft();cele(IC.lock+'<span>Finish '+LVN[k-1]+' first to open '+LVN[k]+'!</span>',1800);return;}tapSnd();closeModal();startLevel(si,k);}));
+ on('#lvClose',()=>{tapSnd();closeModal();});on('#lvDiff',()=>{tapSnd();openDiff(()=>openStage(si));});}
+function openDiff(after){let h='<h2>How tricky?</h2><div class="lvls">';
+ DIFFS.forEach((d,i)=>{h+='<button class="btn lvCard '+d.cls+(save.diff===i?' sel':'')+'" data-d="'+i+'"><span class="dIc dBig">'+diffIcon(i)+'</span><span class="lvT">'+d.name+'</span><span class="lvD">'+d.desc+'</span>'+(save.diff===i?'<span class="selT">Chosen</span>':'')+'</button>';});
+ modal(h+'</div><p class="small">Every level still gets a little harder as you go.</p>');
+ $$('.lvCard[data-d]').forEach(b=>b.addEventListener('click',()=>{save.diff=+b.dataset.d;persist();tapSnd();closeModal();cele(diffIcon(save.diff)+'<span>'+DIFFS[save.diff].name+' mode!</span>',1500);
+  if(curScreen==='map')renderMap();if(curScreen==='settings')renderSettings();if(after)after();}));}
 
 // ---------- play ----------
-$('#pBack').innerHTML=IC.home;$('#sIcon').innerHTML=IC.flame;
+$('#pBack').innerHTML=IC.home;$('#sIcon').innerHTML=IC.flame;$('#hintB').innerHTML=wormSVG();
 on('#pBack',()=>{tapSnd();leavePlay();});
 on('#pBag',()=>{tapSnd();bagFrom='play';show('bag');});
-on('#padT',()=>{tapSnd();save.pad=!save.pad;persist();if(S&&S.q){S.typed='';renderAnswers();updateQ();layoutPlay();}});
+on('#padT',()=>{tapSnd();if(!S||!S.q)return;S.pad=!S.pad;if(!S.forcePad){save.pad=S.pad;persist();}S.typed='';renderAnswers();updateQ();layoutPlay();});
+on('#hintB',()=>{if(!S||S.busy||!S.q)return;tapSnd();if($('#hint').hidden){if(!S.wrong)S.helped=true;showHint();}});
 let S=null,tunnelResolve=null;
 function leavePlay(){closeModal();
  if(S&&S.mode==='tunnel'&&S.ret){S=S.ret;S.doorDirty=true;setupPlay();const r=tunnelResolve;tunnelResolve=null;if(r)r();return;}
  S=null;show('map');}
-function startSection(i){const t=TABLES[i];save.run++;persist();
- S={mode:'sec',i,t,queue:buildQueue(t),idx:0,boss:false,bossQs:null,bossIdx:0,first:0,total:0,earned:{},requeued:{},busy:false};
- show('play');setupPlay();banner(GEMS[t].name+' Tunnel','The '+t+'s!',1400);nextQ();}
+// difficulty = chosen setting (Easy/Normal/Tricky) + natural ramp from the level (Learn/Practice/Challenge)
+function cfgFor(lv){const d=save.diff;return {lv,n:d===0?3:4,close:Math.min(4,lv+d),hintBtn:d===0||(d===1&&lv===0),autoHint:d<2,forcePad:d===2&&lv===2,speed:lv===2?[9,7,5][d]:0};}
+function startLevel(si,k){const st=STAGES[si];save.run++;persist();
+ const c=cfgFor(st.kind==='queen'?2:k);
+ S={mode:'sec',si,k,st,cfg:c,gem:st.kind==='table'?null:st.gem,idx:0,boss:false,bossQs:null,bossIdx:0,locks:st.kind==='queen'?5:3,first:0,total:0,earned:{},requeued:{},busy:false,pad:save.pad||c.forcePad,forcePad:c.forcePad,speedy:0};
+ S.queue=buildQueue(si,k);
+ show('play');setupPlay();banner(st.name,st.kind==='queen'?'The Grand Boss!':LVN[k]+': '+lvLabel(st,k),1500);nextQ();}
 function startTunnel(ret){if(!ret){save.run++;persist();}
- S={mode:'tunnel',ret,queue:buildTunnel(),idx:0,boss:false,first:0,total:0,earned:{},requeued:{},busy:false};
+ const c=cfgFor(1);c.speed=0;c.forcePad=false;
+ S={mode:'tunnel',ret,cfg:c,gem:null,idx:0,boss:false,locks:3,first:0,total:0,earned:{},requeued:{},busy:false,pad:save.pad,forcePad:false,speedy:0};
+ S.queue=buildTunnel();
  show('play');setupPlay();banner('Secret Tunnel','Golden doors ahead!',1500);nextQ();}
-function setupPlay(){$('#play').classList.toggle('goldMode',S.mode==='tunnel');setMuteIcons();
- $('#secName').textContent=S.mode==='tunnel'?'Secret Golden Tunnel':(GEMS[S.t].name+' Tunnel · the '+S.t+'s');
+function setupPlay(){const pl=$('#play');pl.classList.toggle('goldMode',S.mode==='tunnel');pl.classList.toggle('queenMode',!!(S.st&&S.st.kind==='queen'));setMuteIcons();
+ $('#secName').textContent=S.mode==='tunnel'?'Secret Golden Tunnel':(S.st.kind==='queen'?S.st.name:S.st.name+' · '+LVN[S.k]);
  $('#pLantern').innerHTML=lanternSVG();bagUpd();updateStreak();
  if(S.q){renderDoor();renderAnswers();renderDots();}layoutPlay();}
 function layoutPlay(){if(curScreen!=='play')return;const st=$('#stage'),r=st.getBoundingClientRect();if(!r.width)return;
@@ -619,41 +752,82 @@ function layoutPlay(){if(curScreen!=='play')return;const st=$('#stage'),r=st.get
  if(door){door.style.height=dh.toFixed(0)+'px';door.style.width=(dh*300/360).toFixed(0)+'px';const q=door.querySelector('.q');if(q)q.style.fontSize=Math.round(dh*0.15)+'px';}
  if(!$('#hint').hidden&&S&&S.q)sizeHint();}
 window.addEventListener('resize',()=>{resizeFx();if(curScreen==='map')renderMap();layoutPlay();});
-function qText(q){return q.swap?q.b+' × '+q.a:q.a+' × '+q.b;}
+// ----- questions: {a,b,swap,miss}  miss 0=normal, 1=first number hidden, 2=second hidden, 3=square (both hidden, same number)
+const disp=q=>q.swap?[q.b,q.a]:[q.a,q.b];
+function ansOf(q){const d=disp(q);return q.miss===1?d[0]:q.miss===2?d[1]:q.miss===3?q.a:q.a*q.b;}
+function qPlain(q){const d=disp(q),P=q.a*q.b;return q.miss===1?'? × '+d[1]+' = '+P:q.miss===2?d[0]+' × ? = '+P:q.miss===3?'? × ? = '+P:d[0]+' × '+d[1]+' = ?';}
+function qHTML(q,typed){const d=disp(q),P=q.a*q.b,sl='<span class="slot">'+(typed?esc(typed):'?')+'</span>';
+ if(!q.miss)return d[0]+' × '+d[1]+'<span class="eq">= '+sl+'</span>';
+ const top=q.miss===1?sl+' × '+d[1]:q.miss===2?d[0]+' × '+sl:sl+' × '+sl;return top+'<span class="eq">= '+P+'</span>';}
 const qKey=q=>q.a+'x'+q.b;
 function weightOf(k){const r=save.facts[k];let w=Math.random()*1.5;if(!r)return w+2;if(r.box<2)w+=3;if(r.due<=save.run)w+=2;w+=Math.min(3,r.w*0.7);w-=r.box*0.4;return w;}
-function buildQueue(t){const bs=[1,2,3,4,5,6,7,8,9,10].map(b=>({b,w:weightOf(t+'x'+b)})).sort((x,y)=>y.w-x.w);
- const qs=shuffle(bs.slice(0,8).map(o=>({a:t,b:o.b})));
- const rev=shuffle(Object.keys(save.facts).filter(k=>{const r=save.facts[k],a=+k.split('x')[0];return a!==t&&r.w>0&&r.box<=1&&r.due<=save.run;})).slice(0,2);
- rev.forEach((k,i)=>{const ab=k.split('x').map(Number);qs.splice(Math.min(qs.length,2+i*3),0,{a:ab[0],b:ab[1],review:true});});return qs;}
-function buildBoss(){const t=S.t,i=S.i,used=new Set(),out=[];
- const add=q=>{if(used.has(qKey(q)))return false;used.add(qKey(q));out.push({a:q.a,b:q.b,swap:Math.random()<0.5});return true;};
- const own=[2,3,4,5,6,7,8,9,10].map(b=>({a:t,b,w:weightOf(t+'x'+b)})).sort((x,y)=>y.w-x.w);add(own[0]);
- const prev=TABLES.slice(0,i);if(prev.length){const pf=[];prev.forEach(a=>{for(let b=2;b<=10;b++)pf.push({a,b,w:weightOf(a+'x'+b)});});pf.sort((x,y)=>y.w-x.w);add(pf[0]);add(pick(pf.slice(0,8)));}
- let guard=0;while(out.length<3&&guard++<50)add(pick(own));return shuffle(out).slice(0,3);}
-function buildTunnel(){const op=TABLES.filter((t,i)=>unlocked(i)),pool=[];op.forEach(a=>{for(let b=2;b<=10;b++)pool.push({a,b,w:weightOf(a+'x'+b)});});
- pool.sort((x,y)=>y.w-x.w);const out=[];for(const q of shuffle(pool.slice(0,10))){if(out.length>=3)break;out.push({a:q.a,b:q.b,swap:Math.random()<0.4});}return out;}
-function choicesFor(q){const a=q.a,b=q.b,ans=a*b,set=[ans];const ok=c=>c>0&&c<=100&&set.indexOf(c)<0;
- const near=shuffle([a*(b+1),a*(b-1),(a+1)*b,(a-1)*b]),small=shuffle([ans+1,ans-1,ans+2,ans-2,a+b,ans+10,ans-10,+String(ans).split('').reverse().join('')]);
- for(const c of near)if(set.length<3&&ok(c))set.push(c);for(const c of small)if(set.length<4&&ok(c))set.push(c);let k=3;while(set.length<4){if(ok(ans+k))set.push(ans+k);k++;}
+const range=(a,b)=>{const o=[];for(let i=a;i<=b;i++)o.push(i);return o;};
+function factsFor(si,k){const st=STAGES[si],F=[];
+ if(st.kind==='table')range(1,10).forEach(b=>F.push({a:st.t,b}));
+ else if(st.kind==='mix'||st.kind==='miss')st.pools[k].forEach(a=>range(2,10).forEach(b=>F.push({a,b})));
+ else if(st.kind==='sq')(k===0?range(1,5):k===1?range(1,9):range(2,9)).forEach(a=>F.push({a,b:a}));
+ else range(2,9).forEach(a=>range(2,10).forEach(b=>F.push({a,b})));
+ return F;}
+function pickWeighted(F,n){return shuffle(F.map(f=>({a:f.a,b:f.b,w:weightOf(f.a+'x'+f.b)})).sort((x,y)=>y.w-x.w).slice(0,n)).map(f=>({a:f.a,b:f.b}));}
+const flip=()=>Math.random()<0.5?1:2;
+function buildQueue(si,k){const st=STAGES[si],F=factsFor(si,k);let qs;
+ const inOrder=(st.kind==='table'||st.kind==='sq')&&k===0;
+ if(inOrder)qs=F.map(f=>({a:f.a,b:f.b}));
+ else{qs=pickWeighted(F,st.kind==='queen'?6:(st.kind==='sq'&&k>0?Math.min(F.length,8):8));
+  qs.forEach(q=>{if(q.a!==q.b&&(k>0||st.kind!=='table'))q.swap=Math.random()<0.5;});
+  if(st.kind==='miss')qs.forEach(q=>q.miss=flip());
+  else if(st.kind==='sq'&&k===2)qs.forEach(q=>q.miss=3);
+  else if(st.kind==='queen'){qs.forEach((q,i)=>{if(i%3===1)q.miss=flip();});const s=2+Math.floor(Math.random()*8);qs.splice(4,0,{a:s,b:s,miss:Math.random()<0.5?3:0});}
+  else if(k===2)qs.forEach((q,i)=>{if(i%3===1)q.miss=flip();});}
+ // spaced review: weak facts from elsewhere come back (at the end of in-order Learn levels, mixed in otherwise)
+ const own=new Set(F.map(qKey));
+ const rev=shuffle(Object.keys(save.facts).filter(key=>{const r=save.facts[key];return !own.has(key)&&r.w>0&&r.box<=1&&r.due<=save.run;})).slice(0,2);
+ rev.forEach((key,i)=>{const ab=key.split('x').map(Number),q={a:ab[0],b:ab[1],review:true};if(inOrder)qs.push(q);else qs.splice(Math.min(qs.length,2+i*3),0,q);});
+ return qs;}
+function buildBoss(){const st=S.st,F=factsFor(S.si,S.k),used=new Set(),out=[],n=S.locks;
+ const add=q=>{if(used.has(qKey(q))||out.length>=n)return;used.add(qKey(q));const o={a:q.a,b:q.b,swap:q.a!==q.b&&(S.k>0||st.kind!=='table')&&Math.random()<0.5};out.push(o);};
+ const own=F.filter(f=>st.kind!=='table'||f.b>=2).map(f=>({a:f.a,b:f.b,w:weightOf(qKey(f))})).sort((x,y)=>y.w-x.w);add(own[0]);
+ if(st.kind==='table'){const prev=TABLES.slice(0,S.si);if(prev.length){const pf=[];prev.forEach(a=>range(2,10).forEach(b=>pf.push({a,b,w:weightOf(a+'x'+b)})));pf.sort((x,y)=>y.w-x.w);add(pf[0]);add(pick(pf.slice(0,8)));}}
+ let g=0;while(out.length<n&&g++<80)add(pick(own.slice(0,Math.max(4,Math.ceil(own.length/2)))));
+ while(out.length<n)out.push({a:own[0].a,b:own[0].b});
+ if(st.kind==='miss')out.forEach(q=>q.miss=flip());
+ else if(st.kind==='sq'&&S.k===2)out.forEach(q=>q.miss=3);
+ else if(st.kind==='queen'){out[1].miss=flip();out[3].miss=flip();const s=3+Math.floor(Math.random()*7);out[4]={a:s,b:s,miss:3};}
+ else if(S.k===2)out[1].miss=flip();
+ return shuffle(out);}
+function buildTunnel(){const op=TABLES.filter((t,i)=>stageOpen(i)),pool=[];op.forEach(a=>range(2,10).forEach(b=>pool.push({a,b,w:weightOf(a+'x'+b)})));
+ pool.sort((x,y)=>y.w-x.w);return shuffle(pool.slice(0,10)).slice(0,3).map((q,i)=>({a:q.a,b:q.b,swap:Math.random()<0.4,miss:save.diff>0&&i===2?flip():0}));}
+function choicesFor(q){const c=S.cfg,ans=ansOf(q),n=c.n,set=[ans],max=q.miss?12:100,ok=v=>v>0&&v<=max&&set.indexOf(v)<0;let tiers;
+ if(q.miss){const d=disp(q),known=q.miss===1?d[1]:d[0];
+  tiers=c.close>=3?[[ans+1,ans-1],[known,ans+2,ans-2]]:c.close>=1?[[ans+1,ans-1,ans+2,ans-2],[ans+3,ans-3]]:[[ans+3,ans-3,ans+4,ans-4],[ans+2,ans-2,ans+5,ans-5]];}
+ else{const a=q.a,b=q.b,nb=[a*(b+1),a*(b-1),(a+1)*b,(a-1)*b],pm=[ans+1,ans-1,ans+2,ans-2],far=[a*(b+2),a*(b-2),ans+10,ans-10,a+b,(a+2)*b,(a-2)*b];
+  tiers=c.close>=4?[pm.concat([nb[0],nb[2]]),nb,far]:c.close>=2?[nb,pm,far]:[far,nb,pm];}
+ for(const tier of tiers)for(const v of shuffle(tier.slice()))if(set.length<n&&ok(v))set.push(v);
+ let k=1;while(set.length<n&&k<300){if(ok(ans+k))set.push(ans+k);else if(ok(ans-k))set.push(ans-k);k++;}
  return shuffle(set);}
 function renderDots(){let h='';if(S.mode==='tunnel')S.queue.forEach((q,i)=>{h+='<i class="'+(i<S.idx?'done':i===S.idx?'now':'')+'"></i>';});
  else{S.queue.forEach((q,i)=>{h+='<i class="'+(i<S.idx||S.boss?'done':i===S.idx?'now':'')+'"></i>';});h+='<i class="boss'+(S.boss?' now':'')+'"></i>';}
  $('#dots').innerHTML=h;}
 const box$=s=>$('#doorBox '+s);
-function renderDoor(){const kind=S.mode==='tunnel'?'gold':S.boss?'boss':'norm',box=$('#doorBox');
- if(S.boss&&!S.doorDirty&&box.querySelector('.door.boss:not(.broken)')){updateQ();return;}
- S.doorDirty=false;const tag=S.q.review?'<span class="tag">Remember this one?</span>':S.boss?'<span class="tag">Boss Door! Lock '+(S.bossIdx+1)+' of 3</span>':'';
- box.innerHTML='<div class="door enter '+kind+'">'+doorSVG(kind)+tag+'<div class="q"></div></div>';
+function bossKind(){return S.st&&S.st.kind==='queen'?'queen':'boss';}
+function renderDoor(){const kind=S.mode==='tunnel'?'gold':S.boss?bossKind():'norm',box=$('#doorBox');
+ if(S.boss&&!S.doorDirty&&box.querySelector('.door.'+kind+':not(.broken)')){updateQ();startSpeed();return;}
+ S.doorDirty=false;const tag=S.q.review?'<span class="tag">Remember this one?</span>':S.boss?'<span class="tag"></span>':'';
+ box.innerHTML='<div class="door enter '+(kind==='queen'?'boss queen':kind)+'">'+doorSVG(kind,S.locks)+tag+'<div class="q"></div><div class="speed" hidden><span>'+IC.bolt+'</span><i></i></div></div>';
  if(S.boss)box.querySelectorAll('.lockGem').forEach((g,i)=>{if(i<S.bossIdx)g.classList.add('pop');});
- updateQ();layoutPlay();}
-function updateQ(){const q=box$('.q');if(!q||!S||!S.q)return;q.innerHTML=qText(S.q)+'<span class="eq">= <b>'+(save.pad?(esc(S.typed)||'?'):'?')+'</b></span>';
- const tg=box$('.door.boss .tag');if(tg)tg.textContent='Boss Door! Lock '+Math.min(3,S.bossIdx+1)+' of 3';}
-function renderAnswers(){const a=$('#answers');$('#padT').textContent=save.pad?'ABC':'123';$('#padT').setAttribute('aria-label',save.pad?'Show answer buttons':'Show number pad');
- if(save.pad){let h='<div class="pad">';[1,2,3,4,5,6,7,8,9].forEach(n=>h+='<button class="btn purple" data-k="'+n+'">'+n+'</button>');
+ updateQ();startSpeed();layoutPlay();}
+function startSpeed(){const sp=box$('.speed');if(!sp)return;S.qStart=performance.now();
+ if(!S.cfg.speed||S.mode!=='sec'){sp.hidden=true;return;}sp.hidden=false;const i=sp.querySelector('i');sp.classList.remove('gone');
+ i.style.animation='none';void i.offsetWidth;i.style.animation='speedDown '+S.cfg.speed+'s linear forwards';
+ clearTimeout(startSpeed.t);const q=S.q;startSpeed.t=setTimeout(()=>{if(S&&S.q===q)sp.classList.add('gone');},S.cfg.speed*1000);}
+function updateQ(){const q=box$('.q');if(!q||!S||!S.q)return;q.innerHTML=qHTML(S.q,S.pad?S.typed:'');q.classList.toggle('missQ',!!S.q.miss);
+ const tg=box$('.door.boss .tag, .door.queen .tag');if(tg)tg.textContent=(S.st&&S.st.kind==='queen'?'Crystal Queen! Lock ':'Boss Door! Lock ')+Math.min(S.locks,S.bossIdx+1)+' of '+S.locks;}
+function renderAnswers(){const a=$('#answers');$('#padT').textContent=S.pad?'ABC':'123';$('#padT').setAttribute('aria-label',S.pad?'Show answer buttons':'Show number pad');
+ const hb=$('#hintB');hb.hidden=!(S.cfg.hintBtn||S.wrong);
+ if(S.pad){let h='<div class="pad">';[1,2,3,4,5,6,7,8,9].forEach(n=>h+='<button class="btn purple" data-k="'+n+'">'+n+'</button>');
   h+='<button class="btn del" data-k="del" aria-label="Delete">&#9003;</button><button class="btn purple" data-k="0">0</button><button class="btn go" data-k="go" aria-label="Check">&#10003;</button></div>';a.innerHTML=h;
   a.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>padKey(b.dataset.k)));}
- else{const ch=S.choices||(S.choices=choicesFor(S.q));let h='<div class="choices">';ch.forEach(c=>{const no=S.tried.indexOf(c)>=0;h+='<button class="btn'+(no?' nope':'')+'" data-v="'+c+'"'+(no?' disabled':'')+'>'+c+'</button>';});a.innerHTML=h+'</div>';
+ else{const ch=S.choices||(S.choices=choicesFor(S.q));let h='<div class="choices n'+ch.length+'">';ch.forEach(c=>{const no=S.tried.indexOf(c)>=0;h+='<button class="btn'+(no?' nope':'')+'" data-v="'+c+'"'+(no?' disabled':'')+'>'+c+'</button>';});a.innerHTML=h+'</div>';
   a.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>answer(+b.dataset.v,b)));}}
 function padKey(k){if(!S||S.busy)return;Snd.tap();
  if(k==='del')S.typed=S.typed.slice(0,-1);else if(k==='go'){if(S.typed)answer(+S.typed,null);return;}else if(S.typed.length<3)S.typed=(S.typed==='0'?'':S.typed)+k;
@@ -661,15 +835,16 @@ function padKey(k){if(!S||S.busy)return;Snd.tap();
 function nextQ(){if(!S)return;
  if(S.mode==='tunnel'){if(S.idx>=S.queue.length)return tunnelDone();S.q=S.queue[S.idx];}
  else if(!S.boss&&S.idx>=S.queue.length)return startBoss();
- else if(S.boss){if(S.bossIdx>=S.bossQs.length)return sectionDone();S.q=S.bossQs[S.bossIdx];}
+ else if(S.boss){if(S.bossIdx>=S.bossQs.length)return levelDone();S.q=S.bossQs[S.bossIdx];}
  else S.q=S.queue[S.idx];
- S.wrong=false;S.typed='';S.tried=[];S.choices=null;S.busy=false;S.hintRows=0;S.counting=false;
+ S.wrong=false;S.helped=false;S.tries=0;S.typed='';S.tried=[];S.choices=null;S.busy=false;S.hintRows=0;S.counting=false;
  hideHint();renderDoor();renderAnswers();renderDots();}
 async function startBoss(){const s=S;s.boss=true;s.bossIdx=0;s.bossQs=buildBoss();s.doorDirty=true;s.busy=true;
- banner('Boss Door!','Break all 3 gem locks!',1500);Snd.streak();await wait(700);if(S!==s)return;s.busy=false;nextQ();}
-function record(q,ok){const k=qKey(q),r=save.facts[k]||(save.facts[k]={n:0,c:0,w:0,box:0,due:0});r.n++;save.answered++;
- if(ok){r.c++;r.box=Math.min(5,r.box+1);r.due=save.run+[1,1,2,3,5,8][r.box];}else{r.w++;r.box=0;r.due=save.run+1;}persist();}
-function answer(v,btn){if(!S||S.busy||!S.q)return;if(v===S.q.a*S.q.b)onCorrect(btn);else onWrong(v,btn);}
+ if(s.st.kind==='queen')banner('The Crystal Queen!','Break all 5 gem locks!',1700);else banner('Boss Door!','Break all 3 gem locks!',1500);
+ Snd.streak();await wait(s.st.kind==='queen'?900:700);if(S!==s)return;s.busy=false;nextQ();}
+function record(q,ok,helped){const k=qKey(q),r=save.facts[k]||(save.facts[k]={n:0,c:0,w:0,box:0,due:0});r.n++;save.answered++;
+ if(helped){r.due=save.run+1;}else if(ok){r.c++;r.box=Math.min(5,r.box+1);r.due=save.run+[1,1,2,3,5,8][r.box];}else{r.w++;r.box=0;r.due=save.run+1;}persist();}
+function answer(v,btn){if(!S||S.busy||!S.q)return;if(v===ansOf(S.q))onCorrect(btn);else onWrong(v,btn);}
 function say(txt,ms){const b=$('#bubble');b.textContent=txt;b.classList.add('on');clearTimeout(say.t);say.t=setTimeout(()=>b.classList.remove('on'),(ms||2200)*Math.max(SPEED,0.4));}
 function updateStreak(rest){const n=save.streak,el=$('#streak');$('#sNum').textContent=n;
  let lo,hi,next;if(n<3){lo=0;hi=3;next='lantern';}else if(n<5){lo=3;hi=5;next='rare';}else{lo=Math.floor(n/5)*5;hi=lo+5;next=hi%10===0?'gold':'rare';}
@@ -698,24 +873,28 @@ function shatter(gold){const door=box$('.door');if(!door)return;const r=door.get
    try{el.animate([{transform:'translate('+sx+'px,'+sy+'px) rotate(0deg)',opacity:1},{transform:'translate('+(sx+dx)+'px,'+(sy+dy+140)+'px) rotate('+rot+'deg) scale(.6)',opacity:0}],{duration:800*SPEED,easing:'cubic-bezier(.2,.7,.4,1)',fill:'forwards'}).onfinish=rm;}catch(e){}
    setTimeout(rm,900*SPEED+50);});}
  const c=centerOf(door);burst(c[0],c[1],46,gold?['#fff','#fff27a','#ffcf3a']:SPK,420);Snd.shatter();}
-async function onCorrect(btn){const s=S;s.busy=true;const q=s.q,first=!s.wrong,t=q.a;
- if(first){record(q,true);s.first++;save.streak++;if(save.streak>save.best)save.best=save.streak;}
+async function onCorrect(btn){const s=S;s.busy=true;const q=s.q,first=!s.wrong&&!s.helped,full=!s.wrong,gk=s.gem||q.a;
+ const fast=first&&s.cfg.speed&&s.mode==='sec'&&(performance.now()-(s.qStart||0))/1000<=s.cfg.speed;
+ if(!s.wrong)record(q,true,s.helped);
+ if(first){s.first++;save.streak++;if(save.streak>save.best)save.best=save.streak;}
  s.total++;save.correct++;persist();
  if(btn)btn.classList.add('yes');else updateQ();
  if(!$('#hint').hidden){$$('#hgrid .hrow').forEach(r=>r.classList.add('lit'));}
- Snd.correct();updateStreak();say(first?pick(PRAISE)+(save.name&&Math.random()<0.35?' Go, '+save.name+'!':''):'You did it! Here is a little gem for trying.',1700);
- const door=box$('.door'),from=door?centerOf(door):[VW/2,VH/2];const gw=Math.round(Math.min(90,VW*0.16)),sm=Math.round(gw*0.6);
+ Snd.correct();updateStreak();
+ say(first?pick(PRAISE)+(save.name&&Math.random()<0.35?' Go, '+save.name+'!':''):s.helped&&!s.wrong?'Great counting with Glimmer!':'You did it! Here is a little gem for trying.',1700);
+ const door=box$('.door'),from=door?centerOf(door):[VW/2,VH/2];const gw=Math.round(Math.min(90,VW*0.16)),sm=Math.round(gw*0.6),G=GEMS[gk];
  await wait(first?150:500);if(S!==s)return;hideHint();
- if(s.mode==='tunnel'){shatter(true);addGem(t,true,2);s.earned[t]=(s.earned[t]||0)+2;persist();
-  await Promise.all([flyGem(gemSVG(GEMS[t],gw),from,gw,0).then(()=>{Snd.gem(0);bagUpd();}),flyGem(gemSVG(GEMS[t],gw),from,gw,160).then(()=>{Snd.gem(2);bagUpd();})]);}
+ if(fast){addGem(gk,false,1);s.speedy++;s.earned[gk]=(s.earned[gk]||0)+1;persist();cele(IC.bolt+'<span>Speedy! +1 bonus gem!</span>',1500);flyGem(gemSVG(G,sm),from,sm,350).then(bagUpd);}
+ if(s.mode==='tunnel'){shatter(true);addGem(gk,true,2);s.earned[gk]=(s.earned[gk]||0)+2;persist();
+  await Promise.all([flyGem(gemSVG(G,gw),from,gw,0).then(()=>{Snd.gem(0);bagUpd();}),flyGem(gemSVG(G,gw),from,gw,160).then(()=>{Snd.gem(2);bagUpd();})]);}
  else if(s.boss){const lock=box$('.lockGem[data-i="'+s.bossIdx+'"]');const lf=lock?centerOf(lock):from;if(lock)lock.classList.add('pop');burst(lf[0],lf[1],22);
-  addGem(t,first,1);s.earned[t]=(s.earned[t]||0)+1;s.bossIdx++;persist();
-  if(s.bossIdx>=s.bossQs.length){await wait(300);if(S!==s)return;shatter(false);const bt=s.t;addGem(bt,true,3);s.earned[bt]=(s.earned[bt]||0)+3;persist();
-   const ps=[flyGem(gemSVG(GEMS[t],first?gw:sm),lf,first?gw:sm,0)];for(let k=0;k<3;k++)ps.push(flyGem(gemSVG(GEMS[bt],gw),from,gw,150+k*140).then(()=>{Snd.gem(k+1);bagUpd();}));await Promise.all(ps);}
-  else{const d=box$('.door');if(d){d.classList.remove('enter','wobble');void d.offsetWidth;d.classList.add('wobble');}await flyGem(gemSVG(GEMS[t],first?gw:sm),lf,first?gw:sm,0);Snd.gem(0);}
+  addGem(gk,full,1);s.earned[gk]=(s.earned[gk]||0)+1;s.bossIdx++;persist();
+  if(s.bossIdx>=s.bossQs.length){await wait(300);if(S!==s)return;shatter(false);const bk=s.gem||s.st.gem,BG=GEMS[bk],nb=s.st.kind==='queen'?5:3;addGem(bk,true,nb);s.earned[bk]=(s.earned[bk]||0)+nb;persist();
+   const ps=[flyGem(gemSVG(G,full?gw:sm),lf,full?gw:sm,0)];for(let k=0;k<nb;k++)ps.push(flyGem(gemSVG(BG,gw),from,gw,150+k*140).then(()=>{Snd.gem(k+1);bagUpd();}));await Promise.all(ps);}
+  else{const d=box$('.door');if(d){d.classList.remove('enter','wobble');void d.offsetWidth;d.classList.add('wobble');}await flyGem(gemSVG(G,full?gw:sm),lf,full?gw:sm,0);Snd.gem(0);}
   bagUpd();}
- else{shatter(false);addGem(t,first,1);s.earned[t]=(s.earned[t]||0)+1;persist();
-  await flyGem(gemSVG(GEMS[t],first?gw:sm),from,first?gw:sm,100);Snd.gem(first?0:4);bagUpd();}
+ else{shatter(false);addGem(gk,full,1);s.earned[gk]=(s.earned[gk]||0)+1;persist();
+  await flyGem(gemSVG(G,full?gw:sm),from,full?gw:sm,100);Snd.gem(full?0:4);bagUpd();}
  if(S!==s)return;
  if(s.mode==='tunnel'||!s.boss)s.idx++;
  if(first)await milestones(s);
@@ -744,57 +923,79 @@ function tunnelDone(){S.busy=true;const reward=TREASURES.find(x=>save.treasures.
   $('#chP').innerHTML=reward?'You found the <b>'+reward.name+'</b>! Plus 5 bonus gems!':'You found a giant gem pile! Plus 5 bonus gems!';
   $('#chOut').innerHTML='<button class="btn gold big" id="chBack">'+(S&&S.ret?'Back to my tunnel':'Back to the map')+'</button>';
   on('#chBack',()=>{tapSnd();closeModal();if(S&&S.ret){S=S.ret;S.doorDirty=true;setupPlay();const r2=tunnelResolve;tunnelResolve=null;if(r2)r2();}else{S=null;show('map');}});});}
-function onWrong(v,btn){const s=S,q=s.q;Snd.soft();
- if(!s.wrong){s.wrong=true;record(q,false);
-  if(s.mode==='sec'&&!s.boss&&!s.requeued[qKey(q)]){s.requeued[qKey(q)]=1;const at=Math.min(s.queue.length,s.idx+3);s.queue.splice(at,0,{a:q.a,b:q.b,review:true});renderDots();}
+function onWrong(v,btn){const s=S,q=s.q;Snd.soft();s.tries++;
+ if(!s.wrong){s.wrong=true;if(!s.helped)record(q,false);else{const r=save.facts[qKey(q)];if(r){r.w++;r.box=0;persist();}}
+  if(s.mode==='sec'&&!s.boss&&!s.requeued[qKey(q)]){s.requeued[qKey(q)]=1;const at=Math.min(s.queue.length,s.idx+3);s.queue.splice(at,0,{a:q.a,b:q.b,swap:q.swap,miss:q.miss,review:true});renderDots();}
   const old=save.streak;save.streak=Math.floor(old/2);persist();updateStreak(old>=2);
-  $('#bubble').classList.remove('on');if(old>=2)cele(IC.flame+'<span>Streak resting at '+save.streak+'. You can build it back up!</span>',2600);}
+  if(old>=2)cele(IC.flame+'<span>Streak resting at '+save.streak+'. You can build it back up!</span>',2600);}
  s.tried.push(v);if(btn){btn.classList.add('nope');btn.disabled=true;}else{s.typed='';updateQ();}
+ $('#hintB').hidden=false;
  const d=box$('.door');if(d){d.classList.remove('enter','wobble');void d.offsetWidth;d.classList.add('wobble');}
- if($('#hint').hidden)showHint();else{const w=$('#hint .worm');if(w){w.style.animation='none';void w.offsetWidth;w.style.animation='';}$('#say').textContent='Let\'s count every row together!';autoCount();}}
+ if($('#hint').hidden){if(s.cfg.autoHint||s.tries>=2){$('#bubble').classList.remove('on');showHint();}else say('Not quite! Try again, or tap Glimmer for help.',2600);}
+ else{const w=$('#hint .worm');if(w){w.style.animation='none';void w.offsetWidth;w.style.animation='';}$('#say').textContent='Let\'s count every row together!';autoCount();}}
 // ---------- glow-worm hint ----------
-function showHint(){const q=S.q,rows=q.swap?q.b:q.a,cols=q.swap?q.a:q.b,g=GEMS[q.a],h=$('#hint');
- let rh='';for(let r=0;r<rows;r++){rh+='<div class="hrow" data-r="'+r+'"><div class="gems">';for(let c=0;c<cols;c++)rh+='<span>'+gemSVG(g,24)+'</span>';rh+='</div><span class="lbl">'+((r+1)*cols)+'</span></div>';}
- h.innerHTML='<div class="hl"><div class="hTop"><div class="worm">'+wormSVG()+'</div><div class="say" id="say">Almost! I\'m Glimmer! '+rows+' row'+(rows>1?'s':'')+' of '+cols+' gem'+(cols>1?'s':'')+'. Tap each row to count!</div></div>'+
-  '<div class="hq">'+qText(q)+' = <b>?</b></div><button class="btn gold countBtn" id="countBtn">Count with me!</button></div><div class="gridBox"><div class="hgrid" id="hgrid">'+rh+'</div></div>';
- h.hidden=false;S.hintRows=0;
+function hintShape(q){const d=disp(q);if(q.miss===1)return {rows:d[0],cols:d[1]};if(q.miss===2)return {rows:d[0],cols:d[1]};if(q.miss===3)return {rows:q.a,cols:q.a};return {rows:d[0],cols:d[1]};}
+function hintIntro(q){const d=disp(q),P=q.a*q.b,pl=(n,w)=>n+' '+w+(n===1?'':'s');
+ if(q.miss===1)return 'Make rows of '+pl(d[1],'gem')+'. How many rows make '+P+'? Tap the rows to count!';
+ if(q.miss===2)return P+' gems shared into '+pl(d[0],'row')+'. How many in each row? Tap to count!';
+ if(q.miss===3)return P+' gems make a square! How many on each side?';
+ return 'I\'m Glimmer! '+pl(d[0],'row')+' of '+pl(d[1],'gem')+'. Tap each row to count!';}
+function showHint(){const q=S.q,sh=hintShape(q),gk=S.gem||q.a,h=$('#hint');
+ let rh='';for(let r=0;r<sh.rows;r++){rh+='<div class="hrow" data-r="'+r+'"><div class="gems">';for(let c=0;c<sh.cols;c++)rh+='<span>'+gemSVG(GEMS[gk],24)+'</span>';rh+='</div><span class="lbl">'+((r+1)*sh.cols)+'</span></div>';}
+ h.innerHTML='<div class="hl"><div class="hTop"><div class="worm">'+wormSVG()+'</div><div class="say" id="say">'+(S.wrong?'Almost! ':'')+hintIntro(q)+'</div></div>'+
+  '<div class="hq">'+qPlain(q).replace(/\?/g,'<b>?</b>')+'</div><button class="btn gold countBtn" id="countBtn">Count with me!</button></div><div class="gridBox"><div class="hgrid" id="hgrid">'+rh+'</div></div>';
+ h.hidden=false;S.hintRows=0;$('#hintB').hidden=true;
  h.querySelectorAll('.hrow').forEach(r=>r.addEventListener('click',()=>{if(!S.counting)countRow();}));on('#countBtn',()=>{Snd.init();autoCount();});sizeHint();}
-function sizeHint(){const h=$('#hint'),q=S.q;if(!q||h.hidden)return;const rows=q.swap?q.b:q.a,cols=q.swap?q.a:q.b;const r=h.getBoundingClientRect();if(!r.width)return;
+function sizeHint(){const h=$('#hint');if(!S||!S.q||h.hidden)return;const sh=hintShape(S.q),rows=sh.rows,cols=sh.cols;const r=h.getBoundingClientRect();if(!r.width)return;
  h.classList.toggle('wide',r.width>r.height*1.15);const gb=h.querySelector('.gridBox').getBoundingClientRect();
  const gap=Math.max(2,Math.min(6,gb.width/cols*0.08));const g=Math.max(13,Math.min(46,(gb.width-60-gap*(cols+2))/cols,(gb.height-6-gap*(rows+1))/rows-4));
  h.style.setProperty('--g',g.toFixed(1)+'px');h.style.setProperty('--gap',gap.toFixed(1)+'px');}
 function countRow(){if(!S||$('#hint').hidden)return;const rows=$$('#hgrid .hrow');if(!rows.length)return;if(S.hintRows>=rows.length){rows.forEach(r=>r.classList.remove('lit'));S.hintRows=0;}
  const r=rows[S.hintRows];r.classList.add('lit');S.hintRows++;Snd.count(S.hintRows*2);const c=centerOf(r);burst(c[0],c[1],6);
- const q=S.q,cols=q.swap?q.a:q.b,seq=[];for(let i=1;i<=S.hintRows;i++)seq.push(i*cols);
- $('#say').textContent=seq.join(', ')+(S.hintRows===rows.length?'! That\'s '+seq[seq.length-1]+(seq[seq.length-1]===1?' gem!':' gems!'):'...');}
+ const q=S.q,sh=hintShape(q),k=S.hintRows,end=k===rows.length,seq=[];for(let i=1;i<=k;i++)seq.push(i*sh.cols);let t;
+ if(q.miss===1)t=k+' row'+(k>1?'s':'')+' make '+(k*sh.cols)+(end?'. That\'s '+k+' rows!':'...');
+ else if(q.miss===2)t=seq.join(', ')+(end?'! Each row has '+sh.cols+'!':'...');
+ else if(q.miss===3)t=seq.join(', ')+(end?'! Each side has '+sh.cols+'!':'...');
+ else t=seq.join(', ')+(end?'! That\'s '+seq[seq.length-1]+(seq[seq.length-1]===1?' gem!':' gems!'):'...');
+ $('#say').textContent=t;}
 async function autoCount(){if(!S||S.counting)return;const s=S,q=s.q;s.counting=true;$$('#hgrid .hrow').forEach(r=>r.classList.remove('lit'));s.hintRows=0;const n=$$('#hgrid .hrow').length;
  for(let i=0;i<n;i++){if(S!==s||s.q!==q||$('#hint').hidden)break;countRow();await wait(430);}s.counting=false;}
 function hideHint(){const h=$('#hint');h.hidden=true;h.innerHTML='';}
-// ---------- section done ----------
-function sectionDone(){const s=S;s.busy=true;const t=s.t,i=s.i,ratio=s.total?s.first/s.total:1,stars=ratio>=0.9?3:ratio>=0.7?2:1,rec=secRec(t);
- const wasM=rec.stars>=3;rec.stars=Math.max(rec.stars,stars);rec.done=true;rec.plays=(rec.plays|0)+1;save.sec[t]=rec;persist();
- const nextI=i+1<TABLES.length?i+1:-1;
- let earned='';for(const k in s.earned)earned+='<span class="e">'+gemSVG(GEMS[k],40)+'×'+s.earned[k]+'</span>';
- const c=modal('<h2>Tunnel Cleared!</h2><div class="bigStars">'+[0,1,2].map(()=>starSVG(true)).join('')+'</div>'+
-  '<p>'+(stars===3&&!wasM?'You <b>mastered</b> the '+t+'s! ':'')+(stars<3?'Play again to earn more stars!':'Amazing work'+(save.name?', '+esc(save.name):'')+'!')+(nextI>=0&&!secRec(TABLES[nextI]).done?' A new tunnel is open!':'')+'</p>'+
-  '<div class="earned">'+earned+'</div><div class="row"><button class="btn purple" id="dMap">Map</button><button class="btn teal" id="dAgain">Play again</button>'+(nextI>=0?'<button class="btn gold big" id="dNext">Next tunnel &#8594;</button>':'')+'</div>');
- c.querySelectorAll('.bigStars svg').forEach((el,k)=>setTimeout(()=>{if(k<stars){el.classList.add('on');Snd.tone(880*(1+k*0.25),0.25,'triangle',0.15);const r=el.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,18,['#fff27a','#ffcf3a','#fff']);}},(300+k*350)*SPEED));
- Snd.golden();on('#dMap',()=>{tapSnd();closeModal();S=null;show('map');});on('#dAgain',()=>{tapSnd();closeModal();startSection(i);});
- if(nextI>=0)on('#dNext',()=>{tapSnd();closeModal();startSection(nextI);});}
+// ---------- level done ----------
+function levelDone(){const s=S;s.busy=true;const st=s.st,si=s.si,k=s.k,ratio=s.total?s.first/s.total:1,stars=ratio>=0.9?3:ratio>=0.7?2:1;
+ const key=st.id+'-'+k,rec=save.lv[key]||{stars:0,done:false,plays:0},was=rec.done,wasM=rec.stars>=3;rec.stars=Math.max(rec.stars,stars);rec.done=true;rec.plays=(rec.plays|0)+1;save.lv[key]=rec;persist();
+ if(st.kind==='queen')return queenFinale(s,stars);
+ let next=null,nextTxt='';if(k+1<nLv(st)){next=[si,k+1];nextTxt='Next: '+LVN[k+1]+' &#8594;';}else if(si+1<STAGES.length){next=[si+1,0];nextTxt='Next tunnel &#8594;';}
+ let earned='';for(const g in s.earned)earned+='<span class="e">'+gemSVG(GEMS[g],40)+'×'+s.earned[g]+'</span>';
+ const news=[];if(!was&&k+1<nLv(st))news.push(LVN[k+1]+' level is open!');if(!was&&k===0&&si+1<STAGES.length)news.push((STAGES[si+1].kind==='table'?'The '+STAGES[si+1].t+'s':STAGES[si+1].name)+' tunnel is open!');
+ const c=modal('<h2>'+(st.kind==='table'?'Tunnel Cleared!':'Level Cleared!')+'</h2><p class="small">'+st.name+' · '+LVN[k]+'</p><div class="bigStars">'+[0,1,2].map(()=>starSVG(true)).join('')+'</div>'+
+  '<p>'+(stars===3&&!wasM?'<b>'+LVN[k]+' mastered!</b> ':'')+(stars<3?'Play again to earn more stars! ':'Amazing work'+(save.name?', '+esc(save.name):'')+'! ')+(s.speedy?'<span class="sp">'+IC.bolt+s.speedy+' speedy bonus'+(s.speedy>1?'es':'')+'</span> ':'')+news.join(' ')+'</p>'+
+  '<div class="earned">'+earned+'</div><div class="row"><button class="btn purple" id="dMap">Map</button><button class="btn teal" id="dAgain">Play again</button>'+(next?'<button class="btn gold big" id="dNext">'+nextTxt+'</button>':'')+'</div>');
+ c.querySelectorAll('.bigStars svg').forEach((el,j)=>setTimeout(()=>{if(j<stars){el.classList.add('on');Snd.tone(880*(1+j*0.25),0.25,'triangle',0.15);const r=el.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,18,['#fff27a','#ffcf3a','#fff']);}},(300+j*350)*SPEED));
+ Snd.golden();on('#dMap',()=>{tapSnd();closeModal();S=null;show('map');});on('#dAgain',()=>{tapSnd();closeModal();startLevel(si,k);});
+ if(next)on('#dNext',()=>{tapSnd();closeModal();startLevel(next[0],next[1]);});}
+function queenFinale(s,stars){save.champ=(save.champ|0)+1;const firstWin=save.treasures.indexOf(CHAMP.id)<0;if(firstWin)save.treasures.push(CHAMP.id);persist();
+ Snd.golden();setTimeout(()=>Snd.chest(),700*SPEED);for(let i=0;i<5;i++)setTimeout(()=>confetti(70),i*450*Math.max(SPEED,0.3));
+ const c=modal('<div class="art"><div class="rays"></div>'+treasureSVG('qcrown')+'</div><h2>Crystal Cave Champion!</h2>'+
+  '<p>'+(save.name?esc(save.name)+', you':'You')+' beat the Crystal Queen! '+(firstWin?'She gives you her <b>sparkling crown</b>!':'She bows to you again! Champion ×'+save.champ+'!')+'</p>'+
+  '<div class="bigStars">'+[0,1,2].map(j=>starSVG(j<stars)).join('')+'</div><div class="row"><button class="btn purple" id="dMap">Map</button><button class="btn gold big" id="dAgain">Battle again</button></div>','goldC champ');
+ c.querySelectorAll('.bigStars svg').forEach((el,j)=>setTimeout(()=>{if(j<stars)el.classList.add('on');},(400+j*300)*SPEED));
+ on('#dMap',()=>{tapSnd();closeModal();S=null;show('map');});on('#dAgain',()=>{tapSnd();closeModal();startLevel(s.si,0);});}
 // ---------- backpack ----------
 let bagFrom='map';
 $('#bBack').innerHTML=IC.back;$('#sBack').innerHTML=IC.back;
 on('#bBack',()=>{tapSnd();if(bagFrom==='play'&&S)show('play');else show('map');});on('#sBack',()=>{tapSnd();show('map');});
-function renderBag(){let h='<div class="summary"><div class="s">'+gemSVG(GEMS[2],38)+totalGems()+' gems</div><div class="s">'+goldenSVG(38)+(save.golden|0)+' golden</div><div class="s">'+IC.flame+'Best streak '+save.best+'</div></div>';
+function renderBag(){let h='<div class="summary"><div class="s">'+gemSVG(GEMS[2],38)+totalGems()+' gems</div><div class="s">'+goldenSVG(38)+(save.golden|0)+' golden</div><div class="s">'+IC.flame+'Best streak '+save.best+'</div>'+(save.champ?'<div class="s">'+IC.crown+'Champion ×'+save.champ+'</div>':'')+'</div>';
  h+='<div class="secH">Cave Gems</div><div class="tiles">';
- TABLES.forEach(t=>{const g=save.gems[t]||{b:0,s:0},has=(g.b+g.s)>0;h+='<div class="tile'+(has?'':' no')+'">'+gemSVG(GEMS[t],56,{sil:!has})+'<div class="n">'+GEMS[t].name+'</div><div class="c">'+g.b+(g.s?' <small>+'+g.s+' little</small>':'')+'</div></div>';});
+ GEM_ORDER.forEach(t=>{const g=save.gems[t]||{b:0,s:0},has=(g.b+g.s)>0;h+='<div class="tile'+(has?'':' no')+'">'+gemSVG(GEMS[t],56,{sil:!has})+'<div class="n">'+GEMS[t].name+'</div><div class="c">'+g.b+(g.s?' <small>+'+g.s+' little</small>':'')+'</div></div>';});
  h+='</div><div class="secH">Rare Gems <small style="font-size:15px;opacity:.85">(get 5 in a row!)</small></div><div class="tiles">';
  RARES.forEach(r=>{const n=save.rare[r.id]|0;h+='<div class="tile'+(n?'':' no')+'">'+gemSVG(r,56,{sil:!n})+'<div class="n">'+(n?r.name:'???')+'</div><div class="c">'+(n?'×'+n:'&nbsp;')+'</div></div>';});
  h+='</div><div class="secH">Treasures <small style="font-size:15px;opacity:.85">(10 in a row opens a secret tunnel!)</small></div><div class="tiles">';
- TREASURES.forEach(r=>{const has=save.treasures.indexOf(r.id)>=0;h+='<div class="tile'+(has?'':' no')+'"><div style="width:62px;height:62px'+(has?'':';filter:grayscale(1) brightness(.6)')+'">'+treasureSVG(r.id)+'</div><div class="n">'+(has?r.name:'???')+'</div></div>';});
- h+='</div><div class="secH">Times Tables</div><div class="tbls">';
- TABLES.forEach((t,i)=>{const rec=secRec(t);let c=0,n=0;for(let b=1;b<=10;b++){const f=save.facts[t+'x'+b];if(f){c+=f.c;n+=f.n;}}
-  h+='<div class="tbl'+(rec.stars>=3?' m':'')+'"><span class="t">×'+t+'</span><div><div class="st">'+[0,1,2].map(k=>starSVG(k<rec.stars)).join('')+'</div><div class="acc">'+(rec.stars>=3?'Mastered! ':'')+(n?Math.round(c/n*100)+'% first try':(unlocked(i)?'Ready to explore':'Locked'))+'</div></div></div>';});
+ TREASURES.concat([CHAMP]).forEach(r=>{const has=save.treasures.indexOf(r.id)>=0;h+='<div class="tile'+(has?'':' no')+(r===CHAMP?' champT':'')+'"><div style="width:62px;height:62px'+(has?'':';filter:grayscale(1) brightness(.6)')+'">'+treasureSVG(r.id)+'</div><div class="n">'+(has?r.name:(r===CHAMP?'Beat the Crystal Queen':'???'))+'</div></div>';});
+ h+='</div><div class="secH">Tunnels and Levels</div><div class="tbls">';
+ STAGES.forEach((st,i)=>{let c=0,n=0;if(st.kind==='table')for(let b=1;b<=10;b++){const f=save.facts[st.t+'x'+b];if(f){c+=f.c;n+=f.n;}}
+  let lv='';for(let k=0;k<nLv(st);k++){const r=lvRec(i,k);lv+='<div class="lvst"><span>'+(st.kind==='queen'?'Grand Boss':LVN[k])+'</span>'+[0,1,2].map(j=>starSVG(j<r.stars)).join('')+'</div>';}
+  h+='<div class="tbl'+(stageMastered(i)?' m':'')+(stageOpen(i)?'':' lk')+'">'+gemSVG(GEMS[st.gem],40,{gray:!stageOpen(i)})+'<div><div class="tn">'+(st.kind==='table'?'×'+st.t+' '+GEMS[st.t].name:st.name)+'</div>'+lv+'<div class="acc">'+(stageMastered(i)?'Mastered! ':'')+(n?Math.round(c/n*100)+'% first try':(stageOpen(i)?'':'Locked'))+'</div></div></div>';});
  h+='</div>';
  const tricky=Object.keys(save.facts).filter(k=>{const f=save.facts[k];return f.w>0&&f.box<2;}).sort((a,b)=>save.facts[b].w-save.facts[a].w).slice(0,10);
  if(tricky.length)h+='<div class="secH">Glimmer is helping with</div><div class="chips">'+tricky.map(k=>'<span>'+k.replace('x',' × ')+'</span>').join('')+'</div>';
@@ -802,21 +1003,21 @@ function renderBag(){let h='<div class="summary"><div class="s">'+gemSVG(GEMS[2]
 // ---------- settings ----------
 function renderSettings(){const b=$('#setBody');
  b.innerHTML='<div class="setRow"><span class="lbl">'+IC.sndOn+'Sound</span><button class="btn tog '+(save.muted?'gray':'green')+'" id="tSnd">'+(save.muted?'Off':'On')+'</button></div>'+
- '<div class="setRow"><span class="lbl"><span style="font-size:24px">123</span>Number pad</span><button class="btn tog '+(save.pad?'green':'gray')+'" id="tPad">'+(save.pad?'On':'Off')+'</button></div>'+
+ '<div class="setRow"><span class="lbl">'+diffIcon(save.diff)+'How tricky</span><button class="btn tog '+DIFFS[save.diff].cls+'" id="tDiff">'+DIFFS[save.diff].name+'</button></div>'+'<div class="setRow"><span class="lbl"><span style="font-size:24px">123</span>Number pad</span><button class="btn tog '+(save.pad?'green':'gray')+'" id="tPad">'+(save.pad?'On':'Off')+'</button></div>'+
  '<div class="setRow"><span class="lbl">Explorer name</span><input id="sName" maxlength="14" value="'+esc(save.name)+'" placeholder="Name" autocomplete="off"></div>'+
  (fsEnabled?'<div class="setRow"><span class="lbl">'+IC.fs+'Full screen</span><button class="btn tog blue" id="tFs">'+(isFS()?'Exit':'Go')+'</button></div>':'')+
  '<div class="setRow"><span class="lbl">Start over</span><button class="btn tog red" id="tReset">Reset</button></div>'+
  '<p class="note">Progress is saved on this device. No ads, no links, no purchases. Missed facts come back later for extra practice.</p>';
- on('#tSnd',()=>{toggleMute();renderSettings();});on('#tPad',()=>{tapSnd();save.pad=!save.pad;persist();renderSettings();});
+ on('#tSnd',()=>{toggleMute();renderSettings();});on('#tDiff',()=>{tapSnd();openDiff();});on('#tPad',()=>{tapSnd();save.pad=!save.pad;persist();renderSettings();});
  if(fsEnabled)on('#tFs',()=>{tapSnd();toggleFS();setTimeout(renderSettings,400);});
  $('#sName').addEventListener('change',e=>{save.name=cleanName(e.target.value);persist();});
  on('#tReset',()=>{tapSnd();modal('<h2>Start over?</h2><p>This erases all gems, stars and treasures on this device.</p><div class="row"><button class="btn green big" id="rKeep">Keep my gems</button><button class="btn red" id="rYes">Yes, erase</button></div>');
-  on('#rKeep',()=>{tapSnd();closeModal();});on('#rYes',()=>{const m=save.muted;save=JSON.parse(JSON.stringify(DEF));save.muted=m;persist();closeModal();S=null;show('welcome');});});}
+  on('#rKeep',()=>{tapSnd();closeModal();});on('#rYes',()=>{const m=save.muted;save=JSON.parse(JSON.stringify(DEF));save.muted=m;save.seenV2=true;persist();closeModal();S=null;show('welcome');});});}
 // ================= boot =================
 document.addEventListener('visibilitychange',()=>{if(document.hidden)persist();});
 show('welcome');
 if('serviceWorker' in navigator&&location.protocol!=='file:'){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});});}
-window.__cc={get save(){return save;},get S(){return S;},speed(v){SPEED=v;},show,startSection,TABLES};
+window.__cc={get save(){return save;},get S(){return S;},speed(v){SPEED=v;},show,startLevel,STAGES,TABLES,ansOf,qPlain};
 })();
 </script>
 </body>
