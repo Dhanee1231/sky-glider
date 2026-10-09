@@ -1,10 +1,13 @@
 // Sky Glider service worker: offline support, no network calls beyond its own files.
-const CACHE='sky-glider-v3';
+const CACHE='sky-glider-v3b';
+// Crystal Cave Quest lives in ./crystal-cave/ with its own service worker and cache; never touch it from here.
+const SKIP=new URL('./crystal-cave/',self.location).pathname;
 const FILES=['./','./index.html','./SkyGlider.html','./manifest.json','./icon.svg','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()));});
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith('sky-glider')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',e=>{
   const req=e.request; if(req.method!=='GET'||new URL(req.url).origin!==location.origin)return;
+  if(new URL(req.url).pathname.startsWith(SKIP))return; // let the browser / Crystal Cave's own worker handle it
   if(req.mode==='navigate'||req.url.endsWith('/index.html')){
     // network first so updates show up, fall back to cache when offline
     e.respondWith(fetch(req).then(r=>{const cp=r.clone();caches.open(CACHE).then(c=>c.put('./index.html','./SkyGlider.html',cp));return r;}).catch(()=>caches.match('./index.html')));

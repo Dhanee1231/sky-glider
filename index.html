@@ -1589,6 +1589,8 @@ function drawMenu(){
  const br=clamp(pr*0.5,34*UI,76*UI),by=H-SAFE.b-m-br;
  roundBtn('album',SAFE.l+m+br,by,br,PAL.P,'book',()=>{albumPage=save.world;go('album');});
  roundBtn('shop',SAFE.l+m+br*3.3,by,br,PAL.O,'shop',()=>go('shop'));
+ // sister game: Crystal Cave Quest (same site, ./crystal-cave/)
+ roundBtn('cave',SAFE.l+m+br*5.6,by,br,['#8a5cff','#5a2fc0'],r=>{const k=r/60;ctx.save();ctx.scale(k,k);ctx.rotate(Math.sin(T*2)*0.08);ctx.beginPath();ctx.moveTo(-30,-8);ctx.lineTo(-17,-24);ctx.lineTo(17,-24);ctx.lineTo(30,-8);ctx.lineTo(0,30);ctx.closePath();ctx.fillStyle='#bff4ff';ctx.fill();ctx.lineWidth=4;ctx.strokeStyle=INK;ctx.lineJoin='round';ctx.stroke();ctx.beginPath();ctx.moveTo(-17,-24);ctx.lineTo(-10,-8);ctx.lineTo(0,-24);ctx.lineTo(10,-8);ctx.lineTo(17,-24);ctx.moveTo(-30,-8);ctx.lineTo(30,-8);ctx.moveTo(-10,-8);ctx.lineTo(0,30);ctx.lineTo(10,-8);ctx.lineWidth=2.5;ctx.stroke();ctx.fillStyle='#ff8fd8';ctx.globalAlpha=0.55;ctx.beginPath();ctx.moveTo(10,-8);ctx.lineTo(30,-8);ctx.lineTo(0,30);ctx.closePath();ctx.fill();ctx.globalAlpha=1;ctx.restore();},()=>{location.href='./crystal-cave/';});
  const hasGift=dailyAvail()||save.pending>0;
  if(hasGift){const gx=W-SAFE.r-m-br,j=Math.abs(Math.sin(T*4))*8*UI;roundBtn('gift',gx,by-j,br,PAL.K,r=>{ctx.rotate(Math.sin(T*8)*0.12);drawIcon('gift',0,0,r*1.0);},()=>{if(dailyAvail())claimDaily();else openBox('pending');});
   const n=save.pending+(dailyAvail()?1:0);circ(gx+br*0.75,by-j-br*0.75,12*UI);fillStroke('#ff3d5a','#fff',2.5);text(String(n),gx+br*0.75,by-j-br*0.74,14*UI,'#fff',null,null);}
