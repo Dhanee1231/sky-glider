@@ -702,4 +702,8 @@ SCREENS.credits = focus => {
 // ---------- boot ----------
 window.__yoga = { S: () => S, POSES, go, save, stats, muscleTotals, neglected, startSession, prof, lastSpoken: () => lastSpoken.slice() };
 applyTheme(); route();
-if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => { });
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  const hadSW = !!navigator.serviceWorker.controller; let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadSW && !reloaded) { reloaded = true; location.reload(); } });
+  navigator.serviceWorker.register('./sw.js', { scope: './', updateViaCache: 'none' }).then(r => r.update()).catch(() => { });
+}
