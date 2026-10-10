@@ -28,6 +28,10 @@ h2{margin:0;font-size:24px;font-weight:900;letter-spacing:-.01em;line-height:1.1
 .card h2,.modal h2{color:var(--ink);text-shadow:none}
 .tag{font-weight:800;font-size:15px;color:#fff;text-shadow:0 1px 3px #c2186b;text-align:center}
 /* top bar */
+/* Home button to Our Fun Zone (same look in every app) */
+.fzHome{display:inline-grid;place-items:center;flex:none;width:calc(var(--tap) - 6px);height:calc(var(--tap) - 6px);border-radius:50%;background:linear-gradient(180deg,#fff,#ffd3ec);border:3px solid #ffc933;box-shadow:0 3px 0 #b8760a,0 6px 12px rgba(0,0,0,.2);font-size:24px;line-height:1;text-decoration:none;color:#000;touch-action:manipulation;-webkit-tap-highlight-color:transparent;font-family:inherit}
+.fzHome:active{transform:translateY(2px);box-shadow:0 1px 0 #b8760a}
+#hud .fzHome{pointer-events:auto}
 .top{width:100%;max-width:820px;display:flex;align-items:center;gap:var(--s2);min-height:var(--tap)}
 .top h2{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:var(--s2)}
 .top .sp{flex:1}
@@ -254,7 +258,7 @@ body.calm .big-stars span.won{animation:pop .3s backwards}
 <canvas id="bg"></canvas>
 
 <section class="screen on" id="home">
-  <div class="top"><span class="pill"><i data-ic="star" class="c-gold"></i><span id="hStars">0</span></span><span class="pill"><i data-ic="coin" class="c-gold"></i><span id="hCoins">0</span></span><span class="sp"></span><button class="btn icon silver" data-go="settings" aria-label="Settings"><i data-ic="gear"></i></button></div>
+  <div class="top"><a class="fzHome" href="../home/" aria-label="Home: Our Fun Zone" title="Home">🏠</a><span class="pill"><i data-ic="star" class="c-gold"></i><span id="hStars">0</span></span><span class="pill"><i data-ic="coin" class="c-gold"></i><span id="hCoins">0</span></span><span class="sp"></span><button class="btn icon silver" data-go="settings" aria-label="Settings"><i data-ic="gear"></i></button></div>
   <div class="home">
     <div class="hero"><h1 data-t="title">Gem Tiles</h1><div class="tag" data-t="tag">Tap the sparkly tiles to the music!</div><canvas id="mascotHome"></canvas></div>
     <div class="menu">
@@ -271,7 +275,7 @@ body.calm .big-stars span.won{animation:pop .3s backwards}
 </section>
 
 <section class="screen" id="songs">
-  <div class="top"><button class="btn icon silver" data-go="home" aria-label="Back"><i data-ic="back"></i></button><span class="pill"><i data-ic="star" class="c-gold"></i><span id="sStars">0</span></span><span class="sp"></span><button class="btn small" data-go="add"><i data-ic="addsong"></i><span data-t="addSong">Add my song</span></button></div>
+  <div class="top"><a class="fzHome" href="../home/" aria-label="Home: Our Fun Zone" title="Home">🏠</a><button class="btn icon silver" data-go="home" aria-label="Back"><i data-ic="back"></i></button><span class="pill"><i data-ic="star" class="c-gold"></i><span id="sStars">0</span></span><span class="sp"></span><button class="btn small" data-go="add"><i data-ic="addsong"></i><span data-t="addSong">Add my song</span></button></div>
   <div class="row"><div class="seg" id="diffSeg"><button data-d="easy" data-t="easy">Easy</button><button data-d="normal" data-t="normal">Normal</button><button data-d="hard" data-t="hard">Hard</button></div>
     <div class="seg"><button id="practiceBtn"><i data-ic="heart"></i><span data-t="practice">Practice</span></button></div></div>
   <div id="nextUnlock"></div>
@@ -279,24 +283,24 @@ body.calm .big-stars span.won{animation:pop .3s backwards}
 </section>
 
 <section class="screen" id="shop">
-  <div class="top"><button class="btn icon silver" data-go="home" aria-label="Back"><i data-ic="back"></i></button><h2 data-t="shop">Shop</h2><span class="sp"></span><span class="pill"><i data-ic="coin" class="c-gold"></i><span id="shCoins">0</span></span></div>
+  <div class="top"><a class="fzHome" href="../home/" aria-label="Home: Our Fun Zone" title="Home">🏠</a><button class="btn icon silver" data-go="home" aria-label="Back"><i data-ic="back"></i></button><h2 data-t="shop">Shop</h2><span class="sp"></span><span class="pill"><i data-ic="coin" class="c-gold"></i><span id="shCoins">0</span></span></div>
   <div class="tabs" id="shopTabs"></div>
   <div class="grid" id="shopGrid"></div>
 </section>
 
 <section class="screen" id="album">
-  <div class="top"><button class="btn icon silver" data-go="home" aria-label="Back"><i data-ic="back"></i></button><h2 data-t="albumT">Sticker Album</h2><span class="sp"></span><span class="pill"><i data-ic="sticker" class="c-lilac"></i><span id="alCount"></span></span></div>
+  <div class="top"><a class="fzHome" href="../home/" aria-label="Home: Our Fun Zone" title="Home">🏠</a><button class="btn icon silver" data-go="home" aria-label="Back"><i data-ic="back"></i></button><h2 data-t="albumT">Sticker Album</h2><span class="sp"></span><span class="pill"><i data-ic="sticker" class="c-lilac"></i><span id="alCount"></span></span></div>
   <div class="row"><button class="btn gold" id="openPack"><i data-ic="cards"></i><span data-t="openPack">Open mystery pack</span><span>(<span id="packN">0</span>)</span></button><button class="btn silver small" id="buyPack"><i data-ic="coin" class="c-gold"></i><span data-t="buyPack">40 → 1 pack</span></button></div>
   <div class="album" id="albumGrid"></div>
 </section>
 
 <section class="screen" id="badges">
-  <div class="top"><button class="btn icon silver" data-go="home" aria-label="Back"><i data-ic="back"></i></button><h2 data-t="badges">Badges</h2></div>
+  <div class="top"><a class="fzHome" href="../home/" aria-label="Home: Our Fun Zone" title="Home">🏠</a><button class="btn icon silver" data-go="home" aria-label="Back"><i data-ic="back"></i></button><h2 data-t="badges">Badges</h2></div>
   <div class="grid" id="badgeGrid"></div>
 </section>
 
 <section class="screen" id="settings">
-  <div class="top"><button class="btn icon silver" data-go="home" aria-label="Back"><i data-ic="back"></i></button><h2 data-t="settings">Settings</h2></div>
+  <div class="top"><a class="fzHome" href="../home/" aria-label="Home: Our Fun Zone" title="Home">🏠</a><button class="btn icon silver" data-go="home" aria-label="Back"><i data-ic="back"></i></button><h2 data-t="settings">Settings</h2></div>
   <div class="set-grid">
     <div class="card set"><div class="lbl"><i data-ic="speed"></i><span data-t="speedL">Speed</span></div><div class="seg" id="speedSeg"><button data-v="slow"><i data-ic="slow"></i><span data-t="slow">Slow</span></button><button data-v="normal"><i data-ic="speed"></i><span data-t="normalSp">Normal</span></button><button data-v="fast"><i data-ic="fast"></i><span data-t="fast">Fast</span></button></div></div>
     <div class="card set"><div class="lbl"><i data-ic="sound"></i><span data-t="sound">Sound</span></div><div class="seg" id="soundSeg"><button data-v="1" data-t="on">On</button><button data-v="0" data-t="off">Off</button></div></div>
@@ -320,12 +324,12 @@ body.calm .big-stars span.won{animation:pop .3s backwards}
 </section>
 
 <section class="screen" id="lab">
-  <div class="top"><button class="btn icon silver" data-go="settings" aria-label="Back"><i data-ic="back"></i></button><h2><i data-ic="flask"></i><span data-t="lab">Test lab</span></h2></div>
+  <div class="top"><a class="fzHome" href="../home/" aria-label="Home: Our Fun Zone" title="Home">🏠</a><button class="btn icon silver" data-go="settings" aria-label="Back"><i data-ic="back"></i></button><h2><i data-ic="flask"></i><span data-t="lab">Test lab</span></h2></div>
   <div class="card" style="width:100%;max-width:820px" id="labBody"></div>
 </section>
 
 <section class="screen" id="calib">
-  <div class="top"><button class="btn icon silver" data-go="settings" aria-label="Back"><i data-ic="back"></i></button><h2 data-t="calibT">Tap test</h2></div>
+  <div class="top"><a class="fzHome" href="../home/" aria-label="Home: Our Fun Zone" title="Home">🏠</a><button class="btn icon silver" data-go="settings" aria-label="Back"><i data-ic="back"></i></button><h2 data-t="calibT">Tap test</h2></div>
   <div class="card calib" style="width:100%;max-width:440px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:var(--s3)">
     <p class="note" data-t="calibHow">Sound test: tap the big gem on every click. Screen test: tap when the falling heart lands on the line.</p>
     <button class="btn" id="tapPad" aria-label="Tap"><i data-ic="gem"></i></button>
@@ -337,7 +341,7 @@ body.calm .big-stars span.won{animation:pop .3s backwards}
 </section>
 
 <section class="screen" id="add">
-  <div class="top"><button class="btn icon silver" data-go="songs" aria-label="Back"><i data-ic="back"></i></button><h2 data-t="addSong">Add my song</h2></div>
+  <div class="top"><a class="fzHome" href="../home/" aria-label="Home: Our Fun Zone" title="Home">🏠</a><button class="btn icon silver" data-go="songs" aria-label="Back"><i data-ic="back"></i></button><h2 data-t="addSong">Add my song</h2></div>
   <div class="card" style="width:100%;max-width:480px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:var(--s3)" id="addPick">
     <p class="note" data-t="addHow">Pick a song file from this phone (mp3, m4a, wav, ogg). Gem Tiles listens to it and makes tiles that follow the beat. The song never leaves the phone.</p>
     <label class="btn gold"><i data-ic="folder"></i><span data-t="choose">Choose song</span><input type="file" id="fileIn" accept="audio/*,.mp3,.m4a,.wav,.ogg,.aac,.flac" hidden></label>
@@ -347,7 +351,7 @@ body.calm .big-stars span.won{animation:pop .3s backwards}
 </section>
 
 <section class="screen" id="edit">
-  <div class="top"><button class="btn icon silver" data-go="songs" aria-label="Back"><i data-ic="back"></i></button><h2 data-t="mySong">My song</h2></div>
+  <div class="top"><a class="fzHome" href="../home/" aria-label="Home: Our Fun Zone" title="Home">🏠</a><button class="btn icon silver" data-go="songs" aria-label="Back"><i data-ic="back"></i></button><h2 data-t="mySong">My song</h2></div>
   <div class="card" style="width:100%;max-width:520px">
     <div class="lbl" data-t="name">Name</div><input type="text" id="edTitle" maxlength="60">
     <div class="lbl" data-t="pic">Picture</div><div class="emojis" id="edEmoji"></div>
@@ -360,7 +364,7 @@ body.calm .big-stars span.won{animation:pop .3s backwards}
 </section>
 
 <div id="game"><canvas id="bgcv"></canvas><div class="fxl" id="fxEdge"></div><canvas id="cv"></canvas><div class="fxl" id="fxFlash"></div><div class="fxl" id="fxRainbow"></div><div id="progRail"></div><div id="prog"></div><div id="progGem"></div>
-  <div id="hud"><button class="hudbtn" id="pauseBtn" aria-label="Pause"><i data-ic="pause"></i></button><span class="pill" id="hHearts"></span><button class="hudbtn hidden" id="skipTut"><i data-ic="skip"></i><span data-t="skip">Skip</span></button><span class="sp"></span><span class="pill" id="hScore">0</span></div></div>
+  <div id="hud"><button class="hudbtn" id="pauseBtn" aria-label="Pause"><i data-ic="pause"></i></button><span class="pill" id="hHearts"></span><button class="hudbtn hidden" id="skipTut"><i data-ic="skip"></i><span data-t="skip">Skip</span></button><span class="sp"></span><span class="pill" id="hScore">0</span><a class="fzHome" href="../home/" aria-label="Home: Our Fun Zone" title="Home">🏠</a></div></div>
 
 <div class="modal" id="mPause"><div class="card"><h2 data-t="paused">Paused</h2><div id="legend"></div>
   <div class="stack"><button class="btn" id="resumeBtn"><i data-ic="play"></i><span data-t="resume">Keep playing</span></button><button class="btn silver" id="restartBtn"><i data-ic="replay"></i><span data-t="restart">Restart</span></button><button class="btn silver" id="quitBtn"><i data-ic="flag"></i><span data-t="quit">Stop song</span></button></div></div></div>
