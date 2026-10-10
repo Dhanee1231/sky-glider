@@ -108,7 +108,8 @@ h1,h2,h3{margin:0}
 .zoneTag{position:absolute;font-size:13px;padding:3px 10px;border-radius:12px;background:rgba(30,10,70,.6);border:2px solid rgba(255,255,255,.4);white-space:nowrap;transform:translateX(-50%);pointer-events:none}
 .mapStats{display:flex;align-items:center;gap:6px;font-size:22px;font-weight:900;background:rgba(30,10,70,.45);border:3px solid rgba(255,255,255,.5);border-radius:30px;padding:2px 14px 2px 6px;text-shadow:0 2px 0 var(--ink);flex:none}
 .mapStats svg{width:36px;height:36px}
-#tunnelBtn{position:fixed;z-index:8;right:calc(var(--sr) + 14px);bottom:calc(var(--sb) + 14px)}
+#mapFoot{flex:none;display:flex;align-items:center;gap:10px;padding-top:6px}#mapFoot:empty{display:none}
+#tunnelBtn{margin-left:auto}
 #tunnelBtn svg{width:40px;height:40px}
 @media (max-width:480px){#map .panelTitle{display:none}}
 .mapStats{margin-left:auto}
@@ -327,7 +328,7 @@ h1,h2,h3{margin:0}
 .lvst{display:flex;align-items:center;gap:2px;font-size:12px}
 .lvst span{min-width:62px}
 .lvst svg{width:16px;height:16px}
-@media (max-height:520px){.card.newsC .art{width:84px;height:84px;position:absolute;right:14px;top:8px}.card.newsC{position:relative;gap:6px}.card.newsC h2{padding-right:80px}.news{gap:3px}.news li svg{width:28px;height:28px}}
+@media (max-height:520px){.card.newsC .art{width:84px;height:84px;position:absolute;right:14px;top:8px}.card.newsC{position:relative;gap:6px;overflow-x:hidden}.card.newsC h2{padding-right:80px}.news{gap:3px}.news li svg{width:28px;height:28px}}
 .door.queen .q{top:61%}
 .tbl>svg.gem{flex:none;width:40px;height:40px}
 .lvst span{white-space:nowrap}
@@ -421,8 +422,80 @@ h1,h2,h3{margin:0}
 .shareCh svg{width:100%;height:auto}
 .shG{display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-end;min-height:50px;width:100%}
 .shG svg{width:22px;height:22px}
-#shareBtn{position:fixed;z-index:8;left:calc(var(--sl) + 14px);bottom:calc(var(--sb) + 14px)}
+#shareBtn{margin-right:auto}
 #shareBtn svg{width:44px;height:auto}
+/* ---- v3b: layout fixes (Fold cover 360px wide, phones, tablets) ---- */
+.speed[hidden]{display:none}
+.secName{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.1}
+.dots{margin-top:3px}
+.stage.hinting .padT,.stage.hinting .hintB,.stage.hinting .stageHead,.stage.hinting .doorBox,.stage.hinting .bubble{visibility:hidden}
+.chest{margin-top:calc(min(36vmin,210px)*.55)}
+.tbls{grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr))}
+.tbl>div{min-width:0}
+.prog{grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr))}
+.stPic>span{display:inline-flex;align-items:center;white-space:nowrap}
+.stPic .pg{display:inline-grid;grid-template-columns:repeat(5,auto);line-height:1.05}
+.stPic .pg i,.stPic .grp i{font-style:normal;color:inherit;font-weight:400}
+.stPic .gone{opacity:.35;filter:grayscale(.9);position:relative}
+.stPic .gone:after{content:"";position:absolute;left:0;right:0;top:46%;height:12%;background:#ff4d7d;border-radius:3px;transform:rotate(-30deg)}
+.stPic .grp{display:inline-grid;grid-template-columns:repeat(var(--c,5),auto);border:2px dashed #b48cff;border-radius:12px;padding:1px 3px;font-size:.78em;line-height:1.05;background:rgba(180,140,255,.12)}
+@media (max-width:480px){#mine .panelTitle,#words .panelTitle{display:none}.secName{font-size:15px}}
+@media (max-width:400px){.topbar{gap:6px}.topbar .ibtn{width:52px;height:52px;min-width:52px;min-height:52px}.topbar .ibtn svg{width:30px;height:30px}
+ .mapStats{font-size:18px;padding:2px 10px 2px 4px;gap:4px}.mapStats svg{width:28px;height:28px}.streak{height:52px}
+ #parent .setRow .lbl{flex-basis:140px}.tog{min-width:92px}.seg .btn{padding:6px 10px}}
+/* ---- v3b: Word Problems ---- */
+.c-word{--k1:#8ff5ea;--k2:#16a3b5;--k3:#0b5f6b}
+.cSym.em{font-size:clamp(28px,7vmin,46px);text-shadow:none}
+.pSym.em{font-size:24px}
+/* ---- v3c: English Cave ---- */
+.c-eng{--k1:#a9d4ff;--k2:#5b7cf0;--k3:#2c3f9c}.c-espell{--k1:#ffb3e1;--k2:#d94fa0;--k3:#8c1f5a}.c-estory{--k1:#8fe8ff;--k2:#2f8fd0;--k3:#174f86}.c-emiss{--k1:#d8b8ff;--k2:#8a4fe6;--k3:#4a2296}
+.cSym.ab{font-size:clamp(30px,8vmin,50px)}
+.pSym.ab{font-size:19px}
+@media (max-width:480px){#english .panelTitle{display:none}}
+.door.story.eng{gap:8px;padding:10px 14px 12px}
+.door.story.eng.gold{background:linear-gradient(180deg,#fffbe0,#ffe9a8);box-shadow:0 0 0 4px rgba(255,207,58,.85),0 10px 24px rgba(0,0,0,.35)}
+.rd{margin:0;font-weight:900;text-align:center;line-height:1.5;font-size:clamp(20px,3.8vmin,30px);color:var(--ink)}
+.rd .w{display:inline-block;border-radius:8px;padding:0 2px;cursor:pointer;transition:background .15s,box-shadow .15s}
+.rd .w.on{background:#ffe873;box-shadow:0 0 0 3px #ffd84a}
+.rd.story{text-align:left;font-size:clamp(19px,3.5vmin,28px)}
+.rd .sn{border-radius:10px;padding:1px 0}.rd .sn.hi{background:rgba(255,111,181,.22);box-shadow:0 0 0 3px rgba(255,111,181,.5)}
+.eTitle{font-size:clamp(19px,4vmin,28px);font-weight:900;color:#8c1f5a;text-align:center;line-height:1.15}
+.ePic{font-size:clamp(46px,10vmin,84px);line-height:1.05}
+.ePic svg{width:clamp(60px,13vmin,100px);height:auto;display:block}
+.eFam{font-size:17px;font-weight:900;background:#ffe873;color:#5a2a00;border-radius:12px;padding:2px 12px}
+.eBlank{display:inline-block;min-width:3em;border-bottom:4px dashed #c2337f;color:#c2337f;text-align:center;line-height:1.1}
+.eBlank.full{border-bottom-style:solid;background:#ffe873;color:#5a2a00;border-radius:8px 8px 0 0;padding:0 4px}
+.eHelp{min-height:52px;font-size:17px;padding:6px 14px;border-radius:18px}
+.eGo{display:flex;justify-content:center;align-items:center;width:100%;padding:4px 4px 10px}
+.spell{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:560px;padding:4px 4px 10px}
+.slots{display:flex;gap:6px;justify-content:center;align-items:center;width:100%}
+.slotB{appearance:none;flex:0 1 58px;min-width:0;height:clamp(56px,10vmin,72px);border-radius:14px;border:3px dashed rgba(255,242,122,.85);background:rgba(255,242,122,.12);
+ color:#fff;font-family:inherit;font-size:clamp(28px,6vmin,42px);font-weight:900;padding:0;text-shadow:0 2px 0 var(--ink);cursor:pointer;touch-action:manipulation}
+.slotB .gh{opacity:.38}
+.slotB.full{border-style:solid;background:rgba(255,255,255,.22)}
+.slotB.ok{background:#8cf27f;border-color:#fff;color:#14532d;text-shadow:none}
+.slotB.bad{background:#ff8a8a;border-color:#fff;animation:nopeShake .45s ease}
+.spDel{width:52px;height:52px;min-width:52px;min-height:52px;padding:0;border-radius:16px;font-size:24px;flex:none;--c1:#ffb37c;--c2:#f0703a;--sh:#a6431c}
+.lts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%}
+.lt{appearance:none;position:relative;width:clamp(56px,12vmin,74px);height:clamp(56px,12vmin,74px);border:0;background:none;padding:0;cursor:pointer;font-family:inherit;display:grid;place-items:center;touch-action:manipulation;transition:transform .08s,opacity .2s}
+.lt:active{transform:scale(.9)}
+.lt svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.lt b{position:relative;font-size:clamp(28px,6vmin,40px);color:#fff;line-height:1;pointer-events:none;text-shadow:0 2px 0 var(--ink),0 0 6px var(--ink),0 0 2px var(--ink)}
+.lt.used{opacity:.18;pointer-events:none}
+.choices.wd .btn{font-size:clamp(24px,5.6vmin,40px);padding:8px 10px}
+.choices.ph{grid-template-columns:1fr}
+.choices.ph .btn{font-size:clamp(19px,4vmin,26px);min-height:clamp(62px,9vmin,84px);white-space:normal;line-height:1.15;padding:8px 14px}
+@media (max-width:600px){.choices.wd.n3{grid-template-columns:1fr}.choices.wd.n3 .btn{min-height:62px}}
+.hint .eBox{flex:1;min-height:0;min-width:0;overflow-y:auto;overflow-x:hidden;background:#fff5fb;color:var(--ink);border-radius:18px;padding:8px 12px;display:flex;flex-direction:column;gap:8px;align-self:stretch;touch-action:pan-y}
+.hint .gridBox:has(.eBox){align-items:stretch}
+.hint .hRow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.eWord{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:auto 0}
+.eWord span{min-width:1.1em;font-size:clamp(34px,8vmin,60px);font-weight:900;text-align:center;color:#6a37d6;border-bottom:4px solid #c29cff;line-height:1.1;transition:transform .2s}
+.eWord span.fm{color:#d6408f;border-color:#ff8fd0}
+.eWord span.on{transform:scale(1.25);color:#ff9d2e}
+.eQ{font-weight:900;font-size:clamp(17px,3.4vmin,22px);text-align:center;color:#8c1f5a}
+.tip{display:flex;align-items:center;gap:10px;background:#efe2ff;border-radius:14px;padding:6px 10px;font-size:clamp(16px,3.2vmin,20px);font-weight:700;line-height:1.2}
+.tip i{font-style:normal;font-size:1.6em;flex:none}.tip b{color:#6a37d6}
 </style>
 </head>
 <body>
@@ -451,6 +524,24 @@ h1,h2,h3{margin:0}
  <div class="scroll"><div class="caves" id="caves"></div></div>
  <button class="pGear" id="pGear" aria-label="Grown-ups: press and hold for 3 seconds"><span></span></button>
 </section>
+<section id="words" class="screen">
+ <div class="topbar">
+  <button class="btn ibtn purple" id="wBack" aria-label="Mine Entrance"></button>
+  <div class="panelTitle">Word Problems</div>
+  <div class="mapStats" id="wStats"></div>
+  <button class="btn ibtn blue" id="wSay" aria-label="Read it to me"></button>
+ </div>
+ <div class="scroll"><div class="caves" id="wsubs"></div></div>
+</section>
+<section id="english" class="screen">
+ <div class="topbar">
+  <button class="btn ibtn purple" id="enBack" aria-label="Mine Entrance"></button>
+  <div class="panelTitle">English Cave</div>
+  <div class="mapStats" id="enStats"></div>
+  <button class="btn ibtn blue" id="enSay" aria-label="Read it to me"></button>
+ </div>
+ <div class="scroll"><div class="caves" id="esubs"></div></div>
+</section>
 <section id="parent" class="screen">
  <div class="topbar"><button class="btn ibtn purple" id="gBack" aria-label="Back"></button><div class="panelTitle">Grown-ups</div><div style="width:60px;flex:none"></div></div>
  <div class="scroll" id="parBody"></div>
@@ -465,6 +556,7 @@ h1,h2,h3{margin:0}
   <button class="btn ibtn blue" id="mSet" aria-label="Settings"></button>
  </div>
  <div id="mapArea"><div id="mapInner"></div></div>
+ <div id="mapFoot"></div>
 </section>
 <section id="play" class="screen">
  <div class="topbar">
@@ -583,11 +675,161 @@ const GSTAGES=[
  G3('sub','s8','Story Doors','📖',0,'little stories, read aloud',['Stories to 20','2-digit stories','3-digit stories'],{story:1})];
 [2,5,10,3,4,6,7,8,9].forEach(t=>GSTAGES.push(G3('div','d'+t,GEMS['d'+t].name+' Tunnel','÷'+t,0,'sharing into '+t+' groups',['Fair sharing','Share and group','Fact families'],{t})));
 GSTAGES.push(G3('div','dmix','Geode Heart','Mix',0,'sharing, all mixed up',['','',''],{pools:[[2,5,10],[3,4,6],[7,8,9]]}));
-const ALL=STAGES.concat(GSTAGES);
+// ----- v3b: Word Problems, a fifth cave with four story sub-areas. Its progress lives under its own save key (WKEY).
+const WSECS=['wadd','wsub','wmul','wdiv'],isW=sec=>WSECS.indexOf(sec)>=0,CAVES=SEC_ORDER.concat(['word']);
+Object.assign(SECS,{
+ word:{sym:'📖',em:1,name:'Word Problems',kid:'Little stories to solve',rock:['#a8fff2','#0f6f7d'],glow:['#e0fffb','#5ef0e6','#ffd6f0']},
+ wadd:{sym:'+',col:'add',op:'add',name:'Adding Stories',kid:'Find how many in all',rock:SECS.add.rock,glow:SECS.add.glow},
+ wsub:{sym:'−',col:'sub',op:'sub',name:'Taking-away Stories',kid:'Find how many are left',rock:SECS.sub.rock,glow:SECS.sub.glow},
+ wmul:{sym:'×',col:'mul',op:'mul',name:'Times Stories',kid:'Groups and rows',rock:SECS.mul.rock,glow:SECS.mul.glow},
+ wdiv:{sym:'÷',col:'div',op:'div',name:'Sharing Stories',kid:'Share fairly',rock:SECS.div.rock,glow:SECS.div.glow}});
+Object.assign(GEMS,{
+ wa1:{name:'Pink Pearl',c:'#ffc2e0',cut:'round',grad:['#ffffff','#ffc2e0','#ff8fc6']},wa2:{name:'Coral Heart',c:'#ff7a9c',cut:'heart'},
+ wa3:{name:'Fairy Quartz',c:'#ff9de6',cut:'oval'},wa4:{name:'Princess Ruby',c:'#ff2d7a',cut:'cushion'},
+ ws1:{name:'Silver Shell',c:'#dfe6f5',cut:'trillion',grad:['#ffffff','#dfe6f5','#a9b6d3']},ws2:{name:'Frost Gem',c:'#bfe8ff',cut:'hex'},
+ ws3:{name:'Mirror Crystal',c:'#cfd8ea',cut:'emerald',grad:['#ffffff','#cfd8ea','#8f9bb8']},ws4:{name:'Star Platinum',c:'#e8ecf5',cut:'star',grad:['#ffffff','#e8ecf5','#9aa6c0']},
+ wm1:{name:'Violet Gem',c:'#b77bff',cut:'marquise'},wm2:{name:'Lilac Crystal',c:'#d4a8ff',cut:'pear'},wm3:{name:'Royal Amethyst',c:'#8a3dff',cut:'diamond',grad:['#e9d8ff','#a86bff','#6a1fd6']},
+ wd1:{name:'Honey Gem',c:'#ffd24a',cut:'oval'},wd2:{name:'Sun Topaz',c:'#ffb02e',cut:'heart'},wd3:{name:'Golden Star',c:'#ffd84a',cut:'star',grad:['#fff6c4','#ffd84a','#ff9d2e']}});
+const W3=(sec,id,name,short,lim,sub,lvNames,o)=>Object.assign({sec,op:SECS[sec].op,id,kind:'word',story:1,gem:id,name,short,lim,sub,lvNames},o||{});
+const WSTAGES=[
+ W3('wadd','wa1','Adding to 10','10',10,'adding stories up to 10',['Little stories','Stories to 10','Make 10!'],{start:1}),
+ W3('wadd','wa2','Adding to 20','20',20,'adding stories up to 20',['Double stories','Jump past 10','Stories to 20']),
+ W3('wadd','wa3','2-Digit Adding','99',100,'adding stories with 2-digit numbers',['Tens stories','2-digit stories','Carry stories']),
+ W3('wadd','wa4','3-Digit Adding','999',1000,'adding stories with 3-digit numbers',['Hundreds stories','Big stories','Carry challenge']),
+ W3('wsub','ws1','Taking from 10','10',10,'taking-away stories from 10',['Little stories','Stories from 10','Take from 10']),
+ W3('wsub','ws2','Taking from 20','20',20,'taking-away stories up to 20',['Teen stories','Jump back past 10','Stories to 20']),
+ W3('wsub','ws3','2-Digit Taking','99',100,'taking-away stories with 2-digit numbers',['Tens stories','2-digit stories','Borrow stories']),
+ W3('wsub','ws4','3-Digit Taking','999',1000,'taking-away stories with 3-digit numbers',['Hundreds stories','Big stories','Borrow challenge']),
+ W3('wmul','wm1','Groups of 2, 5, 10','×2',0,'stories about groups of 2, 5 and 10',['Small groups','Bigger groups','Rows and arrays'],{start:1,pool:[2,5,10]}),
+ W3('wmul','wm2','Groups of 3 and 4','×3',0,'stories about groups of 3 and 4',['Small groups','Bigger groups','Rows and arrays'],{pool:[3,4]}),
+ W3('wmul','wm3','Groups of 6 to 9','×6',0,'stories about groups of 6, 7, 8 and 9',['Small groups','Bigger groups','Rows and arrays'],{pool:[6,7,8,9]}),
+ W3('wdiv','wd1','Sharing by 2, 5, 10','÷2',0,'sharing stories with 2, 5 and 10',['Fair shares','Bags and boxes','Sharing mix'],{start:1,pool:[2,5,10]}),
+ W3('wdiv','wd2','Sharing by 3, 4, 6','÷3',0,'sharing stories with 3, 4 and 6',['Fair shares','Bags and boxes','Sharing mix'],{pool:[3,4,6]}),
+ W3('wdiv','wd3','Sharing by 7, 8, 9','÷7',0,'sharing stories with 7, 8 and 9',['Fair shares','Bags and boxes','Sharing mix'],{pool:[7,8,9]})];
+const WGEMS=new Set(WSTAGES.map(s=>s.id));
+// ----- v3c: English Cave, a sixth cave with three activities (Spelling Crystals, Story Pages, Missing Gem).
+// Its progress lives under its own save key (EKEY). Fact keys: 'e:s:<word>', 'e:m:<sentence hash>', 'e:r:<story>.<question>'.
+const ESECS=['espell','estory','emiss'],isE=sec=>ESECS.indexOf(sec)>=0;CAVES.push('eng');
+Object.assign(SECS,{
+ eng:{sym:'Aa',ab:1,name:'English Cave',kid:'Spelling, stories and words',rock:['#bcd9ff','#2c3f9c'],glow:['#eef4ff','#8fb6ff','#ffc2e8']},
+ espell:{sym:'abc',ab:1,ek:'spell',name:'Spelling Crystals',kid:'Listen, then spell the word',rock:['#ffc2e8','#9c2d6e'],glow:['#fff0fa','#ff8fd0','#c79bff']},
+ estory:{sym:'📚',em:1,ek:'story',name:'Story Pages',kid:'Read along, then answer',rock:['#a8f0ff','#1f6f9c'],glow:['#e8fdff','#6be7ff','#ffd6f0']},
+ emiss:{sym:'💎',em:1,ek:'miss',name:'Missing Gem',kid:'Find the word that fits',rock:['#e3d0ff','#5a2ab0'],glow:['#f5eeff','#c29cff','#ffe873']}});
+Object.assign(GEMS,{
+ es1:{name:'Alphabet Opal',c:'#ffd6f0',cut:'oval',grad:['#ffffff','#ffd6f0','#c79bff']},es2:{name:'Sugar Sapphire',c:'#7aa8ff',cut:'round'},
+ es3:{name:'Spelling Spinel',c:'#ff5f9e',cut:'cushion'},es4:{name:'Starlight Topaz',c:'#ffd24a',cut:'star'},
+ es5:{name:'Word Emerald',c:'#22c98a',cut:'emerald'},es6:{name:'Bell Beryl',c:'#7fe3ff',cut:'hex'},
+ es7:{name:'Clock Citrine',c:'#ffb52e',cut:'trillion'},es8:{name:'Nest Garnet',c:'#e0365f',cut:'heart'},
+ er1:{name:'Garden Jade',c:'#5fd68a',cut:'pear'},er2:{name:'Ocean Pearl',c:'#bfe8ff',cut:'round',grad:['#ffffff','#bfe8ff','#7fb6ff']},
+ er3:{name:'Castle Ruby',c:'#ff2d6a',cut:'diamond',grad:['#ffd6e6','#ff5f95','#c41e5a']},
+ em1:{name:'Sight Gem',c:'#c29cff',cut:'oval'},em2:{name:'Action Amber',c:'#ff9a3d',cut:'marquise'},
+ em3:{name:'Echo Crystal',c:'#9ff0ff',cut:'hex',grad:['#ffffff','#9ff0ff','#5fb8ff']},em4:{name:'Twin Moonstone',c:'#e3d6ff',cut:'heart',grad:['#ffffff','#e3d6ff','#ff9de6']}});
+// spelling words: sight words carry a little sentence, word-family words carry a picture
+const sw=s=>s.split(';').map(x=>x.split('|'));
+const SP_LV=['Trace the word','Listen and spell','Spelling challenge'];
+const E3=(sec,id,name,short,sub,lvNames,o)=>Object.assign({sec,id,kind:'eng',gem:id,name,short,sub,lvNames},o||{});
+const ESTAGES=[
+ E3('espell','es1','Sight Words 1','Aa','grade 2 sight words',SP_LV,{start:1,words:sw('always|I always brush my teeth.;around|We ran around the tree.;because|I smile because I am happy.;been|Have you been to the beach?;before|Wash your hands before lunch.;best|You are my best friend.;both|I like both cats and dogs.;call|I will call my grandma.;cold|The ice is very cold.;does|Does the bunny like carrots?;fast|The rocket is very fast.;first|She came first in the race.')}),
+ E3('espell','es2','-ake and -ay','-ake','the -ake and -ay families',SP_LV,{fams:['ake','ay'],words:sw('cake|🎂;lake|🏞️;make|✂️;take|🤲;bake|🧁;wake|⏰;snake|🐍;shake|🥤;day|☀️;play|🧸;stay|🏠;way|🧭;say|💬;tray|🍽️')}),
+ E3('espell','es3','Sight Words 2','Bb','more grade 2 sight words',SP_LV,{words:sw('five|I have five fingers on my hand.;found|I found a shiny gem!;gave|Mom gave me a big hug.;goes|The train goes choo choo.;green|The grass is green.;made|We made a sand castle.;many|There are many stars in the sky.;pull|Pull the wagon up the hill.;read|I like to read books.;right|Raise your right hand.;sing|Birds sing in the morning.;sleep|Cats sleep in the sun.')}),
+ E3('espell','es4','-ight and -ine','-ight','the -ight and -ine families',SP_LV,{fams:['ight','ine'],words:sw('light|💡;night|🌙;might|💪;bright|✨;sight|👀;tight|🧦;flight|✈️;line|📏;mine|⛏️;fine|👍;nine|9️⃣;pine|🌲;shine|🌟')}),
+ E3('espell','es5','Sight Words 3','Cc','even more grade 2 sight words',SP_LV,{words:sw('tell|Tell me a story, please.;their|The kids hugged their puppy.;these|These flowers are pink.;those|Look at those big clouds.;upon|Once upon a time there was a queen.;very|The cake is very yummy.;wash|Wash the dishes, please.;which|Which color do you like?;why|Why is the sky blue?;wish|Make a wish on a star.;work|Bees work hard all day.;would|Would you like some juice?;write|I can write my name.;your|Is this your hat?')}),
+ E3('espell','es6','-ing and -ell','-ing','the -ing and -ell families',SP_LV,{fams:['ing','ell'],words:sw('king|🤴;ring|💍;wing|🦋;thing|📦;bring|🎁;swing|🌳;spring|🌷;bell|🔔;shell|🐚;smell|👃;spell|🔤;well|💧;yell|📣')}),
+ E3('espell','es7','-all and -ock','-all','the -all and -ock families',SP_LV,{fams:['all','ock'],words:sw('ball|⚽;fall|🍂;tall|🦒;small|🐭;wall|🧱;hall|🚪;lock|🔒;rock|⛰️;sock|🧦;clock|🕰️;block|🧊;dock|⚓')}),
+ E3('espell','es8','-est and -oat','-est','the -est and -oat families',SP_LV,{fams:['est','oat'],words:sw('nest|🐦;rest|🛌;test|📝;west|🧭;chest|🧰;vest|🦺;boat|⛵;coat|🧥;goat|🐐;float|🎈;moat|🏰')}),
+ E3('estory','er1','Garden Gate','🌷','little stories from the garden',['Short stories','Longer stories','Big stories'],{start:1,stories:['g1','g2','g3','g4','g5','g6']}),
+ E3('estory','er2','Seashell Shore','🐚','stories by the sea',['Short stories','Longer stories','Big stories'],{stories:['o1','o2','o3','o4','o5','o6']}),
+ E3('estory','er3','Castle Tower','🏰','stories from the crystal castle',['Short stories','Longer stories','Big stories'],{stories:['c1','c2','c3','c4','c5','c6']}),
+ // missing-word sentences: [sentence with ___, answer, wrong words...]
+ E3('emiss','em1','Sight Word Gems','the','little words we see a lot',['Pick from 2','Pick from 3','Gem challenge'],{start:1,miss:[
+  ['___ is your name?','What','Where','Why'],['I ___ a pink bike.','have','has','was'],['We ___ going to the park.','are','is','am'],['She ___ hello to me.','said','say','sad'],
+  ['The puppy ___ very little.','was','were','are'],['I like ___ play outside.','to','the','of'],['Look ___ the pretty bird!','at','an','it'],['My mom and dad ___ at home.','are','is','am'],
+  ['___ do you live?','Where','What','Who'],['He ___ a big red ball.','has','have','his'],['I can ___ the stars at night.','see','saw','seen'],['Thank ___ for the gift!','you','your','yes'],
+  ['Come and play ___ me.','with','what','will'],['The bird can ___ up high.','fly','flies','fell'],['It is time ___ bed.','for','from','far'],['I want ___ apple.','an','a','and'],
+  ['There ___ three ducks in the pond.','are','is','was'],['We had fun ___ the beach.','at','it','as'],['Do you ___ a cookie?','want','wants','went'],['The sun is ___ the sky.','in','it','an']]}),
+ E3('emiss','em2','Action Words','run','doing words and when they happen',['Pick from 2','Pick from 3','Gem challenge'],{miss:[
+  ['Yesterday, we ___ to the zoo.','went','go','goes'],['Look! The frog can ___ high.','jump','jumps','jumped'],['The baby is ___ in her bed.','sleeping','sleep','sleeps'],
+  ['Last night I ___ a funny dream.','had','have','has'],['Every day, Luna ___ her teeth.','brushes','brush','brushing'],['The fish can ___ fast.','swim','swims','swam'],
+  ['We ___ a cake for Mom yesterday.','baked','bake','bakes'],['Pip is ___ a snowman.','making','make','makes'],['Tomorrow I will ___ my grandma.','visit','visited','visits'],
+  ['Yesterday she ___ the ball to me.','threw','throw','throws'],['The dog ___ when it is happy.','barks','bark','barking'],['At lunch yesterday, I ___ my milk.','drank','drink','drinks'],
+  ['Coco likes to ___ with yarn.','play','plays','played'],['The children are ___ in the park.','running','run','runs'],['Ruby ___ a pretty picture yesterday.','drew','draw','draws'],
+  ['Listen! The bells are ___.','ringing','ring','rang'],['My brother ___ to school every day.','walks','walk','walking'],['Can you ___ me the glitter?','give','gave','gives'],
+  ['Last week we ___ a big rainbow.','saw','see','sees'],['Right now, the queen is ___ on her throne.','sitting','sit','sat'],['Yesterday it ___ all day.','rained','rains','raining']]}),
+ E3('emiss','em3','Sound-alike Gems','two','to, two, too and there, their, they\'re',['Pick from 2','Pick from 3','Gem challenge'],{miss:[
+  ['I have ___ cats.','two','to','too'],['We walked ___ the store.','to','two','too'],['Can I come ___?','too','to','two'],['This soup is ___ hot!','too','to','two'],
+  ['Give the book ___ me.','to','two','too'],['___ birds sat on the fence.','Two','To','Too'],['I want to play, ___!','too','to','two'],['She has ___ pink bows.','two','to','too'],
+  ['Let\'s go ___ the beach.','to','two','too'],['The bunnies love ___ carrots.','their','there','they\'re'],['Put the box over ___.','there','their','they\'re'],
+  ['___ going to the party.','They\'re','There','Their'],['The kids put on ___ coats.','their','there','they\'re'],['Look! ___ is a rainbow!','There','Their','They\'re'],
+  ['My friends say ___ happy.','they\'re','there','their'],['Is ___ any cake left?','there','their','they\'re'],['The birds built ___ nest.','their','there','they\'re'],['___ so silly!','They\'re','There','Their']]}),
+ E3('emiss','em4','Twin Words','see','words that sound the same',['Pick the twin','Twin words','Twin challenge'],{miss:[
+  ['Is this ___ teddy bear?','your','you\'re'],['___ my best friend!','You\'re','Your'],['Put on ___ shoes.','your','you\'re'],['I think ___ very kind.','you\'re','your'],
+  ['The dog wagged ___ tail.','its','it\'s'],['___ a sunny day!','It\'s','Its'],['Come ___ and sit with me.','here','hear'],['I can ___ the birds sing.','hear','here'],
+  ['Please ___ your name.','write','right'],['You got it ___!','right','write'],['Do you ___ the answer?','know','no'],['___, thank you.','No','Know'],
+  ['We swam in the ___.','sea','see'],['I can ___ the moon.','see','sea'],['This gift is ___ you.','for','four'],['A cat has ___ legs.','four','for'],
+  ['I ___ a big apple.','ate','eight'],['A spider has ___ legs.','eight','ate'],['Our team ___ the game!','won','one'],['I have ___ little sister.','one','won'],
+  ['The wind ___ my hat away.','blew','blue'],['The sky is ___.','blue','blew'],['I want to ___ a toy.','buy','by'],['Sit ___ me.','by','buy']]})];
+// Story Pages: 3 to 6 sentences; each question is [question, answer, wrong, wrong, sentence that has the answer]
+const STORY={
+ g1:{t:'Ruby\'s Carrot',pic:'🐰🥕',s:['Ruby the bunny had a big orange carrot.','She put it under a pink flower to keep it safe.','Then she hopped home for a nap.'],
+  q:[['What did Ruby have?','A carrot','A cake','A ball',0],['Where did she put it?','Under a flower','In a box','On a tree',1],['What did Ruby do at the end?','She took a nap','She ate lunch','She went swimming',2]]},
+ g2:{t:'The Little Bird',pic:'🐦🌳',s:['A little bird sat in a tall tree.','It sang a happy song every morning.','All the flowers woke up to listen.'],
+  q:[['Where did the bird sit?','In a tall tree','On a boat','In a car',0],['When did it sing?','Every morning','Every night','Never',1],['Who woke up to listen?','The flowers','The fish','The moon',2]]},
+ g3:{t:'Coco\'s Yarn',pic:'🐱🧶',s:['Coco the kitten found a ball of pink yarn.','She pushed it with her paw.','The yarn rolled under the sofa.','Coco wiggled in to get it.','She came out with yarn all over her ears!'],
+  q:[['What color was the yarn?','Pink','Green','Blue',0],['Where did the yarn roll?','Under the sofa','Out the door','Up the stairs',2],['How did Coco look at the end?','Yarn was on her ears','She was all wet','She had a hat on',4]]},
+ g4:{t:'The Busy Bee',pic:'🐝🌻',s:['Bella the bee was very busy.','She flew from flower to flower.','She took sweet nectar back to her hive.','The other bees made yummy honey with it.'],
+  q:[['Who was busy?','Bella the bee','Coco the kitten','Pip the penguin',0],['Where did Bella take the nectar?','To her hive','To the pond','To school',2],['What did the bees make?','Honey','Bread','Juice',3]]},
+ g5:{t:'The Lost Puppy',pic:'🐶🦄',s:['A small puppy got lost in the park.','He could not find his way home.','Luna the unicorn saw him crying by the pond.','She let him ride on her back.','Together they followed the path to his red house.','The puppy wagged his tail and said thank you!'],
+  q:[['Why was the puppy sad?','He was lost','He was hungry','He lost his ball',1],['How did Luna help?','She gave him a ride','She gave him food','She sang a song',3],['What color was the puppy\'s house?','Red','Blue','Yellow',4]]},
+ g6:{t:'Seeds in Spring',pic:'🌱🌷',s:['In spring, Ruby planted tiny seeds.','She watered them every day.','First, little green shoots popped up.','Next, buds grew on the stems.','At last, the garden was full of tulips!'],
+  q:[['When did Ruby plant the seeds?','In spring','In winter','At night',0],['What came up first?','Green shoots','Tulips','Apples',2],['What filled the garden at the end?','Tulips','Snow','Rocks',4]]},
+ o1:{t:'Pip Swims',pic:'🐧🌊',s:['Pip the penguin loves the cold sea.','He dives in with a big splash.','He swims fast to catch a fish.'],
+  q:[['Who loves the sea?','Pip the penguin','Ruby the bunny','Coco the kitten',0],['What does Pip make when he dives?','A big splash','A loud song','A sand castle',1],['Why does Pip swim fast?','To catch a fish','To get warm','To find a hat',2]]},
+ o2:{t:'The Shell',pic:'🐚✨',s:['Mia found a shell on the sand.','It was pink and shiny inside.','She held it to her ear and heard the sea.'],
+  q:[['Where did Mia find the shell?','On the sand','In a tree','Under her bed',0],['What was the shell like inside?','Pink and shiny','Black and dull','Full of water',1],['What did Mia hear?','The sea','A dog','A bell',2]]},
+ o3:{t:'The Sand Castle',pic:'🏰🏖️',s:['Sam and Mia built a sand castle.','Sam made four tall towers.','Mia put shells on the walls.','Then a wave came and washed it away!','They laughed and built a new one.'],
+  q:[['How many towers did Sam make?','Four','Two','Ten',1],['What happened to the castle?','A wave washed it away','The wind blew it away','A dog dug it up',3],['How did they feel at the end?','Happy','Angry','Scared',4]]},
+ o4:{t:'The Crab\'s Home',pic:'🦀🏠',s:['A little crab needed a new home.','His old shell was too small.','He tried a big shell, but it was too heavy.','Then he found one that was just right.'],
+  q:[['What did the crab need?','A new home','A new hat','A snack',0],['What was wrong with the big shell?','It was too heavy','It was too small','It was broken',2],['How was the last shell?','Just right','Too small','Too big',3]]},
+ o5:{t:'Dolphin Friends',pic:'🐬💙',s:['Two dolphins played in the bright blue sea.','They jumped over the waves and did flips.','A boat full of kids came by.','The kids clapped and cheered.','The dolphins splashed water at them to say hello.','Everyone got wet and giggled!'],
+  q:[['Where did the dolphins play?','In the sea','In a pool','In a river',0],['Who came by in a boat?','Kids','Pirates','Penguins',2],['Why did everyone get wet?','The dolphins splashed them','It rained','They fell in',4]]},
+ o6:{t:'The Night Boat',pic:'⛵🌙',s:['Grandpa had a little blue boat.','One night, he went out to fish.','Thick fog rolled in, and he could not see.','Then he saw the bright light from the lighthouse.','It showed him the way home safely.'],
+  q:[['What color was the boat?','Blue','Red','Green',0],['Why couldn\'t Grandpa see?','There was fog','He lost his glasses','The sun was too bright',2],['What helped Grandpa get home?','The lighthouse light','A dolphin','A map',3]]},
+ c1:{t:'The Queen\'s Crown',pic:'👑💎',s:['The Crystal Queen has a shiny crown.','It has a pink gem in the middle.','She wears it to every party.'],
+  q:[['What does the queen have?','A shiny crown','A red car','A big dog',0],['What color is the gem?','Pink','Green','Black',1],['When does she wear the crown?','To every party','To bed','In the bath',2]]},
+ c2:{t:'The Dragon\'s Nap',pic:'🐉😴',s:['A small dragon lived in the castle tower.','He liked to nap in the warm sun.','When he snored, little sparkles came out!'],
+  q:[['Where did the dragon live?','In the castle tower','In the sea','In a tree',0],['Where did he like to nap?','In the warm sun','In the snow','In the rain',1],['What came out when he snored?','Sparkles','Fire','Bubbles',2]]},
+ c3:{t:'The Royal Ball',pic:'💃🎶',s:['The queen planned a royal ball.','Everyone wore their fanciest clothes.','Luna the unicorn wore a gold bow.','They danced until the stars came out.','It was the best night ever!'],
+  q:[['What did the queen plan?','A royal ball','A boat trip','A bake sale',0],['What did Luna wear?','A gold bow','A blue hat','Red boots',2],['When did they stop dancing?','When the stars came out','At lunch time','When it rained',3]]},
+ c4:{t:'The Magic Key',pic:'🗝️🚪',s:['Max found a tiny gold key in the garden.','He tried it in every door of the castle.','At last, it opened a little round door.','Inside was a room full of books!'],
+  q:[['What did Max find?','A gold key','A silver coin','A red ball',0],['Which door did the key open?','A little round door','The front door','A big square door',2],['What was inside the room?','Books','Toys','Cakes',3]]},
+ c5:{t:'The Brave Knight',pic:'🛡️🐱',s:['Sir Pip was a small but brave knight.','One day, the castle\'s cat got stuck on the roof.','Everyone was too scared to climb up.','Sir Pip got a long ladder and climbed up slowly.','He carried the cat down in his arms.','The queen gave him a shiny medal.'],
+  q:[['What was stuck on the roof?','The castle\'s cat','A ball','A bird',1],['What did Sir Pip use to climb?','A long ladder','A rope','A tree',3],['What did the queen give him?','A shiny medal','A cake','A horse',5]]},
+ c6:{t:'The Rainbow Bridge',pic:'🌈🏰',s:['After the rain, a rainbow stretched over the castle.','Luna wanted to walk on it.','She took one step, and it felt like soft jelly.','She bounced all the way across to the other side.','There she found a pot of shiny glitter.','She shared the glitter with all her friends.'],
+  q:[['When did the rainbow come out?','After the rain','At midnight','Before breakfast',0],['What did the rainbow feel like?','Soft jelly','Hard rock','Cold ice',2],['What did Luna do with the glitter?','She shared it','She hid it','She lost it',5]]}};
+// what the sound-alike words mean (Glimmer's hint shows these)
+const TIPS={to:['➡️','going somewhere: go <b>to</b> the park'],two:['2️⃣','the number 2'],too:['➕','also, or very: <b>too</b> hot'],
+ there:['📍','a place: over <b>there</b>'],their:['👪','belongs to them: <b>their</b> dog'],"they're":['👫','they are'],your:['👉','belongs to you: <b>your</b> hat'],"you're":['😊','you are'],
+ its:['🐶','belongs to it: <b>its</b> tail'],"it's":['💬','it is'],here:['📍','this place: come <b>here</b>'],hear:['👂','listen with your ears'],
+ write:['✏️','make letters with a pencil'],right:['✅','correct, or not left'],know:['🧠','it is in your head'],no:['🙅','not yes'],sea:['🌊','big salty water'],see:['👀','look with your eyes'],
+ for:['🎁','a gift <b>for</b> you'],four:['4️⃣','the number 4'],ate:['🍽️','had some food'],eight:['8️⃣','the number 8'],won:['🏆','came first'],one:['1️⃣','the number 1'],
+ blew:['🌬️','puffed out air'],blue:['🔵','a color'],buy:['🛒','pay money for it'],by:['🚶','next to']};
+const hashS=s=>{let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(36);};
+// every English question, by fact key (so missed ones can come back later)
+const EITEM={};
+ESTAGES.forEach(st=>{
+ if(st.words)st.items=st.words.map(w=>{const fam=(st.fams||[]).find(f=>w[0].endsWith(f))||'',like=fam?(st.words.find(x=>x[0]!==w[0]&&x[0].endsWith(fam))||[''])[0]:'';
+  return EITEM['e:s:'+w[0]]={e:'s',key:'e:s:'+w[0],ans:w[0],fam,like,pic:fam?w[1]:'',sent:fam?'':w[1]};});
+ if(st.miss)st.items=st.miss.map(m=>EITEM['e:m:'+hashS(m[0])]={e:'m',key:'e:m:'+hashS(m[0]),s:m[0],ans:m[1],c:m.slice(2)});
+ if(st.stories)st.stories.forEach(id=>STORY[id].q.forEach((x,i)=>{EITEM['e:r:'+id+'.'+i]={e:'r',key:'e:r:'+id+'.'+i,sid:id,q:x[0],ans:x[1],c:[x[2],x[3]],l:x[4]};}));});
+const EGEMS=new Set(ESTAGES.map(s=>s.id));
+const ALL=STAGES.concat(GSTAGES,WSTAGES,ESTAGES);
 const ZONES_BY={mul:ZONES.map(z=>({id:STAGES[z.from].id,name:z.name,deep:z.from>=10})),
  add:[{id:'a1',name:'Warm-up Pools'},{id:'a3',name:'Tens Trail'},{id:'a6',name:'Hundreds Halls'},{id:'a8',name:'Story Grotto',deep:1}],
  sub:[{id:'s1',name:'Warm-up Pools'},{id:'s3',name:'Tens Trail'},{id:'s6',name:'Hundreds Halls'},{id:'s8',name:'Story Grotto',deep:1}],
- div:[{id:'d2',name:'Sharing Shallows'},{id:'d3',name:'Geode Galleries'},{id:'dmix',name:'Geode Heart',deep:1}]};
+ div:[{id:'d2',name:'Sharing Shallows'},{id:'d3',name:'Geode Galleries'},{id:'dmix',name:'Geode Heart',deep:1}],
+ wadd:[{id:'wa1',name:'Little stories'},{id:'wa3',name:'Big number stories',deep:1}],wsub:[{id:'ws1',name:'Little stories'},{id:'ws3',name:'Big number stories',deep:1}],
+ wmul:[{id:'wm1',name:'Easy groups'},{id:'wm3',name:'Big groups',deep:1}],wdiv:[{id:'wd1',name:'Easy sharing'},{id:'wd3',name:'Big sharing',deep:1}],
+ emiss:[{id:'em3',name:'Sound-alikes',deep:1}]};
 // ----- number makers for + and − (place value: column 0 = ones)
 const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 const dg=(n,c)=>Math.floor(n/Math.pow(10,c))%10;
@@ -627,9 +869,12 @@ const GEN={
  s7:k=>{const w=k===2?[1,1]:k===1?[0,1]:[1,0],fa=()=>k===2&&Math.random()<0.35?ri(1,9)*100+ri(0,9):ri(110,999);
   return rej(fa,()=>k===0&&Math.random()<0.35?ri(10,99):ri(100,899),(a,b)=>{const x=borrowsOf(a,b);return a>b&&x[0]===w[0]&&x[1]===w[1];},k===2?[403,158]:k===1?[528,173]:[352,127]);},
  s8:k=>{const m=save.parent.max.sub;if(k===0||m<100)return Math.random()<0.4?GEN.s1(2):GEN.s2(2);if(k===1||m<1000)return Math.random()<0.5?GEN.s4(1):GEN.s5(1);return Math.random()<0.5?GEN.s6(1):GEN.s7(ri(0,2));}};
+// Word Problems + and − levels reuse the cave number makers, a step at a time up to 3 digits
+const WGEN={wa1:k=>GEN.a1(k),wa2:k=>GEN.a2(k),wa3:k=>k===0?GEN.a3(2):k===1?GEN.a4(1):GEN.a5(ri(0,1)),wa4:k=>k===0?GEN.a6(0):k===1?GEN.a6(1):GEN.a7(ri(0,2)),
+ ws1:k=>GEN.s1(k),ws2:k=>GEN.s2(k),ws3:k=>k===0?GEN.s3(2):k===1?GEN.s4(1):GEN.s5(ri(0,1)),ws4:k=>k===0?GEN.s6(0):k===1?GEN.s6(1):GEN.s7(ri(0,2))};
 // ----- story doors (word problems)
 const CHARS=[['Glimmer','🐛'],['Ruby the bunny','🐰'],['Pip the penguin','🐧'],['Luna the unicorn','🦄'],['Coco the kitten','🐱'],['the Crystal Queen','👑']];
-const THINGS=[['gems','💎'],['shells','🐚'],['stars','⭐'],['hearts','💖'],['flowers','🌸'],['cupcakes','🧁'],['crystals','🔮']];
+const THINGS=[['gems','💎','gem'],['shells','🐚','shell'],['stars','⭐','star'],['hearts','💖','heart'],['flowers','🌸','flower'],['cupcakes','🧁','cupcake'],['crystals','🔮','crystal']];
 let mapSec='mul',swPending=false,swDone=false;
 
 // ================= save (key stays crystalcave.v2; internal v:3; migrates v2 and v1) =================
@@ -638,7 +883,8 @@ let mapSec='mul',swPending=false,swDone=false;
 const KEY='crystalcave.v2',V1KEY='crystalcave.v1';
 const DEF={v:3,name:'',muted:false,pad:false,diff:0,lv:{},facts:{},gems:{},rare:{},golden:0,keys:0,treasures:[],streak:0,best:0,run:0,correct:0,answered:0,started:false,seenV2:false,champ:0,migrated:0,
  ofacts:{},ops:{},seenV3:false,seenDiv:false,seen:{mul:true},
- parent:{on:{add:true,sub:true,mul:true,div:false},max:{add:1000,sub:1000},divT:'all',open:{add:false,sub:false,mul:false,div:false},stories:true,read:true}};
+ parent:{on:{add:true,sub:true,mul:true,div:false,word:true,eng:true},max:{add:1000,sub:1000},divT:'all',open:{add:false,sub:false,mul:false,div:false,word:false,eng:false},stories:true,read:true,
+  eng:{spell:true,story:true,miss:true}}}; // v3c: eng (English Cave) fields are optional; older saves get these defaults through merge
 const isObj=o=>!!o&&typeof o==='object'&&!Array.isArray(o);
 // deep merge onto the defaults: known fields must match the default's type; unknown fields are kept untouched
 function merge(def,d){const o=JSON.parse(JSON.stringify(def));if(!isObj(d))return o;
@@ -662,27 +908,43 @@ function load(){const ls=k=>{try{return localStorage.getItem(k);}catch(e){return
    put(KEY,JSON.stringify(s));}}
  s.v=3;if(!(s.diff>=0&&s.diff<=2))s.diff=0;
  const p=s.parent;['add','sub'].forEach(k=>{if([20,100,1000].indexOf(p.max[k])<0)p.max[k]=1000;});if(p.divT!=='easy')p.divT='all';
- if(!SEC_ORDER.some(k=>p.on[k]))p.on.mul=true;
+ if(!CAVES.some(k=>p.on[k]))p.on.mul=true;if(!['spell','story','miss'].some(k=>p.eng[k]))p.eng.spell=p.eng.story=p.eng.miss=true;
  return s;}
 let save=load();
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
-const lvRec=(si,k)=>{const r=save.lv[ALL[si].id+'-'+k];return isObj(r)?r:{stars:0,done:false,plays:0};};
+// v3b: Word Problems keeps its own levels, facts, answer counts and gems under its own key, so the main save is never touched by it.
+// (Streaks, rare gems, golden crystals and the name stay shared in the main save, like in every other cave.)
+const WKEY='crystalcave.words.v1',WDEF={v:1,lv:{},facts:{},ops:{},gems:{},intro:false};
+// v3c: the English Cave does the same under crystalcave.english.v1 (levels, word/sentence/story records, answer counts, gems)
+const EKEY='crystalcave.english.v1',EDEF={v:1,lv:{},facts:{},ops:{},gems:{},intro:false};
+function loadSide(K,D){let raw=null,d=null;try{raw=localStorage.getItem(K);}catch(e){}
+ if(raw!=null){try{d=JSON.parse(raw);}catch(e){d=null;}
+  if(!isObj(d)){d=null;try{localStorage.setItem(localStorage.getItem(K+'.bad')==null?K+'.bad':K+'.bad2',raw);}catch(e){}}}
+ const w=merge(D,d);w.v=1;return w;}
+let W=loadSide(WKEY,WDEF),E=loadSide(EKEY,EDEF);
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}try{localStorage.setItem(WKEY,JSON.stringify(W));}catch(e){}try{localStorage.setItem(EKEY,JSON.stringify(E));}catch(e){}}
+const lvStore=st=>isW(st.sec)?W.lv:isE(st.sec)?E.lv:save.lv;
+const lvRec=(si,k)=>{const r=lvStore(ALL[si])[ALL[si].id+'-'+k];return isObj(r)?r:{stars:0,done:false,plays:0};};
+const caveOf=sec=>isW(sec)?'word':isE(sec)?'eng':sec;
 // which stages show in a cave (grown-ups can limit number ranges)
-function stageVisible(st){const p=save.parent;if(st.sec==='add'||st.sec==='sub')return !st.lim||st.lim<=p.max[st.sec];if(st.sec==='div'&&st.t&&p.divT==='easy')return [2,5,10].indexOf(st.t)>=0;return true;}
-const secVisible=sec=>!!save.parent.on[sec];
-function secStages(sec){const o=[];ALL.forEach((st,i)=>{if(st.sec===sec&&stageVisible(st))o.push(i);});return o;}
-function stageOpen(si){const st=ALL[si];if(save.parent.open[st.sec])return true;
+function stageVisible(st){const p=save.parent;if(st.sec==='add'||st.sec==='sub')return !st.lim||st.lim<=p.max[st.sec];
+ if(st.sec==='wadd'||st.sec==='wsub')return !st.lim||st.lim<=p.max[st.op];if(st.sec==='wdiv'&&p.divT==='easy')return st.id==='wd1';if(st.sec==='div'&&st.t&&p.divT==='easy')return [2,5,10].indexOf(st.t)>=0;return true;}
+// the Sharing Stories sub-area only shows once a grown-up has switched division (the Golden Geode) on
+const secVisible=sec=>{const on=save.parent.on;return isW(sec)?!!on.word&&(sec!=='wdiv'||!!on.div):isE(sec)?!!on.eng&&!!save.parent.eng[SECS[sec].ek]:!!on[sec];};
+function secStages(sec){if(sec==='word')return [].concat(...WSECS.filter(secVisible).map(secStages));if(sec==='eng')return [].concat(...ESECS.filter(secVisible).map(secStages));const o=[];ALL.forEach((st,i)=>{if(st.sec===sec&&stageVisible(st))o.push(i);});return o;}
+function stageOpen(si){const st=ALL[si];if(save.parent.open[caveOf(st.sec)])return true;
  if(st.sec==='mul')return si===0||lvRec(si-1,0).done;
  if(st.start)return true;const L=secStages(st.sec),j=L.indexOf(si);return j<=0||lvRec(L[j-1],0).done;}
-const lvOpen=(si,k)=>save.parent.open[ALL[si].sec]||stageOpen(si)&&(k===0||lvRec(si,k-1).done);
+const lvOpen=(si,k)=>save.parent.open[caveOf(ALL[si].sec)]||stageOpen(si)&&(k===0||lvRec(si,k-1).done);
 const stageDone=si=>{let n=0;for(let k=0;k<nLv(ALL[si]);k++)if(lvRec(si,k).done)n++;return n;};
 const stageMastered=si=>{for(let k=0;k<nLv(ALL[si]);k++)if(lvRec(si,k).stars<3)return false;return true;};
 function secProgress(sec){let done=0,tot=0,stars=0;secStages(sec).forEach(i=>{for(let k=0;k<nLv(ALL[i]);k++){tot++;const r=lvRec(i,k);if(r.done)done++;stars+=r.stars|0;}});return {done,tot,stars,max:tot*3};}
 const divPools=()=>save.parent.divT==='easy'?[[2,5],[5,10],[2,5,10]]:[[2,5,10],[3,4,6],[7,8,9]];
 const unlocked=i=>stageOpen(i); // tables are stages 0..9
-const gemCount=t=>{const g=save.gems[t];return g?(g.b|0)+(g.s|0):0;};
-function totalGems(){let n=0;for(const k in save.gems)n+=gemCount(k);for(const k in save.rare)n+=save.rare[k]|0;return n+(save.golden|0);}
-function addGem(t,big,n){n=n||1;const g=save.gems[t]||(save.gems[t]={b:0,s:0});if(big)g.b+=n;else g.s+=n;}
+const gemStore=t=>WGEMS.has(String(t))?W.gems:EGEMS.has(String(t))?E.gems:save.gems;
+const gemRec=t=>{const g=gemStore(t)[t];return isObj(g)?g:{b:0,s:0};};
+const gemCount=t=>{const g=gemRec(t);return (g.b|0)+(g.s|0);};
+function totalGems(){let n=0;for(const k in save.gems)n+=gemCount(k);for(const k in W.gems)if(WGEMS.has(k))n+=gemCount(k);for(const k in E.gems)if(EGEMS.has(k))n+=gemCount(k);for(const k in save.rare)n+=save.rare[k]|0;return n+(save.golden|0);}
+function addGem(t,big,n){n=n||1;const G=gemStore(t),g=isObj(G[t])?G[t]:(G[t]={b:0,s:0});if(big)g.b+=n;else g.s+=n;}
 
 // ================= art =================
 function shade(hex,f){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
@@ -810,9 +1072,26 @@ function caveSVG(sec){const C=SECS[sec],a='u'+(++uid),b='u'+(++uid);
   s+='<g transform="translate('+x.toFixed(0)+','+y.toFixed(0)+') rotate('+((t-Math.PI/2)*-57).toFixed(0)+')"><polygon points="-6,4 -6,'+(-h*0.6).toFixed(0)+' 0,'+(-h)+' 6,'+(-h*0.6).toFixed(0)+' 6,4" fill="'+c+'" stroke="#fff" stroke-width="1.5"/></g>';}
  return s+'</svg>';}
 // read-aloud uses the phone's own speech voice (nothing is uploaded)
-const Voice={ok:'speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='undefined',
- say(t){if(!this.ok)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.rate=0.9;u.pitch=1.1;u.lang='en-US';speechSynthesis.speak(u);}catch(e){}},
- stop(){if(!this.ok)return;try{speechSynthesis.cancel();}catch(e){}}};
+const Voice={ok:'speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='undefined',tok:0,tm:0,off:null,
+ utt(t){const u=new SpeechSynthesisUtterance(t);u.rate=0.9;u.pitch=1.1;u.lang='en-US';return u;},
+ // ends any read-along: its timer stops and its highlight is cleared
+ clr(){this.tok++;clearTimeout(this.tm);const f=this.off;this.off=null;if(f)f();},
+ say(t){this.clr();if(!this.ok)return;try{speechSynthesis.cancel();speechSynthesis.speak(this.utt(t));}catch(e){}},
+ stop(){this.clr();if(!this.ok)return;try{speechSynthesis.cancel();}catch(e){}},
+ // v3c read-along: sents = one array of words per sentence; hl(i) lights word i (counting across sentences), hl(-1) clears.
+ // Words follow the voice's word-boundary events; if the phone's voice sends none, a timer steps through the words instead.
+ read(sents,hl){this.clr();const me=this,tok=me.tok,flat=[].concat(...sents),starts=[];let b=0,any=false,bnd=false;sents.forEach(ws=>{starts.push(b);b+=ws.length;});
+  me.off=()=>hl(-1);
+  const tick=(i,end,then)=>{if(me.tok!==tok)return;if(i>=end){if(then)then();return;}hl(i);me.tm=setTimeout(()=>tick(i+1,end,then),(240+flat[i].length*70)*1.1);};
+  const fin=()=>{if(me.tok===tok){me.off=null;hl(-1);}};
+  if(!me.ok){tick(0,flat.length,fin);return;}
+  try{speechSynthesis.cancel();
+   sents.forEach((ws,si)=>{const offs=[];let p=0;ws.forEach(w=>{offs.push(p);p+=w.length+1;});const u=me.utt(ws.join(' '));
+    u.onstart=()=>{if(me.tok!==tok)return;any=true;clearTimeout(me.tm);hl(starts[si]);if(!bnd)me.tm=setTimeout(()=>{if(!bnd)tick(starts[si]+1,starts[si]+ws.length);},500);};
+    u.onboundary=e=>{if(me.tok!==tok||(e.name&&e.name!=='word'))return;bnd=true;clearTimeout(me.tm);let j=0;while(j+1<offs.length&&offs[j+1]<=e.charIndex)j++;hl(starts[si]+j);};
+    u.onend=()=>{if(me.tok===tok&&si===sents.length-1){clearTimeout(me.tm);fin();}};
+    speechSynthesis.speak(u);});}catch(e){}
+  me.tm=setTimeout(()=>{if(!any&&me.tok===tok)tick(0,flat.length,fin);},900);}};
 
 // ================= sound =================
 const Snd={c:null,
@@ -869,7 +1148,7 @@ requestAnimationFrame(frame);
 // ================= screens =================
 function show(id){$$('.screen').forEach(s=>s.classList.toggle('on',s.id===id));curScreen=id;document.body.className='s-'+id;
  if(id!=='play')Voice.stop();
- if(id==='map')renderMap();if(id==='bag')renderBag();if(id==='settings')renderSettings();if(id==='welcome')renderWelcome();if(id==='mine')renderMine();if(id==='parent')renderParent();if(id==='play'){layoutPlay();requestAnimationFrame(layoutPlay);}
+ if(id==='map')renderMap();if(id==='bag')renderBag();if(id==='settings')renderSettings();if(id==='welcome')renderWelcome();if(id==='mine')renderMine();if(id==='words')renderWords();if(id==='english')renderEnglish();if(id==='parent')renderParent();if(id==='play'){layoutPlay();requestAnimationFrame(layoutPlay);}
  maybeReload();}
 // a new version finished installing: reload once, but never in the middle of a level, a popup or the grown-ups area
 function maybeReload(){if(!swPending||swDone||curScreen==='play'||curScreen==='parent'||$('#modal').classList.contains('on'))return;
@@ -903,25 +1182,62 @@ $('#nameIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('#startBtn').cl
 
 // ---------- map ----------
 $('#mHome').innerHTML=IC.home;$('#mBag').innerHTML=IC.bag;$('#mSet').innerHTML=IC.gear;
-on('#mHome',()=>{tapSnd();show('mine');});on('#mBag',()=>{tapSnd();bagFrom='map';show('bag');});on('#mSet',()=>{tapSnd();setFrom='map';show('settings');});
+on('#mHome',()=>{tapSnd();show(isW(mapSec)&&secVisible('word')?'words':isE(mapSec)&&secVisible('eng')?'english':'mine');});on('#mBag',()=>{tapSnd();bagFrom='map';show('bag');});on('#mSet',()=>{tapSnd();setFrom='map';show('settings');});
 on('#mDiff',()=>{tapSnd();openDiff();});
 // ---------- mine entrance (the 4 caves) ----------
 let setFrom='mine';
-const SECGEM={add:'a1',sub:'s1',mul:6,div:'d2'};
+const SECGEM={add:'a1',sub:'s1',mul:6,div:'d2',word:'wa1',wadd:'wa1',wsub:'ws1',wmul:'wm1',wdiv:'wd1',eng:'es1',espell:'es1',estory:'er1',emiss:'em1'};
 $('#eHome').innerHTML=IC.home;$('#eBag').innerHTML=IC.bag;$('#eSet').innerHTML=IC.gear;$('#pGear span').innerHTML=IC.sgear;$('#gBack').innerHTML=IC.back;
 on('#eHome',()=>{tapSnd();show('welcome');});on('#eBag',()=>{tapSnd();bagFrom='mine';show('bag');});on('#eSet',()=>{tapSnd();setFrom='mine';show('settings');});
 on('#gBack',()=>{tapSnd();show('mine');});
+// one big cave card (Mine Entrance and the Word Problems picker share it)
+function caveCard(sec,isNew){const C=SECS[sec],p=secProgress(sec),pct=p.tot?Math.round(p.done/p.tot*100):0;
+ return '<button class="cave c-'+(C.col||sec)+'" data-s="'+sec+'" aria-label="'+C.name+': '+C.kid+'"><span class="cArt">'+caveSVG(sec)+'<span class="cSym'+(C.em?' em':C.ab?' ab':'')+'">'+C.sym+'</span></span>'+
+  '<span class="cInfo"><span class="cName">'+C.name+'</span><span class="cKid">'+C.kid+'</span><span class="cBar"><i style="width:'+pct+'%"></i></span><span class="cSt">'+starSVG(true)+p.stars+' &nbsp;'+gemSVG(GEMS[SECGEM[sec]],24)+p.done+'/'+p.tot+'</span></span>'+
+  (isNew?'<span class="cNew">NEW</span>':'')+'</button>';}
 function renderMine(){$('#eStats').innerHTML=gemSVG(GEMS[2],36)+'<span>'+totalGems()+'</span>';
- let h='';SEC_ORDER.filter(secVisible).forEach(sec=>{const C=SECS[sec],p=secProgress(sec),pct=p.tot?Math.round(p.done/p.tot*100):0;
-  h+='<button class="cave c-'+sec+'" data-s="'+sec+'" aria-label="'+C.name+': '+C.kid+'"><span class="cArt">'+caveSVG(sec)+'<span class="cSym">'+C.sym+'</span></span>'+
-   '<span class="cInfo"><span class="cName">'+C.name+'</span><span class="cKid">'+C.kid+'</span><span class="cBar"><i style="width:'+pct+'%"></i></span><span class="cSt">'+starSVG(true)+p.stars+' &nbsp;'+gemSVG(GEMS[SECGEM[sec]],24)+p.done+'/'+p.tot+'</span></span>'+
-   (save.seen[sec]?'':'<span class="cNew">NEW</span>')+'</button>';});
- $('#caves').innerHTML=h;
+ $('#caves').innerHTML=CAVES.filter(secVisible).map(sec=>caveCard(sec,!save.seen[sec])).join('');
  $$('#caves .cave').forEach(b=>b.addEventListener('click',()=>{tapSnd();openSec(b.dataset.s);}));
  if(!save.seenV3)setTimeout(whatsNew3,250);}
-function openSec(sec){if(!secVisible(sec))return;mapSec=sec;
- if(!save.seen[sec]){save.seen[sec]=true;persist();}
- show('map');if(sec==='div'&&!save.seenDiv)setTimeout(()=>{if(curScreen==='map'&&!$('#modal').classList.contains('on'))shareIntro();},300);}
+// ---------- Word Problems: pick a story sub-area ----------
+$('#wBack').innerHTML=IC.home;$('#wSay').innerHTML=IC.sndOn;
+on('#wBack',()=>{tapSnd();show('mine');});
+on('#wSay',()=>{Snd.init();Voice.say('Word problems! Pick a story cave: '+(secVisible('wdiv')?'adding, taking away, times or sharing.':'adding, taking away or times.'));});
+function renderWords(){$('#wStats').innerHTML=gemSVG(GEMS.wa1,36)+'<span>'+secProgress('word').stars+'</span>';$('#wStats').setAttribute('aria-label','Word Problems stars');
+ $('#wsubs').innerHTML=WSECS.filter(secVisible).map(sec=>caveCard(sec,false)).join('');
+ $$('#wsubs .cave').forEach(b=>b.addEventListener('click',()=>{tapSnd();openSec(b.dataset.s);}));
+ if(!W.intro)setTimeout(wordsIntro,250);}
+function wordsIntro(){if(W.intro||curScreen!=='words'||$('#modal').classList.contains('on'))return;
+ const txt='Glimmer reads you a little story. Find the magic number to open the door!';
+ modal('<div class="art"><div class="rays"></div>'+caveSVG('word')+'<span class="cSym em" style="top:42%">📖</span></div><h2>Word Problems!</h2><p>'+txt+'</p>'+
+  '<div class="stPic" style="color:#fff"><span>🐰</span><span>🌸🌸🌸</span><i style="color:#ffe873">+</i><span>🌸🌸</span><i style="color:#ffe873">=</i><span>❓</span></div>'+
+  '<div class="row"><button class="btn ibtn blue" id="wiSay" aria-label="Read it to me">'+IC.sndOn+'</button><button class="btn gold big" id="wIntroOk">Let\'s read!</button></div>','newsC');
+ if(save.parent.read&&!save.muted)Voice.say('Word problems! '+txt);
+ on('#wiSay',()=>{Snd.init();Voice.say('Word problems! '+txt);});
+ on('#wIntroOk',()=>{tapSnd();Voice.stop();W.intro=true;persist();closeModal();});}
+// ---------- v3c English Cave: pick an activity ----------
+$('#enBack').innerHTML=IC.home;$('#enSay').innerHTML=IC.sndOn;
+on('#enBack',()=>{tapSnd();show('mine');});
+const enNames=()=>ESECS.filter(secVisible).map(s=>SECS[s].name.toLowerCase());
+on('#enSay',()=>{Snd.init();const n=enNames();Voice.say('English cave! Pick one: '+(n.length>1?n.slice(0,-1).join(', ')+' or '+n[n.length-1]:n[0])+'.');});
+function renderEnglish(){$('#enStats').innerHTML=gemSVG(GEMS.es1,36)+'<span>'+secProgress('eng').stars+'</span>';$('#enStats').setAttribute('aria-label','English Cave stars');
+ $('#esubs').innerHTML=ESECS.filter(secVisible).map(sec=>caveCard(sec,false)).join('');
+ $$('#esubs .cave').forEach(b=>b.addEventListener('click',()=>{tapSnd();openSec(b.dataset.s);}));
+ if(!E.intro)setTimeout(englishIntro,250);}
+function englishIntro(){if(E.intro||curScreen!=='english'||$('#modal').classList.contains('on'))return;
+ const txt='Listen and spell words with letter gems, read little stories with Glimmer, and find the missing word gems!';
+ modal('<div class="art"><div class="rays"></div>'+caveSVG('eng')+'<span class="cSym ab" style="top:42%">Aa</span></div><h2>English Cave!</h2><p>'+txt+'</p>'+
+  '<ul class="news"><li><span class="pSym c-espell ab">abc</span><span><b>Spelling Crystals</b>: hear a word, tap the letter gems</span></li>'+
+  '<li><span class="pSym c-estory em">📚</span><span><b>Story Pages</b>: read along, then answer</span></li>'+
+  '<li><span class="pSym c-emiss em">💎</span><span><b>Missing Gem</b>: pick the word that fits</span></li></ul>'+
+  '<div class="row"><button class="btn ibtn blue" id="eiSay" aria-label="Read it to me">'+IC.sndOn+'</button><button class="btn gold big" id="eIntroOk">Let\'s go!</button></div>','newsC');
+ if(save.parent.read&&!save.muted)Voice.say('English cave! '+txt);
+ on('#eiSay',()=>{Snd.init();Voice.say('English cave! '+txt);});
+ on('#eIntroOk',()=>{tapSnd();Voice.stop();E.intro=true;persist();closeModal();});}
+function openSec(sec){if(!secVisible(sec))return;
+ if(!save.seen[caveOf(sec)]){save.seen[caveOf(sec)]=true;persist();}
+ if(sec==='word'){show('words');return;}if(sec==='eng'){show('english');return;}
+ mapSec=sec;show('map');if(sec==='div'&&!save.seenDiv)setTimeout(()=>{if(curScreen==='map'&&!$('#modal').classList.contains('on'))shareIntro();},300);}
 function whatsNew3(){if(save.seenV3||curScreen!=='mine'||$('#modal').classList.contains('on'))return;
  modal('<div class="art"><div class="rays"></div>'+caveSVG('add')+'</div><h2>New caves to explore!</h2>'+
   '<ul class="news"><li>'+gemSVG(GEMS.a1,30)+'<span><b>Rose Quartz Cave</b>: adding, all the way up to 3-digit numbers</span></li>'+
@@ -957,52 +1273,62 @@ function openGate(){const a=ri(12,19),b=ri(12,19),ans=a*b;let typed='';
   else if(typed.length<4)typed+=k;upd();}));
  on('#gNo',()=>{tapSnd();closeModal();});}
 // ---------- grown-ups area ----------
-const fmtKey=k=>k.replace('x',' × ').replace('+',' + ').replace('-',' − ').replace('÷',' ÷ ');
-function parseKey(k){let m=/^(\d+)x(\d+)$/.exec(k);if(m)return {a:+m[1],b:+m[2]};
+const fmtKey=k=>k.slice(0,2)==='e:'?eLabel(k):k.replace(/^w:/,'').replace('x',' × ').replace('+',' + ').replace('-',' − ').replace('÷',' ÷ ');
+function parseKey(k){if(k.slice(0,2)==='w:'){const q=parseKey(k.slice(2));if(q){if(!q.op)q.op='mul';q.w=1;}return q;} // Word Problems facts
+ let m=/^(\d+)x(\d+)$/.exec(k);if(m)return {a:+m[1],b:+m[2]};
  m=/^(\d+)([+\-÷])(\d+)$/.exec(k);if(!m)return null;const a=+m[1],b=+m[3];
  if(m[2]==='+')return {op:'add',a,b};if(m[2]==='-')return {op:'sub',a,b};
  return b>0&&a%b===0?{op:'div',a:b,b:a/b}:null;}
-function trickyOf(sec){const o=[],st=sec==='mul'?save.facts:save.ofacts;
- for(const k in st){const f=st[k];if(!isObj(f)||!(f.w>0&&f.box<2))continue;if(sec!=='mul'){const p=parseKey(k);if(!p||p.op!==sec)continue;}o.push([k,f.w]);}
+// English records read back as the word, the missing word, or the story's name
+function eLabel(k){const it=EITEM[k];if(!it)return k.slice(4);return it.e==='s'?it.ans:it.e==='m'?'___ '+it.ans:'📖 '+STORY[it.sid].t;}
+function trickyOf(sec){const o=[],st=sec==='mul'?save.facts:sec==='word'?W.facts:sec==='eng'?E.facts:save.ofacts;
+ for(const k in st){const f=st[k];if(!isObj(f)||!(f.w>0&&f.box<2))continue;if(sec==='eng'&&!EITEM[k])continue;if(sec!=='mul'&&sec!=='word'&&sec!=='eng'){const p=parseKey(k);if(!p||p.op!==sec)continue;}o.push([k,f.w]);}
  return o.sort((x,y)=>y[1]-x[1]).map(x=>x[0]);}
 function progCard(sec){const P=secProgress(sec),C=SECS[sec];let n=0,c=0;
- if(sec==='mul'){for(const k in save.facts){const f=save.facts[k];if(isObj(f)){n+=f.n|0;c+=f.c|0;}}}else{const o=save.ops[sec];if(isObj(o)){n=o.n|0;c=o.c|0;}}
+ if(sec==='mul'){for(const k in save.facts){const f=save.facts[k];if(isObj(f)){n+=f.n|0;c+=f.c|0;}}}
+ else if(sec==='word'||sec==='eng'){const O=sec==='word'?W.ops:E.ops;for(const k in O){const o=O[k];if(isObj(o)){n+=o.n|0;c+=o.c|0;}}}else{const o=save.ops[sec];if(isObj(o)){n=o.n|0;c=o.c|0;}}
  const tr=trickyOf(sec).slice(0,8);
- return '<div class="pcard c-'+sec+'"><div class="pcH"><span class="pSym">'+C.sym+'</span>'+C.name+(save.parent.on[sec]?'':' <small>(hidden)</small>')+'</div>'+
+ return '<div class="pcard c-'+sec+'"><div class="pcH"><span class="pSym'+(C.em?' em':C.ab?' ab':'')+'">'+C.sym+'</span>'+C.name+(save.parent.on[sec]?'':' <small>(hidden)</small>')+'</div>'+
   '<div>Levels finished: <b>'+P.done+' / '+P.tot+'</b> · Stars: <b>'+P.stars+' / '+P.max+'</b></div>'+
   '<div>Answers: <b>'+n+'</b>'+(n?' · Right first time: <b>'+Math.round(c/n*100)+'%</b>':'')+'</div>'+
-  (tr.length?'<div class="small">Still tricky:</div><div class="chips">'+tr.map(k=>'<span>'+fmtKey(k)+'</span>').join('')+'</div>':'<div class="small">No tricky facts right now.</div>')+'</div>';}
+  (sec==='eng'?eProgLine():'')+(tr.length?'<div class="small">Still tricky:</div><div class="chips">'+tr.map(k=>'<span>'+fmtKey(k)+'</span>').join('')+'</div>':'<div class="small">No tricky facts right now.</div>')+'</div>';}
 function renderParent(){const p=save.parent,b=$('#parBody'),y=b.scrollTop;
  const tog=(id,v)=>'<button class="btn tog '+(v?'green':'gray')+'" id="'+id+'">'+(v?'On':'Off')+'</button>';
  const seg=(name,opts,cur)=>'<div class="seg">'+opts.map(o=>'<button class="btn '+(o[0]===cur?'gold sel':'gray')+'" data-seg="'+name+'" data-v="'+o[0]+'">'+o[1]+'</button>').join('')+'</div>';
- const lbl=(sec,txt)=>'<span class="lbl"><span class="pSym c-'+sec+'">'+SECS[sec].sym+'</span><span>'+txt+'</span></span>';
+ const lbl=(sec,txt)=>'<span class="lbl"><span class="pSym c-'+sec+(SECS[sec].em?' em':SECS[sec].ab?' ab':'')+'">'+SECS[sec].sym+'</span><span>'+txt+'</span></span>';
+ const KID={div:' (hidden until you switch it on)',word:'. Sharing stories show once Golden Geode is on',eng:'. Pick its activities below'};
  let h='<p class="note">Choose what she can play. Everything stays on this device.</p><div class="secH">Caves she can see</div>';
- SEC_ORDER.forEach(s=>{h+='<div class="setRow">'+lbl(s,SECS[s].name+'<small>'+SECS[s].kid+(s==='div'?' (hidden until you switch it on)':'')+'</small>')+tog('on-'+s,p.on[s])+'</div>';});
+ CAVES.forEach(s=>{h+='<div class="setRow">'+lbl(s,SECS[s].name+'<small>'+(s==='word'?'Story sums for + − × ÷':s==='eng'?'Spelling, read-along stories, missing words':SECS[s].kid)+(KID[s]||'')+'</small>')+tog('on-'+s,p.on[s])+'</div>';});
+ h+='<div class="secH">English Cave activities</div>';
+ ESECS.forEach(s=>{h+='<div class="setRow">'+lbl(s,SECS[s].name+'<small>'+SECS[s].kid+(p.on.eng?'':' (English Cave is off)')+'</small>')+tog('ea-'+s,p.eng[SECS[s].ek])+'</div>';});
  h+='<div class="secH">Number ranges</div>'+
-  '<div class="setRow">'+lbl('add','Adding up to')+seg('max-add',[[20,'20'],[100,'100'],[1000,'999']],p.max.add)+'</div>'+
-  '<div class="setRow">'+lbl('sub','Taking away from')+seg('max-sub',[[20,'20'],[100,'100'],[1000,'999']],p.max.sub)+'</div>'+
-  '<div class="setRow">'+lbl('div','Sharing tables')+seg('divT',[['easy','÷2, 5, 10'],['all','÷2 to ÷9']],p.divT)+'</div>';
+  '<div class="setRow">'+lbl('add','Adding up to<small>Also the Adding Stories</small>')+seg('max-add',[[20,'20'],[100,'100'],[1000,'999']],p.max.add)+'</div>'+
+  '<div class="setRow">'+lbl('sub','Taking away from<small>Also the Taking-away Stories</small>')+seg('max-sub',[[20,'20'],[100,'100'],[1000,'999']],p.max.sub)+'</div>'+
+  '<div class="setRow">'+lbl('div','Sharing tables<small>Also the Sharing Stories</small>')+seg('divT',[['easy','÷2, 5, 10'],['all','÷2 to ÷9']],p.divT)+'</div>';
  h+='<div class="secH">Skip ahead: open every level</div>';
- SEC_ORDER.forEach(s=>{h+='<div class="setRow">'+lbl(s,SECS[s].name)+tog('open-'+s,p.open[s])+'</div>';});
+ CAVES.forEach(s=>{h+='<div class="setRow">'+lbl(s,SECS[s].name)+tog('open-'+s,p.open[s])+'</div>';});
  h+='<div class="secH">How tricky</div><div class="setRow"><span class="lbl">'+diffIcon(save.diff)+'<span>Difficulty<small>'+DIFFS[save.diff].desc+'</small></span></span>'+seg('diff',[[0,'Easy'],[1,'Normal'],[2,'Tricky']],save.diff)+'</div>';
  h+='<div class="secH">Reading</div>'+
   '<div class="setRow"><span class="lbl"><span>Story Doors<small>One word problem guards each boss door (+, −, ÷)</small></span></span>'+tog('stories',p.stories)+'</div>'+
-  '<div class="setRow"><span class="lbl">'+IC.sndOn+'<span>Read stories aloud<small>Uses the phone\'s own voice. The 🔊 button always works.</small></span></span>'+tog('read',p.read)+'</div>';
- h+='<div class="secH">Progress</div><div class="prog">'+SEC_ORDER.map(progCard).join('')+'</div>';
+  '<div class="setRow"><span class="lbl">'+IC.sndOn+'<span>Read stories aloud<small>Story Doors, Word Problems, Story Pages and Missing Gem. Uses the phone\'s own voice. Spelling words are always said. The 🔊 button always works.</small></span></span>'+tog('read',p.read)+'</div>';
+ h+='<div class="secH">Progress</div><div class="prog">'+CAVES.map(progCard).join('')+'</div>';
  h+='<div class="secH">Start over</div><div class="setRow"><span class="lbl"><span>Erase all gems, stars and treasures<small>A backup copy is kept on this device.</small></span></span><button class="btn tog red" id="pReset">Reset</button></div>';
  b.innerHTML=h;b.scrollTop=y;
  const re=()=>{persist();renderParent();};
- SEC_ORDER.forEach(s=>{
-  on('#on-'+s,()=>{tapSnd();if(p.on[s]&&SEC_ORDER.filter(k=>p.on[k]).length===1){cele(IC.lock+'<span>Keep at least one cave open.</span>',1800);return;}
+ CAVES.forEach(s=>{
+  on('#on-'+s,()=>{tapSnd();if(p.on[s]&&CAVES.filter(k=>p.on[k]).length===1){cele(IC.lock+'<span>Keep at least one cave open.</span>',1800);return;}
    p.on[s]=!p.on[s];if(p.on[s]&&s!=='mul')save.seen[s]=false;re();});
   on('#open-'+s,()=>{tapSnd();p.open[s]=!p.open[s];re();});});
+ ESECS.forEach(s=>on('#ea-'+s,()=>{tapSnd();const k=SECS[s].ek;if(p.eng[k]&&ESECS.filter(x=>p.eng[SECS[x].ek]).length===1){cele(IC.lock+'<span>Keep at least one English activity on.</span>',1800);return;}
+  p.eng[k]=!p.eng[k];re();}));
  b.querySelectorAll('[data-seg]').forEach(bt=>bt.addEventListener('click',()=>{tapSnd();const k=bt.dataset.seg,v=bt.dataset.v;
   if(k==='max-add')p.max.add=+v;else if(k==='max-sub')p.max.sub=+v;else if(k==='divT')p.divT=v;else if(k==='diff')save.diff=+v;re();}));
  on('#stories',()=>{tapSnd();p.stories=!p.stories;re();});
  on('#read',()=>{tapSnd();p.read=!p.read;re();if(p.read)Voice.say('I will read the stories out loud.');});
  on('#pReset',()=>{tapSnd();modal('<h2>Start over?</h2><p>This erases all gems, stars and treasures in every cave. A backup copy is kept on this device.</p><div class="row"><button class="btn green big" id="rKeep">Keep everything</button><button class="btn red" id="rYes">Yes, erase</button></div>');
   on('#rKeep',()=>{tapSnd();closeModal();});
-  on('#rYes',()=>{try{localStorage.setItem(KEY+'.reset-backup',JSON.stringify(save));}catch(e){}
+  on('#rYes',()=>{try{localStorage.setItem(KEY+'.reset-backup',JSON.stringify(save));localStorage.setItem(WKEY+'.reset-backup',JSON.stringify(W));localStorage.setItem(EKEY+'.reset-backup',JSON.stringify(E));}catch(e){}
+   W=merge(WDEF,{intro:W.intro});E=merge(EDEF,{intro:E.intro});
    const keep={muted:save.muted,parent:save.parent,seen:save.seen};save=merge(DEF,{});Object.assign(save,keep);save.seenV2=true;save.seenV3=true;persist();closeModal();S=null;show('welcome');});});}
 // ---------- map (one cave at a time) ----------
 function currentIdx(sec){const L=secStages(sec||mapSec);for(const i of L)if(!lvRec(i,0).done)return stageOpen(i)?i:-1;return -1;}
@@ -1010,10 +1336,13 @@ function nodeLabel(st,size){if(st.kind==='queen')return '<span class="crownT">'+
 function renderMap(){const area=$('#mapArea'),inner=$('#mapInner'),sec=mapSec,L=secStages(sec);
  $('#mapTitle').textContent=sec==='mul'?'The Crystal Cave':SECS[sec].name;
  $('#mStats').innerHTML=gemSVG(GEMS[2],36)+'<span id="mTotal">'+totalGems()+'</span>';$('#mDiff').innerHTML=diffIcon(save.diff);$('#mDiff').setAttribute('aria-label','Difficulty: '+DIFFS[save.diff].name);
- const w=area.clientWidth,h=area.clientHeight,n=L.length;if(!w||!h||!n)return;
+ const n=L.length;
+ // the Secret Tunnel / sharing buttons sit in their own strip under the map, so they never cover a node
+ $('#mapFoot').innerHTML=(sec==='div'?'<button class="btn gold" id="shareBtn" aria-label="How fair sharing works">'+chestSVG()+'</button>':'')+(save.keys>0?'<button class="btn gold pulse" id="tunnelBtn">'+goldenSVG(40)+'Secret Tunnel'+(save.keys>1?' ×'+save.keys:'')+'</button>':'');
+ const w=area.clientWidth,h0=area.clientHeight;if(!w||!h0||!n)return;const h=h0;
  const cols=w>=h*1.3?5:(w>=560?4:2),rows=Math.ceil(n/cols),vis=Math.max(2,Math.min(rows,w>=h*1.3?2:(w>=560?3:5)));
  const node=Math.max(76,Math.min(w/cols*0.5,(h/vis)/2.05,124)),rowH=Math.max(node*1.95,h/rows);
- const H=Math.max(h,rows*rowH);inner.style.height=H+'px';
+ const H=Math.max(h0,rows*rowH);inner.style.height=H+'px';
  const pts=[];for(let i=0;i<n;i++){const r=Math.floor(i/cols),c=r%2?cols-1-(i%cols):i%cols;pts.push([(c+0.5)*w/cols,r*rowH+rowH*0.5]);}
  let d='M'+pts[0][0].toFixed(0)+' '+pts[0][1].toFixed(0);for(let i=1;i<n;i++){const a=pts[i-1],b=pts[i];
   if(Math.abs(a[1]-b[1])<1)d+=' Q'+((a[0]+b[0])/2).toFixed(0)+' '+(a[1]-rowH*0.2).toFixed(0)+' '+b[0].toFixed(0)+' '+b[1].toFixed(0);
@@ -1027,8 +1356,6 @@ function renderMap(){const area=$('#mapArea'),inner=$('#mapInner'),sec=mapSec,L=
   html+='<button class="'+cls+'" data-i="'+i+'" style="left:'+(p[0]-node*0.6).toFixed(0)+'px;top:'+(p[1]-node*0.5).toFixed(0)+'px;width:'+(node*1.2).toFixed(0)+'px;--fs:'+Math.round(node*(st.short.length>2?0.26:0.34))+'px" aria-label="'+st.name+(open?'':' (locked)')+'">'+
    '<span class="gemWrap" style="width:'+node.toFixed(0)+'px;height:'+node.toFixed(0)+'px">'+gemSVG(g,Math.round(node*0.92),{gray:!open})+nodeLabel(st,node)+(open?'':'<span class="lock">'+IC.lock+'</span>')+(mast?'<span class="crown">'+IC.crown+'</span>':'')+(i===cur?'<span class="lanternMini">'+lanternSVG()+'</span>':'')+'</span>'+
    '<span class="nm">'+(open?(st.kind==='table'?g.name:st.name.replace("Crystal Queen's Throne",'Crystal Queen')):'Locked')+'</span><span class="pips">'+pips+'</span></button>';});
- if(save.keys>0)html+='<button class="btn gold pulse" id="tunnelBtn">'+goldenSVG(40)+'Secret Tunnel'+(save.keys>1?' ×'+save.keys:'')+'</button>';
- if(sec==='div')html+='<button class="btn gold" id="shareBtn" aria-label="How fair sharing works">'+chestSVG()+'</button>';
  inner.innerHTML=html;
  $$('#mapInner .node').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.i;if(!stageOpen(i)){Snd.soft();cele(IC.lock+'<span>Finish Learn in the tunnel before this one to open it!</span>',1800);return;}tapSnd();openStage(i);}));
  on('#tunnelBtn',()=>{tapSnd();save.keys--;persist();startTunnel(null);});
@@ -1077,14 +1404,14 @@ function cfgFor(lv){const d=save.diff;return {lv,n:d===0?3:4,close:Math.min(4,lv
 function startLevel(si,k){const st=ALL[si];save.run++;persist();mapSec=st.sec;
  const c=cfgFor(st.kind==='queen'?2:k);
  // bigger numbers get more time for the speedy bonus (it is only ever a bonus); stories have no timer
- if(st.kind==='gen')c.speed=st.story?0:c.speed*(st.lim>=1000?3:st.lim>=100?2:1);
- S={mode:'sec',si,k,st,cfg:c,gem:st.kind==='table'?null:st.gem,idx:0,boss:false,bossQs:null,bossIdx:0,locks:st.kind==='queen'?5:3,first:0,total:0,earned:{},requeued:{},busy:false,pad:save.pad||c.forcePad,forcePad:c.forcePad,speedy:0};
- S.queue=st.kind==='gen'?buildQueueG(si,k):buildQueue(si,k);
+ if(st.kind==='gen')c.speed=st.story?0:c.speed*(st.lim>=1000?3:st.lim>=100?2:1);else if(st.kind==='word'||st.kind==='eng'){c.speed=0;if(st.kind==='eng')c.forcePad=false;}
+ S={mode:'sec',si,k,st,cfg:c,gem:st.kind==='table'?null:st.gem,idx:0,boss:false,bossQs:null,bossIdx:0,locks:st.kind==='queen'?5:3,first:0,total:0,earned:{},requeued:{},busy:false,pad:st.kind!=='eng'&&(save.pad||c.forcePad),forcePad:c.forcePad,speedy:0};
+ S.queue=st.kind==='gen'?buildQueueG(si,k):st.kind==='word'?buildQueueW(si,k):st.kind==='eng'?buildQueueE(si,k):buildQueue(si,k);
  show('play');setupPlay();banner(st.name,st.kind==='queen'?'The Grand Boss!':LVN[k]+': '+lvLabel(st,k),1500);nextQ();}
 function startTunnel(ret){if(!ret){save.run++;persist();}
  const c=cfgFor(1);c.speed=0;c.forcePad=false;const sec=ret&&ret.st?ret.st.sec:mapSec;
- S={mode:'tunnel',sec,ret,cfg:c,gem:null,idx:0,boss:false,locks:3,first:0,total:0,earned:{},requeued:{},busy:false,pad:save.pad,forcePad:false,speedy:0};
- S.queue=sec==='mul'?buildTunnel():buildTunnelG(sec);
+ S={mode:'tunnel',sec,ret,cfg:c,gem:null,idx:0,boss:false,locks:3,first:0,total:0,earned:{},requeued:{},busy:false,pad:save.pad&&!isE(sec),forcePad:false,speedy:0};
+ S.queue=sec==='mul'?buildTunnel():isE(sec)?buildTunnelE(sec):buildTunnelG(sec);
  show('play');setupPlay();banner('Secret Tunnel','Golden doors ahead!',1500);nextQ();}
 function setupPlay(){const pl=$('#play');pl.classList.toggle('goldMode',S.mode==='tunnel');pl.classList.toggle('queenMode',!!(S.st&&S.st.kind==='queen'));setMuteIcons();
  $('#secName').textContent=S.mode==='tunnel'?'Secret Golden Tunnel':(S.st.kind==='queen'?S.st.name:S.st.name+' · '+LVN[S.k]);
@@ -1104,7 +1431,7 @@ const OPSYM={add:'+',sub:'−',div:'÷'};
 const isAS=q=>!!q&&(q.op==='add'||q.op==='sub');
 const resOf=q=>q.op==='add'?q.a+q.b:q.a-q.b;
 const useCol=q=>isAS(q)&&!q.miss&&(Math.max(q.a,q.b,resOf(q))>=100||(q.a>=10&&q.b>=10&&Math.max(q.a,q.b)>20));
-function ansOf(q){if(isAS(q))return q.miss===1?q.a:q.miss===2?q.b:resOf(q);if(q.op==='div')return q.b;
+function ansOf(q){if(q.e)return q.ans;if(isAS(q))return q.miss===1?q.a:q.miss===2?q.b:resOf(q);if(q.op==='div')return q.b;
  const d=disp(q);return q.miss===1?d[0]:q.miss===2?d[1]:q.miss===3?q.a:q.a*q.b;}
 function qPlain(q){if(q.op==='div')return (q.a*q.b)+' ÷ '+q.a+' = ?';
  if(isAS(q)){const s=OPSYM[q.op],r=resOf(q);return q.miss===1?'? '+s+' '+q.b+' = '+r:q.miss===2?q.a+' '+s+' ? = '+r:q.a+' '+s+' '+q.b+' = ?';}
@@ -1119,14 +1446,16 @@ function qHTML(q,typed){const sl='<span class="slot">'+(typed?esc(typed):'?')+'<
  const d=disp(q),P=q.a*q.b;
  if(!q.miss)return d[0]+' × '+d[1]+'<span class="eq">= '+sl+'</span>';
  const top=q.miss===1?sl+' × '+d[1]:q.miss===2?d[0]+' × '+sl:sl+' × '+sl;return top+'<span class="eq">= '+P+'</span>';}
-const qKey=q=>q.op==='add'?q.a+'+'+q.b:q.op==='sub'?q.a+'-'+q.b:q.op==='div'?(q.a*q.b)+'÷'+q.a:q.a+'x'+q.b;
-const storeOf=k=>/^\d+x\d+$/.test(k)?save.facts:save.ofacts;
+const qKey=q=>q.e?q.key:(q.w?'w:':'')+(q.op==='add'?q.a+'+'+q.b:q.op==='sub'?q.a+'-'+q.b:q.op==='div'?(q.a*q.b)+'÷'+q.a:q.a+'x'+q.b);
+const storeOf=k=>k.slice(0,2)==='w:'?W.facts:k.slice(0,2)==='e:'?E.facts:/^\d+x\d+$/.test(k)?save.facts:save.ofacts;
 const factRec=k=>{const r=storeOf(k)[k];return isObj(r)?r:null;};
 const gemKey=(s,q)=>s.gem||q.gem||q.a;
 function weightOf(k){const r=factRec(k);let w=Math.random()*1.5;if(!r)return w+2;if(r.box<2)w+=3;if(r.due<=save.run)w+=2;w+=Math.min(3,r.w*0.7);w-=r.box*0.4;return w;}
 const range=(a,b)=>{const o=[];for(let i=a;i<=b;i++)o.push(i);return o;};
 function factsFor(si,k){const st=ALL[si],F=[];
  if(st.kind==='gen')return st.sec==='div'?divFacts(st,k):genFacts(st,k);
+ if(st.kind==='word')return wordFacts(st,k);
+ if(st.kind==='eng')return engFacts(st,k);
  if(st.kind==='table')range(1,10).forEach(b=>F.push({a:st.t,b}));
  else if(st.kind==='mix'||st.kind==='miss')st.pools[k].forEach(a=>range(2,10).forEach(b=>F.push({a,b})));
  else if(st.kind==='sq')(k===0?range(1,5):k===1?range(1,9):range(2,9)).forEach(a=>F.push({a,b:a}));
@@ -1169,7 +1498,7 @@ function divFacts(st,k){const ts=st.t?[st.t]:divPools()[k],F=[];ts.forEach(t=>ra
 function pickW(F,n){return shuffle(F.map(f=>({f,w:weightOf(qKey(f))})).sort((x,y)=>y.w-x.w).slice(0,n)).map(o=>Object.assign({},o.f));}
 // fact families: 12 ÷ 3 becomes 3 × ? = 12
 function toFamily(q){delete q.op;delete q.grp;q.miss=2;}
-const opMax=f=>f.op==='div'?f.a*f.b:Math.max(f.a,f.b,resOf(f));
+const opMax=f=>f.op==='div'||f.op==='mul'?f.a*f.b:Math.max(f.a,f.b,resOf(f));
 function buildQueueG(si,k){const st=ALL[si],F=factsFor(si,k),inOrder=st.sec==='div'&&!!st.t&&k===0;let qs;
  if(st.sec==='div'){
   if(inOrder)qs=F.map(f=>Object.assign({},f));
@@ -1192,7 +1521,7 @@ function buildBossG(){const st=S.st,F=factsFor(S.si,S.k),n=S.locks,used=new Set(
  else if(save.parent.stories){const q=out[n-1];if(!q.op){q.op='div';q.grp=Math.random()<0.5;}q.miss=0;q.story=mkStory(q);} // the last lock is a Story Lock
  return out;}
 function buildTunnelG(sec){const L=secStages(sec).filter(stageOpen),out=[];
- for(let i=0;i<3;i++){const si=pick(L),q=pick(pickW(factsFor(si,1),6));q.gem=ALL[si].gem;if(q.op==='div')q.grp=Math.random()<0.5;out.push(q);}
+ for(let i=0;i<3;i++){const si=pick(L),q=pick(pickW(factsFor(si,1),6));q.gem=ALL[si].gem;if(q.op==='div')q.grp=Math.random()<0.5;if(ALL[si].kind==='word')q.story=mkStory(q);out.push(q);}
  return out;}
 function choicesG(q){const c=S.cfg,ans=ansOf(q),n=c.n,set=[ans];let tiers,ok;
  if(q.op==='div'){ok=v=>v>0&&v<=12&&set.indexOf(v)<0;
@@ -1205,27 +1534,175 @@ function choicesG(q){const c=S.cfg,ans=ansOf(q),n=c.n,set=[ans];let tiers,ok;
  for(const tier of tiers)for(const v of shuffle(tier.slice()))if(set.length<n&&ok(v))set.push(v);
  let k=1;while(set.length<n&&k<300){if(ok(ans+k))set.push(ans+k);else if(ok(ans-k))set.push(ans-k);k++;}
  return shuffle(set);}
+// ----- Word Problems levels: 6 stories, then a boss door with 3 Story Locks. Every fact is a w: fact in the Word Problems save.
+const wLim=st=>st.op==='add'||st.op==='sub'?Math.min(st.lim,save.parent.max[st.op]):100;
+function wordFacts(st,k){const F=[],seen=new Set(),add=(a,b)=>{const f={w:1,op:st.op,a,b},key=qKey(f);if(!seen.has(key)){seen.add(key);F.push(f);}};
+ if(st.op==='mul')st.pool.forEach(t=>range(k===0?1:2,k===0?5:10).forEach(n=>add(n,t))); // n groups of t
+ else if(st.op==='div')st.pool.forEach(t=>range(1,k===0?5:10).forEach(n=>add(t,n))); // n·t shared by t
+ else{const g=WGEN[st.id];for(let i=0;i<160&&F.length<40;i++){const ab=g(k);const L=wLim(st);if(Math.max(ab[0],ab[1],st.op==='add'?ab[0]+ab[1]:0)<=(L>=100?L-1:L))add(ab[0],ab[1]);}}
+ return F;}
+function wordQ(q,st,k){if(q.op==='div')q.grp=k===0?false:k===1?Math.random()<0.5:Math.random()<0.7;if(q.op==='mul')q.rows=k===2;q.story=mkStory(q);return q;}
+function buildQueueW(si,k){const st=ALL[si],qs=pickW(factsFor(si,k),6);
+ // spaced review: missed stories of the same kind come back (only ones that fit this level's number size)
+ const own=new Set(qs.map(qKey));
+ const rev=shuffle(Object.keys(W.facts).filter(key=>{const r=W.facts[key],f=parseKey(key);
+  return f&&f.op===st.op&&isObj(r)&&!own.has(key)&&r.w>0&&r.box<=1&&r.due<=save.run&&opMax(f)<=(st.op==='mul'||st.op==='div'?100:wLim(st))&&
+   (st.op!=='mul'&&st.op!=='div'||st.pool.indexOf(st.op==='mul'?f.b:f.a)>=0);})).slice(0,2);
+ rev.forEach((key,i)=>{const q=parseKey(key);q.review=true;qs.splice(Math.min(qs.length,2+i*3),0,q);});
+ return qs.map(q=>wordQ(q,st,k));}
+function buildBossW(){const st=S.st,F=factsFor(S.si,S.k),out=[],used=new Set();
+ for(const q of pickW(F,F.length)){if(out.length>=S.locks)break;const key=qKey(q);if(!used.has(key)){used.add(key);out.push(q);}}
+ while(out.length<S.locks)out.push(Object.assign({},F[out.length%F.length]));
+ return out.map(q=>wordQ(q,st,S.k));}
 const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
-function mkStory(q){const C=pick(CHARS),D=pick(CHARS.filter(x=>x!==C)),T=pick(THINGS),t=T[0],e=T[1];
- const who=save.name&&Math.random()<0.4?save.name:C[0],Who=cap(who),v=ri(0,2);
- const pic=(n,em)=>n<=10?'<span>'+em.repeat(n)+'</span>':'<span>'+em+'<b>×'+n+'</b></span>';
+function mkStory(q){const C=pick(CHARS),D=pick(CHARS.filter(x=>x!==C)),T=pick(THINGS),t=T[0],e=T[1],one=T[2];
+ const who=save.name&&Math.random()<0.4?save.name:C[0],Who=cap(who),v=ri(0,2),N=n=>n+' '+(n===1?one:t);
+ // pictures: up to 10 things are drawn (in fives, like a ten frame); bigger numbers show one picture and the number
+ const ems=(n,em,c)=>('<i'+(c?' class="'+c+'"':'')+'>'+em+'</i>').repeat(n),pic=(n,em)=>n<=10?'<span class="pg">'+ems(n,em)+'</span>':'<span>'+em+'<b>×'+n+'</b></span>';
  let txt,p;
  if(q.op==='add'){const a=q.a,b=q.b;
-  txt=v===0?Who+' found '+a+' '+t+'. Then '+who+' found '+b+' more. How many '+t+' are there now?':
-   v===1?'There are '+a+' pink '+t+' and '+b+' purple '+t+'. How many '+t+' are there in all?':
-   Who+' had '+a+' '+t+'. '+cap(D[0])+' gave '+who+' '+b+' more. How many '+t+' does '+who+' have now?';
+  txt=v===0?Who+' found '+N(a)+'. Then '+who+' found '+b+' more. How many '+t+' are there now?':
+   v===1?'There '+(a===1?'is ':'are ')+a+' pink '+(a===1?one:t)+' and '+b+' purple '+(b===1?one:t)+'. How many '+t+' are there in all?':
+   Who+' had '+N(a)+'. '+cap(D[0])+' gave '+who+' '+b+' more. How many '+t+' does '+who+' have now?';
   p=C[1]+pic(a,e)+'<i>+</i>'+pic(b,e);}
  else if(q.op==='sub'){const a=q.a,b=q.b;
-  txt=v===0?Who+' had '+a+' '+t+'. '+Who+' gave '+b+' of them to '+D[0]+'. How many '+t+' are left?':
-   v===1?'There were '+a+' '+t+' in the cave. '+b+' of them rolled away. How many '+t+' are still there?':
-   Who+' picked '+a+' '+t+' and used '+b+' to make a sparkly crown. How many '+t+' are left?';
-  p=C[1]+pic(a,e)+'<i>−</i>'+pic(b,e);}
+  txt=v===0?Who+' had '+N(a)+'. '+Who+' gave '+b+' of them to '+D[0]+'. How many '+t+' are left?':
+   v===1?'There were '+N(a)+' in the cave. '+b+' of them rolled away. How many '+t+' are still there?':
+   Who+' picked '+N(a)+' and used '+b+' to make a sparkly crown. How many '+t+' are left?';
+  // small take-aways show the ones that went crossed out
+  p=C[1]+(a<=10?'<span class="pg">'+ems(a-b,e)+ems(b,e,'gone')+'</span>':pic(a,e)+'<i>−</i>'+pic(b,e));}
+ else if(q.op==='mul'){const n=q.a,each=q.b,P=n*each,pl=(k,w)=>k+' '+(k===1?w:w==='box'?'boxes':w+'s'),grp=k=>'<span class="grp" style="--c:'+Math.min(k,5)+'">'+ems(k,e)+'</span>';
+  txt=q.rows?Who+' plants '+pl(n,'row')+' of '+t+' with '+each+' in each row. How many '+t+' are there?':
+   v===0?Who+' has '+pl(n,'bag')+'. Each bag has '+each+' '+(each===1?one:t)+' inside. How many '+t+' in all?':
+   v===1?'There are '+pl(n,'box')+' with '+each+' '+(each===1?one:t)+' in each box. How many '+t+' are there?':
+   Who+' gives '+each+' '+(each===1?one:t)+' to each of '+pl(n,'friend')+'. How many '+t+' does '+who+' give away?';
+  // groups are drawn when they fit, otherwise one group and how many groups
+  p=C[1]+(n<=5&&each<=10?Array(n).fill(grp(each)).join(''):grp(Math.min(each,10))+'<b>×'+n+'</b>');}
  else{const P=q.a*q.b;
-  txt=q.grp?Who+' has '+P+' '+t+' and puts '+q.a+' in each bag. How many bags does '+who+' fill?':
-   Who+' shares '+P+' '+t+' fairly into '+q.a+' treasure chests. How many '+t+' go in each chest?';
+  txt=q.grp?Who+' has '+N(P)+' and puts '+q.a+' in each bag. How many bags does '+who+' fill?':
+   Who+' shares '+N(P)+' fairly into '+q.a+' treasure '+(q.a===1?'chest':'chests')+'. How many '+t+' go in each chest?';
   p=C[1]+pic(P,e)+'<i>→</i>'+(q.grp?'<span>👜<b>?</b></span>':pic(q.a,'🎁'));}
  return {txt,pic:p};}
-function choicesFor(q){if(q.op)return choicesG(q);
+// ----- v3c English Cave levels. Questions carry q.e: 's' spell a word, 'm' missing word, 'r' story question.
+// Story Pages: the first question of each story has q.read, so the page is shown (and read along) before it.
+// A level is 6 words or sentences (2 or 3 questions about one story), then a boss door with 3 locks (Story Pages: a second story).
+const toks=t=>t.split(/\s+/).filter(Boolean),spk=w=>/^___/.test(w)?'blank'+w.slice(3):w;
+const ETAG={s:'Spelling Crystal',m:'Missing Gem',r:'Story question'};
+function engFacts(st,k){if(st.stories)return [].concat(...st.stories.map(id=>STORY[id].q.map((x,i)=>EITEM['e:r:'+id+'.'+i])));
+ // Learn spells the shorter words of the set
+ if(st.words&&k===0)return st.items.slice().sort((a,b)=>a.ans.length-b.ans.length).slice(0,Math.max(6,Math.ceil(st.items.length*0.6)));
+ return st.items.slice();}
+const storyQs=(id,n,gem)=>STORY[id].q.slice(0,n).map((x,i)=>Object.assign({},EITEM['e:r:'+id+'.'+i],{read:i===0,gem}));
+function buildQueueE(si,k){const st=ALL[si];
+ if(st.stories){let a=st.stories[2*k],b=st.stories[2*k+1];if(Math.random()<0.5){const t=a;a=b;b=t;}S.eBoss=b;return storyQs(a,k===0?2:3);}
+ const qs=pickW(engFacts(st,k),6),pre=st.words?'e:s:':'e:m:',own=new Set(qs.map(qKey));
+ // spaced review: missed words (or sentences) from anywhere in this activity come back
+ const rev=shuffle(Object.keys(E.facts).filter(key=>{const r=E.facts[key];return key.indexOf(pre)===0&&!!EITEM[key]&&isObj(r)&&!own.has(key)&&r.w>0&&r.box<=1&&r.due<=save.run;})).slice(0,2);
+ rev.forEach((key,i)=>qs.splice(Math.min(qs.length,2+i*3),0,Object.assign({},EITEM[key],{review:true})));
+ return qs;}
+function buildBossE(){const st=S.st;if(st.stories)return storyQs(S.eBoss||st.stories[1],3);
+ const used=new Set(S.queue.map(qKey)),F=pickW(engFacts(st,S.k),99),out=F.filter(q=>!used.has(qKey(q))).slice(0,S.locks);
+ for(const q of F){if(out.length>=S.locks)break;if(out.indexOf(q)<0)out.push(q);}
+ return out;}
+function buildTunnelE(sec){const L=secStages(sec).filter(stageOpen);if(!L.length)L.push(secStages(sec)[0]);
+ const sts=L.map(i=>ALL[i]);if(sts[0].stories){const st=pick(sts);return storyQs(pick(st.stories),3,st.gem);}
+ const pool=[];sts.forEach(st=>engFacts(st,1).forEach(f=>pool.push(Object.assign({},f,{gem:st.gem}))));
+ return pickW(pool,8).slice(0,3);}
+function eChoices(q){const d=save.diff,k=S.mode==='tunnel'?1:S.k;
+ const n=q.e==='r'?(d===0&&k===0?2:3):[[2,2,3],[2,3,3],[2,3,4]][d][k];
+ return shuffle([q.ans].concat(shuffle(q.c.slice()).slice(0,Math.max(1,n-1))));}
+// words she can tap to hear; ___ is the missing gem
+function rdHTML(t){return toks(t).map((w,i)=>/^___/.test(w)?'<span class="w eBlank" data-i="'+i+'">?</span>'+esc(w.slice(3)):'<span class="w" data-i="'+i+'">'+esc(w)+'</span>').join(' ');}
+function storyHTML(sto,hl){let n=0;return sto.s.map((x,j)=>'<span class="sn'+(j===hl?' hi':'')+'">'+toks(x).map(w=>'<span class="w" data-i="'+(n++)+'">'+esc(w)+'</span>').join(' ')+'</span>').join(' ');}
+function readInto(el,sents){let last=null;Voice.read(sents.map(ws=>ws.map(spk)),i=>{if(last)last.classList.remove('on');last=null;if(i<0||!el.isConnected)return;
+ const w=el.querySelector('.w[data-i="'+i+'"]');if(w){w.classList.add('on');last=w;}});}
+document.addEventListener('click',e=>{const w=e.target.closest&&e.target.closest('.rd .w');if(!w||w.classList.contains('eBlank'))return;
+ const t=w.textContent.replace(/[^A-Za-z']/g,'');if(!t)return;Snd.init();Voice.say(t);w.classList.add('on');setTimeout(()=>w.classList.remove('on'),700);});
+function renderDoorE(){const q=S.q,box=$('#doorBox'),page=q.read&&!q.readDone,sto=q.sid?STORY[q.sid]:null;S.doorDirty=false;
+ if(!S.choices&&q.e!=='s')S.choices=eChoices(q);
+ let locks='';if(S.boss)for(let i=0;i<S.locks;i++)locks+='<span class="lockGem'+(i<S.bossIdx?' pop':'')+'" data-i="'+i+'">'+gemSVG(GEMS[[2,3,8,7,6][i%5]],30)+'</span>';
+ let h='<div class="door story eng enter'+(S.mode==='tunnel'?' gold':'')+'"><span class="stTag"></span>'+(locks?'<div class="stLocks">'+locks+'</div>':'');
+ const sayB='<button class="btn ibtn blue eSay" aria-label="Read it to me">'+IC.sndOn+'</button>';
+ if(page)h+='<div class="eTitle">'+sto.pic+' '+esc(sto.t)+'</div><p class="rd story">'+storyHTML(sto,-1)+'</p><div class="stRow">'+sayB+'</div>';
+ else if(q.e==='s')h+='<div class="ePic">'+(q.pic||gemSVG(GEMS[S.gem||q.gem||'es1'],90))+'</div><div class="stRow">'+sayB+'<span class="eTitle">Listen and spell!</span></div>'+
+  (q.fam&&S.mode==='sec'&&S.k<2?'<span class="eFam">-'+q.fam+' family</span>':'')+(q.sent?'<p class="rd">'+rdHTML(q.sent.replace(new RegExp('\\b'+q.ans+'\\b','i'),'___'))+'</p>':'');
+ else if(q.e==='m')h+='<p class="rd">'+rdHTML(q.s)+'</p><div class="stRow">'+sayB+'</div>';
+ else h+='<button class="btn teal eHelp eLook" aria-label="Look back at the story">📖 '+esc(sto.t)+'</button><p class="rd">'+rdHTML(q.q)+'</p><div class="stRow">'+sayB+'</div>';
+ box.innerHTML=h+'</div>';
+ box.querySelector('.eSay').addEventListener('click',()=>{Snd.init();eSpeak(true);});
+ const lk=box.querySelector('.eLook');if(lk)lk.addEventListener('click',()=>{if(!S||S.busy||!$('#hint').hidden)return;tapSnd();showHintE(true);});
+ updTagE();eSpeak(false);}
+// spelling words are always said (unless the sound is off); stories and sentences follow the grown-ups' read-aloud switch
+function eSpeak(force){const q=S.q;if(!force&&save.muted)return;
+ if(q.e==='s'){Voice.say('Spell: '+q.ans+'. '+(q.sent?q.sent+' ':'')+q.ans+'.');return;}
+ if(!force&&!save.parent.read)return;const el=box$('.door .rd');if(!el)return;
+ if(q.read&&!q.readDone)readInto(el,STORY[q.sid].s.map(toks));
+ else if(q.e==='m')readInto(el,[toks(q.s)]);
+ else{const c=S.choices||[];readInto(el,[toks(q.q),toks('Is it: '+c.slice(0,-1).join(', ')+(c.length>1?', or ':'')+c[c.length-1]+'?')]);}}
+function updTagE(){const stg=box$('.stTag');if(!stg||!S||!S.q)return;const q=S.q,page=q.read&&!q.readDone;
+ stg.textContent=S.mode==='tunnel'?'Golden Door':S.boss?(page?'Boss Door! Read the story':'Boss Door! Lock '+Math.min(S.locks,S.bossIdx+1)+' of '+S.locks):q.review?'Remember this one?':page?'Story time!':ETAG[q.e];}
+function renderAnswersE(){const a=$('#answers'),q=S.q,hb=$('#hintB');hb.style.display='';
+ if(q.read&&!q.readDone){hb.style.display='none';a.innerHTML='<div class="eGo"><button class="btn gold big" id="eDone">I read it! ✓</button></div>';
+  on('#eDone',()=>{if(!S||S.q!==q||S.busy)return;tapSnd();Voice.stop();q.readDone=true;renderDoorE();renderAnswersE();});return;}
+ if(q.e==='s')return renderSpell();
+ const ch=S.choices||(S.choices=eChoices(q));let h='<div class="choices '+(q.e==='r'?'ph':'wd')+' n'+ch.length+'">';
+ ch.forEach(c=>{const no=S.tried.indexOf(c)>=0;h+='<button class="btn'+(no?' nope':'')+'" data-v="'+esc(c)+'"'+(no?' disabled':'')+'>'+esc(c)+'</button>';});
+ a.innerHTML=h+'</div>';a.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>answer(b.dataset.v,b)));}
+// ----- Spelling Crystals: tap letter gems into the slots (tap a slot or ⌫ to take a letter back)
+const CONF={b:'d',d:'b',p:'q',q:'p',m:'n',n:'m',a:'e',e:'a',i:'e',o:'u',u:'o',c:'k',k:'c',s:'z',t:'f',w:'v',h:'n',l:'i',g:'j',y:'i',r:'n',f:'t',v:'w'};
+let TG=null;const tileGem=i=>(TG||(TG=[['#ff6fcf','hex'],['#2fd8e8','round'],['#a347ff','cushion'],['#ffb52e','hex'],['#3a7bf0','round']].map(g=>gemSVG({c:g[0],cut:g[1]},74))))[i%5];
+function renderSpell(){const q=S.q;
+ if(!S.sp||S.sp.q!==q){const L=q.ans.split(''),k=S.mode==='tunnel'?1:S.k,extra=[[0,1,2],[0,2,3],[0,3,4]][save.diff][k],pool=L.slice();
+  // extra letters are look-alikes first (b/d, m/n, vowels), never a letter that is already in the word
+  for(const c of shuffle(L.map(x=>CONF[x]).filter(Boolean)).concat(shuffle('abcdefghiklmnoprstuwy'.split('')))){if(pool.length>=L.length+extra)break;if(pool.indexOf(c)<0)pool.push(c);}
+  S.sp={q,tiles:shuffle(pool),slots:L.map(()=>-1),lock:L.map(()=>false),bad:null,wait:false,done:false};}
+ drawSpell();}
+function drawSpell(){const sp=S.sp,q=S.q,a=$('#answers'),ghost=S.mode==='sec'&&S.k===0,used=new Set(sp.slots);
+ let h='<div class="spell"><div class="slots">';
+ sp.slots.forEach((t,i)=>{h+='<button class="slotB'+(t>=0?' full':'')+(sp.done||sp.lock[i]?' ok':'')+(sp.bad&&sp.bad[i]?' bad':'')+'" data-s="'+i+'" aria-label="Letter '+(i+1)+'">'+(t>=0?esc(sp.tiles[t]):ghost?'<span class="gh">'+esc(q.ans[i])+'</span>':'')+'</button>';});
+ h+='<button class="btn spDel" id="spDel" aria-label="Take back a letter">⌫</button></div><div class="lts">';
+ sp.tiles.forEach((l,i)=>{h+='<button class="lt'+(used.has(i)?' used':'')+'" data-t="'+i+'" aria-label="'+esc(l)+'">'+tileGem(i)+'<b>'+esc(l)+'</b></button>';});
+ a.innerHTML=h+'</div></div>';
+ a.querySelectorAll('.lt').forEach(b=>b.addEventListener('click',()=>spTap(+b.dataset.t)));
+ a.querySelectorAll('.slotB').forEach(b=>b.addEventListener('click',()=>spBack(+b.dataset.s)));
+ on('#spDel',()=>{const s=S&&S.sp;if(!s)return;for(let i=s.slots.length-1;i>=0;i--)if(s.slots[i]>=0&&!s.lock[i])return spBack(i);});}
+function spTap(t){const sp=S&&S.sp;if(!sp||S.busy||sp.wait||sp.done||sp.slots.indexOf(t)>=0)return;const i=sp.slots.indexOf(-1);if(i<0)return;
+ sp.slots[i]=t;Snd.gem(i);drawSpell();
+ if(sp.slots.indexOf(-1)<0){sp.wait=true;setTimeout(()=>{if(!S||S.sp!==sp)return;sp.wait=false;answer(sp.slots.map(j=>sp.tiles[j]).join(''),null);},250*SPEED);}}
+function spBack(i){const sp=S&&S.sp;if(!sp||S.busy||sp.wait||sp.done||sp.lock[i]||sp.slots[i]<0)return;sp.slots[i]=-1;Snd.tap();drawSpell();}
+function eRight(){const q=S.q;if(q.e==='s'&&S.sp){S.sp.done=true;drawSpell();}else if(q.e==='m'){const b=box$('.eBlank');if(b){b.textContent=q.ans;b.classList.add('full');}}}
+// a wrong spelling: letters in the right place stay (green), the others hop back to the gems
+function eWrong(){const sp=S.sp,q=S.q;if(!sp)return;sp.bad=sp.slots.map((t,i)=>!sp.lock[i]&&sp.tiles[t]!==q.ans[i]);sp.bad.forEach((b,i)=>{if(!b)sp.lock[i]=true;});sp.wait=true;drawSpell();
+ setTimeout(()=>{if(!S||S.sp!==sp)return;sp.slots=sp.slots.map((t,i)=>sp.bad[i]?-1:t);sp.bad=null;sp.wait=false;drawSpell();},650*Math.max(SPEED,0.3));}
+// ----- Glimmer for English: spell along, what sound-alike words mean, or the story with the answer sentence in pink.
+// look = she tapped "look back at the story" herself (that is good reading, so it is not counted as help)
+function showHintE(look){const q=S.q,h=$('#hint');let body,btn,say;
+ if(q.e==='s'){const fl=q.fam?q.ans.length-q.fam.length:99;
+  body='<div class="eWord">'+q.ans.split('').map((l,i)=>'<span class="'+(i>=fl?'fm':'')+'">'+esc(l)+'</span>').join('')+'</div>';
+  say='Listen: '+q.ans+'. '+(q.fam&&q.like?'It ends in '+q.fam+', like '+q.like+'! ':'')+'Spell it with me!';btn='Spell it with me!';}
+ else if(q.e==='m'){const tips=(S.choices||[]).filter(c=>TIPS[c.toLowerCase()]);
+  body='<p class="rd">'+rdHTML(q.s)+'</p>'+tips.map(c=>{const t=TIPS[c.toLowerCase()];return '<div class="tip"><i>'+t[0]+'</i><span><b>'+esc(c)+'</b> = '+t[1]+'</span></div>';}).join('');
+  say=tips.length?'These words sound the same! Look at what each one means.':'Try each word in the sentence. Which one sounds right?';btn=tips.length?'Read them to me':'Try each word';}
+ else{body='<div class="eQ">'+esc(q.q)+'</div><p class="rd story">'+storyHTML(STORY[q.sid],look?-1:q.l)+'</p>';
+  say=look?'Here is the story again. Can you find the answer?':'The answer is in the pink part of the story!';btn='Read it to me';}
+ h.innerHTML='<div class="hl"><div class="hTop"><div class="worm">'+wormSVG()+'</div><div class="say" id="say">'+(S.wrong&&!look?'Almost! ':'')+say+'</div></div>'+
+  '<div class="hRow"><button class="btn gold countBtn" id="countBtn">'+btn+'</button><button class="btn purple eHelp" id="eHintX">Back</button></div></div><div class="gridBox"><div class="eBox">'+body+'</div></div>';
+ h.hidden=false;$('#stage').classList.add('hinting');S.hintRows=0;$('#hintB').hidden=true;
+ on('#countBtn',()=>{Snd.init();eHintGo();});on('#eHintX',()=>{tapSnd();Voice.stop();hideHint();$('#hintB').hidden=!(S.cfg.hintBtn||S.wrong);});sizeHint();
+ if(q.e==='s'&&!save.muted)Voice.say(q.ans);}
+function eHintMode(){showHintE(false);eHintGo();}
+function eHintGo(){const q=S.q,box=$('#hint .eBox');if(!box)return;
+ if(q.e==='s'){const sp=$$('#hint .eWord span'),L=q.ans.split(''),tok=++eHintGo.t,f=Math.max(SPEED,0.3);Voice.say(q.ans+'. '+L.join(', ')+'. '+q.ans+'!');
+  // the letters light up one at a time while Glimmer spells
+  L.forEach((l,i)=>setTimeout(()=>{if(eHintGo.t!==tok)return;sp.forEach(x=>x.classList.remove('on'));if(sp[i]&&sp[i].isConnected){sp[i].classList.add('on');Snd.count(i);}},(900+i*650)*f));
+  setTimeout(()=>{if(eHintGo.t===tok)sp.forEach(x=>x.classList.remove('on'));},(900+L.length*650)*f);return;}
+ if(q.e==='m'){const c=S.choices||[q.ans],tips=c.filter(x=>TIPS[x.toLowerCase()]);
+  if(tips.length)Voice.say(tips.map(x=>x+' means '+TIPS[x.toLowerCase()][1].replace(/<[^>]+>/g,'')).join('. ')+'.');
+  else Voice.say(c.map(x=>q.s.replace('___',x)).join(' ... '));return;}
+ readInto(box.querySelector('.rd'),STORY[q.sid].s.map(toks));}
+eHintGo.t=0;
+function eProgLine(){const o=k=>isObj(E.ops[k])?E.ops[k].n|0:0;return '<div class="small">Spelling: <b>'+o('s')+'</b> · Story questions: <b>'+o('r')+'</b> · Missing words: <b>'+o('m')+'</b></div>';}
+function choicesFor(q){if(q.op&&q.op!=='mul')return choicesG(q);
  const c=S.cfg,ans=ansOf(q),n=c.n,set=[ans],max=q.miss?12:100,ok=v=>v>0&&v<=max&&set.indexOf(v)<0;let tiers;
  if(q.miss){const d=disp(q),known=q.miss===1?d[1]:d[0];
   tiers=c.close>=3?[[ans+1,ans-1],[known,ans+2,ans-2]]:c.close>=1?[[ans+1,ans-1,ans+2,ans-2],[ans+3,ans-3]]:[[ans+3,ans-3,ans+4,ans-4],[ans+2,ans-2,ans+5,ans-5]];}
@@ -1239,7 +1716,7 @@ function renderDots(){let h='';if(S.mode==='tunnel')S.queue.forEach((q,i)=>{h+='
  $('#dots').innerHTML=h;}
 const box$=s=>$('#doorBox '+s);
 function bossKind(){return S.st&&S.st.kind==='queen'?'queen':'boss';}
-function renderDoor(){const kind=S.mode==='tunnel'?'gold':S.boss?bossKind():'norm',box=$('#doorBox'),sto=S.q.story;
+function renderDoor(){if(S.q.e)return renderDoorE();const kind=S.mode==='tunnel'?'gold':S.boss?bossKind():'norm',box=$('#doorBox'),sto=S.q.story;
  if(!sto&&S.boss&&!S.doorDirty&&box.querySelector('.door.'+kind+':not(.broken)')){updateQ();startSpeed();return;}
  S.doorDirty=false;
  if(sto){let locks='';if(S.boss)for(let i=0;i<S.locks;i++)locks+='<span class="lockGem'+(i<S.bossIdx?' pop':'')+'" data-i="'+i+'">'+gemSVG(GEMS[[2,3,8,7,6][i%5]],30)+'</span>';
@@ -1255,11 +1732,12 @@ function startSpeed(){const sp=box$('.speed');if(!sp)return;S.qStart=performance
  if(!S.cfg.speed||S.mode!=='sec'){sp.hidden=true;return;}sp.hidden=false;const i=sp.querySelector('i');sp.classList.remove('gone');
  i.style.animation='none';void i.offsetWidth;i.style.animation='speedDown '+S.cfg.speed+'s linear forwards';
  clearTimeout(startSpeed.t);const q=S.q;startSpeed.t=setTimeout(()=>{if(S&&S.q===q)sp.classList.add('gone');},S.cfg.speed*1000);}
-function updateQ(){const q=box$('.q');if(!q||!S||!S.q)return;q.innerHTML=qHTML(S.q,S.pad?S.typed:'');q.classList.toggle('missQ',!!S.q.miss);
+function updateQ(){if(S&&S.q&&S.q.e)return updTagE();const q=box$('.q');if(!q||!S||!S.q)return;q.innerHTML=qHTML(S.q,S.pad?S.typed:'');q.classList.toggle('missQ',!!S.q.miss);
  const tg=box$('.door.boss .tag, .door.queen .tag');if(tg)tg.textContent=(S.st&&S.st.kind==='queen'?'Crystal Queen! Lock ':'Boss Door! Lock ')+Math.min(S.locks,S.bossIdx+1)+' of '+S.locks;
  const stg=box$('.stTag');if(stg)stg.textContent=S.boss?'Story Lock! Lock '+Math.min(S.locks,S.bossIdx+1)+' of '+S.locks:S.q.review?'Remember this one?':'Story Door';}
 function renderAnswers(){const a=$('#answers');$('#padT').textContent=S.pad?'ABC':'123';$('#padT').setAttribute('aria-label',S.pad?'Show answer buttons':'Show number pad');
  const hb=$('#hintB');hb.hidden=!(S.cfg.hintBtn||S.wrong);
+ $('#padT').style.display=S.q&&S.q.e?'none':'';hb.style.display='';if(S.q&&S.q.e)return renderAnswersE();
  if(S.pad){let h='<div class="pad">';[1,2,3,4,5,6,7,8,9].forEach(n=>h+='<button class="btn purple" data-k="'+n+'">'+n+'</button>');
   h+='<button class="btn del" data-k="del" aria-label="Delete">&#9003;</button><button class="btn purple" data-k="0">0</button><button class="btn go" data-k="go" aria-label="Check">&#10003;</button></div>';a.innerHTML=h;
   a.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>padKey(b.dataset.k)));}
@@ -1275,16 +1753,17 @@ function nextQ(){if(!S)return;
  else S.q=S.queue[S.idx];
  S.wrong=false;S.helped=false;S.tries=0;S.typed='';S.tried=[];S.choices=null;S.busy=false;S.hintRows=0;S.counting=false;
  Voice.stop();hideHint();renderDoor();renderAnswers();renderDots();}
-async function startBoss(){const s=S;s.boss=true;s.bossIdx=0;s.bossQs=s.st.kind==='gen'?buildBossG():buildBoss();s.doorDirty=true;s.busy=true;
+async function startBoss(){const s=S;s.boss=true;s.bossIdx=0;s.bossQs=s.st.kind==='gen'?buildBossG():s.st.kind==='word'?buildBossW():s.st.kind==='eng'?buildBossE():buildBoss();s.doorDirty=true;s.busy=true;
  if(s.st.kind==='queen')banner('The Crystal Queen!','Break all 5 gem locks!',1700);else banner('Boss Door!','Break all 3 gem locks!',1500);
  Snd.streak();await wait(s.st.kind==='queen'?900:700);if(S!==s)return;s.busy=false;nextQ();}
 function record(q,ok,helped){const k=qKey(q),st=storeOf(k);
- if(q.op){const o=isObj(save.ops[q.op])?save.ops[q.op]:(save.ops[q.op]={n:0,c:0});o.n++;if(ok&&!helped)o.c++;
+ if(q.e){const o=isObj(E.ops[q.e])?E.ops[q.e]:(E.ops[q.e]={n:0,c:0});o.n++;if(ok&&!helped)o.c++;}
+ if(q.op){const OPS=q.w?W.ops:save.ops,o=isObj(OPS[q.op])?OPS[q.op]:(OPS[q.op]={n:0,c:0});o.n++;if(ok&&!helped)o.c++;
   // big + − sums are only remembered once she misses one (keeps the save small); small facts are always tracked
-  if(!isObj(st[k])&&ok&&q.op!=='div'&&Math.max(q.a,q.b)>20){save.answered++;persist();return;}}
+  if(!isObj(st[k])&&ok&&q.op!=='div'&&q.op!=='mul'&&Math.max(q.a,q.b)>20){save.answered++;persist();return;}}
  const r=isObj(st[k])?st[k]:(st[k]={n:0,c:0,w:0,box:0,due:0});r.n++;save.answered++;
  if(helped){r.due=save.run+1;}else if(ok){r.c++;r.box=Math.min(5,r.box+1);r.due=save.run+[1,1,2,3,5,8][r.box];}else{r.w++;r.box=0;r.due=save.run+1;}persist();}
-function answer(v,btn){if(!S||S.busy||!S.q)return;if(v===ansOf(S.q))onCorrect(btn);else onWrong(v,btn);}
+function answer(v,btn){if(!S||S.busy||!S.q)return;if(S.q.e&&S.q.read&&!S.q.readDone)return;if(v===ansOf(S.q)){if(S.q.e)eRight();onCorrect(btn);}else onWrong(v,btn);}
 function say(txt,ms){const b=$('#bubble');b.textContent=txt;b.classList.add('on');clearTimeout(say.t);say.t=setTimeout(()=>b.classList.remove('on'),(ms||2200)*Math.max(SPEED,0.4));}
 function updateStreak(rest){const n=save.streak,el=$('#streak');$('#sNum').textContent=n;
  let lo,hi,next;if(n<3){lo=0;hi=3;next='lantern';}else if(n<5){lo=3;hi=5;next='rare';}else{lo=Math.floor(n/5)*5;hi=lo+5;next=hi%10===0?'gold':'rare';}
@@ -1368,11 +1847,11 @@ function onWrong(v,btn){const s=S,q=s.q;Snd.soft();s.tries++;
   if(s.mode==='sec'&&!s.boss&&!s.requeued[qKey(q)]){s.requeued[qKey(q)]=1;const at=Math.min(s.queue.length,s.idx+3);s.queue.splice(at,0,Object.assign({},q,{review:true}));renderDots();}
   const old=save.streak;save.streak=Math.floor(old/2);persist();updateStreak(old>=2);
   if(old>=2)cele(IC.flame+'<span>Streak resting at '+save.streak+'. You can build it back up!</span>',2600);}
- s.tried.push(v);if(btn){btn.classList.add('nope');btn.disabled=true;}else{s.typed='';updateQ();}
+ s.tried.push(v);if(btn){btn.classList.add('nope');btn.disabled=true;}else if(q.e)eWrong();else{s.typed='';updateQ();}
  $('#hintB').hidden=false;
  const d=box$('.door');if(d){d.classList.remove('enter','wobble');void d.offsetWidth;d.classList.add('wobble');}
  if($('#hint').hidden){if(s.cfg.autoHint||s.tries>=2){$('#bubble').classList.remove('on');showHint();}else say('Not quite! Try again, or tap Glimmer for help.',2600);}
- else{const w=$('#hint .worm');if(w){w.style.animation='none';void w.offsetWidth;w.style.animation='';}$('#say').textContent=isAS(q)?'Let\'s work it out together!':'Let\'s count every row together!';autoCount();}}
+ else{const w=$('#hint .worm');if(w){w.style.animation='none';void w.offsetWidth;w.style.animation='';}if(q.e){eHintMode(true);return;}$('#say').textContent=isAS(q)?'Let\'s work it out together!':'Let\'s count every row together!';autoCount();}}
 // ---------- glow-worm hint ----------
 function hintShape(q){if(q.op==='div')return q.grp?{rows:q.b,cols:q.a}:{rows:q.a,cols:q.b};const d=disp(q);if(q.miss===1)return {rows:d[0],cols:d[1]};if(q.miss===2)return {rows:d[0],cols:d[1]};if(q.miss===3)return {rows:q.a,cols:q.a};return {rows:d[0],cols:d[1]};}
 function hintIntro(q){const d=disp(q),P=q.a*q.b,pl=(n,w)=>n+' '+w+(n===1?'':'s');
@@ -1381,17 +1860,17 @@ function hintIntro(q){const d=disp(q),P=q.a*q.b,pl=(n,w)=>n+' '+w+(n===1?'':'s')
  if(q.miss===2)return P+' gems shared into '+pl(d[0],'row')+'. How many in each row? Tap to count!';
  if(q.miss===3)return P+' gems make a square! How many on each side?';
  return 'I\'m Glimmer! '+pl(d[0],'row')+' of '+pl(d[1],'gem')+'. Tap each row to count!';}
-function showHint(){if(isAS(S.q))return showHintAS();const q=S.q,sh=hintShape(q),gk=gemKey(S,q),h=$('#hint');
+function showHint(){if(S.q.e)return showHintE(false);if(isAS(S.q))return showHintAS();const q=S.q,sh=hintShape(q),gk=gemKey(S,q),h=$('#hint');
  let rh='';for(let r=0;r<sh.rows;r++){rh+='<div class="hrow" data-r="'+r+'"><div class="gems">';for(let c=0;c<sh.cols;c++)rh+='<span>'+gemSVG(GEMS[gk],24)+'</span>';rh+='</div><span class="lbl">'+((r+1)*sh.cols)+'</span></div>';}
  h.innerHTML='<div class="hl"><div class="hTop"><div class="worm">'+wormSVG()+'</div><div class="say" id="say">'+(S.wrong?'Almost! ':'')+hintIntro(q)+'</div></div>'+
   '<div class="hq">'+qPlain(q).replace(/\?/g,'<b>?</b>')+'</div><button class="btn gold countBtn" id="countBtn">Count with me!</button></div><div class="gridBox"><div class="hgrid" id="hgrid">'+rh+'</div></div>';
- h.hidden=false;S.hintRows=0;$('#hintB').hidden=true;
+ h.hidden=false;$('#stage').classList.add('hinting');S.hintRows=0;$('#hintB').hidden=true;
  h.querySelectorAll('.hrow').forEach(r=>r.addEventListener('click',()=>{if(!S.counting)countRow();}));on('#countBtn',()=>{Snd.init();autoCount();});sizeHint();}
 function sizeHint(){const h=$('#hint');if(!S||!S.q||h.hidden)return;const r=h.getBoundingClientRect();if(!r.width)return;
- h.classList.toggle('wide',r.width>r.height*1.15);if(isAS(S.q))return sizeHintAS(h);const sh=hintShape(S.q),rows=sh.rows,cols=sh.cols;const gb=h.querySelector('.gridBox').getBoundingClientRect();
+ h.classList.toggle('wide',r.width>r.height*1.15);if(S.q.e)return;if(isAS(S.q))return sizeHintAS(h);const sh=hintShape(S.q),rows=sh.rows,cols=sh.cols;const gb=h.querySelector('.gridBox').getBoundingClientRect();
  const gap=Math.max(2,Math.min(6,gb.width/cols*0.08));const g=Math.max(13,Math.min(46,(gb.width-60-gap*(cols+2))/cols,(gb.height-6-gap*(rows+1))/rows-4));
  h.style.setProperty('--g',g.toFixed(1)+'px');h.style.setProperty('--gap',gap.toFixed(1)+'px');}
-function countRow(){if(!S||$('#hint').hidden)return;if(isAS(S.q))return stepAS();const rows=$$('#hgrid .hrow');if(!rows.length)return;if(S.hintRows>=rows.length){rows.forEach(r=>r.classList.remove('lit'));S.hintRows=0;}
+function countRow(){if(!S||$('#hint').hidden||S.q.e)return;if(isAS(S.q))return stepAS();const rows=$$('#hgrid .hrow');if(!rows.length)return;if(S.hintRows>=rows.length){rows.forEach(r=>r.classList.remove('lit'));S.hintRows=0;}
  const r=rows[S.hintRows];r.classList.add('lit');S.hintRows++;Snd.count(S.hintRows*2);const c=centerOf(r);burst(c[0],c[1],6);
  const q=S.q,sh=hintShape(q),k=S.hintRows,end=k===rows.length,seq=[];for(let i=1;i<=k;i++)seq.push(i*sh.cols);let t;
  if(q.op==='div'&&q.grp)t=k+' group'+(k>1?'s':'')+' of '+sh.cols+' make '+(k*sh.cols)+(end?'. That\'s '+k+' groups!':'...');
@@ -1401,7 +1880,7 @@ function countRow(){if(!S||$('#hint').hidden)return;if(isAS(S.q))return stepAS()
  else if(q.miss===3)t=seq.join(', ')+(end?'! Each side has '+sh.cols+'!':'...');
  else t=seq.join(', ')+(end?'! That\'s '+seq[seq.length-1]+(seq[seq.length-1]===1?' gem!':' gems!'):'...');
  $('#say').textContent=t;}
-async function autoCount(){if(!S||S.counting)return;const s=S,q=s.q;
+async function autoCount(){if(!S||S.counting)return;const s=S,q=s.q;if(q.e)return eHintGo();
  if(isAS(q)){if(!s.as)return;s.counting=true;s.hintRows=0;asDraw();const n=s.as.steps.length,dl=s.as.kind==='col'?1800:420;
   for(let i=0;i<n;i++){if(S!==s||s.q!==q||$('#hint').hidden)break;stepAS();await wait(dl);}s.counting=false;return;}
  s.counting=true;$$('#hgrid .hrow').forEach(r=>r.classList.remove('lit'));s.hintRows=0;const n=$$('#hgrid .hrow').length;
@@ -1450,7 +1929,7 @@ function colModel(m){const {op,X,Y,R}=m,nd=Math.max(2,nDig(Math.max(X,Y,R))),xd=
 function showHintAS(){const q=S.q,h=$('#hint');S.as=asModel(q);const col=S.as.kind==='col';
  h.innerHTML='<div class="hl"><div class="hTop"><div class="worm">'+wormSVG()+'</div><div class="say" id="say">'+(S.wrong?'Almost! ':'')+S.as.intro+'</div></div>'+
   '<div class="hq">'+qPlain(q).replace(/\?/g,'<b>?</b>')+'</div><button class="btn gold countBtn" id="countBtn">'+(col?'Show me how!':'Count with me!')+'</button></div><div class="gridBox"><div id="hgrid" class="'+(col?'cgrid':'tgrid')+'"></div></div>';
- h.hidden=false;S.hintRows=0;$('#hintB').hidden=true;asDraw();
+ h.hidden=false;$('#stage').classList.add('hinting');S.hintRows=0;$('#hintB').hidden=true;asDraw();
  $('#hgrid').addEventListener('click',()=>{if(!S.counting)stepAS();});on('#countBtn',()=>{Snd.init();autoCount();});sizeHint();}
 function sizeHintAS(h){const A=S.as;if(!A)return;const gb=h.querySelector('.gridBox').getBoundingClientRect();
  if(A.kind==='col'){const cs=Math.max(34,Math.min(110,(gb.width-44-8*A.nd)/A.nd,(gb.height-30)/3.7));h.style.setProperty('--cs',cs.toFixed(1)+'px');}
@@ -1473,10 +1952,10 @@ function asDraw(){const A=S&&S.as,g=$('#hgrid');if(!A||!g)return;const n=S.hintR
  h+='<span class="sg">'+(A.op==='add'?'+':'−')+'</span>'+cols.map(c=>cell(A.yd[c],c,c>=ly)).join('');
  h+='<span class="ln"></span><span class="sg">=</span>'+cols.map(c=>{const done=c<n;return '<span class="cr'+(done?' on':'')+now(c)+'">'+(done?(c>=lr&&c>0?'':A.rd[c]):'?')+'</span>';}).join('');
  g.style.gridTemplateColumns='auto repeat('+nd+',var(--cs,60px))';g.innerHTML=h;}
-function hideHint(){const h=$('#hint');h.hidden=true;h.innerHTML='';}
+function hideHint(){const h=$('#hint');h.hidden=true;h.innerHTML='';$('#stage').classList.remove('hinting');}
 // ---------- level done ----------
 function levelDone(){const s=S;s.busy=true;const st=s.st,si=s.si,k=s.k,ratio=s.total?s.first/s.total:1,stars=ratio>=0.9?3:ratio>=0.7?2:1;
- const key=st.id+'-'+k,rec=save.lv[key]||{stars:0,done:false,plays:0},was=rec.done,wasM=rec.stars>=3;rec.stars=Math.max(rec.stars,stars);rec.done=true;rec.plays=(rec.plays|0)+1;save.lv[key]=rec;persist();
+ const LV=lvStore(st),key=st.id+'-'+k,rec=isObj(LV[key])?LV[key]:{stars:0,done:false,plays:0},was=rec.done,wasM=rec.stars>=3;rec.stars=Math.max(rec.stars|0,stars);rec.done=true;rec.plays=(rec.plays|0)+1;LV[key]=rec;persist();
  if(st.kind==='queen')return queenFinale(s,stars);
  const SL=secStages(st.sec),sj=SL.indexOf(si),nx=sj>=0&&sj+1<SL.length?SL[sj+1]:-1;
  let next=null,nextTxt='';if(k+1<nLv(st)){next=[si,k+1];nextTxt='Next: '+LVN[k+1]+' &#8594;';}else if(nx>=0){next=[nx,0];nextTxt='Next tunnel &#8594;';}
@@ -1502,19 +1981,19 @@ on('#bBack',()=>{tapSnd();if(bagFrom==='play'&&S)show('play');else show(bagFrom=
 function renderBag(){let h='<div class="summary"><div class="s">'+gemSVG(GEMS[2],38)+totalGems()+' gems</div><div class="s">'+goldenSVG(38)+(save.golden|0)+' golden</div><div class="s">'+IC.flame+'Best streak '+save.best+'</div>'+(save.champ?'<div class="s">'+IC.crown+'Champion ×'+save.champ+'</div>':'')+'</div>';
  h+='<div class="secH">Cave Gems</div><div class="tiles">';
  GEM_ORDER.forEach(t=>{const g=save.gems[t]||{b:0,s:0},has=(g.b+g.s)>0;h+='<div class="tile'+(has?'':' no')+'">'+gemSVG(GEMS[t],56,{sil:!has})+'<div class="n">'+GEMS[t].name+'</div><div class="c">'+g.b+(g.s?' <small>+'+g.s+' little</small>':'')+'</div></div>';});
- SEC_ORDER.filter(x=>x!=='mul'&&secVisible(x)).forEach(x=>{h+='</div><div class="secH">'+SECS[x].name+' Gems</div><div class="tiles">';
-  secStages(x).forEach(i=>{const t=ALL[i].gem,g=save.gems[t]||{b:0,s:0},has=(g.b+g.s)>0;h+='<div class="tile'+(has?'':' no')+'">'+gemSVG(GEMS[t],56,{sil:!has})+'<div class="n">'+GEMS[t].name+'</div><div class="c">'+g.b+(g.s?' <small>+'+g.s+' little</small>':'')+'</div></div>';});});
+ CAVES.filter(x=>x!=='mul'&&secVisible(x)).forEach(x=>{h+='</div><div class="secH">'+SECS[x].name+' Gems</div><div class="tiles">';
+  secStages(x).forEach(i=>{const t=ALL[i].gem,g=gemRec(t),has=(g.b+g.s)>0;h+='<div class="tile'+(has?'':' no')+'">'+gemSVG(GEMS[t],56,{sil:!has})+'<div class="n">'+GEMS[t].name+'</div><div class="c">'+g.b+(g.s?' <small>+'+g.s+' little</small>':'')+'</div></div>';});});
  h+='</div><div class="secH">Rare Gems <small style="font-size:15px;opacity:.85">(get 5 in a row!)</small></div><div class="tiles">';
  RARES.forEach(r=>{const n=save.rare[r.id]|0;h+='<div class="tile'+(n?'':' no')+'">'+gemSVG(r,56,{sil:!n})+'<div class="n">'+(n?r.name:'???')+'</div><div class="c">'+(n?'×'+n:'&nbsp;')+'</div></div>';});
  h+='</div><div class="secH">Treasures <small style="font-size:15px;opacity:.85">(10 in a row opens a secret tunnel!)</small></div><div class="tiles">';
  TREASURES.concat([CHAMP]).forEach(r=>{const has=save.treasures.indexOf(r.id)>=0;h+='<div class="tile'+(has?'':' no')+(r===CHAMP?' champT':'')+'"><div style="width:62px;height:62px'+(has?'':';filter:grayscale(1) brightness(.6)')+'">'+treasureSVG(r.id)+'</div><div class="n">'+(has?r.name:(r===CHAMP?'Beat the Crystal Queen':'???'))+'</div></div>';});
- SEC_ORDER.filter(x=>secVisible(x)||x==='mul').forEach(x=>{h+='</div><div class="secH">'+(x==='mul'?'Tunnels and Levels':SECS[x].name)+'</div><div class="tbls">';
+ SEC_ORDER.filter(x=>secVisible(x)||x==='mul').concat(WSECS.filter(secVisible),ESECS.filter(secVisible)).forEach(x=>{h+='</div><div class="secH">'+(x==='mul'?'Tunnels and Levels':SECS[x].name)+'</div><div class="tbls">';
  secStages(x).forEach(i=>{const st=ALL[i];let c=0,n=0;if(st.kind==='table')for(let b=1;b<=10;b++){const f=save.facts[st.t+'x'+b];if(f){c+=f.c;n+=f.n;}}
   let lv='';for(let k=0;k<nLv(st);k++){const r=lvRec(i,k);lv+='<div class="lvst"><span>'+(st.kind==='queen'?'Grand Boss':LVN[k])+'</span>'+[0,1,2].map(j=>starSVG(j<r.stars)).join('')+'</div>';}
   h+='<div class="tbl'+(stageMastered(i)?' m':'')+(stageOpen(i)?'':' lk')+'">'+gemSVG(GEMS[st.gem],40,{gray:!stageOpen(i)})+'<div><div class="tn">'+(st.kind==='table'?'×'+st.t+' '+GEMS[st.t].name:st.name)+'</div>'+lv+'<div class="acc">'+(stageMastered(i)?'Mastered! ':'')+(n?Math.round(c/n*100)+'% first try':(stageOpen(i)?'':'Locked'))+'</div></div></div>';});});
  h+='</div>';
  const tricky=Object.keys(save.facts).filter(k=>{const f=save.facts[k];return f.w>0&&f.box<2;}).sort((a,b)=>save.facts[b].w-save.facts[a].w).slice(0,10);
- const tricky2=['add','sub','div'].filter(secVisible).reduce((o,x)=>o.concat(trickyOf(x).slice(0,6)),[]);
+ const tricky2=['add','sub','div','word','eng'].filter(secVisible).reduce((o,x)=>o.concat(trickyOf(x).slice(0,6)),[]);
  if(tricky.length||tricky2.length)h+='<div class="secH">Glimmer is helping with</div><div class="chips">'+tricky.map(k=>'<span>'+k.replace('x',' × ')+'</span>').concat(tricky2.map(k=>'<span>'+fmtKey(k)+'</span>')).join('')+'</div>';
  $('#bagBody').innerHTML=h;}
 // ---------- settings ----------
@@ -1537,7 +2016,8 @@ if('serviceWorker' in navigator&&location.protocol!=='file:'){const sw=navigator
  sw.addEventListener('controllerchange',()=>{if(had){swPending=true;maybeReload();}});
  window.addEventListener('load',()=>{sw.register('./sw.js',{scope:'./'}).catch(()=>{});});}
 window.__cc={get save(){return save;},get S(){return S;},speed(v){SPEED=v;},show,startLevel,STAGES,TABLES,ansOf,qPlain,
- ALL,SECS,secStages,stageOpen,openSec,openGate,factsFor,asModel,parseKey,get mapSec(){return mapSec;}};
+ ALL,SECS,secStages,stageOpen,openSec,openGate,openWords:()=>openSec('word'),get W(){return W;},factsFor,asModel,parseKey,get mapSec(){return mapSec;},
+ get E(){return E;},openEnglish:()=>openSec('eng'),EITEM,STORY,Voice};
 })();
 </script>
 </body>

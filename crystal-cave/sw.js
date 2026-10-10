@@ -1,5 +1,5 @@
 // Crystal Cave Quest service worker: offline support for /crystal-cave/ only. No network calls beyond its own files.
-const CACHE='crystal-cave-v3';
+const CACHE='crystal-cave-v3c';
 const PREFIX='crystal-cave-';
 const FILES=['./','./index.html','./manifest.json','./icon.svg','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
 const SCOPE=new URL('./',self.location).pathname; // e.g. /sky-glider/crystal-cave/
