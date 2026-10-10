@@ -1,5 +1,5 @@
 // Sky Glider service worker: offline support, no network calls beyond its own files.
-const CACHE='sky-glider-v4';
+const CACHE='sky-glider-v4b';
 // Only Sky Glider's own root files are handled here. Everything else (e.g. ./crystal-cave/, ./home/, ./yoga/ and any
 // future sub-apps, which have their own service workers and caches) is ignored and never touched.
 const FILES=['./','./index.html','./SkyGlider.html','./manifest.json','./icon.svg','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
