@@ -2,15 +2,22 @@
 // Nothing leaves the device. Works on a mono Float32Array at SR (22050).
 (function (G) {
   const SR = 22050, N = 1024, HOP = 256, FPS = SR / HOP;
+  // twiddles & bit-reversal swaps cached per size; twiddles use the exact same recurrence as the per-block loop did (bit-identical)
+  const FT = {};
+  function fftTables(n) {
+    if (FT[n]) return FT[n]; const sw = [], tr = new Float64Array(n), ti = new Float64Array(n);
+    for (let i = 1, j = 0; i < n; i++) { let b = n >> 1; for (; j & b; b >>= 1) j ^= b; j ^= b; if (i < j) sw.push(i, j); }
+    for (let len = 2; len <= n; len <<= 1) { const a = -2 * Math.PI / len, wr = Math.cos(a), wi = Math.sin(a); let cr = 1, ci = 0;
+      for (let k = 0; k < len / 2; k++) { tr[len / 2 + k] = cr; ti[len / 2 + k] = ci; const nr = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = nr; } }
+    return (FT[n] = { sw: Int32Array.from(sw), tr, ti });
+  }
   function fft(re, im) {
-    const n = re.length;
-    for (let i = 1, j = 0; i < n; i++) { let b = n >> 1; for (; j & b; b >>= 1) j ^= b; j ^= b; if (i < j) { let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; } }
-    for (let len = 2; len <= n; len <<= 1) {
-      const a = -2 * Math.PI / len, wr = Math.cos(a), wi = Math.sin(a);
-      for (let i = 0; i < n; i += len) { let cr = 1, ci = 0;
-        for (let k = 0; k < len / 2; k++) { const p = i + k, q = p + len / 2, tr = re[q] * cr - im[q] * ci, ti = re[q] * ci + im[q] * cr;
-          re[q] = re[p] - tr; im[q] = im[p] - ti; re[p] += tr; im[p] += ti; const nr = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = nr; } }
-    }
+    const n = re.length, { sw, tr: TR, ti: TI } = fftTables(n);
+    for (let s = 0; s < sw.length; s += 2) { const i = sw[s], j = sw[s + 1]; let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; }
+    for (let len = 2; len <= n; len <<= 1) { const h = len >> 1;
+      for (let i = 0; i < n; i += len)
+        for (let k = 0; k < h; k++) { const p = i + k, q = p + h, cr = TR[h + k], ci = TI[h + k], tr = re[q] * cr - im[q] * ci, ti = re[q] * ci + im[q] * cr;
+          re[q] = re[p] - tr; im[q] = im[p] - ti; re[p] += tr; im[p] += ti; } }
   }
   // features per frame: flux (onset strength), band fluxes, centroid, rms
   function features(x, onProgress) {
@@ -24,7 +31,7 @@
       for (let i = 0; i < N; i++) { const v = x[o + i] || 0; e += v * v; re[i] = v * win[i]; im[i] = 0; }
       rms[f] = Math.sqrt(e / N); fft(re, im);
       let fl = 0, l = 0, m = 0, h = 0, cs = 0, ms = 0;
-      for (let k = 1; k < half; k++) { const mag = Math.log1p(100 * Math.hypot(re[k], im[k])); cur[k] = mag; const d = mag - prev[k];
+      for (let k = 1; k < half; k++) { const mag = Math.log1p(100 * Math.sqrt(re[k] * re[k] + im[k] * im[k])); cur[k] = mag; const d = mag - prev[k];
         if (d > 0) { fl += d; if (k < bLow) l += d; else if (k < bMid) m += d; else h += d; } cs += k * mag; ms += mag; }
       flux[f] = fl; low[f] = l; mid[f] = m; high[f] = h; cen[f] = ms ? cs / ms : 0; const t = prev; prev = cur; cur = t;
       if (onProgress && f % 2000 === 0) onProgress(f / nF);
@@ -75,8 +82,13 @@
   }
   function beatTrack(env, bpm) {
     const Pm = tempoMap(env, bpm), n = env.length, score = new Float32Array(n), back = new Int32Array(n).fill(-1), alpha = 100;
-    for (let t = 0; t < n; t++) { const P = Pm[t]; let bs = 0, bp = -1;
-      for (let p = Math.max(0, Math.round(t - 2 * P)); p <= t - Math.round(P / 2); p++) { const v = score[p] - alpha * Math.pow(Math.log((t - p) / P), 2); if (bp < 0 || v > bs) { bs = v; bp = p; } }
+    // transition penalty depends only on (t-p, P): tabulate it while the local period stays constant (same expression -> identical)
+    let mP = 0; for (const v of Pm) if (v > mP) mP = v; const pen = new Float64Array(Math.ceil(2 * mP) + 3); let tabP = NaN, lastP = NaN;
+    for (let t = 0; t < n; t++) { const P = Pm[t], lo = Math.max(0, Math.round(t - 2 * P)), hi = t - Math.round(P / 2); let bs = 0, bp = -1;
+      if (P !== tabP && P === lastP) { tabP = P; for (let d = Math.round(P / 2), e = Math.ceil(2 * P) + 2; d <= e; d++) { const l = Math.log(d / P); pen[d] = alpha * (l * l); } }
+      if (P === tabP) { for (let p = lo; p <= hi; p++) { const v = score[p] - pen[t - p]; if (bp < 0 || v > bs) { bs = v; bp = p; } } }
+      else for (let p = lo; p <= hi; p++) { const l = Math.log((t - p) / P), v = score[p] - alpha * (l * l); if (bp < 0 || v > bs) { bs = v; bp = p; } }
+      lastP = P;
       score[t] = env[t] + (bp >= 0 ? Math.max(0, bs) : 0); back[t] = bs > 0 ? bp : -1; }
     let t = 0; for (let i = Math.max(0, n - Math.round(Pm[n - 1])); i < n; i++) if (score[i] > score[t]) t = i;
     const beats = []; while (t >= 0) { beats.push(t); t = back[t]; } beats.reverse();
@@ -132,11 +144,20 @@
     const fb = [], bt = [-1e9, ...A.beats.map(b => b.t), 1e9], minFb = diff === 'easy' ? 0.6 : diff === 'normal' ? 0.4 : 0.28;
     for (let i = 0; i < bt.length - 1; i++) if (bt[i + 1] - bt[i] > beatGap * 2.5) { let last = -9;
       const reg = (A.soft || A.onsets).filter(o => o.t > bt[i] + beatGap * 0.6 && o.t < bt[i + 1] - beatGap * 0.6);
-      for (const o of reg) if (o.s > 0.3 * Math.max(...reg.filter(q => Math.abs(q.t - o.t) < 3).map(q => q.s)) && o.t - last >= minFb) { fb.push({ ...o, beat: 0 }); last = o.t; } }
+      // max strength within ±3 s of each onset: the window is contiguous in t-order, so slide it with a monotonic deque
+      const ix = reg.map((_, j) => j).sort((a, b) => reg[a].t - reg[b].t), mx = [], dq = []; let lo = 0, hi = 0, h0 = 0;
+      for (const j of ix) { const t = reg[j].t;
+        while (hi < ix.length && Math.abs(reg[ix[hi]].t - t) < 3) { const v = reg[ix[hi]].s; while (dq.length > h0 && reg[ix[dq[dq.length - 1]]].s <= v) dq.pop(); dq.push(hi++); }
+        while (lo < hi && !(Math.abs(reg[ix[lo]].t - t) < 3)) lo++; while (dq[h0] < lo) h0++; mx[j] = reg[ix[dq[h0]]].s; }
+      for (let j = 0; j < reg.length; j++) { const o = reg[j]; if (o.s > 0.3 * mx[j] && o.t - last >= minFb) { fb.push({ ...o, beat: 0 }); last = o.t; } } }
     ev = ev.concat(fb).sort((a, b) => a.t - b.t);
     if (diff !== 'easy') {
       const minD = diff === 'hard' ? 0.1 : 0.14;
-      for (const o of A.onsets) if (o.s >= strongCut && ev.every(e => Math.abs(e.t - o.t) > minD)) ev.push({ ...o, beat: 0 });
+      // "no event within minD": binary-search a sorted copy of ev times (pushed onsets inserted in place), exact test on the neighbourhood
+      const st = ev.map(e => e.t), lb = x => { let a = 0, b = st.length; while (a < b) { const m = (a + b) >> 1; if (st[m] < x) a = m + 1; else b = m; } return a; };
+      for (const o of A.onsets) if (o.s >= strongCut) { let ok = true;
+        for (let i = lb(o.t - minD - 1e-6); i < st.length && st[i] <= o.t + minD + 1e-6; i++) if (!(Math.abs(st[i] - o.t) > minD)) { ok = false; break; }
+        if (ok) { ev.push({ ...o, beat: 0 }); st.splice(lb(o.t), 0, o.t); } }
       ev.sort((a, b) => a.t - b.t);
       const minGap = diff === 'hard' ? 0.12 : 0.2; const out = []; for (const e of ev) { if (out.length && e.t - out[out.length - 1].t < minGap) continue; out.push(e); } ev = out;
     }

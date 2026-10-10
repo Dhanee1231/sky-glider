@@ -89,6 +89,54 @@ input[type=range]{width:100%;accent-color:var(--pink)}
 .toast{position:fixed;left:50%;bottom:10%;transform:translateX(-50%);z-index:30;background:#fff;border-radius:20px;padding:10px 18px;font-weight:800;box-shadow:0 6px 20px rgba(255,79,163,.4);animation:pop .3s;pointer-events:none;text-align:center}
 .hidden{display:none!important}
 @media (orientation:landscape) and (max-height:500px){#mascotHome{width:140px;height:110px}h1{font-size:34px}.menu{grid-template-columns:repeat(4,1fr);max-width:760px}.menu .btn.wide{grid-column:span 4;min-height:54px}}
+/* v3: staggered screen entry */
+.screen.on>*{animation:rise .38s cubic-bezier(.2,1.3,.4,1) backwards}
+.screen.on>*:nth-child(2){animation-delay:.05s}.screen.on>*:nth-child(3){animation-delay:.1s}.screen.on>*:nth-child(4){animation-delay:.15s}.screen.on>*:nth-child(n+5){animation-delay:.2s}
+@keyframes rise{from{transform:translateY(18px);opacity:0}}
+/* sparkle wipe when entering / leaving the game */
+#wipe{position:fixed;top:0;bottom:0;left:-20%;width:140%;z-index:40;pointer-events:none;transform:translateX(-110%);opacity:0;background:linear-gradient(100deg,transparent 0%,rgba(255,209,236,.0) 8%,#ffd1ec 22%,#ff8cc6 40%,#ffd76a 55%,#ffffff 62%,#ff8cc6 75%,rgba(255,209,236,0) 92%,transparent 100%)}
+#wipe::after{content:"✨ 💎 ✨ 💖 ✨ 💎 ✨";position:absolute;top:50%;left:30%;transform:translateY(-50%);font-size:42px;letter-spacing:12px;white-space:nowrap}
+/* game: gem progress rail, CSS effect layers, gem hearts */
+#progRail{position:absolute;left:0;right:0;top:0;height:5px;background:rgba(255,255,255,.35)}
+#progGem{position:absolute;left:-8px;top:-4px;width:16px;height:16px;will-change:transform;pointer-events:none}
+#progGem::before{content:"";position:absolute;inset:0;transform:rotate(45deg) scale(.8);border-radius:3px;background:linear-gradient(135deg,#fff 0%,#ffd76a 40%,#ff4fa3 100%);box-shadow:0 0 6px #fff,0 0 0 2px #fff}
+.fxl{position:absolute;inset:0;pointer-events:none;opacity:0}
+#fxEdge{box-shadow:inset 0 0 70px 14px var(--ec,#ff4fa3);will-change:opacity}
+#fxFlash{background:#fff}
+#fxRainbow{background:linear-gradient(90deg,#ff6b9e,#ffd166,#7bed9f,#70a1ff,#c08cff)}
+.gh{display:inline-block;width:22px;height:20px;margin:0 1px;vertical-align:-3px;background:linear-gradient(135deg,#fff 0%,#ffb3d9 25%,#ff4f93 55%,#c2186b 100%);clip-path:path('M11 19L2.2 9.6C-.6 6.4 1.4 1 6 1c2.2 0 3.8 1.2 5 3 1.2-1.8 2.8-3 5-3 4.6 0 6.6 5.4 3.8 8.6Z');filter:drop-shadow(0 0 2px #fff)}
+.gh.off{background:linear-gradient(135deg,#eee,#9aa3b5);opacity:.45}
+.gh.crack{animation:crack .5s}
+@keyframes crack{30%{transform:scale(1.35) rotate(-12deg)}60%{transform:scale(.8) rotate(10deg)}}
+#skipTut{min-height:52px;border:0;font:inherit;font-weight:800;font-size:17px}
+/* songs: next-unlock strip + per-difficulty star dots */
+#nextUnlock{width:100%;max-width:760px;background:var(--card);border-radius:18px;padding:6px 14px;font-weight:800;margin-bottom:8px}
+#nextUnlock .bar{margin:4px 0 2px;height:12px}
+#nextUnlock .bar i{width:0}
+.song .dots{display:flex;gap:6px;font-size:11px;font-weight:800;opacity:.85}
+.song .dd i{font-style:normal;letter-spacing:-1px;color:#e0a000;margin-left:1px}
+.song .dd.cur{background:#ffe1f1;border-radius:8px;padding:0 4px}
+/* pause legend */
+#legend .lg{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;font-size:30px;margin:4px 0}
+#legend .lg b{font-size:16px}
+#legend canvas{width:48px;height:48px}
+/* results: gem rain behind the card, stamped stars, ribbons, flying sticker */
+#resFx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#mRes .card{position:relative;z-index:1}
+.big-stars span.won{animation:stamp .55s cubic-bezier(.2,1.6,.4,1) backwards;filter:drop-shadow(0 0 6px #ffd76a)}
+@keyframes stamp{from{transform:scale(2.6) rotate(-25deg);opacity:0}}
+.ribbon{display:inline-block;margin:4px auto;padding:4px 18px;font-weight:900;color:#fff;border-radius:6px;transform:rotate(-3deg);animation:pop .5s .9s backwards;box-shadow:0 3px 0 rgba(0,0,0,.15)}
+.ribbon.fc{background:linear-gradient(90deg,#ff6b9e,#ffd166,#7bed9f,#70a1ff,#c08cff)}
+.ribbon.nb{background:linear-gradient(180deg,#ffe08a,#f0a91c);color:#6b3b00}
+.ribbon.lab{background:linear-gradient(180deg,#c9d1de,#8f9bb0)}
+.gotst{font-weight:800}
+.flyst{display:inline-block;font-size:34px;margin-right:6px;animation:fly 1.1s 1s cubic-bezier(.2,1.4,.4,1) backwards}
+@keyframes fly{from{transform:translate(-120px,-160px) scale(.3) rotate(-90deg);opacity:0}}
+/* calm mode / reduced motion: no looping shine, no big entry motion */
+body.calm h1,body.calm .btn::after{animation:none}
+body.calm .screen.on>*,body.calm .flyst,body.calm .ribbon{animation:none}
+body.calm .big-stars span.won{animation:pop .3s backwards}
+@media (prefers-reduced-motion:reduce){h1,.btn::after,.screen.on>*{animation:none}}
 </style>
 </head>
 <body>
@@ -107,7 +155,7 @@ input[type=range]{width:100%;accent-color:var(--pink)}
     <button class="btn silver" data-go="album" data-t="album">📒 Stickers</button>
     <button class="btn silver" data-go="badges" data-t="badges">🏅 Badges</button>
     <button class="btn silver" data-go="closet" data-t="closet">🎀 Gigi's closet</button>
-    <button class="btn gold" data-go="worlds">🌈 Worlds</button>
+    <button class="btn gold" data-go="worlds" data-t="worlds">🌈 Worlds</button>
   </div>
 </section>
 
@@ -115,6 +163,7 @@ input[type=range]{width:100%;accent-color:var(--pink)}
   <div class="top"><button class="btn icon silver" data-go="home">⬅</button><span class="pill" id="sStars">⭐ 0</span><span class="sp"></span><button class="btn small" data-go="add" data-t="addSong">🎵 Add my song</button></div>
   <div class="row"><div class="seg" id="diffSeg"><button data-d="easy" data-t="easy">Easy</button><button data-d="normal" data-t="normal">Normal</button><button data-d="hard" data-t="hard">Hard</button></div>
     <div class="seg"><button id="practiceBtn" data-t="practice">💗 Practice</button></div></div>
+  <div id="nextUnlock"></div>
   <div class="list" id="songList"></div>
 </section>
 
@@ -126,7 +175,7 @@ input[type=range]{width:100%;accent-color:var(--pink)}
 
 <section class="screen" id="album">
   <div class="top"><button class="btn icon silver" data-go="home">⬅</button><h2 style="margin:0" data-t="album">Sticker Album</h2><span class="sp"></span><span class="pill" id="alCount"></span></div>
-  <div class="row"><button class="btn gold" id="openPack">🎁 Open mystery pack (<span id="packN">0</span>)</button><button class="btn silver small" id="buyPack">🪙 40 → 1 pack</button></div>
+  <div class="row"><button class="btn gold" id="openPack"><span data-t="openPack">🎁 Open mystery pack</span> (<span id="packN">0</span>)</button><button class="btn silver small" id="buyPack" data-t="buyPack">🪙 40 → 1 pack</button></div>
   <div class="album" id="albumGrid"></div>
 </section>
 
@@ -138,21 +187,23 @@ input[type=range]{width:100%;accent-color:var(--pink)}
 <section class="screen" id="settings">
   <div class="top"><button class="btn icon silver" data-go="home">⬅</button><h2 style="margin:0" data-t="settings">Settings</h2></div>
   <div class="card" style="width:100%;max-width:480px">
-    <div class="lbl">🐢 Speed</div><div class="seg" id="speedSeg"><button data-v="slow">🐢 Slow</button><button data-v="normal">🐇 Normal</button><button data-v="fast">🚀 Fast</button></div>
-<div class="lbl">💣 Obstacles</div><div class="seg" id="obsSeg"><button data-v="1">On</button><button data-v="0">Off</button></div><div class="lbl">💣 Obstacles in Practice</div><div class="seg" id="obsPSeg"><button data-v="1">On</button><button data-v="0">Off</button></div><div class="lbl">🧲 Power-ups</div><div class="seg" id="puSeg"><button data-v="1">On</button><button data-v="0">Off</button></div><div class="lbl">📳 Camera shake</div><div class="seg" id="shakeSeg"><button data-v="1">On</button><button data-v="0">Off</button></div><div class="lbl">✨ Background intensity</div><div class="seg" id="intSeg"><button data-v="low">Low</button><button data-v="med">Medium</button><button data-v="high">High</button></div><div class="lbl">🎆 Effect sounds (never on tile taps)</div><div class="seg" id="fxSeg"><button data-v="1">On</button><button data-v="0">Off</button></div><div class="lbl">🔉 Effects volume</div><input type="range" id="fxVol" min="0" max="100" step="5"><button class="btn small" data-go="lab">🧪 Test lab</button>
-    <div class="lbl">🔊 <span data-t="sound">Sound</span></div><div class="seg" id="soundSeg"><button data-v="1">On</button><button data-v="0">Off</button></div>
-    <div class="lbl">🎧 <span data-t="beat">Miss effect (song dips a little on a miss)</span></div><div class="seg" id="beatSeg"><button data-v="1">On</button><button data-v="0">Off</button></div>
+    <div class="lbl" data-t="speedL">🐢 Speed</div><div class="seg" id="speedSeg"><button data-v="slow" data-t="slow">🐢 Slow</button><button data-v="normal" data-t="normalSp">🐇 Normal</button><button data-v="fast" data-t="fast">🚀 Fast</button></div>
+<div class="lbl" data-t="obsL">💣 Obstacles</div><div class="seg" id="obsSeg"><button data-v="1" data-t="on">On</button><button data-v="0" data-t="off">Off</button></div><div class="lbl" data-t="obsPL">💣 Obstacles in Practice</div><div class="seg" id="obsPSeg"><button data-v="1" data-t="on">On</button><button data-v="0" data-t="off">Off</button></div><div class="lbl" data-t="puL">🧲 Power-ups</div><div class="seg" id="puSeg"><button data-v="1" data-t="on">On</button><button data-v="0" data-t="off">Off</button></div><div class="lbl" data-t="shakeL">📳 Camera shake</div><div class="seg" id="shakeSeg"><button data-v="1" data-t="on">On</button><button data-v="0" data-t="off">Off</button></div><div class="lbl" data-t="intL">✨ Background intensity</div><div class="seg" id="intSeg"><button data-v="low" data-t="low">Low</button><button data-v="med" data-t="med">Medium</button><button data-v="high" data-t="high">High</button></div><div class="lbl" data-t="fxL">🎆 Effect sounds (never on tile taps)</div><div class="seg" id="fxSeg"><button data-v="1" data-t="on">On</button><button data-v="0" data-t="off">Off</button></div><div class="lbl" data-t="fxVolL">🔉 Effects volume</div><input type="range" id="fxVol" min="0" max="100" step="5">
+    <div class="lbl" data-t="calmL">🧘 Calm mode (less flashing)</div><div class="seg" id="calmSeg"><button data-v="1" data-t="on">On</button><button data-v="0" data-t="off">Off</button></div>
+    <div class="row"><button class="btn small" data-go="lab" data-t="labBtn">🧪 Test lab</button><button class="btn small gold" id="howToBtn" data-t="howTo">👆 How to play</button></div>
+    <div class="lbl">🔊 <span data-t="sound">Sound</span></div><div class="seg" id="soundSeg"><button data-v="1" data-t="on">On</button><button data-v="0" data-t="off">Off</button></div>
+    <div class="lbl">🎧 <span data-t="beat">Miss effect (song dips a little on a miss)</span></div><div class="seg" id="beatSeg"><button data-v="1" data-t="on">On</button><button data-v="0" data-t="off">Off</button></div>
     <div class="lbl">🗣️ Language / भाषा</div><div class="seg" id="langSeg"><button data-v="en">English</button><button data-v="hi">हिंदी</button></div>
     <div class="lbl">⏱️ <span data-t="sync">Sync (tap timing)</span>: <span id="offVal">0</span> ms</div>
     <input type="range" id="offRange" min="-250" max="350" step="5">
-    <div class="lbl">👀 Screen offset: <span id="visVal">0</span> ms</div><button class="btn small" id="calibBtn" data-t="calib">👆 Tap test to sync</button>
+    <div class="lbl"><span data-t="visL">👀 Screen offset</span>: <span id="visVal">0</span> ms</div><button class="btn small" id="calibBtn" data-t="calib">👆 Tap test to sync</button>
     <p class="note" data-t="syncNote">If tiles feel early or late (especially with Bluetooth headphones), run the tap test.</p>
-    <p class="note">Gem Tiles has no ads, no links and no purchases. Your songs stay on this phone.</p>
+    <p class="note" data-t="privacy">Gem Tiles has no ads, no links and no purchases. Your songs stay on this phone.</p>
   </div>
 </section>
 
 <section class="screen" id="lab">
-  <div class="top"><button class="btn icon silver" data-go="settings">⬅</button><h2 style="margin:0">🧪 Test lab</h2></div>
+  <div class="top"><button class="btn icon silver" data-go="settings">⬅</button><h2 style="margin:0" data-t="lab">🧪 Test lab</h2></div>
   <div class="card" style="width:100%;max-width:760px" id="labBody"></div>
 </section>
 
@@ -163,7 +214,7 @@ input[type=range]{width:100%;accent-color:var(--pink)}
     <button class="btn" id="tapPad">💎</button>
     <div class="bar"><i id="calBar"></i></div>
     <p id="calOut" class="note"></p>
-    <canvas id="calCv" class="hidden" style="width:100%;height:160px"></canvas><div class="row"><button class="btn gold small" id="calStart">🔊 Sound test</button><button class="btn silver small" id="calVis">👀 Screen test</button></div>
+    <canvas id="calCv" class="hidden" style="width:100%;height:160px"></canvas><div class="row"><button class="btn gold small" id="calStart" data-t="calStart">🔊 Sound test</button><button class="btn silver small" id="calVis" data-t="calVis">👀 Screen test</button></div>
   </div>
 </section>
 
@@ -190,14 +241,15 @@ input[type=range]{width:100%;accent-color:var(--pink)}
   </div>
 </section>
 
-<div id="game"><canvas id="bgcv"></canvas><canvas id="cv"></canvas><div id="prog"></div>
-  <div id="hud"><button class="pill" id="pauseBtn" style="border:0;font:inherit;font-weight:800;min-width:64px;min-height:56px;font-size:22px">⏸</button><span class="pill" id="hHearts"></span><span class="sp"></span><span class="pill" id="hScore">0</span></div></div>
+<div id="game"><canvas id="bgcv"></canvas><div class="fxl" id="fxEdge"></div><canvas id="cv"></canvas><div class="fxl" id="fxFlash"></div><div class="fxl" id="fxRainbow"></div><div id="progRail"></div><div id="prog"></div><div id="progGem"></div>
+  <div id="hud"><button class="pill" id="pauseBtn" style="border:0;font:inherit;font-weight:800;min-width:64px;min-height:56px;font-size:22px">⏸</button><span class="pill" id="hHearts"></span><button class="pill hidden" id="skipTut" data-t="skip">⏭ Skip</button><span class="sp"></span><span class="pill" id="hScore">0</span></div></div>
 
-<div class="modal" id="mPause"><div class="card"><h2 data-t="paused">Paused</h2><div class="row"><button class="btn" id="resumeBtn" data-t="resume">▶ Keep playing</button><button class="btn silver" id="restartBtn" data-t="restart">↺ Restart</button><button class="btn silver" id="quitBtn" data-t="quit">🏠 Songs</button></div></div></div>
+<div class="modal" id="mPause"><div class="card"><h2 data-t="paused">Paused</h2><div id="legend"></div><div class="row"><button class="btn" id="resumeBtn" data-t="resume">▶ Keep playing</button><button class="btn silver" id="restartBtn" data-t="restart">↺ Restart</button><button class="btn silver" id="quitBtn" data-t="quit">🏠 Songs</button></div></div></div>
 <div class="modal" id="mOut"><div class="card"><canvas id="mascotOut" width="160" height="130" style="width:160px;height:130px"></canvas><h2 data-t="outHearts">Out of hearts!</h2><p data-t="outMsg">You're doing great. Want to keep going?</p><div class="row"><button class="btn" id="contBtn" data-t="cont">💗 Keep going (practice)</button><button class="btn silver" id="outRetry" data-t="restart">↺ Restart</button><button class="btn silver" id="outEnd" data-t="finish">🏁 Finish</button></div></div></div>
-<div class="modal" id="mLoad"><div class="card"><h2>Get ready! 💎</h2><p id="loadMsg">Loading…</p><div class="bar"><i id="loadBar"></i></div></div></div>
-<div class="modal" id="mRes"><div class="card" id="resCard"></div></div>
+<div class="modal" id="mLoad"><div class="card"><h2 data-t="getReady">Get ready! 💎</h2><p id="loadMsg">Loading…</p><div class="bar"><i id="loadBar"></i></div></div></div>
+<div class="modal" id="mRes"><canvas id="resFx"></canvas><div class="card" id="resCard"></div></div>
 <div class="modal" id="mMsg"><div class="card" id="msgCard"></div></div>
+<div id="wipe"></div>
 
 <script src="./songs.js"></script>
 <script src="./audio.js"></script>
