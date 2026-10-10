@@ -80,6 +80,19 @@
       const [x0, y0] = pts[k], [x1, y1] = pts[Math.min(k + 1, pts.length - 1)], f = x1 > x0 ? Math.min(1, Math.max(0, (t - x0) / (x1 - x0))) : 0; P[t] = FPS * 60 / (y0 + (y1 - y0) * f); }
     return P;
   }
+  function salience(env, bpm) {
+    const P = FPS * 60 / bpm, W = Math.round(8 * FPS), H = Math.round(4 * FPS), n = env.length, pk = i => Math.max(env[i] || 0, env[i - 1] || 0, env[i + 1] || 0); let tot = 0, ws = 0;
+    for (let a = 0; a + W / 2 < n; a += H) { const b = Math.min(n, a + W); let e = 0; for (let i = a; i < b; i++) e += env[i]; e /= (b - a); if (e < 0.01) continue;
+      let bOn = -1, bOff = 0; for (let ph = 0; ph < P; ph++) { let on = 0, off = 0, c = 0; for (let x = a + ph; x < b; x += P) { on += pk(Math.round(x)); off += pk(Math.round(x + P / 2)); c++; } if (c && on / c > bOn) { bOn = on / c; bOff = off / c; } }
+      tot += (bOn - bOff) * e; ws += e; }
+    return ws ? tot / ws : 0;
+  }
+  function pickOctave(env, base) {
+    let best = base, bs = -1e9;
+    for (const r of [0.25, 0.5, 1, 2, 4]) { const b = base * r; if (b < 60 || b > 200) continue; const pr = Math.exp(-0.5 * Math.pow(Math.log2(b / 120), 2)), sc = salience(env, b) * pr; if (sc > bs) { bs = sc; best = b; } }
+    if (bs <= 0) { best = base; while (best < 70) best *= 2; while (best > 180) best /= 2; }
+    return best;
+  }
   function beatTrack(env, bpm) {
     const Pm = tempoMap(env, bpm), n = env.length, score = new Float32Array(n), back = new Int32Array(n).fill(-1), alpha = 100;
     // transition penalty depends only on (t-p, P): tabulate it while the local period stays constant (same expression -> identical)
@@ -103,12 +116,10 @@
   }
   function analyzeMono(mono, onProgress) {
     const F = features(mono, onProgress), env = onsetEnvelope(F); let bpmRaw = tempo(env);
-    // octave check: prefer 80-160 BPM; double if the half-beat positions carry real hits, halve if too fast
-    const gridMeans = bpm => { const P = FPS * 60 / bpm; let best = [0, 0];
-      for (let ph = 0; ph < P; ph += 1) { let on = 0, off = 0, n = 0; for (let x = ph; x + P / 2 < env.length; x += P) { on += env[Math.round(x)]; off += env[Math.round(x + P / 2)]; n++; } if (n && on / n > best[0]) best = [on / n, off / n]; }
-      return best; };
-    while (bpmRaw < 80) bpmRaw *= 2; while (bpmRaw > 160) bpmRaw /= 2;
-    { const [on, off] = gridMeans(bpmRaw); if (bpmRaw * 2 <= 160 && off >= 0.6 * on) bpmRaw *= 2; else if (bpmRaw / 2 >= 80 && bpmRaw > 135) { const [on2, off2] = gridMeans(bpmRaw / 2); if (off2 < 0.35 * on2) bpmRaw /= 2; } }
+    // v4 octave choice: score the octave candidates (x1/4..x4 within 60-200 BPM) by pulse salience = energy ON the best-phase grid minus
+    // energy half a period later, measured in 8 s windows (robust to tempo changes) with a gentle prior around 120 BPM. The true pulse has
+    // strong on-beats and weak half-beats; its half tempo has equally strong "half-beats" (low salience); its double tempo halves the on-energy.
+    bpmRaw = pickOctave(env, bpmRaw);
     const beatsF = beatTrack(env, bpmRaw); const peaks = pickPeaks(env, 0.06), softPeaks = pickPeaks(env, 0.012);
     // estimate the "loudness gate" so silent intros/outros get no tiles
     const sortedR = Array.from(F.rms).sort((a, b) => a - b), gate = sortedR[Math.floor(sortedR.length * 0.5)] * 0.25;
@@ -128,10 +139,24 @@
     for (const f of beatsF) { const t = ft(f); let best = null;
       for (const o of onsets) { const d = Math.abs(o.t - t); if (d <= 0.08 && (!best || d < Math.abs(best.t - t))) best = o; }
       if (!best || F.rms[f] <= gate || best.s < 0.12 || best.t - lastB < 0.15) continue; beats.push(best); lastB = best.t; }
+    // v4 grid repair: where consecutive beats sit ~k local periods apart (tempo change, a dropped beat) interpolate the missing slots and take
+    // a real attack near each; extend the grid before the first / after the last beat the same way. Slots with no attack stay grid points
+    // (beat lines, snapping) but never become tiles.
+    const Pm = tempoMap(env, bpmRaw), Pat = t => Pm[Math.max(0, Math.min(Pm.length - 1, Math.round((t - T0) * FPS)))] / FPS, dur = mono.length / SR;
+    const onAt = (t, tol) => { let best = null; for (const o of onsets) { if (o.t > t + tol + 0.1) break; if (Math.abs(o.t - t) > tol || o.s < 0.1 || (F.rms[Math.round((o.t - T0) * FPS)] || 0) <= gate) continue; if (!best || Math.abs(o.t - t) < Math.abs(best.t - t)) best = o; } return best; };
+    const full = [];
+    for (let i = 0; i < beats.length; i++) { full.push({ t: beats[i].t, o: beats[i] }); const nx = beats[i + 1]; if (!nx) break;
+      const g = nx.t - beats[i].t, P = Pat((beats[i].t + nx.t) / 2), k = Math.round(g / P);
+      if (k >= 2 && k <= 32 && Math.abs(g / k - P) < 0.12 * P) for (let j = 1; j < k; j++) { const st = beats[i].t + g * j / k, o = onAt(st, Math.min(0.06, 0.2 * P)); full.push({ t: o ? o.t : st, o }); } }
+    if (full.length) for (const dir of [-1, 1]) { let ref = dir < 0 ? full[0] : full[full.length - 1], miss = 0;
+      while (miss < 2) { const P = Pat(ref.t), st = ref.t + dir * P; if (st < 0.05 || st > dur - 0.05) break; const o = onAt(st, Math.min(0.06, 0.2 * P));
+        if (o) { miss = 0; ref = { t: o.t, o }; if (dir < 0) full.unshift(ref); else full.push(ref); } else { miss++; ref = { t: st, o: null }; } } }
+    beats.length = 0; const grid = []; lastB = -1;
+    for (const x of full) { if (x.t - lastB < 0.1) continue; lastB = x.t; grid.push(+x.t.toFixed(4)); if (x.o && (!beats.length || x.o.t - beats[beats.length - 1].t >= 0.15)) beats.push(x.o); }
     // sustain map at ~20 fps for hold detection
-    const soft = softPeaks.map(f => ({ t: +refine(ft(f)).toFixed(4), s: env[f], c: F.cen[f], lo: F.low[f], hi: F.high[f] + F.mid[f] }));
+    const soft = softPeaks.filter(f => f <= lastLoud + Math.round(0.05 * FPS) && F.rms[f] > gate).map(f => ({ t: +refine(ft(f)).toFixed(4), s: env[f], c: F.cen[f], lo: F.low[f], hi: F.high[f] + F.mid[f] }));
     const sus = []; for (let f = 0; f < F.nF; f += 4) sus.push(+(F.rms[f]).toFixed(4));
-    return { bpm: +bpmRaw.toFixed(2), beats, onsets, soft, sus, susFps: FPS / 4, gate };
+    return { bpm: +bpmRaw.toFixed(2), beats, grid, onsets, soft, sus, susFps: FPS / 4, gate };
   }
   function rng(seed) { let s = (seed * 2654435761) >>> 0 || 1; return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; }
   // difficulty: 'easy' | 'normal' | 'hard'. Returns [{t, lane, dur, lane2?}]
@@ -161,6 +186,12 @@
       ev.sort((a, b) => a.t - b.t);
       const minGap = diff === 'hard' ? 0.12 : 0.2; const out = []; for (const e of ev) { if (out.length && e.t - out[out.length - 1].t < minGap) continue; out.push(e); } ev = out;
     }
+    // v4: snap onsets that sit next to the beat grid (beats, half-beats) onto it, so tiles ride an even grid; then drop near-duplicates
+    { const gr = A.grid && A.grid.length ? A.grid : A.beats.map(b => b.t), pts = [];
+      for (let i = 0; i < gr.length; i++) { pts.push([gr[i], 0.03]); if (gr[i + 1] != null && gr[i + 1] - gr[i] < beatGap * 1.6) pts.push([(gr[i] + gr[i + 1]) / 2, Math.min(0.03, beatGap * 0.08)]); }
+      for (const e of ev) { if (e.beat || !pts.length) continue; let a = 0, b = pts.length - 1; while (a < b) { const m = (a + b) >> 1; if (pts[m][0] < e.t) a = m + 1; else b = m; }
+        let best = null; for (const k of [a - 1, a]) { const q = pts[k]; if (q && Math.abs(q[0] - e.t) <= q[1] && (!best || Math.abs(q[0] - e.t) < Math.abs(best[0] - e.t))) best = q; } if (best) e.t = best[0]; }
+      ev.sort((x, y) => x.t - y.t || y.beat - x.beat); const out = []; for (const e of ev) { const p = out[out.length - 1]; if (p && e.t - p.t < 0.06) continue; out.push(e); } ev = out; }
     // lanes by brightness (spectral centroid) percentile, with musical anti-repeat
     const cs = ev.map(e => e.c).sort((a, b) => a - b), q = p => cs[Math.floor(p * (cs.length - 1))] || 0, q1 = q(.25), q2 = q(.5), q3 = q(.75);
     let prevLane = -1, prevT = -9; const notes = [];
@@ -185,5 +216,5 @@
     }
     return notes;
   }
-  G.TileAnalyze = { VERSION: 3, decodeToMono, analyzeMono, makeChart, SR };
+  G.TileAnalyze = { VERSION: 4, decodeToMono, analyzeMono, makeChart, SR };
 })(typeof window !== 'undefined' ? window : globalThis);

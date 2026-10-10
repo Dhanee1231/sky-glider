@@ -1,6 +1,6 @@
 // Gem Tiles service worker. Scope: this tiles/ folder only. Touches only its own 'tiles-*' caches.
-const CACHE = 'tiles-v3';
-const SHELL = ['./', './index.html', './app.js', './art.js', './audio.js', './analyze.js', './songs.js', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png'];
+const CACHE = 'tiles-v3b';
+const SHELL = ['./', './index.html', './app.js', './art.js', './audio.js', './analyze.js', './songs.js', './icons.js', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png'];
 const SCOPE = new URL('./', self.location).pathname;
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('tiles-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

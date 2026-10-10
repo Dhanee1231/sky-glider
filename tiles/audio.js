@@ -44,7 +44,10 @@
   A.renderStem = async (events, dur, rev = 0.2) => {
     const sr = 44100, c = new OfflineAudioContext(2, Math.ceil(sr * dur), sr), comp = c.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3; comp.connect(c.destination);
     const dry = c.createGain(); dry.connect(comp); const verb = rev ? reverb(c, comp, rev) : null;
-    for (const e of events) { const d = e.wet && verb ? [dry, verb] : [dry];
+    // the compressor delays its output by a fixed look-ahead (6 ms in Chromium): schedule every note that much earlier so the
+    // attack is HEARD exactly at e.t, the time its tile reaches the strike line
+    const LA = 0.006;
+    for (const e0 of events) { const e = e0.t >= LA ? { ...e0, t: e0.t - LA } : e0, d = e.wet && verb ? [dry, verb] : [dry];
       for (const dest of d) { if (e.type === 'piano') V.piano(c, dest, e.m, e.t, e.d, e.v, e.b); else if (e.type === 'bass') V.bass(c, dest, e.m, e.t, e.d, e.v); else if (e.type === 'pad') V.pad(c, dest, e.ms, e.t, e.d, e.v); else V[e.type](c, dest, e.t, e.v); } }
     return c.startRendering();
   };

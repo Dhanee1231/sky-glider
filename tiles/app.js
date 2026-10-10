@@ -46,18 +46,22 @@ if (S.v < 2) { S.v = 2; S.set = Object.assign({ missFx: true, vis: 0, calibrated
 if (S.v < 3) { S.v = 3; S.set.speed = S.set.speed || 'slow'; }
 if (S.v < 4) { S.v = 4; if (S.tut == null) S.tut = S.plays > 0 ? 1 : 0; if (S.set.calm == null) S.set.calm = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); } // v4 (additive): tutorial flag, calm mode
 if (!['easy', 'normal', 'hard'].includes(S.set.diff)) S.set.diff = 'easy'; if (!['en', 'hi'].includes(S.set.lang)) S.set.lang = 'en'; if (!Number.isFinite(+S.set.offset)) S.set.offset = 0;
-if (!S.set.calibrated && /Android/i.test(navigator.userAgent)) { S.set.offset = 25; S.set.vis = 10; } // sensible Android defaults (touch + display pipeline) until she runs the tap test
+// Sync model (v3b): judge time = heard song time - offset (sound test: audio-path lag + touch lag); tiles are drawn at judge time + vis
+// (screen test: display lag + touch lag). So a tile crosses the strike line on screen exactly when a tap there is judged Perfect.
+// Defaults until she runs the tap tests: Android ~30 ms tap / ~45 ms screen (touch + compositor), other devices ~20 ms screen.
+{ const android = /Android/i.test(navigator.userAgent); if (!S.set.calibrated && android) S.set.offset = 30;
+  if (!S.set.visCal && (!S.set.vis || S.set.vis === 10)) S.set.vis = android ? 45 : 20; } // 0/10 were the old uncalibrated defaults
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } };
 A.muted = !S.set.sound;
 
 // ---------- i18n (English / Hindi labels) ----------
-const HI = { title: 'जेम टाइल्स', tag: 'संगीत के साथ चमकीली टाइलें टैप करो!', play: '▶ खेलो', gift: '🎁 रोज़ का तोहफ़ा', addSong: '🎵 मेरा गाना जोड़ो', shop: '🛍️ दुकान', album: '📒 स्टिकर', badges: '🏅 बैज', closet: '🎀 गीगी की अलमारी',
-  easy: 'आसान', normal: 'सामान्य', hard: 'कठिन', practice: '💗 अभ्यास', settings: 'सेटिंग्स', sound: 'आवाज़', beat: 'मिस इफ़ेक्ट', sync: 'सिंक', calib: '👆 टैप टेस्ट', start: 'शुरू', choose: 'गाना चुनो', mySong: 'मेरा गाना', name: 'नाम', pic: 'तस्वीर', color: 'रंग', theme: 'थीम',
-  songSync: 'गाना सिंक', save: '💾 सेव', regen: '🔀 नई टाइलें', del: '🗑️ हटाओ', paused: 'रुका हुआ', resume: '▶ खेलते रहो', restart: '↺ फिर से', quit: '🏠 गाने', outHearts: 'दिल ख़त्म!', outMsg: 'तुम बहुत अच्छा कर रही हो। जारी रखें?', cont: '💗 जारी रखो (अभ्यास)', finish: '🏁 खत्म',
+const HI = { title: 'जेम टाइल्स', tag: 'संगीत के साथ चमकीली टाइलें टैप करो!', play: 'खेलो', gift: 'रोज़ का तोहफ़ा', addSong: 'मेरा गाना जोड़ो', shop: 'दुकान', album: 'स्टिकर', albumT: 'स्टिकर एल्बम', badges: 'बैज', closet: 'गीगी की अलमारी',
+  easy: 'आसान', normal: 'सामान्य', hard: 'कठिन', practice: 'अभ्यास', settings: 'सेटिंग्स', sound: 'आवाज़', beat: 'मिस इफ़ेक्ट (चूक पर गाना थोड़ा धीमा)', sync: 'सिंक (टैप टाइमिंग)', calib: 'टैप टेस्ट से सिंक करो', calibT: 'टैप टेस्ट', start: 'शुरू', choose: 'गाना चुनो', mySong: 'मेरा गाना', name: 'नाम', pic: 'तस्वीर', color: 'रंग', theme: 'थीम',
+  songSync: 'गाना सिंक', save: 'सेव', regen: 'नई टाइलें', del: 'हटाओ', paused: 'रुका हुआ', resume: 'खेलते रहो', restart: 'फिर से', quit: 'गाना रोको', outHearts: 'दिल ख़त्म!', outMsg: 'तुम बहुत अच्छा कर रही हो। जारी रखें?', cont: 'जारी रखो (अभ्यास)', finish: 'खत्म',
   addHow: 'इस फ़ोन से गाने की फ़ाइल चुनो। गाना फ़ोन से बाहर नहीं जाता।', calibHow: 'आवाज़ टेस्ट: हर क्लिक पर बड़े हीरे को टैप करो। स्क्रीन टेस्ट: जब गिरता दिल लाइन पर पहुँचे, तब टैप करो।', syncNote: 'अगर टाइलें जल्दी या देर से लगें तो टैप टेस्ट करो।',
-  worlds: '🌈 दुनिया', openPack: '🎁 जादुई पैक खोलो', buyPack: '🪙 40 → 1 पैक', speedL: '🐢 रफ़्तार', slow: '🐢 धीमी', normalSp: '🐇 सामान्य', fast: '🚀 तेज़', obsL: '💣 रुकावटें', obsPL: '💣 अभ्यास में रुकावटें', puL: '🧲 पावर-अप', shakeL: '📳 स्क्रीन हिलना',
-  intL: '✨ पीछे की चमक', low: 'कम', med: 'मध्यम', high: 'ज़्यादा', fxL: '🎆 इफ़ेक्ट आवाज़ें (टाइल टैप पर कभी नहीं)', fxVolL: '🔉 इफ़ेक्ट की आवाज़', labBtn: '🧪 टेस्ट लैब', on: 'चालू', off: 'बंद', visL: '👀 स्क्रीन ऑफ़सेट', calmL: '🧘 शांत मोड (कम चमक-दमक)', howTo: '👆 कैसे खेलें',
-  privacy: 'जेम टाइल्स में कोई विज्ञापन, लिंक या ख़रीदारी नहीं है। तुम्हारे गाने इसी फ़ोन पर रहते हैं।', calStart: '🔊 आवाज़ टेस्ट', calVis: '👀 स्क्रीन टेस्ट', getReady: 'तैयार हो जाओ! 💎', lab: '🧪 टेस्ट लैब', legendTap: '👆 इन्हें टैप करो', legendDont: '🚫 इन्हें मत छूना', skip: '⏭ छोड़ो' };
+  worlds: 'दुनिया', openPack: 'जादुई पैक खोलो', buyPack: '40 → 1 पैक', speedL: 'रफ़्तार', slow: 'धीमी', normalSp: 'सामान्य', fast: 'तेज़', obsL: 'रुकावटें', obsPL: 'अभ्यास में रुकावटें', puL: 'पावर-अप', shakeL: 'स्क्रीन हिलना',
+  intL: 'पीछे की चमक', low: 'कम', med: 'मध्यम', high: 'ज़्यादा', fxL: 'इफ़ेक्ट आवाज़ें (टाइल टैप पर कभी नहीं)', fxVolL: 'इफ़ेक्ट की आवाज़', labBtn: 'टेस्ट लैब', on: 'चालू', off: 'बंद', visL: 'स्क्रीन ऑफ़सेट', calmL: 'शांत मोड (कम चमक-दमक)', howTo: 'कैसे खेलें',
+  privacy: 'जेम टाइल्स में कोई विज्ञापन, लिंक या ख़रीदारी नहीं है। तुम्हारे गाने इसी फ़ोन पर रहते हैं।', calStart: 'आवाज़ टेस्ट', calVis: 'स्क्रीन टेस्ट', getReady: 'तैयार हो जाओ!', lab: 'टेस्ट लैब', legendTap: 'इन्हें टैप करो', legendDont: 'इन्हें मत छूना', skip: 'छोड़ो' };
 const EN = {}; $$('[data-t]').forEach(e => { e.dataset.en = e.textContent; if (!(e.dataset.t in EN)) EN[e.dataset.t] = e.textContent; });
 const tr = k => (S.set.lang === 'hi' && HI[k]) || EN[k] || k;
 const applyLang = () => { document.documentElement.lang = S.set.lang; $$('[data-t]').forEach(e => e.textContent = (S.set.lang === 'hi' && HI[e.dataset.t]) || e.dataset.en); };
@@ -79,22 +83,26 @@ const TX = {
   tooLong: ['That song is over 10 minutes. Pick a shorter one.', 'यह गाना 10 मिनट से लंबा है। छोटा गाना चुनो।'], cantPlay: ["Hmm, that file couldn't be played on this phone. Try an mp3 or m4a file.", 'यह फ़ाइल इस फ़ोन पर नहीं चल पाई। mp3 या m4a फ़ाइल आज़माओ।'],
   msg0: ['Keep practicing, you can do it! 💪', 'अभ्यास करते रहो, तुम कर सकती हो! 💪'], msg1: ['Nice playing! 🌸', 'बहुत अच्छा खेला! 🌸'], msg2: ['Wonderful! 💖', 'कमाल कर दिया! 💖'], msg3: ['SUPERSTAR! 👑', 'सुपरस्टार! 👑'],
   score: ['Score', 'स्कोर'], sPerfect: ['💖 Perfect', '💖 शानदार'], sGreat: ['✨ Great', '✨ बहुत बढ़िया'], sGood: ['👍 Good', '👍 अच्छा'], sMissed: ['🌧️ Missed', '🌧️ छूटे'], bestCombo: ['🔥 Best combo', '🔥 सबसे बड़ा कॉम्बो'],
-  fullCombo: ['FULL COMBO!', 'फ़ुल कॉम्बो!'], newBest: ['NEW BEST!', 'नया रिकॉर्ड!'], again: ['↺ Again', '↺ फिर से'], songsBtn: ['🎵 Songs', '🎵 गाने'], openPackBtn: ['🎴 Open pack', '🎴 पैक खोलो'],
-  packsWon: [n => `+${n} sticker pack${n > 1 ? 's' : ''} 🎴`, n => `+${n} स्टिकर पैक 🎴`], labRun: ['🧪 Lab run — not saved', '🧪 लैब रन — सेव नहीं हुआ'], backLab: ['🧪 Back to Lab', '🧪 लैब में वापस'],
+  fullCombo: ['FULL COMBO!', 'फ़ुल कॉम्बो!'], newBest: ['NEW BEST!', 'नया रिकॉर्ड!'], openPackBtn: ['Open sticker pack', 'स्टिकर पैक खोलो'],
+  packsWon: [n => `+${n} sticker pack${n > 1 ? 's' : ''} 🎴`, n => `+${n} स्टिकर पैक 🎴`], labRun: ['Lab run — not saved', 'लैब रन — सेव नहीं हुआ'],
   practiceStar: ['💗 Practice star!', '💗 अभ्यास का सितारा!'], firstClear: [e => `🎁 First clear! New sticker ${e}`, e => `🎁 पहली जीत! नया स्टिकर ${e}`],
   perfect: ['Perfect!', 'शानदार!'], great: ['Great!', 'बहुत बढ़िया!'], good: ['Good', 'अच्छा'], miss: ['Miss', 'चूक'], combo: [n => `${n} combo!`, n => `${n} कॉम्बो!`], comboWord: ['combo', 'कॉम्बो'], heartPlus: ['💗 +1', '💗 +1'],
   savedPop: ['🛡️ Saved!', '🛡️ बच गए!'], blocked: ['🛡️ Blocked!', '🛡️ रोक लिया!'], poof: ['Poof! 💨', 'पूफ़! 💨'], dodged: ['Dodged! +50', 'बच निकले! +50'], starPower: ['⭐ STAR POWER ⭐', '⭐ स्टार पावर ⭐'], go: ['Go!', 'चलो!'],
   slowHelp: ['🐢 Slow-mo help!', '🐢 धीमी मदद!'], mySong: ['📀 My song', '📀 मेरा गाना'], nextUnlock: [(h, n, s) => `⭐ ${h} / ${n} → ${s}`, (h, n, s) => `⭐ ${h} / ${n} → ${s}`], allUnlocked: ['🌟 All songs unlocked!', '🌟 सारे गाने खुल गए!'],
   wearing: ['✅ Wearing', '✅ पहना है'], yoursT: ['✅ Yours', '✅ तुम्हारा'], tapToUse: ['Tap to use', 'टैप करके लगाओ'], suggested: [(t, b) => `(suggested: ${t} for ${b} BPM)`, (t, b) => `(सुझाव: ${b} BPM के लिए ${t})`],
   edInfo: [(b, d, e, n, h) => `${b} BPM · ${d} · tiles: ${e} easy / ${n} normal / ${h} hard`, (b, d, e, n, h) => `${b} BPM · ${d} · टाइलें: ${e} आसान / ${n} सामान्य / ${h} कठिन`], nameIt: [' · Give it a name and a picture!', ' · इसे नाम और तस्वीर दो!'],
-  labWorld: ['🌍 World', '🌍 दुनिया'], labObs: ['💣 Obstacle', '💣 रुकावट'], labPu: ['⚡ Power-up', '⚡ पावर-अप'], labFx: ['🔊 Effects', '🔊 इफ़ेक्ट'], labSong: ['🎵 Song', '🎵 गाना'], labDiff: ['🎚️ Difficulty', '🎚️ मुश्किल'], labDens: ['📏 Spawn density', '📏 कितने आएँ'],
-  labOwn: ["world's own", 'दुनिया वाले'], labMix: ['mix', 'मिला-जुला'], labGo: ['▶ Preview', '▶ देखो'], sparse: ['few', 'कम'], normalD: ['normal', 'सामान्य'], dense: ['lots', 'ज़्यादा'], tapIt: ['tap it ✨', 'टैप करो ✨'], dontTap: ["don't tap", 'मत छूना'], tutDone: ['🎉 You know how to play!', '🎉 तुम्हें खेलना आ गया!'],
-  legendTap: ['👆 Tap these', '👆 इन्हें टैप करो'], legendDont: ["🚫 Don't touch these", '🚫 इन्हें मत छूना']
+  labWorld: ['World', 'दुनिया'], labObs: ['Obstacle', 'रुकावट'], labPu: ['Power-up', 'पावर-अप'], labFx: ['Effects', 'इफ़ेक्ट'], labSong: ['Song', 'गाना'], labDiff: ['Difficulty', 'मुश्किल'], labDens: ['Spawn density', 'कितने आएँ'],
+  labOwn: ["world's own", 'दुनिया वाले'], labMix: ['mix', 'मिला-जुला'], labGo: ['Preview', 'देखो'], sparse: ['few', 'कम'], normalD: ['normal', 'सामान्य'], dense: ['lots', 'ज़्यादा'], tapIt: ['tap it ✨', 'टैप करो ✨'], dontTap: ["don't tap", 'मत छूना'], tutDone: ['🎉 You know how to play!', '🎉 तुम्हें खेलना आ गया!'],
+  legendTap: ['Tap these', 'इन्हें टैप करो'], legendDont: ["Don't touch these", 'इन्हें मत छूना'],
+  nextSong: ['Next song', 'अगला गाना'], replay: ['Replay', 'फिर से'], songList: ['Songs', 'गाने'], homeBtn: ['Home', 'होम'], labBack: ['Lab', 'लैब'], stopped: ['Stopped early — not saved', 'बीच में रोका — सेव नहीं हुआ'],
+  msgQuit: ['See you next time! 🌸', 'फिर मिलेंगे! 🌸'], combo2: ['Best combo', 'सबसे बड़ा कॉम्बो'], perfect2: ['Perfect', 'शानदार'], great2: ['Great', 'बढ़िया'], good2: ['Good', 'अच्छा'], missed2: ['Missed', 'छूटे'], accuracy: ['Accuracy', 'सटीकता'],
+  locked: ['locked', 'बंद'], tabSkin: ['Tiles', 'टाइलें'], tabGlitter: ['Glitter', 'चमक'], tabFrame: ['Frames', 'फ़्रेम'], tabTheme: ['Themes', 'थीम'], tabOutfit: ['Gigi', 'गीगी']
 };
 const tx = (k, ...a) => { const v = TX[k] ? TX[k][S.set.lang === 'hi' ? 1 : 0] : k; return typeof v === 'function' ? v(...a) : v; };
 
 // ---------- helpers ----------
-const toast = (html, ms = 1800) => { const d = document.createElement('div'); d.className = 'toast'; d.innerHTML = html; document.body.appendChild(d); setTimeout(() => d.remove(), ms); };
+const toast = (html, ms = 1800) => { const box = $('#toasts') || document.body, d = document.createElement('div'); d.className = 'toast'; d.innerHTML = html; box.appendChild(d); while (box.children.length > 3) box.firstChild.remove(); setTimeout(() => d.remove(), ms); };
+const ic = (n, cls) => window.Icons ? Icons.svg(n, cls) : '';
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const totalStars = () => { let n = 0; for (const id in S.best) for (const d in S.best[id]) n += S.best[id][d].stars || 0; return n; };
 const crownsOf = id => { const b = S.best[id] || {}; return (b.normal && b.normal.stars === 3 ? 1 : 0) + (b.hard && b.hard.stars === 3 ? 1 : 0) + (b.hard && b.hard.fc ? 1 : 0); };
@@ -143,25 +151,26 @@ function go(id) { if (id === 'closet') { shopTab = 'outfit'; id = 'shop'; } if (
 document.addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (!b) return; A.init(); A.sfx('tap');
   if (b.dataset.go === 'songs' && cur === 'home' && !S.tut) { startTutorial(); return; } // very first ▶ Play: guided, no-reading tutorial
   go(b.dataset.go); });
-function renderHome() { $('#hStars').textContent = '⭐ ' + totalStars(); $('#hCoins').textContent = '🪙 ' + S.coins; $('#giftBtn').textContent = (S.daily.last === today() ? '✅ ' : '🎁 ') + tr('gift').replace('🎁 ', '') + (S.daily.streak ? ` · ${S.daily.streak}🔥` : ''); }
+function renderHome() { $('#hStars').textContent = totalStars(); $('#hCoins').textContent = S.coins; const got = S.daily.last === today(); $('#giftBtn').innerHTML = ic(got ? 'check' : 'gift') + `<span>${esc(tr('gift'))}${S.daily.streak ? ` · ${S.daily.streak}` : ''}</span>` + (S.daily.streak ? ic('fire') : ''); }
 
 // ---------- songs list ----------
 const allSongs = () => window.TILE_SONGS.map(s => ({ ...s, builtin: true })).concat(customs.map(c => ({ ...c, custom: true })));
 function renderSongs() {
-  const ts = totalStars(); $('#sStars').textContent = '⭐ ' + ts;
+  const ts = totalStars(); $('#sStars').textContent = ts;
   $$('#diffSeg button').forEach(b => b.classList.toggle('on', b.dataset.d === S.set.diff)); $('#practiceBtn').classList.toggle('on', S.set.practice);
   const L = $('#songList'); L.innerHTML = '';
   // next-unlock goal strip (no reading needed: stars, a bar and the song's picture)
   const next = window.TILE_SONGS.filter(s => s.cost > ts).sort((a, b) => a.cost - b.cost)[0], nu = $('#nextUnlock');
-  if (nu) nu.innerHTML = next ? `<span>${esc(tx('nextUnlock', ts, next.cost, next.emoji + ' ' + next.title))}</span><div class="bar"><i style="width:${Math.round(ts / next.cost * 100)}%"></i></div>` : `<span>${esc(tx('allUnlocked'))}</span>`;
+  if (nu) nu.innerHTML = next ? `<span>${ic('lock', 'c-pink')}${esc(tx('nextUnlock', ts, next.cost, next.emoji + ' ' + next.title))}</span><div class="bar"><i style="width:${Math.round(ts / next.cost * 100)}%"></i></div>` : `<span>${ic('crown', 'c-gold')}${esc(tx('allUnlocked'))}</span>`;
   const dots = id => ['easy', 'normal', 'hard'].map(df => { const st = ((S.best[id] || {})[df] || {}).stars || 0; return `<span class="dd ${df}${df === S.set.diff ? ' cur' : ''}">${df[0].toUpperCase()}<i>${'●'.repeat(st)}${'○'.repeat(3 - st)}</i></span>`; }).join('');
   allSongs().forEach(s => {
     const locked = s.builtin && ts < s.cost, b = (S.best[s.id] || {})[S.set.diff] || {}, cr = crownsOf(s.id), pr = ((S.best[s.id] || {}).practiced || {})[S.set.diff], d = document.createElement('div');
     d.className = 'card song' + (locked ? ' locked' : ''); d.dataset.id = s.id;
     const col = s.color || ({ moon: '#b9a6ff', pinkgold: '#ffb3d9', ocean: '#8fe3ff', galaxy: '#c08cff', candy: '#ffd6ec', disco: '#ff7ce0', festival: '#ffc04d', rainbow: '#bfe9ff' })[s.theme] || '#ffb3d9';
-    d.innerHTML = `<div class="em" style="background:${esc(col)}">${esc(s.emoji || '🎵')}</div><div style="min-width:0"><div class="ti" dir="auto">${esc(s.title)}</div>
-      <div class="sub">${s.custom ? esc(tx('mySong')) + ' · ' + Math.round(s.bpm) + ' BPM' : esc(s.by)}${locked ? ` · 🔒 ${s.cost}⭐` : ''}</div>
-      <div class="stars">${'⭐'.repeat(b.stars || 0)}${'☆'.repeat(3 - (b.stars || 0))} ${'👑'.repeat(cr)}${pr ? ' 💗' : ''}</div><div class="dots">${dots(s.id)}</div></div>` + (s.custom ? `<button class="btn icon silver edit" data-edit="${s.id}" aria-label="Edit">✏️</button>` : locked ? '' : `<button class="btn icon silver edit" data-theme="${s.id}" aria-label="Theme">🎨</button>`);
+    const st = b.stars || 0, stars = [0, 1, 2].map(i => ic(i < st ? 'star' : 'starO', i < st ? 'c-gold' : 'c-grey')).join('');
+    d.innerHTML = `<div class="em" style="background:${esc(col)}">${esc(s.emoji || '🎵')}</div><div class="info"><div class="ti" dir="auto">${esc(s.title)}</div>
+      <div class="sub">${s.custom ? ic('music') + esc(tx('mySong').replace(/^\S+\s/, '')) + ' · ' + Math.round(s.bpm) + ' BPM' : esc(s.by)}${locked ? ` · ${ic('lock')} ${s.cost}` + ic('star', 'c-gold') : ''}</div>
+      <div class="stars">${stars}${cr ? `<span class="crown">${ic('crown')}${cr > 1 ? '×' + cr : ''}</span>` : ''}${pr ? ic('heart', 'c-pink') : ''}</div><div class="dots">${dots(s.id)}</div></div>` + (s.custom ? `<button class="btn icon silver edit" data-edit="${s.id}" aria-label="Edit">${ic('edit')}</button>` : locked ? '' : `<button class="btn icon silver edit" data-theme="${s.id}" aria-label="Theme">${ic('palette', 'c-pink')}</button>`);
     L.appendChild(d);
   });
 }
@@ -191,15 +200,15 @@ const msg = html => { $('#msgCard').innerHTML = html; $('#mMsg').classList.add('
 
 // ---------- shop / closet ----------
 let shopTab = 'skin';
-const TABN = { skin: '💎 Tiles', glitter: '✨ Glitter', frame: '🖼️ Frames', theme: '🌌 Themes', outfit: '🎀 Gigi' }, TABN_HI = { skin: '💎 टाइलें', glitter: '✨ चमक', frame: '🖼️ फ़्रेम', theme: '🌌 थीम', outfit: '🎀 गीगी' };
+const TABN = { skin: ['gem', 'tabSkin'], glitter: ['sparkle', 'tabGlitter'], frame: ['sticker', 'tabFrame'], theme: ['rainbow', 'tabTheme'], outfit: ['bow', 'tabOutfit'] };
 function renderShop() {
-  $('#shCoins').textContent = '🪙 ' + S.coins;
-  $('#shopTabs').innerHTML = Object.keys(TABN).map(k => `<button class="btn small ${k === shopTab ? 'gold' : 'silver'}" data-tab="${k}">${S.set.lang === 'hi' ? TABN_HI[k] : TABN[k]}</button>`).join('');
+  $('#shCoins').textContent = S.coins;
+  $('#shopTabs').innerHTML = Object.keys(TABN).map(k => `<button class="btn small ${k === shopTab ? 'gold' : 'silver'}" data-tab="${k}">${ic(TABN[k][0])}<span>${tx(TABN[k][1])}</span></button>`).join('');
   const g = $('#shopGrid'); g.innerHTML = '';
   SHOP[shopTab].forEach(([id, name, price]) => {
     const own = S.owned[shopTab].includes(id), eq = shopTab === 'theme' ? false : S.eq[shopTab] === id, d = document.createElement('div');
     d.className = 'card item' + (eq ? ' eq' : ''); d.dataset.id = id;
-    d.innerHTML = `<canvas></canvas><div class="nm">${esc(shopTab === 'theme' ? nm(id, name) : nm(shopTab + '|' + id, name))}</div><div class="pr">${eq ? tx('wearing') : own ? (shopTab === 'theme' ? tx('yoursT') : tx('tapToUse')) : '🪙 ' + price}</div>`;
+    d.innerHTML = `<canvas></canvas><div class="nm">${esc(shopTab === 'theme' ? nm(id, name) : nm(shopTab + '|' + id, name))}</div><div class="pr">${eq ? ic('check', 'c-pink') + esc(tx('wearing').replace(/^\S+\s/, '')) : own ? (shopTab === 'theme' ? ic('check', 'c-pink') + esc(tx('yoursT').replace(/^\S+\s/, '')) : esc(tx('tapToUse'))) : ic('coin', 'c-gold') + price}</div>`;
     g.appendChild(d); const cv = d.querySelector('canvas'); requestAnimationFrame(() => drawPreview(cv, shopTab, id));
   });
 }
@@ -227,8 +236,8 @@ $('#shopGrid').addEventListener('click', e => {
 
 // ---------- stickers ----------
 function renderAlbum() {
-  const have = STICKERS.filter(s => S.stickers[s[0]]).length; $('#alCount').textContent = `${have}/${STICKERS.length}`; $('#packN').textContent = S.packs;
-  $('#albumGrid').innerHTML = STICKERS.map(([e, r]) => { const n = S.stickers[e] || 0; return `<div class="sticker ${n ? (r === 'g' ? 'golden' : r === 'r' ? 'rare' : '') : 'none'}">${n ? e : '❔'}${n > 1 ? `<small>×${n}</small>` : ''}</div>`; }).join('');
+  const have = STICKERS.filter(s => S.stickers[s[0]]).length; $('#alCount').textContent = `${have} / ${STICKERS.length}`; $('#packN').textContent = S.packs;
+  $('#albumGrid').innerHTML = STICKERS.map(([e, r]) => { const n = S.stickers[e] || 0; return `<div class="sticker ${n ? (r === 'g' ? 'golden' : r === 'r' ? 'rare' : '') : 'none'}">${n ? e : ic('sticker')}${n > 1 ? `<small>×${n}</small>` : ''}</div>`; }).join('');
 }
 function openPack() {
   if (S.packs < 1) { toast(tx('packsHow')); return; }
@@ -256,15 +265,15 @@ $('#fxVol').addEventListener('change', () => A.fx('powerup'));
 const LABS = { world: null, obs: null, pu: null, song: 'ode', diff: 'easy', dens: '1.6' }; // Test lab runs never touch real progress (see finishGame)
 function renderLab() { const w = Object.keys(Art.THEMES), ob = ['bomb', 'car', 'spiky', 'cloud', 'snowball', 'lava', 'crab'], pu = Object.keys(PU);
   const btns = (arr, key, lab) => arr.map(x => `<button class="btn small ${LABS[key] === x ? 'gold' : 'silver'}" data-lab="${key}" data-v="${esc(x)}">${esc(lab(x))}</button>`).join('');
-  $('#labBody').innerHTML = `<div class="lbl">${tx('labSong')}</div><div class="row">${btns(allSongs().map(s => s.id), 'song', x => { const s = allSongs().find(q => q.id === x); return (s.emoji || '🎵') + ' ' + s.title; })}</div>
-  <div class="lbl">${tx('labDiff')}</div><div class="row">${btns(['easy', 'normal', 'hard'], 'diff', x => tr(x))}</div><div class="lbl">${tx('labDens')}</div><div class="row">${btns(['2.6', '1.6', '0.9'], 'dens', x => tx({ '2.6': 'sparse', '1.6': 'normalD', '0.9': 'dense' }[x]))}</div>
-  <div class="lbl">${tx('labWorld')}</div><div class="row">${btns(w, 'world', themeName)}</div><div class="lbl">${tx('labObs')}</div><div class="row">${btns(ob, 'obs', x => ({ bomb: '💣', car: '🚗', spiky: '🦔', cloud: '⛈️', snowball: '☃️', lava: '🌋', crab: '🦀' }[x] || x))}<button class="btn small ${!LABS.obs ? 'gold' : 'silver'}" data-lab="obs" data-v="">${tx('labOwn')}</button></div>
-  <div class="lbl">${tx('labPu')}</div><div class="row">${btns(pu, 'pu', x => PU[x].e + ' ' + PU[x].name)}<button class="btn small ${!LABS.pu ? 'gold' : 'silver'}" data-lab="pu" data-v="">${tx('labMix')}</button></div>
-  <div class="lbl">${tx('labFx')}</div><div class="row">${['powerup', 'poof', 'combo', 'starpower', 'intro', 'fanfare'].map(k => `<button class="btn small silver" data-fx="${k}">${k}</button>`).join('')}</div>
-  <div class="row"><button class="btn gold" id="labGo">${tx('labGo')}</button></div>`; }
+  $('#labBody').innerHTML = `<div class="lbl">${ic('music')}<span>${tx('labSong')}</span></div><div class="row">${btns(allSongs().map(s => s.id), 'song', x => { const s = allSongs().find(q => q.id === x); return (s.emoji || '🎵') + ' ' + s.title; })}</div>
+  <div class="lbl">${ic('speed')}<span>${tx('labDiff')}</span></div><div class="row">${btns(['easy', 'normal', 'hard'], 'diff', x => tr(x))}</div><div class="lbl">${ic('list')}<span>${tx('labDens')}</span></div><div class="row">${btns(['2.6', '1.6', '0.9'], 'dens', x => tx({ '2.6': 'sparse', '1.6': 'normalD', '0.9': 'dense' }[x]))}</div>
+  <div class="lbl">${ic('rainbow')}<span>${tx('labWorld')}</span></div><div class="row">${btns(w, 'world', themeName)}</div><div class="lbl">${ic('bomb')}<span>${tx('labObs')}</span></div><div class="row">${btns(ob, 'obs', x => ({ bomb: '💣', car: '🚗', spiky: '🦔', cloud: '⛈️', snowball: '☃️', lava: '🌋', crab: '🦀' }[x] || x))}<button class="btn small ${!LABS.obs ? 'gold' : 'silver'}" data-lab="obs" data-v="">${tx('labOwn')}</button></div>
+  <div class="lbl">${ic('magnet')}<span>${tx('labPu')}</span></div><div class="row">${btns(pu, 'pu', x => PU[x].e + ' ' + PU[x].name)}<button class="btn small ${!LABS.pu ? 'gold' : 'silver'}" data-lab="pu" data-v="">${tx('labMix')}</button></div>
+  <div class="lbl">${ic('sound')}<span>${tx('labFx')}</span></div><div class="row">${['powerup', 'poof', 'combo', 'starpower', 'intro', 'fanfare'].map(k => `<button class="btn small silver" data-fx="${k}">${k}</button>`).join('')}</div>
+  <div class="row" style="margin-top:var(--s3)"><button class="btn gold" id="labGo">${ic('play')}<span>${tx('labGo')}</span></button></div>`; }
 $('#labBody').addEventListener('click', e => { const b = e.target.closest('[data-lab]'); if (b) { const k = b.dataset.lab; LABS[k] = b.dataset.v || (k === 'song' || k === 'diff' || k === 'dens' ? LABS[k] : null); renderLab(); return; }
   const f = e.target.closest('[data-fx]'); if (f) { const ctx = A.init(); A.setFx(true, S.set.fxVol == null ? 0.5 : S.set.fxVol); ctx.resume().then(() => A.fx(f.dataset.fx), () => { }); return; } // wait for resume: the first tap used to be silent
-  if (e.target.id === 'labGo') { const song = allSongs().find(s => s.id === LABS.song) || window.TILE_SONGS.find(s => s.id === 'ode'); LAB = { world: LABS.world || 'rainbowroad', obs: LABS.obs, pu: LABS.pu, dens: +LABS.dens || 1.6 }; startGame(song, LABS.diff || 'easy'); } });
+  if (e.target.closest('#labGo')) { const song = allSongs().find(s => s.id === LABS.song) || window.TILE_SONGS.find(s => s.id === 'ode'); LAB = { world: LABS.world || 'rainbowroad', obs: LABS.obs, pu: LABS.pu, dens: +LABS.dens || 1.6 }; startGame(song, LABS.diff || 'easy'); } });
 window.__lab = LABS; window.__renderLab = renderLab;
 $('#speedSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.set.speed = b.dataset.v; save(); renderSettings(); });
 $('#soundSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.set.sound = b.dataset.v === '1'; A.setMuted(!S.set.sound); save(); renderSettings(); });
@@ -284,14 +293,15 @@ function startCal(mode) {
 }
 function visAnim(p0) { const cvv = $('#calCv'), cc = cvv.getContext('2d'); cvv.classList.remove('hidden');
   (function f() { if (!CAL.on) { cvv.classList.add('hidden'); return; } const [w, h] = fit(cvv); cc.setTransform(DPR, 0, 0, DPR, 0, 0); cc.clearRect(0, 0, w, h);
-    const ph = ((performance.now() - p0) / 600) % 1, y = (ph < 0 ? 0 : ph) * (h - 30); cc.fillStyle = '#ff4fa3'; cc.fillRect(0, h - 22, w, 4); Art.gem(cc, 'heart', w / 2, 10 + y * 0.92, 30, '#fff', '#ff4fa3'); requestAnimationFrame(f); })(); }
+    const e = performance.now() - p0, ph = ((e % 600) + 600) % 600 / 600, line = h - 20, y0 = 16, rest = e >= 0 && ph < 0.15, fall = e < 0 ? 0 : (ph - 0.15) / 0.85, y = rest ? line : y0 + (line - y0) * fall * fall; // falls and lands ON the line exactly at each beat (ph = 0), rests briefly
+    cc.fillStyle = '#ff4fa3'; cc.fillRect(0, line - 2, w, 4); if (rest) { cc.globalAlpha = 0.5 * (1 - ph / 0.15); cc.beginPath(); cc.arc(w / 2, line, 26, 0, Math.PI * 2); cc.fillStyle = '#ffd76a'; cc.fill(); cc.globalAlpha = 1; } Art.gem(cc, 'heart', w / 2, y, 30, '#fff', '#ff4fa3'); requestAnimationFrame(f); })(); }
 $('#tapPad').addEventListener('pointerdown', e => { if (!CAL.on) return; updateClock(); const p = perfOf(e); CAL.taps.push(CAL.mode === 'audio' ? p / 1000 + clock.off : p / 1000); $('#calBar').style.width = Math.min(100, CAL.taps.length / 12 * 100) + '%'; });
 function finishCal() {
   if (!CAL.on) return; CAL.on = false;
   const d = CAL.taps.map(t => { let best = 9; for (const c of CAL.clicks) if (Math.abs(t - c) < Math.abs(best)) best = t - c; return best; }).filter(v => Math.abs(v) < 0.3).sort((a, b) => a - b);
   if (d.length < 6) { $('#calOut').textContent = tx('notEnough'); return; }
   const med = Math.round(d[Math.floor(d.length / 2)] * 1000 / 5) * 5;
-  if (CAL.mode === 'audio') S.set.offset = med; else S.set.vis = Math.max(-100, Math.min(150, med)); S.set.calibrated = true; save();
+  if (CAL.mode === 'audio') { S.set.offset = med; S.set.calibrated = true; } else { S.set.vis = Math.max(-100, Math.min(200, med)); S.set.visCal = true; } save();
   $('#calOut').textContent = CAL.mode === 'audio' ? tx('soundSynced', S.set.offset) : tx('screenSynced', S.set.vis); A.sfx('star');
 }
 CAL.finish = finishCal;
@@ -345,7 +355,7 @@ $('#edRegen').addEventListener('click', async () => { const full = await DB.get(
 $('#edDel').addEventListener('click', () => msg(`<h2>${tx('delQ')}</h2><p dir="auto">${esc(editing.title)}</p><div class="row"><button class="btn" id="delYes">${tx('delYes')}</button><button class="btn silver" onclick="this.closest('.modal').classList.remove('on')">${tx('keepIt')}</button></div>`));
 document.addEventListener('click', e => { const b = e.target.closest('[data-pick]'); if (!b) return; const id = b.dataset.song, k = b.dataset.pick, song = window.TILE_SONGS.find(x => x.id === id);
   if (!S.owned.theme.includes(k) && k !== song.theme) { toast(tx('lockedTheme')); return; } if (k === song.theme) delete S.songTheme[id]; else S.songTheme[id] = k; save(); A.sfx('coin'); $$('[data-pick]').forEach(x => x.className = 'btn small ' + (x === b ? 'gold' : 'silver')); });
-document.addEventListener('click', async e => { if (e.target.id === 'delYes') { await DB.del(editing.id); delete S.best[editing.id]; save(); await loadCustoms(); $('#mMsg').classList.remove('on'); toast(tx('deleted')); go('songs'); } });
+document.addEventListener('click', async e => { if (e.target.closest('#delYes')) { await DB.del(editing.id); delete S.best[editing.id]; save(); await loadCustoms(); $('#mMsg').classList.remove('on'); toast(tx('deleted')); go('songs'); } });
 
 // =================== GAME ENGINE (v2: Guitar-Hero model) ===================
 // The song is ONE continuous audio track. Taps never create sounds or AudioNodes. Every note position and every
@@ -364,8 +374,11 @@ let LAB = null; const COUNT = 2.0, PAD = 0.35; // countdown seconds; silence at 
 const clock = { off: null };
 function updateClock() { // off = (audio time being HEARD) - (performance time)
   const ctx = A.ctx(); let est = null;
-  if (ctx.getOutputTimestamp) { const ts = ctx.getOutputTimestamp(); if (ts && ts.contextTime > 0 && ts.performanceTime > 0) est = ts.contextTime - ts.performanceTime / 1000; }
-  if (est == null) est = ctx.currentTime - (ctx.outputLatency || ctx.baseLatency || 0) - performance.now() / 1000;
+  // getOutputTimestamp already includes the output latency, so it is NOT subtracted again; the fallback subtracts it once.
+  // A stale pair (right after resume() it can still describe the moment of suspend) would put the heard time ahead of the render clock: reject it.
+  const nowP = performance.now() / 1000;
+  if (ctx.getOutputTimestamp) { const ts = ctx.getOutputTimestamp(); if (ts && ts.contextTime > 0 && ts.performanceTime > 0) { const e = ts.contextTime - ts.performanceTime / 1000, ahead = ctx.currentTime - (e + nowP); if (ahead > -0.01 && ahead < 0.5) est = e; } }
+  if (est == null) est = ctx.currentTime - (ctx.outputLatency || ctx.baseLatency || 0) - nowP;
   if (clock.off == null || Math.abs(est - clock.off) > 0.04) clock.off = est; else clock.off += (est - clock.off) * 0.08;
 }
 const perfOf = e => { const t = e && e.timeStamp, n = performance.now(); return t > 0 && t <= n + 5 && n - t < 1000 ? t : n; };
@@ -417,7 +430,7 @@ async function prepare(song, diff, onP) { // onP(progress, text)
     tiles.sort((a, b) => a.t - b.t);
     if (DIFF[diff].gap) { const kept = []; let p = null; for (const t of tiles) { if (p && !t.pair && t.t - p.t < DIFF[diff].gap) continue; if (t.pair && p && Math.abs(t.t - p.t) > 0.001) continue; kept.push(t); if (!t.pair) p = t; } // O(n): track the last kept non-pair tile
       for (let i = 0; i < kept.length - 1; i++) if (kept[i].dur && kept[i].t + kept[i].dur > kept[i + 1].t - DIFF[diff].gap) kept[i].dur = Math.max(0, kept[i + 1].t - DIFF[diff].gap - kept[i].t); tiles.length = 0; tiles.push(...kept); }
-    return { tiles, end: full.duration + 0.3, bpm: full.bpm, beatTimes: full.an.beats.map((b, i) => [b.t, i]), stems: { full: decoded.get(song.id) }, energy: full.energy, theme: full.theme, songOffset: (full.offset || 0) / 1000 };
+    return { tiles, end: full.duration + 0.3, bpm: full.bpm, beatTimes: (full.an.grid || full.an.beats.map(b => b.t)).map((t, i) => [t, i]), stems: { full: decoded.get(song.id) }, energy: full.energy, theme: full.theme, songOffset: (full.offset || 0) / 1000 };
   }
   const key = song.id + '|' + diff; let r = rendered.get(key);
   if (!r) { const ar = arrange(song, diff); onP(0.3, tx('warm'));
@@ -439,7 +452,7 @@ async function startGame0(song, diff) {
   LOOP++; G.on = false; (G.srcs || []).forEach(s => { try { s.stop(); } catch (e) { } }); G.srcs = []; // kill any previous loop/audio before starting
   const ctx = A.init(); await ctx.resume(); A.inGame = true;
   if (!ctx.__watch) { ctx.__watch = 1; ctx.addEventListener('statechange', () => { if (ctx.state !== 'running' && G.on && !G.paused && !G.ended) pauseGame(); }); }
-  let b; try { loadUI(0.05, tx('loading')); b = await prepare(song, diff, loadUI); } catch (e) { console.warn(e); $('#mLoad').classList.remove('on'); A.inGame = false; toast(tx('couldNotLoad')); return; }
+  let b; try { loadUI(0.05, tx('loading')); b = await prepare(song, diff, loadUI); } catch (e) { console.warn(e); $('#mLoad').classList.remove('on'); A.inGame = false; toast(tx('couldNotLoad')); if (!$$('.screen.on').length) go(LAB ? 'lab' : 'songs'); return; }
   loadUI(1, tx('ready'));
   const tiles = b.tiles.map((t, i) => ({ ...t, id: i, state: 0, holdP: 0, bead: 0 })), tut = TUT.pending; TUT.pending = false;
   let theme = (LAB && LAB.world) || S.songTheme[song.id] || b.theme || song.theme || 'pinkgold';
@@ -660,10 +673,10 @@ const badgeImg = () => popMake('🚫 ' + tx('dontTap'), '#e0285a', false), finge
 function drawItems(vnow, lead, T) {
   for (const it of G.items) { const u = (it.t - vnow) / lead; if (u > 1.02) break; if (it.state === 1 || it.state === 2 || u < -0.15) continue;
     projS(u); const s = PS, y = PY, sz = L.lw * 0.8 * s, x = laneX(it.lane, s) + (it.ob === 'car' ? Math.sin(T * 30) * 2 : 0), bob = it.kind === 'pu' ? Math.sin(T * 6) * 4 * s : 0;
-    c.drawImage(it.kind === 'pu' ? puImg(it.pu) : obsImg(it.ob), x - sz / 2, y - sz * 0.75 + bob, sz, sz);
+    c.drawImage(it.kind === 'pu' ? puImg(it.pu) : obsImg(it.ob), x - sz / 2, y - sz / 2 + bob, sz, sz);
     if (it.ob === 'bomb') spark(SPR.sparkGold, x + sz * 0.17, y - sz * 0.62, 6 * s * (1 + 0.5 * Math.sin(T * 25)), 1); // fuse spark
     if (it.ob === 'car') { c.globalAlpha = 0.5; c.fillStyle = '#fff'; c.fillRect(x - sz * 0.05, y - sz * 0.95, sz * 0.1, sz * 0.25 * s); c.globalAlpha = 1; }
-    if (it.kind === 'obs' && it.state === 0 && (!G.seenObs.has(it.ob) || (G.tut && !G.tut.done)) && u < 0.9) { const im = badgeImg(), k = Math.max(0.55, s) * 0.9; c.drawImage(im, x - im.cw * k / 2, y - sz * 0.95 - im.ch * k, im.cw * k, im.ch * k); }
+    if (it.kind === 'obs' && it.state === 0 && (!G.seenObs.has(it.ob) || (G.tut && !G.tut.done)) && u < 0.9) { const im = badgeImg(), k = Math.max(0.55, s) * 0.9; c.drawImage(im, x - im.cw * k / 2, y - sz * 0.7 - im.ch * k, im.cw * k, im.ch * k); }
     if (it.kind === 'pu' && it.state === 0 && (G.qual || 0) < 2) { const f = fingerImg(), k = sz * 0.45; c.globalAlpha = 0.65 + 0.35 * Math.sin(T * 8); c.drawImage(f, x + sz * 0.25, y - sz * 0.35 + Math.abs(Math.sin(T * 5)) * 6 * s, k, k); c.globalAlpha = 1; } }
   for (let i = G.poofs.length - 1; i >= 0; i--) { const p = G.poofs[i]; p.a -= 2.4 * DT; if (p.a <= 0) { G.poofs.splice(i, 1); continue; } c.globalAlpha = p.a; c.drawImage(cloudPuff(), p.x - 60 * (2 - p.a), p.y - 40 * (2 - p.a), 120 * (2 - p.a), 80 * (2 - p.a)); c.globalAlpha = 1; }
 }
@@ -732,7 +745,8 @@ function resolveSprites() { initFont(); const tw = L.lw * 0.92, th = L.lw * 0.74
   G.spr = SPR; }
 const spark = (im, x, y, s, a) => { if (s < 0.5 || a <= 0.02) return; c.globalAlpha = a > 1 ? 1 : a; c.drawImage(im, x - s * 1.33, y - s * 1.33, s * 2.67, s * 2.67); c.globalAlpha = 1; };
 const easeBack = x => 1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2);
-function drawSpriteC(im, x, y, h, a) { const k = h / im.ch; c.globalAlpha = a; c.drawImage(im, x - im.cw * k / 2, y - h / 2, im.cw * k, h); c.globalAlpha = 1; }
+function drawSpriteC(im, x, y, h, a) { let k = h / im.ch; const maxW = L.W * 0.94; if (im.cw * k > maxW) { k = maxW / im.cw; h = im.ch * k; } const w = im.cw * k; x = Math.max(w / 2 + L.W * 0.03, Math.min(L.W * 0.97 - w / 2, x)); // big pops shrink / shift to stay on screen
+  c.globalAlpha = a; c.drawImage(im, x - w / 2, y - h / 2, w, h); c.globalAlpha = 1; }
 function frame(ts) {
   const f0 = performance.now(); if (G.lastFrame) { const d = ts - G.lastFrame; G.fi[G.fN & 4095] = d; DT = Math.min(0.05, Math.max(0.001, d / 1000)); if (S.set.autoQ !== false) autoQuality(d); } G.lastFrame = ts;
   if (layout() || !G.spr) resolveSprites();
@@ -741,7 +755,7 @@ function frame(ts) {
   // draw time = rAF vsync timestamp + smoothed callback delay: same average sync as before, without main-thread jitter. Positions still come from the audio clock.
   const lag = f0 - ts; if (lag >= 0 && lag < 50) G.dly += (lag - G.dly) * 0.05; const tv = lag >= -2 && lag < 100 ? ts + G.dly : f0;
   if (!G.paused) updateClock();
-  const calm = !!S.set.calm, q = G.qual || 0, T = ts / 1000, now = G.paused ? G.pauseAt : songAt(tv), jnow = now - S.set.offset / 1000, vnow = now + (S.set.vis || 0) / 1000, lead0 = G.D.lead * (SPEEDK[S.set.speed || 'slow'] || 1);
+  const calm = !!S.set.calm, q = G.qual || 0, T = ts / 1000, now = G.paused ? G.pauseAt : songAt(tv), jnow = now - S.set.offset / 1000, vnow = jnow + (S.set.vis || 0) / 1000, lead0 = G.D.lead * (SPEEDK[S.set.speed || 'slow'] || 1);
   G.nowS = now; G.slow += ((G.pu.slowmo > now ? 1.5 : 1) - G.slow) * (1 - Math.pow(0.94, DT * 60)); const lead = lead0 * G.slow; G.lead = lead; G.win = G.D.win * (G.pu.slowmo > now ? 1.4 : 1);
   if (!G.paused && G.tut && !G.tut.done) tutCheck(jnow);
   if (!G.paused) {
@@ -783,6 +797,9 @@ function frame(ts) {
   for (let l = 0; l < 4; l++) { const f = Math.max(G.laneFlash[l], G.laneHit[l]); if (f > 0.02) { c.globalAlpha = f * 0.55; if (q < 2) c.drawImage(SPR.glow[l], laneX(l, 1) - L.lw * 0.7, L.strikeY - L.lw * 1.6, L.lw * 1.4, L.lw * 2.2); c.globalAlpha = 1; G.laneFlash[l] *= Math.pow(0.85, DT * 60); G.laneHit[l] *= Math.pow(0.88, DT * 60); }
     const m = G.missFx[l]; if (m > 0.02) { c.globalAlpha = m * 0.8; c.drawImage(SPR.grey, laneX(l, 1) - L.lw * 0.46, L.strikeY - L.lw * 2.4, L.lw * 0.92, L.lw * 2.4); c.globalAlpha = 1; } }
   if (SK.p1c) { finishTail(now); return; }
+  // jewel-socket lane buttons at the strike line (a tiny bounce on each beat), drawn under the notes so each tile lands in its socket
+  const down = DOWN; down.fill(0); G.press.forEach(markDown); const bs = 1 + 0.03 * pulse * (calm ? 0 : 1);
+  for (let l = 0; l < 4; l++) { const im = SPR.btn[l][down[l] || G.laneHit[l] > 0.4 ? 1 : 0]; c.drawImage(im, laneX(l, 1) - L.lw * 0.52 * bs, L.strikeY - L.lw * 0.45 * bs, L.lw * 1.04 * bs, L.lw * 0.9 * bs); }
   // notes: far to near so nearer draw on top
   const tileSet = spOn ? null : SPR.tile, tw = SPR.tw, th = SPR.th, rib = spOn ? SPR.ribbonStar : SPR.ribbon, bead = spOn ? SPR.beadStar : SPR.bead;
   let last = G.first; while (last < G.tiles.length && (G.tiles[last].t - vnow) / lead <= 1.02) last++;
@@ -797,8 +814,8 @@ function frame(ts) {
         if (held) { c.globalAlpha = calm ? 0.7 : 0.6 + 0.3 * Math.sin(T * 20); c.drawImage(SPR.glow[t.lane], x - L.lw * 0.5, L.strikeY - L.lw * 0.5, L.lw, L.lw); c.globalAlpha = 1; } } }
     if (t.state === 3 || (t.state === 1 && t.dur > 0)) continue;
     if (u > 1.02) continue; projS(u); const s = PS, y = PY, w = tw * s, h = th * s, fi = Math.floor(T * 6 + t.id) % 3;
-    let im = tileSet ? tileSet[t.shapeI % 6][fi] : SPR.star[fi]; const k = w / tw, x0 = laneX(t.lane, s) - (tw / 2 + 12) * k, y0 = y - (th + 12) * k + h * 0.25;
-    if (q < 2 && u < 0.4 && u > -0.1 && t.state === 0) { c.globalAlpha = 0.55 * (1 - Math.max(0, u) / 0.4); c.drawImage(SPR.shadow, laneX(t.lane, s) - w * 0.6, y + h * 0.12, w * 1.2, h * 0.4); c.globalAlpha = 1; } // soft shadow near the strike line
+    let im = tileSet ? tileSet[t.shapeI % 6][fi] : SPR.star[fi]; const k = w / tw, x0 = laneX(t.lane, s) - (tw / 2 + 12) * k, y0 = y - (th / 2 + 12) * k; // tile CENTRE sits on the strike line at its hit time
+    if (q < 2 && u < 0.4 && u > -0.1 && t.state === 0) { c.globalAlpha = 0.55 * (1 - Math.max(0, u) / 0.4); c.drawImage(SPR.shadow, laneX(t.lane, s) - w * 0.6, y + h * 0.36, w * 1.2, h * 0.4); c.globalAlpha = 1; } // soft shadow near the strike line
     if (t.state === 2) { im = greyTile(im); c.globalAlpha = Math.max(0, 0.75 * (1 - (vnow - t.t) / 0.35)); } // missed: grey, cracked, fades
     c.drawImage(im, x0, y0, im.width * k, im.height * k);
     if (SPR.acc && q < 2 && t.state !== 2) c.drawImage(SPR.acc, x0, y0, SPR.acc.width * k, SPR.acc.height * k); // world accent (frost, embers, bubbles…)
@@ -810,9 +827,8 @@ function frame(ts) {
     const st = G.streak[l]; if (st > 0.03) { const sw = L.lw * (1.3 + (1 - st) * 0.9) * sc; c.globalAlpha = st; c.drawImage(SPR.streak[jj === 2 ? 1 : 0], x - sw / 2, L.strikeY - L.lw * 0.13, sw, L.lw * 0.26); c.globalAlpha = 1; G.streak[l] *= Math.pow(0.8, DT * 60); } }
   drawItems(vnow, lead, T);
   if (SK.part2) { finishTail(now); return; }
-  // jewel-socket lane buttons at the strike line (a tiny bounce on each beat)
-  const down = DOWN; down.fill(0); G.press.forEach(markDown); const bs = 1 + 0.03 * pulse * (calm ? 0 : 1);
-  for (let l = 0; l < 4; l++) { const im = SPR.btn[l][down[l] || G.laneHit[l] > 0.4 ? 1 : 0]; c.drawImage(im, laneX(l, 1) - L.lw * 0.52 * bs, L.strikeY - L.lw * 0.45 * bs, L.lw * 1.04 * bs, L.lw * 0.9 * bs);
+  // in-lane miss marks over the sockets
+  for (let l = 0; l < 4; l++) {
     const m = G.missFx[l]; if (m > 0.02) { const x = laneX(l, 1), r = L.lw * (0.5 + 0.08 * (1 - m)); c.globalAlpha = m; c.drawImage(SPR.dash, x - r, L.strikeY - r * 0.7, r * 2, r * 1.4); c.drawImage(SPR.gpuff, x - L.lw * 0.32, L.strikeY - L.lw * (1.2 + 0.15 * (1 - m)), L.lw * 0.64, L.lw * 0.51); c.globalAlpha = 1; G.missFx[l] *= Math.pow(0.93, DT * 60); } }
   if (G.tut && !G.tut.done) drawTutorial(T, lead, vnow);
   // particles + gem shards
@@ -850,9 +866,10 @@ function frame(ts) {
 function outOfHearts() { pauseGame(true); $('#mOut').classList.add('on'); const mc = $('#mascotOut').getContext('2d'); mc.clearRect(0, 0, 160, 130); Art.mascot(mc, 80, 75, 100, 'oops', S.eq.outfit, 0); }
 // pause shows a legend: what to tap and what to leave alone
 function renderLegend() { const el = $('#legend'); if (!el || !G.on) return; const obs = [...new Set(G.items.filter(i => i.kind === 'obs').map(i => i.ob))], pus = [...new Set(G.items.filter(i => i.kind === 'pu').map(i => i.pu))];
-  el.innerHTML = (pus.length ? `<div class="lg"><b>${tx('legendTap')}</b> ${pus.map(k => `<span title="${esc(puName(k))}">${PU[k].e}</span>`).join(' ')}</div>` : '') + (obs.length ? `<div class="lg"><b>${tx('legendDont')}</b> ${obs.map(k => `<canvas data-ob="${k}" width="96" height="96"></canvas>`).join('')}</div>` : '');
+  el.innerHTML = (pus.length ? `<div class="lg"><b>${ic('hand', 'c-pink')}${tx('legendTap')}</b> ${pus.map(k => `<span title="${esc(puName(k))}">${PU[k].e}</span>`).join(' ')}</div>` : '') + (obs.length ? `<div class="lg"><b>${ic('close', 'c-pink')}${tx('legendDont')}</b> ${obs.map(k => `<canvas data-ob="${k}" width="96" height="96"></canvas>`).join('')}</div>` : '');
   el.querySelectorAll('canvas').forEach(x => x.getContext('2d').drawImage(obsImg(x.dataset.ob), 0, 0, 96, 96)); }
 function pauseGame(noModal) {
+  if (!G.on || G.ended) return; // the song is over: the results card is on its way
   if (G.paused) { if (noModal) return; if (G.resuming) G.resuming = 0; renderLegend(); $('#mPause').classList.add('on'); return; } // pausing again during the 3-2-1 (or a tutorial wait) shows the menu again
   G.paused = true; G.pauseN = (G.pauseN || 0) + 1; G.resuming = 0; G.pauseAt = songTime(); A.ctx().suspend(); if (!noModal) { renderLegend(); $('#mPause').classList.add('on'); } }
 // resume = a 3-2-1 gem countdown with the song still paused, then the audio continues (no lost heart right after resuming)
@@ -864,9 +881,8 @@ $('#contBtn').addEventListener('click', () => { G.hearts = Infinity; G.practice 
 const stopAudio = () => { (G.srcs || []).forEach(s => { try { s.stop(); s.disconnect(); } catch (e) { } }); G.srcs = []; if (G.duck) try { G.duck.disconnect(); } catch (e) { } if (G.muffle) try { G.muffle.disconnect(); } catch (e) { } A.ctx().resume(); A.inGame = false; };
 const restart = () => { $('#mPause').classList.remove('on'); $('#mOut').classList.remove('on'); stopAudio(); G.on = false; $('#game').classList.remove('on'); startGame(G.song, G.diff); };
 $('#restartBtn').addEventListener('click', restart); $('#outRetry').addEventListener('click', restart);
-$('#quitBtn').addEventListener('click', () => { $('#mPause').classList.remove('on'); stopAudio(); quit(); });
+$('#quitBtn').addEventListener('click', () => { $('#mPause').classList.remove('on'); finishGame({ quit: true }); }); // stopping a song shows the results card (nothing saved)
 $('#outEnd').addEventListener('click', () => { $('#mOut').classList.remove('on'); A.ctx().resume(); finishGame(); });
-function quit() { if (G.tut && !G.tut.done) tutFinish(true); G.on = false; LOOP++; $('#game').classList.remove('on'); wipe(); go(G.lab ? 'lab' : 'songs'); }
 document.addEventListener('visibilitychange', () => { if (document.hidden && G.on && !G.ended && (!G.paused || G.resuming)) pauseGame(); }); window.addEventListener('pagehide', () => { if (G.on && !G.ended && (!G.paused || G.resuming)) pauseGame(); });
 
 // ---------- first-play tutorial (no reading: a hand shows where, the first tiles wait for her, then one power-up and one obstacle) ----------
@@ -892,11 +908,20 @@ $('#howToBtn').addEventListener('click', () => { A.init(); startTutorial(); });
 
 // ---------- results ----------
 const RES = { raf: 0 };
-function finishGame() {
-  if (!G.on) return; stopAudio(); G.tiles.forEach(t => { if (t.state === 0) { t.state = 2; G.j.miss++; } }); window.__lastItems = G.items.map(i => ({ kind: i.kind, k: i.pu || i.ob, state: i.state, t: i.t, lane: i.lane })); const n = G.tiles.length, j = G.j, acc = n ? (j.perfect + j.great * 0.85 + j.good * 0.6) / n : 0;
-  const fc = j.miss === 0 && n > 0; let stars = acc >= 0.88 ? 3 : acc >= 0.7 ? 2 : acc >= 0.3 ? 1 : 0;
-  const id = G.song.id, lab = !!G.lab; let coins = 0, packs = 0, newBest = false, firstClear = null, practiceStar = false;
-  if (!lab) { // Test lab runs never touch real progress (best, coins, packs, plays, badges, stickers)
+// The results card ALWAYS ends with big actions: Next song, Replay, Song list, Home (+ Open pack). It is shown after a full combo, a pass,
+// a fail (out of hearts -> Finish), practice, custom songs, Lab runs and when a song is stopped from the pause menu.
+// v3 bug: the card was ~850 px tall inside a fixed, centred, non-scrolling modal, so on the Fold cover screen (browser bars) and in
+// landscape the buttons sat below the bottom edge and could not be reached; badge toasts also covered them. Now the stats scroll inside
+// the card and the action bar is pinned to its bottom, toasts move to the top while it is open.
+function finishGame(opts) {
+  if (!G.on) return; const quitRun = !!(opts && opts.quit);
+  G.ended = true; G.resuming = 0; ['mPause', 'mOut', 'mLoad'].forEach(id => $('#' + id).classList.remove('on')); // never leave a game modal stacked under (or over) the results
+  if (quitRun && G.tut && !G.tut.done) tutFinish(true);
+  stopAudio(); if (!quitRun) G.tiles.forEach(t => { if (t.state === 0) { t.state = 2; G.j.miss++; } }); window.__lastItems = G.items.map(i => ({ kind: i.kind, k: i.pu || i.ob, state: i.state, t: i.t, lane: i.lane }));
+  const j = G.j, n = quitRun ? j.perfect + j.great + j.good + j.miss : G.tiles.length, acc = n ? (j.perfect + j.great * 0.85 + j.good * 0.6) / n : 0;
+  const fc = !quitRun && j.miss === 0 && n > 0; let stars = quitRun ? 0 : acc >= 0.88 ? 3 : acc >= 0.7 ? 2 : acc >= 0.3 ? 1 : 0;
+  const id = G.song.id, lab = !!G.lab, noSave = lab || quitRun; let coins = 0, packs = 0, newBest = false, firstClear = null, practiceStar = false;
+  if (!noSave) { // Test lab runs and stopped songs never touch real progress (best, coins, packs, plays, badges, stickers)
     const before = totalStars(), crownsBefore = crownsOf(id), hadClear = Object.keys(S.best[id] || {}).some(d => ((S.best[id] || {})[d] || {}).stars > 0); S.best[id] = S.best[id] || {}; const prev = S.best[id][G.diff] || { stars: 0, score: 0 };
     newBest = G.score > (prev.score || 0);
     S.best[id][G.diff] = { stars: Math.max(prev.stars || 0, stars), score: Math.max(prev.score || 0, G.score), fc: prev.fc || (fc && !G.usedPractice) };
@@ -909,35 +934,46 @@ function finishGame() {
     S.stats = isObj(S.stats) ? S.stats : { pu: {}, dodged: 0 }; S.stats.pu = S.stats.pu || {}; S.stats.dodged = S.stats.dodged || 0; for (const k in G.stats.pu) S.stats.pu[k] = (S.stats.pu[k] || 0) + G.stats.pu[k]; S.stats.dodged += G.stats.dodged;
     if (Object.keys(S.stats.pu).length) award('pu1'); if (Object.keys(S.stats.pu).length >= 6) award('puall'); if (G.stats.rainbow) award('rainbow'); if (S.stats.dodged >= 25) award('dodge25'); if (G.stats.dodged >= 5 && G.j.miss === 0) award('dodgeperfect');
     if (G.tut) S.tut = 1; save(); }
-  A.setFx(S.set.fxOn !== false, S.set.fxVol == null ? 0.5 : S.set.fxVol); A.ctx().resume().then(() => A.fx('fanfare'), () => { });
-  const rib = (cls, t) => `<div class="ribbon ${cls}">${esc(t)}</div>`;
-  $('#resCard').innerHTML = `<canvas id="resMascot" width="${Math.round(150 * DPR)}" height="${Math.round(120 * DPR)}" style="width:150px;height:120px"></canvas>
-    <h2 dir="auto">${esc(G.song.title)}</h2>${lab ? rib('lab', tx('labRun')) : ''}<div class="big-stars">${[0, 1, 2].map(i => `<span class="${i < stars ? 'won' : ''}" style="animation-delay:${0.3 + i * 0.3}s">${i < stars ? '⭐' : '☆'}</span>`).join('')}</div>
-    <div style="font-size:30px">${'👑'.repeat(crownsOf(id))}</div>${fc ? rib('fc', '💯 ' + tx('fullCombo')) : ''}${newBest && !lab && G.score > 0 ? rib('nb', '🆕 ' + tx('newBest')) : ''}<p style="font-weight:800;font-size:20px">${esc(tx('msg' + stars))}</p>
-    <div class="stat"><span>${tx('score')}</span><span id="resScore">0</span></div>
-    <div class="stat"><span>${tx('sPerfect')}</span><span>${j.perfect}</span></div><div class="stat"><span>${tx('sGreat')}</span><span>${j.great}</span></div><div class="stat"><span>${tx('sGood')}</span><span>${j.good}</span></div><div class="stat"><span>${tx('sMissed')}</span><span>${j.miss}</span></div>
-    <div class="stat"><span>${tx('bestCombo')}</span><span>${G.maxCombo}</span></div>
-    ${lab ? '' : `<p style="font-weight:800">+${coins} 🪙 ${packs ? ' · ' + tx('packsWon', packs) : ''}</p>`}${firstClear ? `<p class="gotst"><span class="flyst">${firstClear}</span>${esc(tx('firstClear', firstClear))}</p>` : ''}${practiceStar ? `<p class="gotst">${esc(tx('practiceStar'))}</p>` : ''}
-    <div class="row"><button class="btn" id="resAgain">${tx('again')}</button><button class="btn silver" id="resSongs">${lab ? tx('backLab') : tx('songsBtn')}</button>${S.packs && !lab ? `<button class="btn gold" id="resPack">${tx('openPackBtn')}</button>` : ''}</div>`;
-  $('#mRes').classList.add('on'); const rm = $('#resMascot').getContext('2d'), sEl = $('#resScore'), fx = $('#resFx'), fc2 = fx.getContext('2d'), t0 = performance.now(), final = G.score, mood = stars >= 2 ? 'wow' : 'happy';
+  if (!quitRun) { A.setFx(S.set.fxOn !== false, S.set.fxVol == null ? 0.5 : S.set.fxVol); A.ctx().resume().then(() => A.fx('fanfare'), () => { }); }
+  const rib = (cls, icn, t) => `<div class="ribbon ${cls}">${ic(icn)}<span>${esc(t)}</span></div>`, chip = (icn, cls, v, lbl) => `<div class="chip">${ic(icn, cls)}<b>${v}</b><span>${esc(lbl)}</span></div>`;
+  const ribbons = (lab ? rib('lab', 'flask', tx('labRun')) : '') + (quitRun && !lab ? rib('quit', 'flag', tx('stopped')) : '') + (fc ? rib('fc', 'gem', tx('fullCombo')) : '') + (newBest && !noSave && G.score > 0 ? rib('nb', 'trophy', tx('newBest')) : '') + (crownsOf(id) && !noSave ? `<div class="ribbon nb">${ic('crown')}<span>×${crownsOf(id)}</span></div>` : '');
+  $('#resCard').innerHTML = `<div class="res-main"><div class="res-hero"><canvas id="resMascot" width="${Math.round(120 * DPR)}" height="${Math.round(96 * DPR)}"></canvas><h2 dir="auto">${esc(G.song.title)}</h2>
+      ${quitRun ? '' : `<div class="big-stars">${[0, 1, 2].map(i => `<span class="${i < stars ? 'won' : ''}" style="animation-delay:${0.3 + i * 0.3}s">${ic('star')}</span>`).join('')}</div>`}${ribbons ? `<div class="ribbons">${ribbons}</div>` : ''}</div>
+    <div class="res-side"><p class="res-msg">${esc(quitRun ? tx('msgQuit') : tx('msg' + stars))}</p><div class="res-score"><small>${tx('score')}</small><span id="resScore">0</span></div>
+      <div class="res-stats">${chip('gem', 'c-pink', j.perfect, tx('perfect2'))}${chip('sparkle', 'c-lilac', j.great, tx('great2'))}${chip('thumb', 'c-sky', j.good, tx('good2'))}${chip('rain', 'c-grey', j.miss, tx('missed2'))}${chip('fire', 'c-fire', G.maxCombo, tx('combo2'))}${chip('target', 'c-pink', Math.round(acc * 100) + '%', tx('accuracy'))}</div>
+      ${noSave ? '' : `<p class="res-gain">+${coins} ${ic('coin', 'c-gold')}${packs ? ` · ${esc(tx('packsWon', packs).replace(/\s*🎴$/, ''))} ${ic('cards', 'c-lilac')}` : ''}</p>`}${firstClear ? `<p class="gotst"><span class="flyst">${firstClear}</span>${esc(tx('firstClear', firstClear))}</p>` : ''}${practiceStar ? `<p class="gotst">${esc(tx('practiceStar'))}</p>` : ''}</div></div>
+    <div class="res-actions"><button class="btn" id="resNext">${ic('next')}<span>${tx('nextSong')}</span></button><button class="btn silver" id="resAgain">${ic('replay')}<span>${tx('replay')}</span></button>
+      <button class="btn silver" id="resSongs">${ic(lab ? 'flask' : 'list')}<span>${lab ? tx('labBack') : tx('songList')}</span></button><button class="btn silver" id="resHome">${ic('home')}<span>${tx('homeBtn')}</span></button>
+      ${S.packs && !noSave ? `<button class="btn gold" id="resPack">${ic('cards')}<span>${tx('openPackBtn')} (${S.packs})</span></button>` : ''}</div>`;
+  $('#mRes').classList.add('on'); $('#mRes').scrollTop = 0; document.body.classList.add('res-open');
+  const rm = $('#resMascot').getContext('2d'), sEl = $('#resScore'), fx = $('#resFx'), fc2 = fx.getContext('2d'), t0 = performance.now(), final = G.score, mood = quitRun ? 'happy' : stars >= 2 ? 'wow' : 'happy';
   const [fw, fh] = [innerWidth, innerHeight], fd = Math.min(DPR, 1.5); fx.width = Math.round(fw * fd); fx.height = Math.round(fh * fd); let shown = -1;
   const nGems = S.set.calm ? 8 : 10 + stars * 10, gems = Array.from({ length: nGems }, (_, i) => ({ x: Math.random() * fw, y: -Math.random() * fh, v: 60 + Math.random() * 120, r: Math.random() * 6, s: 14 + Math.random() * 18, im: i % 3 ? Art.gemImg(Art.MIX[i % 6], '#ffffff', ['#ff5fae', '#ffd76a', '#b98cff', '#5ad1ff'][i % 4], 32) : Art.sparkleImg(['#ffd76a', '#ffffff', '#ff8ccf'][i % 3]) }));
   cancelAnimationFrame(RES.raf); let lt = t0;
-  (function anim(ts) { if (!$('#mRes').classList.contains('on')) { fc2.clearRect(0, 0, fx.width, fx.height); return; } const now = performance.now(), dt = Math.min(0.05, (now - lt) / 1000); lt = now;
+  (function anim() { if (!$('#mRes').classList.contains('on')) { fc2.clearRect(0, 0, fx.width, fx.height); document.body.classList.remove('res-open'); return; } const now = performance.now(), dt = Math.min(0.05, (now - lt) / 1000); lt = now;
     const k = Math.min(1, (now - t0) / 1000), v = Math.round(final * (1 - Math.pow(1 - k, 3))); if (v !== shown) { shown = v; sEl.textContent = NF.format(v); } // score counts up over ~1 s
-    rm.setTransform(1, 0, 0, 1, 0, 0); rm.clearRect(0, 0, rm.canvas.width, rm.canvas.height); Art.mascotFast(rm, 75 * DPR, 68 * DPR, 95 * DPR, mood, S.eq.outfit, (now - t0) / 1000);
+    rm.setTransform(1, 0, 0, 1, 0, 0); rm.clearRect(0, 0, rm.canvas.width, rm.canvas.height); Art.mascotFast(rm, 60 * DPR, 56 * DPR, 76 * DPR, mood, S.eq.outfit, (now - t0) / 1000);
     fc2.setTransform(fd, 0, 0, fd, 0, 0); fc2.clearRect(0, 0, fw, fh); for (const g of gems) { g.y += g.v * dt * (S.set.calm ? 0.5 : 1); if (g.y > fh + 20) { g.y = -20; g.x = Math.random() * fw; } g.r += dt; fc2.save(); fc2.translate(g.x + Math.sin(g.r * 2) * 10, g.y); fc2.rotate(g.r); fc2.drawImage(g.im, -g.s / 2, -g.s / 2, g.s, g.s); fc2.restore(); }
-    RES.raf = requestAnimationFrame(anim); })(t0);
-  G.on = false; LOOP++; $('#game').classList.remove('on'); window.__lastResult = { stars, score: G.score, j: { ...j }, n, fc, maxCombo: G.maxCombo, dodged: G.stats.dodged, powerups: G.stats.pu, items: G.items.length, lab };
+    RES.raf = requestAnimationFrame(anim); })();
+  G.on = false; LOOP++; $('#game').classList.remove('on'); $$('.screen').forEach(s => s.classList.remove('on')); window.__lastResult = { stars, score: G.score, j: { ...j }, n, fc, maxCombo: G.maxCombo, dodged: G.stats.dodged, powerups: G.stats.pu, items: G.items.length, lab, quit: quitRun };
 }
+// next playable song after this one (locked built-ins skipped, wraps round; custom songs included)
+const nextSongOf = song => { const ts = totalStars(), list = allSongs().filter(s => !(s.builtin && ts < s.cost)); if (!list.length) return song; const i = list.findIndex(s => s.id === song.id); return list[(i + 1) % list.length]; };
+const closeRes = () => { $('#mRes').classList.remove('on'); document.body.classList.remove('res-open'); };
 document.addEventListener('click', e => {
-  if (e.target.id === 'resAgain') { $('#mRes').classList.remove('on'); startGame(G.song, G.diff); }
-  if (e.target.id === 'resSongs') { $('#mRes').classList.remove('on'); go(G.lab ? 'lab' : 'songs'); }
-  if (e.target.id === 'resPack') { $('#mRes').classList.remove('on'); go('album'); openPack(); }
+  const b = e.target.closest('#resNext,#resAgain,#resSongs,#resHome,#resPack'); if (!b || STARTING) return; A.init(); A.sfx('tap'); closeRes();
+  if (b.id === 'resNext') { LAB = G.lab || null; startGame(nextSongOf(G.song), G.tut ? S.set.diff : G.diff); }
+  else if (b.id === 'resAgain') { LAB = G.lab || null; startGame(G.song, G.diff); }
+  else if (b.id === 'resSongs') go(G.lab ? 'lab' : 'songs');
+  else if (b.id === 'resHome') go('home');
+  else if (b.id === 'resPack') { go('album'); openPack(); }
 });
 
 // ---------- boot ----------
-window.__tiles = { S: () => S, G: () => G, loops: () => LOOPS, stopAll: () => { stopAudio(); G.on = false; LOOP++; }, go, startGame, setLab: l => { LAB = l; }, allSongs, loadCustoms, DB, songTime, judgeAt, finishGame, layout: () => L, laneX, proj, save, openPack, CAL, arrange, rendered, clock, updateClock, prepare, reanalyze };
+window.__tiles = { S: () => S, G: () => G, loops: () => LOOPS, stopAll: () => { stopAudio(); G.on = false; LOOP++; $('#game').classList.remove('on'); }, go, startGame, setLab: l => { LAB = l; }, allSongs, loadCustoms, DB, songTime, judgeAt, finishGame, layout: () => L, outOfHearts, nextSongOf,
+  // test hooks: jump the game clock forward (optionally scoring the skipped tiles as Perfect) to reach the natural end of a song quickly
+  ff: (sec, hit) => { if (!G.on) return; const to = songTime() + sec; if (hit) for (const t of G.tiles) if (!t.state && t.t < to + 0.05) { t.state = 1; G.j.perfect++; G.combo++; G.maxCombo = Math.max(G.maxCombo, G.combo); G.score += 100; } G.startAt -= sec; },
+  toEnd: hit => { if (G.on) window.__tiles.ff(G.b.end - songTime() - 0.4, hit); }, laneX, proj, save, openPack, CAL, arrange, rendered, clock, updateClock, prepare, reanalyze };
 applyLang(); document.body.classList.toggle('calm', !!S.set.calm); loadCustoms().then(async () => { go('home');
   const old = customs.filter(c => (c.anv || 1) < AN.VERSION); if (!old.length) return; toast(esc(tx('updating', old.length)), 2500);
   for (const c of old) { try { const full = await DB.get(c.id); if (full) await reanalyze(full); } catch (e) { console.warn('re-chart failed', e); } }
