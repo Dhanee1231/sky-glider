@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="description" content="Crystal Cave Quest - a sparkly times tables adventure for kids">
+<meta name="description" content="Crystal Cave Quest - a sparkly maths adventure for kids: adding, taking away, times tables and sharing">
 <title>Crystal Cave Quest</title>
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="./icon-192.png">
@@ -333,6 +333,96 @@ h1,h2,h3{margin:0}
 .lvst span{white-space:nowrap}
 @media (max-aspect-ratio:1/1){.lvCard[data-d]{min-height:70px;padding:6px 8px!important;gap:2px}.lvCard[data-d] .dIc.dBig{width:34px;height:34px}.lvCard[data-d] .lvD{font-size:14px}}
 .tile.champT{background:rgba(255,216,74,.18)}
+/* ---- v3: Mine Entrance, grown-ups area, + − ÷ ---- */
+.c-add{--k1:#ff9ed0;--k2:#d6408f;--k3:#8c1f5a}.c-sub{--k1:#b9c4dc;--k2:#5d6a8a;--k3:#3a4259}.c-mul{--k1:#b48cff;--k2:#6a37d6;--k3:#3f1f8a}.c-div{--k1:#ffd75e;--k2:#e08a00;--k3:#8a5200}
+.caves{display:grid;gap:16px;grid-template-columns:1fr 1fr;max-width:920px;margin:0 auto;padding:6px 4px 76px}
+@media (max-width:560px){.caves{grid-template-columns:1fr}}
+@media (min-aspect-ratio:3/2) and (max-height:560px){.caves{grid-template-columns:repeat(4,1fr)}.cave{flex-direction:column;text-align:center}.cave .cArt{width:72%}.cave .cSt{justify-content:center}}
+.cave{appearance:none;border:4px solid rgba(255,255,255,.75);border-radius:26px;padding:10px 12px;color:#fff;font-family:inherit;cursor:pointer;position:relative;display:flex;align-items:center;gap:12px;text-align:left;
+ background:linear-gradient(180deg,var(--k1),var(--k2));box-shadow:0 6px 0 var(--k3),0 10px 18px rgba(0,0,0,.3);transition:transform .08s}
+.cave:active{transform:translateY(4px)}
+.cArt{position:relative;width:min(34vw,150px);flex:none}
+.cArt svg{width:100%;height:auto;display:block;filter:drop-shadow(0 4px 0 rgba(30,10,70,.4))}
+.cSym{position:absolute;left:0;right:0;top:48%;text-align:center;font-size:clamp(34px,9vmin,58px);font-weight:900;line-height:1;color:#fff;text-shadow:0 0 12px var(--k1),0 3px 0 var(--ink)}
+.cInfo{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}
+.cName{font-size:clamp(20px,4.6vmin,28px);font-weight:900;text-shadow:0 2px 0 var(--ink);line-height:1.05}
+.cKid{font-size:16px;text-shadow:0 1px 0 var(--ink)}
+.cBar{display:block;height:14px;border-radius:7px;background:rgba(30,10,70,.35);border:2px solid rgba(255,255,255,.7);overflow:hidden}
+.cBar i{display:block;height:100%;background:linear-gradient(90deg,#fff6c4,#ffd84a)}
+.cSt{display:flex;align-items:center;gap:4px;font-size:17px;font-weight:900;text-shadow:0 1px 0 var(--ink)}.cSt svg{width:24px;height:24px}
+.cNew{position:absolute;top:-12px;right:-6px;background:#ff3d7a;border:3px solid #fff;border-radius:14px;padding:2px 10px;font-weight:900;font-size:15px;animation:pulse 1.2s ease-in-out infinite}
+.pGear{position:fixed;z-index:8;right:calc(var(--sr) + 12px);bottom:calc(var(--sb) + 12px);width:56px;height:56px;border-radius:50%;border:0;padding:4px;cursor:pointer;touch-action:none;
+ background:conic-gradient(#fff calc(var(--p,0)*360deg),rgba(210,218,235,.4) 0);box-shadow:0 3px 8px rgba(0,0,0,.35);-webkit-touch-callout:none}
+.pGear span{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:linear-gradient(#f4f6fb,#98a3bc);pointer-events:none}
+.pGear svg{width:30px;height:30px}
+.gateIn{font-size:34px;font-weight:900;min-width:170px;min-height:54px;border-radius:16px;background:rgba(255,255,255,.18);border:3px solid #fff;padding:4px 14px}
+.card .pad{max-width:330px}
+@media (max-height:560px){.card .pad.gatePad{grid-template-columns:repeat(6,1fr);max-width:520px}.card .pad.gatePad .btn{min-height:54px}}
+#parent .secH{max-width:620px;margin:18px auto 4px}
+#parent .setRow{flex-wrap:wrap;margin:8px auto}
+#parent .setRow .lbl{flex:1 1 180px;min-width:0}
+.setRow .lbl small{display:block;font-size:14px;opacity:.85;font-weight:700}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg .btn{min-height:50px;font-size:17px;padding:6px 12px;border-radius:16px}
+.seg .btn.sel{box-shadow:0 0 0 4px #fff,0 4px 0 var(--sh)}
+.pSym{display:inline-grid;place-items:center;width:42px;height:42px;flex:none;border-radius:12px;background:linear-gradient(var(--k1),var(--k2));font-size:28px;font-weight:900;border:2px solid #fff;text-shadow:0 2px 0 var(--ink)}
+.prog{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;max-width:920px;margin:0 auto}
+.pcard{background:rgba(255,255,255,.12);border:3px solid rgba(255,255,255,.4);border-radius:20px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;font-size:16px}
+.pcH{display:flex;align-items:center;gap:8px;font-size:20px;font-weight:900}
+.pcard .chips span{font-size:15px}
+/* story doors */
+.door.story{width:min(94%,640px);max-height:100%;overflow:auto;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 14px 10px;border-radius:26px;color:var(--ink);
+ background:linear-gradient(180deg,#fff5fb,#efe2ff);border:4px solid #fff;box-shadow:0 0 0 4px rgba(255,150,220,.7),0 10px 24px rgba(0,0,0,.35)}
+.door.story.broken>*{opacity:0;transition:opacity .08s}
+.stTag{font-size:14px;background:#ffe873;color:#5a2a00;padding:3px 10px;border-radius:12px;font-weight:900;white-space:nowrap}
+.stLocks{display:flex;gap:6px}.stLocks .lockGem{display:block;width:30px;height:30px}.stLocks svg{width:30px;height:30px;display:block}
+.stLocks .lockGem.pop{transform:translateY(-14px) scale(1.5);opacity:0}
+.stPic{font-size:clamp(20px,4.4vmin,32px);line-height:1.15;text-align:center;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px 6px}
+.stPic b{font-size:.75em;color:#8c1f5a}.stPic i{font-style:normal;font-weight:900;color:#6a37d6}
+.stTxt{margin:0;font-size:clamp(18px,3.4vmin,28px);font-weight:900;text-align:center;line-height:1.3}
+.stRow{display:flex;align-items:center;gap:14px}
+.door.story .q{position:static;transform:none;text-shadow:none;color:var(--ink);font-size:clamp(28px,6vmin,44px)}
+.door.story .q .slot{border-color:#c2337f;color:#c2337f;background:rgba(255,111,181,.14);min-width:2.2em}
+/* column sums on the door */
+.door .q .colq{display:inline-flex;flex-direction:column;align-items:flex-end;font-size:.74em;line-height:1.08;font-variant-numeric:tabular-nums}
+.door .q .colq .cr{display:block;white-space:nowrap}
+.door .q .colq .ln{display:block;align-self:stretch;height:.1em;min-height:4px;background:#fff;border-radius:4px;margin:.05em 0 .12em;box-shadow:0 2px 0 #4a1f8f}
+.door .q .colq .slot{min-width:2em;text-align:right}
+.door.boss .q .colq,.door.gold .q .colq{font-size:.64em}
+/* + − hints: ten frames and column gems */
+.tgrid{display:flex;flex-direction:column;gap:calc(var(--g,30px)*.35);cursor:pointer}
+.trow{display:flex;gap:3px;align-items:center}
+.trow .tsp{width:calc(var(--g,30px)*.45);flex:none}
+.tc{width:var(--g,30px);height:var(--g,30px);display:block;opacity:.35;position:relative;transition:opacity .2s,transform .2s}
+.tc svg{width:100%;height:100%;display:block}
+.tc.lit{opacity:1;transform:scale(1.06)}
+.tc.x{opacity:.3;filter:grayscale(.8)}.tc.x.lit{opacity:.6}
+.tc.x:after{content:"";position:absolute;left:-6%;right:-6%;top:44%;height:12%;background:#ff4d7d;border-radius:3px;transform:rotate(-38deg)}
+.cgrid{display:grid;gap:4px 6px;align-items:center;justify-items:center;cursor:pointer}
+.cgrid .ch{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;font-size:max(11px,calc(var(--cs,60px)*.17));line-height:1;color:#ffe873;height:calc(var(--cs,60px)*.42)}
+.cgrid .ch svg{width:calc(var(--cs,60px)*.22);height:calc(var(--cs,60px)*.22)}
+.cgrid .ch i{font-style:normal;font-weight:900}
+.cgrid .cc{height:calc(var(--cs,60px)*.3);font-size:calc(var(--cs,60px)*.24);font-weight:900;color:#ffe873;white-space:nowrap;line-height:1}
+.cgrid .cc s{opacity:.65;margin-right:3px;color:#fff}
+.cgrid .cx{width:var(--cs,60px);height:var(--cs,60px);border-radius:12px;background:rgba(255,255,255,.1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:background .2s}
+.cgrid .cx.e{background:rgba(255,255,255,.03)}
+.cgrid .cx b{font-size:calc(var(--cs,60px)*.38);line-height:1;text-shadow:0 2px 0 var(--ink)}
+.cgrid .cl{display:flex;flex-wrap:wrap;justify-content:center;gap:1px;width:calc(var(--cs,60px)*.62)}
+.cgrid .cl svg{width:calc(var(--cs,60px)*.17);height:calc(var(--cs,60px)*.17);display:block}
+.cgrid .cl .ten{display:block;width:calc(var(--cs,60px)*.56);height:calc(var(--cs,60px)*.15);font-size:calc(var(--cs,60px)*.12);line-height:calc(var(--cs,60px)*.15);border-radius:4px;background:linear-gradient(90deg,#9fd8ff,#3a7bf0);color:#fff;font-style:normal;font-weight:900;text-align:center}
+.cgrid .sg{font-size:calc(var(--cs,60px)*.4);font-weight:900;padding-right:2px}
+.cgrid .ln{height:4px;width:100%;background:#fff;border-radius:2px;grid-column:1/-1}
+.cgrid .cr{width:var(--cs,60px);height:calc(var(--cs,60px)*.62);display:grid;place-items:center;font-size:calc(var(--cs,60px)*.44);font-weight:900;border-radius:12px;border:3px dashed rgba(255,242,122,.6);color:#fff27a}
+.cgrid .cr.on{border-style:solid;background:rgba(255,242,122,.2)}
+.cgrid .cx.now,.cgrid .cr.now{background:rgba(255,230,120,.3);box-shadow:0 0 0 3px #ffe873}
+/* fair sharing intro */
+.shareRow{display:flex;gap:12px;justify-content:center;width:100%}
+.shareCh{width:min(24vw,120px);display:flex;flex-direction:column;align-items:center}
+.shareCh svg{width:100%;height:auto}
+.shG{display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-end;min-height:50px;width:100%}
+.shG svg{width:22px;height:22px}
+#shareBtn{position:fixed;z-index:8;left:calc(var(--sl) + 14px);bottom:calc(var(--sb) + 14px)}
+#shareBtn svg{width:44px;height:auto}
 </style>
 </head>
 <body>
@@ -350,10 +440,25 @@ h1,h2,h3{margin:0}
   </div>
  </div>
 </section>
+<section id="mine" class="screen">
+ <div class="topbar">
+  <button class="btn ibtn purple" id="eHome" aria-label="Home"></button>
+  <div class="panelTitle">Mine Entrance</div>
+  <div class="mapStats" id="eStats"></div>
+  <button class="btn ibtn teal" id="eBag" aria-label="Backpack"></button>
+  <button class="btn ibtn blue" id="eSet" aria-label="Settings"></button>
+ </div>
+ <div class="scroll"><div class="caves" id="caves"></div></div>
+ <button class="pGear" id="pGear" aria-label="Grown-ups: press and hold for 3 seconds"><span></span></button>
+</section>
+<section id="parent" class="screen">
+ <div class="topbar"><button class="btn ibtn purple" id="gBack" aria-label="Back"></button><div class="panelTitle">Grown-ups</div><div style="width:60px;flex:none"></div></div>
+ <div class="scroll" id="parBody"></div>
+</section>
 <section id="map" class="screen">
  <div class="topbar">
-  <button class="btn ibtn purple" id="mHome" aria-label="Home"></button>
-  <div class="panelTitle">The Crystal Cave</div>
+  <button class="btn ibtn purple" id="mHome" aria-label="Mine Entrance"></button>
+  <div class="panelTitle" id="mapTitle">The Crystal Cave</div>
   <div class="mapStats" id="mStats"></div>
   <button class="btn ibtn gold" id="mDiff" aria-label="Difficulty"></button>
   <button class="btn ibtn teal" id="mBag" aria-label="Backpack"></button>
@@ -437,27 +542,143 @@ const TREASURES=[{id:'crown',name:'Crystal Crown'},{id:'geode',name:'Rainbow Geo
 const CHAMP={id:'qcrown',name:"Crystal Queen's Crown"};
 const PRAISE=['Sparkly!','You got it!','Crystal clear!','Gem-tastic!','Brilliant!','Shiny work!','Wow, super!','Dazzling!','Amazing!'];
 
-// ================= save (v2, migrates v1) =================
+// ================= v3: four caves =================
+// The × stages above keep their ids, order and indexes (saves depend on them). New stages are appended after them in ALL.
+STAGES.forEach(st=>st.sec='mul');
+const SEC_ORDER=['add','sub','mul','div'];
+const SECS={
+ add:{sym:'+',name:'Rose Quartz Cave',kid:'Adding',rock:['#ffb3dc','#9c2d6e'],glow:['#ffd1e8','#ff6fb5','#fff']},
+ sub:{sym:'−',name:'Moonstone Cave',kid:'Taking away',rock:['#e4e9f5','#56607c'],glow:['#ffffff','#b9c6e0','#cfe0ff']},
+ mul:{sym:'×',name:'Crystal Cave',kid:'Times tables',rock:['#b48cff','#3a1f78'],glow:['#e8dcff','#b98cff','#7ff3ff']},
+ div:{sym:'÷',name:'Golden Geode',kid:'Sharing',rock:['#ffd75e','#8a5200'],glow:['#fff6c4','#ffcf3a','#ff9d2e']}};
+Object.assign(GEMS,{
+ a1:{name:'Rose Quartz',c:'#ffb3d1',cut:'heart'},a2:{name:'Pink Sapphire',c:'#ff5fa8',cut:'oval'},a3:{name:'Morganite',c:'#ffa8b8',cut:'cushion'},
+ a4:{name:'Pink Spinel',c:'#ff3d8b',cut:'round'},a5:{name:'Rhodolite',c:'#d6246e',cut:'pear'},a6:{name:'Kunzite',c:'#f29cff',cut:'emerald'},
+ a7:{name:'Pink Diamond',c:'#ff8fd0',cut:'diamond',grad:['#fff0f8','#ffb3dc','#ff6fb5']},a8:{name:'Heart Opal',c:'#ff8fd0',cut:'heart',grad:['#ffe1f0','#ff8fd0','#c79bff']},
+ s1:{name:'Moonstone',c:'#cfe0ff',cut:'oval',grad:['#ffffff','#cfe0ff','#9fb6e8']},s2:{name:'Silver Pearl',c:'#e6e9f2',cut:'round',grad:['#ffffff','#e6e9f2','#aab3c8']},
+ s3:{name:'Labradorite',c:'#6fd6c8',cut:'cushion',grad:['#8fb3c9','#6fd6c8','#5a6fb0']},s4:{name:'Hematite',c:'#8f97a8',cut:'hex'},
+ s5:{name:'Selenite',c:'#f0f4ff',cut:'marquise',grad:['#ffffff','#f0f4ff','#c9d3ea']},s6:{name:'Snow Quartz',c:'#eef3ff',cut:'emerald'},
+ s7:{name:'Star Silver',c:'#c0c8d8',cut:'star',grad:['#ffffff','#c0c8d8','#7d879c']},s8:{name:'Moon Opal',c:'#bcd6ff',cut:'pear',grad:['#f3f0ff','#bcd6ff','#e3c8ff']},
+ d2:{name:'Golden Topaz',c:'#ffb52e',cut:'oval'},d5:{name:'Amber',c:'#e8901a',cut:'cushion'},d10:{name:'Sunstone',c:'#ff9a4a',cut:'round'},
+ d3:{name:'Pyrite',c:'#d9b84a',cut:'hex'},d4:{name:'Honey Citrine',c:'#ffcc33',cut:'trillion'},d6:{name:'Imperial Topaz',c:'#ff8a2a',cut:'pear'},
+ d7:{name:'Golden Beryl',c:'#ffe066',cut:'emerald'},d8:{name:'Heliodor',c:'#f5d000',cut:'marquise'},d9:{name:'Gold Nugget',c:'#ffcf3a',cut:'diamond',grad:['#fff6c4','#ffcf3a','#c98a00']},
+ dmix:{name:'Geode Heart',c:'#ffb84a',cut:'heart',grad:['#fff4b0','#ffb84a','#c79bff']}});
+const G3=(sec,id,name,short,lim,sub,lvNames,o)=>Object.assign({sec,id,kind:'gen',gem:id,name,short,lim,sub,lvNames},o||{});
+const GSTAGES=[
+ G3('add','a1','Pebble Pools','10',10,'adding up to 10',['Adding to 10','Make 10!','Missing numbers'],{miss:1,start:1}),
+ G3('add','a2','Twin Falls','20',20,'adding up to 20',['Doubles','Jump past 10','All to 20'],{miss:1,start:1}),
+ G3('add','a3','Tens Tunnel','+10',100,'tens and ones',['Tens + tens','Add some ones','Add some tens'],{miss:1,start:1}),
+ G3('add','a4','Two-Digit Trail','99',100,'2-digit adding, no carrying',['Smaller numbers','Bigger numbers','Missing numbers'],{miss:1}),
+ G3('add','a5','Carry Caverns','99',100,'2-digit adding with carrying',['Carry a ten','2-digit carrying','Carry challenge']),
+ G3('add','a6','Hundreds Hall','999',1000,'3-digit adding, no carrying',['3-digit + 2-digit','3-digit + 3-digit','Hundreds challenge']),
+ G3('add','a7','Great Carry Cavern','999',1000,'3-digit adding with carrying',['Carry the ones','Carry the tens','Double carry!']),
+ G3('add','a8','Story Doors','📖',0,'little stories, read aloud',['Stories to 20','2-digit stories','3-digit stories'],{story:1}),
+ G3('sub','s1','Moon Puddles','10',10,'taking away from 10 or less',['Take away','From 10','Missing numbers'],{miss:1,start:1}),
+ G3('sub','s2','Silver Steps','20',20,'taking away up to 20',['Teen numbers','Jump back past 10','All to 20'],{miss:1,start:1}),
+ G3('sub','s3','Tens Tunnel','−10',100,'tens and ones',['Tens − tens','Take some ones','Take some tens'],{miss:1,start:1}),
+ G3('sub','s4','Two-Digit Trail','99',100,'2-digit taking away, no borrowing',['Smaller numbers','Bigger numbers','Missing numbers'],{miss:1}),
+ G3('sub','s5','Borrow Burrow','99',100,'2-digit taking away with borrowing',['Borrow a ten','2-digit borrowing','Borrow challenge']),
+ G3('sub','s6','Hundreds Hall','999',1000,'3-digit taking away, no borrowing',['3-digit − 2-digit','3-digit − 3-digit','Hundreds challenge']),
+ G3('sub','s7','Great Borrow Cavern','999',1000,'3-digit taking away with borrowing',['Borrow for the ones','Borrow for the tens','Double borrow!']),
+ G3('sub','s8','Story Doors','📖',0,'little stories, read aloud',['Stories to 20','2-digit stories','3-digit stories'],{story:1})];
+[2,5,10,3,4,6,7,8,9].forEach(t=>GSTAGES.push(G3('div','d'+t,GEMS['d'+t].name+' Tunnel','÷'+t,0,'sharing into '+t+' groups',['Fair sharing','Share and group','Fact families'],{t})));
+GSTAGES.push(G3('div','dmix','Geode Heart','Mix',0,'sharing, all mixed up',['','',''],{pools:[[2,5,10],[3,4,6],[7,8,9]]}));
+const ALL=STAGES.concat(GSTAGES);
+const ZONES_BY={mul:ZONES.map(z=>({id:STAGES[z.from].id,name:z.name,deep:z.from>=10})),
+ add:[{id:'a1',name:'Warm-up Pools'},{id:'a3',name:'Tens Trail'},{id:'a6',name:'Hundreds Halls'},{id:'a8',name:'Story Grotto',deep:1}],
+ sub:[{id:'s1',name:'Warm-up Pools'},{id:'s3',name:'Tens Trail'},{id:'s6',name:'Hundreds Halls'},{id:'s8',name:'Story Grotto',deep:1}],
+ div:[{id:'d2',name:'Sharing Shallows'},{id:'d3',name:'Geode Galleries'},{id:'dmix',name:'Geode Heart',deep:1}]};
+// ----- number makers for + and − (place value: column 0 = ones)
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const dg=(n,c)=>Math.floor(n/Math.pow(10,c))%10;
+const nDig=n=>String(Math.max(0,Math.floor(n))).length;
+function carriesOf(a,b){const o=[];let c=0;for(let i=0;i<4;i++){c=dg(a,i)+dg(b,i)+c>=10?1:0;o.push(c);}return o;}
+function borrowsOf(a,b){const o=[];let br=0;for(let i=0;i<4;i++){br=dg(a,i)-br<dg(b,i)?1:0;o.push(br);}return o;}
+const NC=(a,b)=>!carriesOf(a,b).some(x=>x),NB=(a,b)=>!borrowsOf(a,b).some(x=>x);
+function rej(fa,fb,ok,dflt){for(let i=0;i<500;i++){const a=fa(),b=fb(a);if(ok(a,b))return [a,b];}return dflt;}
+const GEN={
+ a1:k=>k===1&&Math.random()<0.5?(x=>[x,10-x])(ri(1,9)):rej(()=>ri(1,k?9:5),()=>ri(1,k?9:5),(a,b)=>a+b<=10,[3,4]),
+ a2:k=>{if(k===0){const n=ri(2,10),d=n<10&&Math.random()<0.4?1:0;return Math.random()<0.5?[n,n+d]:[n+d,n];}
+  if(k===1)return rej(()=>ri(5,9),()=>ri(2,9),(a,b)=>a+b>10&&a+b<=18,[8,5]);
+  return rej(()=>ri(2,18),()=>ri(1,18),(a,b)=>a+b>=11&&a+b<=20,[9,7]);},
+ a3:k=>{const t=k===2?ri(0,2):k;
+  if(t===0)return rej(()=>ri(1,8)*10,()=>ri(1,8)*10,(a,b)=>a+b<=90,[30,40]);
+  if(t===1)return rej(()=>ri(11,88),()=>ri(1,8),(a,b)=>a%10>0&&NC(a,b),[34,5]);
+  return rej(()=>ri(11,79),()=>ri(1,8)*10,(a,b)=>NC(a,b),[23,40]);},
+ a4:k=>rej(()=>ri(10,k?88:49),()=>ri(10,k?88:49),(a,b)=>NC(a,b)&&a%10+b%10>0,[32,41]),
+ a5:k=>{const t=k===2?(Math.random()<0.7?1:0):k;
+  return t===0?rej(()=>ri(12,89),()=>ri(2,9),(a,b)=>carriesOf(a,b)[0]&&a+b<=99,[38,5]):rej(()=>ri(11,79),()=>ri(11,79),(a,b)=>carriesOf(a,b)[0]&&a+b<=99,[38,25]);},
+ a6:k=>k===0?rej(()=>ri(100,899),()=>ri(10,99),NC,[342,25]):rej(()=>ri(100,799),()=>ri(100,799),NC,[321,456]),
+ a7:k=>{const w=k===2?[1,1]:k===1?[0,1]:[1,0];
+  return rej(()=>ri(100,899),()=>k===0&&Math.random()<0.35?ri(10,99):ri(100,899),(a,b)=>{const x=carriesOf(a,b);return x[0]===w[0]&&x[1]===w[1]&&!x[2];},k===2?[478,356]:k===1?[352,174]:[347,236]);},
+ a8:k=>{const m=save.parent.max.add;if(k===0||m<100)return Math.random()<0.4?GEN.a1(1):GEN.a2(2);if(k===1||m<1000)return Math.random()<0.5?GEN.a4(1):GEN.a5(1);return Math.random()<0.5?GEN.a6(1):GEN.a7(ri(0,2));},
+ s1:k=>{if(k===1&&Math.random()<0.4)return [10,ri(1,9)];return rej(()=>ri(2,k===0?6:10),a=>ri(1,a),()=>true,[5,2]);},
+ s2:k=>{if(k===0)return rej(()=>ri(11,19),()=>ri(1,9),(a,b)=>b<=a%10,[17,5]);
+  if(k===1)return rej(()=>ri(11,18),()=>ri(2,9),(a,b)=>b>a%10&&a-b>=2,[13,8]);
+  return rej(()=>ri(11,20),()=>ri(2,12),(a,b)=>a-b>=1,[15,7]);},
+ s3:k=>{const t=k===2?ri(0,2):k;
+  if(t===0)return rej(()=>ri(2,9)*10,()=>ri(1,8)*10,(a,b)=>b<a,[70,30]);
+  if(t===1)return rej(()=>ri(11,99),()=>ri(1,9),(a,b)=>b<=a%10,[38,5]);
+  return rej(()=>ri(21,99),()=>ri(1,8)*10,(a,b)=>b<a&&NB(a,b),[64,20]);},
+ s4:k=>rej(()=>ri(21,k?99:59),()=>ri(10,k?89:49),(a,b)=>a>b&&NB(a,b)&&b%10>0,[68,23]),
+ s5:k=>{const t=k===2?(Math.random()<0.7?1:0):k;
+  return t===0?rej(()=>ri(20,98),()=>ri(2,9),(a,b)=>borrowsOf(a,b)[0]&&a-b>=10,[42,7]):rej(()=>ri(21,98),()=>ri(11,89),(a,b)=>a>b&&borrowsOf(a,b)[0],[52,27]);},
+ s6:k=>k===0?rej(()=>ri(110,999),()=>ri(10,99),NB,[365,42]):rej(()=>ri(200,999),()=>ri(100,899),(a,b)=>a>b&&NB(a,b),[785,342]),
+ s7:k=>{const w=k===2?[1,1]:k===1?[0,1]:[1,0],fa=()=>k===2&&Math.random()<0.35?ri(1,9)*100+ri(0,9):ri(110,999);
+  return rej(fa,()=>k===0&&Math.random()<0.35?ri(10,99):ri(100,899),(a,b)=>{const x=borrowsOf(a,b);return a>b&&x[0]===w[0]&&x[1]===w[1];},k===2?[403,158]:k===1?[528,173]:[352,127]);},
+ s8:k=>{const m=save.parent.max.sub;if(k===0||m<100)return Math.random()<0.4?GEN.s1(2):GEN.s2(2);if(k===1||m<1000)return Math.random()<0.5?GEN.s4(1):GEN.s5(1);return Math.random()<0.5?GEN.s6(1):GEN.s7(ri(0,2));}};
+// ----- story doors (word problems)
+const CHARS=[['Glimmer','🐛'],['Ruby the bunny','🐰'],['Pip the penguin','🐧'],['Luna the unicorn','🦄'],['Coco the kitten','🐱'],['the Crystal Queen','👑']];
+const THINGS=[['gems','💎'],['shells','🐚'],['stars','⭐'],['hearts','💖'],['flowers','🌸'],['cupcakes','🧁'],['crystals','🔮']];
+let mapSec='mul',swPending=false,swDone=false;
+
+// ================= save (key stays crystalcave.v2; internal v:3; migrates v2 and v1) =================
+// v3 only ADDS fields. × progress (lv 't1-0'…, facts 'AxB', gems) is kept exactly as it was.
+// New + − ÷ facts live in `ofacts` so an older cached copy of the game never sees keys it can't read.
 const KEY='crystalcave.v2',V1KEY='crystalcave.v1';
-const DEF={v:2,name:'',muted:false,pad:false,diff:0,lv:{},facts:{},gems:{},rare:{},golden:0,keys:0,treasures:[],streak:0,best:0,run:0,correct:0,answered:0,started:false,seenV2:false,champ:0,migrated:0};
-function load(){const get=k=>{try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}};
- const s=JSON.parse(JSON.stringify(DEF)),copy=d=>{for(const k in DEF){if(k!=='v'&&d[k]!=null&&typeof d[k]===typeof DEF[k])s[k]=d[k];}};
- const d=get(KEY);
- if(d&&typeof d==='object')copy(d);
- else{const o=get(V1KEY);
-  if(o&&typeof o==='object'){copy(o);s.v=2;s.migrated=1;s.seenV2=false;
+const DEF={v:3,name:'',muted:false,pad:false,diff:0,lv:{},facts:{},gems:{},rare:{},golden:0,keys:0,treasures:[],streak:0,best:0,run:0,correct:0,answered:0,started:false,seenV2:false,champ:0,migrated:0,
+ ofacts:{},ops:{},seenV3:false,seenDiv:false,seen:{mul:true},
+ parent:{on:{add:true,sub:true,mul:true,div:false},max:{add:1000,sub:1000},divT:'all',open:{add:false,sub:false,mul:false,div:false},stories:true,read:true}};
+const isObj=o=>!!o&&typeof o==='object'&&!Array.isArray(o);
+// deep merge onto the defaults: known fields must match the default's type; unknown fields are kept untouched
+function merge(def,d){const o=JSON.parse(JSON.stringify(def));if(!isObj(d))return o;
+ for(const k in d){const dv=d[k];if(!(k in def)){o[k]=dv;continue;}const fv=def[k];
+  if(Array.isArray(fv)){if(Array.isArray(dv))o[k]=dv;}
+  else if(isObj(fv)){if(isObj(dv))o[k]=Object.keys(fv).length?merge(fv,dv):dv;}
+  else if(dv!=null&&typeof dv===typeof fv)o[k]=dv;}
+ return o;}
+function load(){const ls=k=>{try{return localStorage.getItem(k);}catch(e){return null;}},put=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
+ const raw=ls(KEY);let d=null,s;
+ if(raw!=null){try{d=JSON.parse(raw);}catch(e){d=null;}
+  // a save we can't read is copied aside BEFORE anything can overwrite it
+  if(!isObj(d)){d=null;put(ls(KEY+'.bad')==null?KEY+'.bad':KEY+'.bad2',raw);}}
+ if(d){if((d.v|0)<3&&ls(KEY+'.pre-v3')==null)put(KEY+'.pre-v3',raw); // one-time copy of the v2 save before the v3 upgrade
+  s=merge(DEF,d);}
+ else{s=merge(DEF,{});let o=null;try{o=JSON.parse(ls(V1KEY)||'null');}catch(e){}
+  if(isObj(o)){for(const k in DEF){if(k!=='v'&&o[k]!=null&&typeof o[k]===typeof DEF[k]&&Array.isArray(o[k])===Array.isArray(DEF[k]))s[k]=o[k];}s.migrated=1;s.seenV2=false;
    // every finished v1 table becomes a finished Learn level (stars kept), so Practice opens right away
-   const sec=(o.sec&&typeof o.sec==='object')?o.sec:{};
+   const sec=isObj(o.sec)?o.sec:{};
    TABLES.forEach(t=>{const r=sec[t];if(r&&r.done)s.lv['t'+t+'-0']={stars:Math.max(1,Math.min(3,r.stars|0)),done:true,plays:r.plays|0};});
-   try{localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}}
- if(!Array.isArray(s.treasures))s.treasures=[];if(!(s.diff>=0&&s.diff<=2))s.diff=0;return s;}
+   put(KEY,JSON.stringify(s));}}
+ s.v=3;if(!(s.diff>=0&&s.diff<=2))s.diff=0;
+ const p=s.parent;['add','sub'].forEach(k=>{if([20,100,1000].indexOf(p.max[k])<0)p.max[k]=1000;});if(p.divT!=='easy')p.divT='all';
+ if(!SEC_ORDER.some(k=>p.on[k]))p.on.mul=true;
+ return s;}
 let save=load();
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
-const lvRec=(si,k)=>save.lv[STAGES[si].id+'-'+k]||{stars:0,done:false,plays:0};
-const stageOpen=si=>si===0||lvRec(si-1,0).done;
-const lvOpen=(si,k)=>stageOpen(si)&&(k===0||lvRec(si,k-1).done);
-const stageDone=si=>{let n=0;for(let k=0;k<nLv(STAGES[si]);k++)if(lvRec(si,k).done)n++;return n;};
-const stageMastered=si=>{for(let k=0;k<nLv(STAGES[si]);k++)if(lvRec(si,k).stars<3)return false;return true;};
+const lvRec=(si,k)=>{const r=save.lv[ALL[si].id+'-'+k];return isObj(r)?r:{stars:0,done:false,plays:0};};
+// which stages show in a cave (grown-ups can limit number ranges)
+function stageVisible(st){const p=save.parent;if(st.sec==='add'||st.sec==='sub')return !st.lim||st.lim<=p.max[st.sec];if(st.sec==='div'&&st.t&&p.divT==='easy')return [2,5,10].indexOf(st.t)>=0;return true;}
+const secVisible=sec=>!!save.parent.on[sec];
+function secStages(sec){const o=[];ALL.forEach((st,i)=>{if(st.sec===sec&&stageVisible(st))o.push(i);});return o;}
+function stageOpen(si){const st=ALL[si];if(save.parent.open[st.sec])return true;
+ if(st.sec==='mul')return si===0||lvRec(si-1,0).done;
+ if(st.start)return true;const L=secStages(st.sec),j=L.indexOf(si);return j<=0||lvRec(L[j-1],0).done;}
+const lvOpen=(si,k)=>save.parent.open[ALL[si].sec]||stageOpen(si)&&(k===0||lvRec(si,k-1).done);
+const stageDone=si=>{let n=0;for(let k=0;k<nLv(ALL[si]);k++)if(lvRec(si,k).done)n++;return n;};
+const stageMastered=si=>{for(let k=0;k<nLv(ALL[si]);k++)if(lvRec(si,k).stars<3)return false;return true;};
+function secProgress(sec){let done=0,tot=0,stars=0;secStages(sec).forEach(i=>{for(let k=0;k<nLv(ALL[i]);k++){tot++;const r=lvRec(i,k);if(r.done)done++;stars+=r.stars|0;}});return {done,tot,stars,max:tot*3};}
+const divPools=()=>save.parent.divT==='easy'?[[2,5],[5,10],[2,5,10]]:[[2,5,10],[3,4,6],[7,8,9]];
 const unlocked=i=>stageOpen(i); // tables are stages 0..9
 const gemCount=t=>{const g=save.gems[t];return g?(g.b|0)+(g.s|0):0;};
 function totalGems(){let n=0;for(const k in save.gems)n+=gemCount(k);for(const k in save.rare)n+=save.rare[k]|0;return n+(save.golden|0);}
@@ -579,7 +800,19 @@ const IC={
  lock:'<svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="12" rx="3" fill="#ffd84a" stroke="#2b1257" stroke-width="1.6"/><path d="M8 10 V7 a4 4 0 0 1 8 0 V10" fill="none" stroke="#2b1257" stroke-width="2.4"/><circle cx="12" cy="16" r="2" fill="#2b1257"/></svg>',
  crown:'<svg viewBox="0 0 24 16"><polygon points="2,15 1,3 7,8 12,1 17,8 23,3 22,15" fill="#ffd84a" stroke="#a35f00" stroke-width="1.4" stroke-linejoin="round"/><circle cx="12" cy="10" r="2" fill="#ff2d55"/></svg>',
  bolt:'<svg viewBox="0 0 24 24"><path d="M14 2 L4 14 H11 L9 22 L20 9 H13 Z" fill="#ffe873" stroke="#b56a00" stroke-width="1.5" stroke-linejoin="round"/></svg>',
- flame:'<svg viewBox="0 0 24 24"><path d="M12 2 C14 7 19 9 19 15 a7 7 0 0 1 -14 0 C5 11 8 9 9 6 C10 9 11 10 12 10 C12 7 11 5 12 2Z" fill="#ffb11a" stroke="#fff" stroke-width="1.4"/><path d="M12 12 C13 14 15 15 15 17 a3 3 0 0 1 -6 0 C9 15 11 14 12 12Z" fill="#fff6a8"/></svg>'};
+ flame:'<svg viewBox="0 0 24 24"><path d="M12 2 C14 7 19 9 19 15 a7 7 0 0 1 -14 0 C5 11 8 9 9 6 C10 9 11 10 12 10 C12 7 11 5 12 2Z" fill="#ffb11a" stroke="#fff" stroke-width="1.4"/><path d="M12 12 C13 14 15 15 15 17 a3 3 0 0 1 -6 0 C9 15 11 14 12 12Z" fill="#fff6a8"/></svg>',
+ sgear:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 l2 3 3-1 1 3 3 1-1 3 3 2-3 2 1 3-3 1-1 3-3-1-2 3-2-3-3 1-1-3-3-1 1-3-3-2 3-2-1-3 3-1 1-3 3 1z" fill="#e9edf6" stroke="#5a6480" stroke-width="1.3" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.6" fill="#b9c3d9" stroke="#5a6480" stroke-width="1.2"/></svg>'};
+function caveSVG(sec){const C=SECS[sec],a='u'+(++uid),b='u'+(++uid);
+ let s='<svg viewBox="0 0 200 160" aria-hidden="true"><defs>'+gradDef(a,C.rock,1)+gradDef(b,['#1a0838','#3a1a6e'],1)+'</defs>'+
+  '<path d="M6 160 L6 92 Q6 8 100 8 Q194 8 194 92 L194 160Z" fill="url(#'+a+')" stroke="#24104f" stroke-width="4"/>'+
+  '<path d="M42 160 L42 102 Q42 44 100 44 Q158 44 158 102 L158 160Z" fill="url(#'+b+')" stroke="'+C.glow[1]+'" stroke-width="5"/>';
+ for(let i=0;i<7;i++){const t=(i+0.5)/7*Math.PI,x=100-76*Math.cos(t),y=100-72*Math.sin(t),h=i%2?16:22,c=C.glow[i%3];
+  s+='<g transform="translate('+x.toFixed(0)+','+y.toFixed(0)+') rotate('+((t-Math.PI/2)*-57).toFixed(0)+')"><polygon points="-6,4 -6,'+(-h*0.6).toFixed(0)+' 0,'+(-h)+' 6,'+(-h*0.6).toFixed(0)+' 6,4" fill="'+c+'" stroke="#fff" stroke-width="1.5"/></g>';}
+ return s+'</svg>';}
+// read-aloud uses the phone's own speech voice (nothing is uploaded)
+const Voice={ok:'speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='undefined',
+ say(t){if(!this.ok)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.rate=0.9;u.pitch=1.1;u.lang='en-US';speechSynthesis.speak(u);}catch(e){}},
+ stop(){if(!this.ok)return;try{speechSynthesis.cancel();}catch(e){}}};
 
 // ================= sound =================
 const Snd={c:null,
@@ -635,7 +868,13 @@ requestAnimationFrame(frame);
 
 // ================= screens =================
 function show(id){$$('.screen').forEach(s=>s.classList.toggle('on',s.id===id));curScreen=id;document.body.className='s-'+id;
- if(id==='map')renderMap();if(id==='bag')renderBag();if(id==='settings')renderSettings();if(id==='welcome')renderWelcome();if(id==='play'){layoutPlay();requestAnimationFrame(layoutPlay);}}
+ if(id!=='play')Voice.stop();
+ if(id==='map')renderMap();if(id==='bag')renderBag();if(id==='settings')renderSettings();if(id==='welcome')renderWelcome();if(id==='mine')renderMine();if(id==='parent')renderParent();if(id==='play'){layoutPlay();requestAnimationFrame(layoutPlay);}
+ maybeReload();}
+// a new version finished installing: reload once, but never in the middle of a level, a popup or the grown-ups area
+function maybeReload(){if(!swPending||swDone||curScreen==='play'||curScreen==='parent'||$('#modal').classList.contains('on'))return;
+ try{const t=+sessionStorage.getItem('cc.swr')||0;if(Date.now()-t<30000)return;sessionStorage.setItem('cc.swr',String(Date.now()));}catch(e){}
+ swDone=true;persist();location.reload();}
 function setMuteIcons(){$$('#wMute,#pMute').forEach(b=>{b.innerHTML=save.muted?IC.sndOff:IC.sndOn;b.setAttribute('aria-label',save.muted?'Sound off':'Sound on');});
  const bn=$('#bagN');if(bn&&!bn.parentNode.querySelector('svg'))bn.insertAdjacentHTML('beforebegin',IC.bag);}
 function toggleMute(){save.muted=!save.muted;persist();setMuteIcons();if(!save.muted){Snd.init();Snd.tap();}}
@@ -651,7 +890,7 @@ function cele(html,ms){const c=$('#cele');c.innerHTML=html;c.classList.add('on')
 let banTimer=0;
 function banner(h,p,ms){const b=$('#banner');b.innerHTML='<h2>'+h+'</h2>'+(p?'<p>'+p+'</p>':'');b.classList.add('on');clearTimeout(banTimer);banTimer=setTimeout(()=>b.classList.remove('on'),(ms||1500)*Math.max(SPEED,0.3));}
 function modal(html,cls){const m=$('#modal');m.innerHTML='<div class="card'+(cls?' '+cls:'')+'">'+html+'</div>';m.classList.add('on');return m.firstChild;}
-function closeModal(){const m=$('#modal');m.classList.remove('on');m.innerHTML='';}
+function closeModal(){const m=$('#modal');m.classList.remove('on');m.innerHTML='';setTimeout(maybeReload,0);}
 
 // ---------- welcome ----------
 function renderWelcome(){$('#wLantern').innerHTML=lanternSVG();setMuteIcons();$('#wFs').style.display=fsEnabled?'':'none';
@@ -659,18 +898,119 @@ function renderWelcome(){$('#wLantern').innerHTML=lanternSVG();setMuteIcons();$(
  $('#nameIn').value=nm;$('#startBtn').textContent=save.started?'Continue Adventure!':'Start Adventure!';}
 $('#wFs').innerHTML=IC.fs;
 on('#wFs',()=>{tapSnd();toggleFS();});on('#wMute',toggleMute);on('#pMute',toggleMute);
-on('#startBtn',()=>{tapSnd();save.name=cleanName($('#nameIn').value);save.started=true;persist();$('#nameIn').blur();show('map');});
+on('#startBtn',()=>{tapSnd();save.name=cleanName($('#nameIn').value);save.started=true;persist();$('#nameIn').blur();show('mine');});
 $('#nameIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('#startBtn').click();});
 
 // ---------- map ----------
 $('#mHome').innerHTML=IC.home;$('#mBag').innerHTML=IC.bag;$('#mSet').innerHTML=IC.gear;
-on('#mHome',()=>{tapSnd();show('welcome');});on('#mBag',()=>{tapSnd();bagFrom='map';show('bag');});on('#mSet',()=>{tapSnd();show('settings');});
+on('#mHome',()=>{tapSnd();show('mine');});on('#mBag',()=>{tapSnd();bagFrom='map';show('bag');});on('#mSet',()=>{tapSnd();setFrom='map';show('settings');});
 on('#mDiff',()=>{tapSnd();openDiff();});
-function currentIdx(){for(let i=0;i<STAGES.length;i++)if(!lvRec(i,0).done)return stageOpen(i)?i:-1;return -1;}
+// ---------- mine entrance (the 4 caves) ----------
+let setFrom='mine';
+const SECGEM={add:'a1',sub:'s1',mul:6,div:'d2'};
+$('#eHome').innerHTML=IC.home;$('#eBag').innerHTML=IC.bag;$('#eSet').innerHTML=IC.gear;$('#pGear span').innerHTML=IC.sgear;$('#gBack').innerHTML=IC.back;
+on('#eHome',()=>{tapSnd();show('welcome');});on('#eBag',()=>{tapSnd();bagFrom='mine';show('bag');});on('#eSet',()=>{tapSnd();setFrom='mine';show('settings');});
+on('#gBack',()=>{tapSnd();show('mine');});
+function renderMine(){$('#eStats').innerHTML=gemSVG(GEMS[2],36)+'<span>'+totalGems()+'</span>';
+ let h='';SEC_ORDER.filter(secVisible).forEach(sec=>{const C=SECS[sec],p=secProgress(sec),pct=p.tot?Math.round(p.done/p.tot*100):0;
+  h+='<button class="cave c-'+sec+'" data-s="'+sec+'" aria-label="'+C.name+': '+C.kid+'"><span class="cArt">'+caveSVG(sec)+'<span class="cSym">'+C.sym+'</span></span>'+
+   '<span class="cInfo"><span class="cName">'+C.name+'</span><span class="cKid">'+C.kid+'</span><span class="cBar"><i style="width:'+pct+'%"></i></span><span class="cSt">'+starSVG(true)+p.stars+' &nbsp;'+gemSVG(GEMS[SECGEM[sec]],24)+p.done+'/'+p.tot+'</span></span>'+
+   (save.seen[sec]?'':'<span class="cNew">NEW</span>')+'</button>';});
+ $('#caves').innerHTML=h;
+ $$('#caves .cave').forEach(b=>b.addEventListener('click',()=>{tapSnd();openSec(b.dataset.s);}));
+ if(!save.seenV3)setTimeout(whatsNew3,250);}
+function openSec(sec){if(!secVisible(sec))return;mapSec=sec;
+ if(!save.seen[sec]){save.seen[sec]=true;persist();}
+ show('map');if(sec==='div'&&!save.seenDiv)setTimeout(()=>{if(curScreen==='map'&&!$('#modal').classList.contains('on'))shareIntro();},300);}
+function whatsNew3(){if(save.seenV3||curScreen!=='mine'||$('#modal').classList.contains('on'))return;
+ modal('<div class="art"><div class="rays"></div>'+caveSVG('add')+'</div><h2>New caves to explore!</h2>'+
+  '<ul class="news"><li>'+gemSVG(GEMS.a1,30)+'<span><b>Rose Quartz Cave</b>: adding, all the way up to 3-digit numbers</span></li>'+
+  '<li>'+gemSVG(GEMS.s1,30)+'<span><b>Moonstone Cave</b>: taking away, with borrowing</span></li>'+
+  '<li>'+gemSVG(GEMS.a8,30)+'<span><b>Story Doors</b> read you a little story</span></li>'+
+  '<li>'+gemSVG(GEMS[6],30)+'<span>Your <b>times tables</b> cave is still here, with all your gems!</span></li></ul>'+
+  '<button class="btn gold big" id="newOk">Let\'s explore!</button>','newsC');
+ on('#newOk',()=>{tapSnd();save.seenV3=true;save.seenV2=true;persist();closeModal();});}
+function shareIntro(){const total=12,ch=3;
+ let h='<h2>Fair sharing!</h2><p>Share <b>12 gems</b> into <b>3 chests</b>. Give one gem to each chest, again and again, until they are all gone!</p><div class="shareRow">';
+ for(let i=0;i<ch;i++)h+='<div class="shareCh"><div class="shG" data-c="'+i+'"></div>'+chestSVG()+'</div>';
+ modal(h+'</div><p id="shP" class="small">&nbsp;</p><div class="row"><button class="btn gold big" id="shGo">Share them!</button><button class="btn purple" id="shOk">Let\'s go!</button></div>');
+ let busy=false;
+ on('#shGo',async()=>{if(busy)return;busy=true;Snd.init();$$('.shG').forEach(e=>e.innerHTML='');
+  for(let i=0;i<total;i++){const g=$('.shG[data-c="'+(i%ch)+'"]'),p=$('#shP');if(!g||!p)return;g.insertAdjacentHTML('beforeend',gemSVG(GEMS.d2,22));Snd.gem(i);p.textContent='Gem '+(i+1)+' goes in chest '+(i%ch+1);await wait(280);}
+  const p=$('#shP');if(p)p.innerHTML='Each chest got <b>4</b>! &nbsp;12 ÷ 3 = 4';Snd.correct();busy=false;});
+ on('#shOk',()=>{tapSnd();save.seenDiv=true;persist();closeModal();});}
+// ---------- grown-ups gate: hold the silver gear 3 seconds, then a grown-up sum ----------
+(function(){const g=$('#pGear');let t=0,raf=0,t0=0;
+ const stop=()=>{clearTimeout(t);cancelAnimationFrame(raf);g.style.setProperty('--p','0');};
+ g.addEventListener('pointerdown',e=>{e.preventDefault();stop();t0=performance.now();
+  const tick=()=>{const p=Math.min(1,(performance.now()-t0)/3000);g.style.setProperty('--p',p.toFixed(3));if(p<1)raf=requestAnimationFrame(tick);};tick();
+  t=setTimeout(()=>{stop();Snd.init();Snd.tap();openGate();},3000);});
+ ['pointerup','pointerleave','pointercancel'].forEach(ev=>g.addEventListener(ev,stop));
+ g.addEventListener('contextmenu',e=>e.preventDefault());})();
+function openGate(){const a=ri(12,19),b=ri(12,19),ans=a*b;let typed='';
+ let pad='<div class="pad gatePad">';[1,2,3,4,5,6,7,8,9].forEach(n=>pad+='<button class="btn purple" data-k="'+n+'">'+n+'</button>');
+ pad+='<button class="btn del" data-k="del" aria-label="Delete">&#9003;</button><button class="btn purple" data-k="0">0</button><button class="btn go" data-k="go" aria-label="Check">&#10003;</button></div>';
+ modal('<h2>Grown-ups only</h2><p>What is <b>'+a+' × '+b+'</b>?</p><div class="gateIn" id="gIn">&nbsp;</div>'+pad+'<button class="btn gray" id="gNo">Cancel</button>');
+ const upd=()=>{$('#gIn').textContent=typed||' ';};
+ $$('.gatePad .btn').forEach(bt=>bt.addEventListener('click',()=>{const k=bt.dataset.k;Snd.tap();
+  if(k==='del')typed=typed.slice(0,-1);else if(k==='go'){if(+typed===ans){closeModal();show('parent');}else{Snd.soft();closeModal();cele(IC.lock+'<span>That area is for grown-ups!</span>',1800);}return;}
+  else if(typed.length<4)typed+=k;upd();}));
+ on('#gNo',()=>{tapSnd();closeModal();});}
+// ---------- grown-ups area ----------
+const fmtKey=k=>k.replace('x',' × ').replace('+',' + ').replace('-',' − ').replace('÷',' ÷ ');
+function parseKey(k){let m=/^(\d+)x(\d+)$/.exec(k);if(m)return {a:+m[1],b:+m[2]};
+ m=/^(\d+)([+\-÷])(\d+)$/.exec(k);if(!m)return null;const a=+m[1],b=+m[3];
+ if(m[2]==='+')return {op:'add',a,b};if(m[2]==='-')return {op:'sub',a,b};
+ return b>0&&a%b===0?{op:'div',a:b,b:a/b}:null;}
+function trickyOf(sec){const o=[],st=sec==='mul'?save.facts:save.ofacts;
+ for(const k in st){const f=st[k];if(!isObj(f)||!(f.w>0&&f.box<2))continue;if(sec!=='mul'){const p=parseKey(k);if(!p||p.op!==sec)continue;}o.push([k,f.w]);}
+ return o.sort((x,y)=>y[1]-x[1]).map(x=>x[0]);}
+function progCard(sec){const P=secProgress(sec),C=SECS[sec];let n=0,c=0;
+ if(sec==='mul'){for(const k in save.facts){const f=save.facts[k];if(isObj(f)){n+=f.n|0;c+=f.c|0;}}}else{const o=save.ops[sec];if(isObj(o)){n=o.n|0;c=o.c|0;}}
+ const tr=trickyOf(sec).slice(0,8);
+ return '<div class="pcard c-'+sec+'"><div class="pcH"><span class="pSym">'+C.sym+'</span>'+C.name+(save.parent.on[sec]?'':' <small>(hidden)</small>')+'</div>'+
+  '<div>Levels finished: <b>'+P.done+' / '+P.tot+'</b> · Stars: <b>'+P.stars+' / '+P.max+'</b></div>'+
+  '<div>Answers: <b>'+n+'</b>'+(n?' · Right first time: <b>'+Math.round(c/n*100)+'%</b>':'')+'</div>'+
+  (tr.length?'<div class="small">Still tricky:</div><div class="chips">'+tr.map(k=>'<span>'+fmtKey(k)+'</span>').join('')+'</div>':'<div class="small">No tricky facts right now.</div>')+'</div>';}
+function renderParent(){const p=save.parent,b=$('#parBody'),y=b.scrollTop;
+ const tog=(id,v)=>'<button class="btn tog '+(v?'green':'gray')+'" id="'+id+'">'+(v?'On':'Off')+'</button>';
+ const seg=(name,opts,cur)=>'<div class="seg">'+opts.map(o=>'<button class="btn '+(o[0]===cur?'gold sel':'gray')+'" data-seg="'+name+'" data-v="'+o[0]+'">'+o[1]+'</button>').join('')+'</div>';
+ const lbl=(sec,txt)=>'<span class="lbl"><span class="pSym c-'+sec+'">'+SECS[sec].sym+'</span><span>'+txt+'</span></span>';
+ let h='<p class="note">Choose what she can play. Everything stays on this device.</p><div class="secH">Caves she can see</div>';
+ SEC_ORDER.forEach(s=>{h+='<div class="setRow">'+lbl(s,SECS[s].name+'<small>'+SECS[s].kid+(s==='div'?' (hidden until you switch it on)':'')+'</small>')+tog('on-'+s,p.on[s])+'</div>';});
+ h+='<div class="secH">Number ranges</div>'+
+  '<div class="setRow">'+lbl('add','Adding up to')+seg('max-add',[[20,'20'],[100,'100'],[1000,'999']],p.max.add)+'</div>'+
+  '<div class="setRow">'+lbl('sub','Taking away from')+seg('max-sub',[[20,'20'],[100,'100'],[1000,'999']],p.max.sub)+'</div>'+
+  '<div class="setRow">'+lbl('div','Sharing tables')+seg('divT',[['easy','÷2, 5, 10'],['all','÷2 to ÷9']],p.divT)+'</div>';
+ h+='<div class="secH">Skip ahead: open every level</div>';
+ SEC_ORDER.forEach(s=>{h+='<div class="setRow">'+lbl(s,SECS[s].name)+tog('open-'+s,p.open[s])+'</div>';});
+ h+='<div class="secH">How tricky</div><div class="setRow"><span class="lbl">'+diffIcon(save.diff)+'<span>Difficulty<small>'+DIFFS[save.diff].desc+'</small></span></span>'+seg('diff',[[0,'Easy'],[1,'Normal'],[2,'Tricky']],save.diff)+'</div>';
+ h+='<div class="secH">Reading</div>'+
+  '<div class="setRow"><span class="lbl"><span>Story Doors<small>One word problem guards each boss door (+, −, ÷)</small></span></span>'+tog('stories',p.stories)+'</div>'+
+  '<div class="setRow"><span class="lbl">'+IC.sndOn+'<span>Read stories aloud<small>Uses the phone\'s own voice. The 🔊 button always works.</small></span></span>'+tog('read',p.read)+'</div>';
+ h+='<div class="secH">Progress</div><div class="prog">'+SEC_ORDER.map(progCard).join('')+'</div>';
+ h+='<div class="secH">Start over</div><div class="setRow"><span class="lbl"><span>Erase all gems, stars and treasures<small>A backup copy is kept on this device.</small></span></span><button class="btn tog red" id="pReset">Reset</button></div>';
+ b.innerHTML=h;b.scrollTop=y;
+ const re=()=>{persist();renderParent();};
+ SEC_ORDER.forEach(s=>{
+  on('#on-'+s,()=>{tapSnd();if(p.on[s]&&SEC_ORDER.filter(k=>p.on[k]).length===1){cele(IC.lock+'<span>Keep at least one cave open.</span>',1800);return;}
+   p.on[s]=!p.on[s];if(p.on[s]&&s!=='mul')save.seen[s]=false;re();});
+  on('#open-'+s,()=>{tapSnd();p.open[s]=!p.open[s];re();});});
+ b.querySelectorAll('[data-seg]').forEach(bt=>bt.addEventListener('click',()=>{tapSnd();const k=bt.dataset.seg,v=bt.dataset.v;
+  if(k==='max-add')p.max.add=+v;else if(k==='max-sub')p.max.sub=+v;else if(k==='divT')p.divT=v;else if(k==='diff')save.diff=+v;re();}));
+ on('#stories',()=>{tapSnd();p.stories=!p.stories;re();});
+ on('#read',()=>{tapSnd();p.read=!p.read;re();if(p.read)Voice.say('I will read the stories out loud.');});
+ on('#pReset',()=>{tapSnd();modal('<h2>Start over?</h2><p>This erases all gems, stars and treasures in every cave. A backup copy is kept on this device.</p><div class="row"><button class="btn green big" id="rKeep">Keep everything</button><button class="btn red" id="rYes">Yes, erase</button></div>');
+  on('#rKeep',()=>{tapSnd();closeModal();});
+  on('#rYes',()=>{try{localStorage.setItem(KEY+'.reset-backup',JSON.stringify(save));}catch(e){}
+   const keep={muted:save.muted,parent:save.parent,seen:save.seen};save=merge(DEF,{});Object.assign(save,keep);save.seenV2=true;save.seenV3=true;persist();closeModal();S=null;show('welcome');});});}
+// ---------- map (one cave at a time) ----------
+function currentIdx(sec){const L=secStages(sec||mapSec);for(const i of L)if(!lvRec(i,0).done)return stageOpen(i)?i:-1;return -1;}
 function nodeLabel(st,size){if(st.kind==='queen')return '<span class="crownT">'+IC.crown+'</span>';return '<span class="tbl">'+st.short+'</span>';}
-function renderMap(){const area=$('#mapArea'),inner=$('#mapInner');
+function renderMap(){const area=$('#mapArea'),inner=$('#mapInner'),sec=mapSec,L=secStages(sec);
+ $('#mapTitle').textContent=sec==='mul'?'The Crystal Cave':SECS[sec].name;
  $('#mStats').innerHTML=gemSVG(GEMS[2],36)+'<span id="mTotal">'+totalGems()+'</span>';$('#mDiff').innerHTML=diffIcon(save.diff);$('#mDiff').setAttribute('aria-label','Difficulty: '+DIFFS[save.diff].name);
- const w=area.clientWidth,h=area.clientHeight,n=STAGES.length;if(!w||!h)return;
+ const w=area.clientWidth,h=area.clientHeight,n=L.length;if(!w||!h||!n)return;
  const cols=w>=h*1.3?5:(w>=560?4:2),rows=Math.ceil(n/cols),vis=Math.max(2,Math.min(rows,w>=h*1.3?2:(w>=560?3:5)));
  const node=Math.max(76,Math.min(w/cols*0.5,(h/vis)/2.05,124)),rowH=Math.max(node*1.95,h/rows);
  const H=Math.max(h,rows*rowH);inner.style.height=H+'px';
@@ -678,21 +1018,23 @@ function renderMap(){const area=$('#mapArea'),inner=$('#mapInner');
  let d='M'+pts[0][0].toFixed(0)+' '+pts[0][1].toFixed(0);for(let i=1;i<n;i++){const a=pts[i-1],b=pts[i];
   if(Math.abs(a[1]-b[1])<1)d+=' Q'+((a[0]+b[0])/2).toFixed(0)+' '+(a[1]-rowH*0.2).toFixed(0)+' '+b[0].toFixed(0)+' '+b[1].toFixed(0);
   else{const sx=a[0]+(a[0]>w/2?1:-1)*w/cols*0.45;d+=' C'+sx.toFixed(0)+' '+a[1].toFixed(0)+' '+sx.toFixed(0)+' '+b[1].toFixed(0)+' '+b[0].toFixed(0)+' '+b[1].toFixed(0);}}
- const cur=currentIdx();
+ const cur=currentIdx(sec);
  let html='<svg class="path" viewBox="0 0 '+w+' '+H+'" aria-hidden="true"><path d="'+d+'" stroke="rgba(20,5,50,.55)" stroke-width="22" fill="none" stroke-linecap="round"/><path d="'+d+'" stroke="#fff6c4" stroke-opacity=".85" stroke-width="6" stroke-dasharray="2 16" fill="none" stroke-linecap="round"/></svg>';
- ZONES.forEach(z=>{const p=pts[z.from];html+='<div class="zoneTag'+(z.from>=10?' deep':'')+'" style="left:'+p[0].toFixed(0)+'px;top:'+Math.max(2,p[1]-node*0.5-32).toFixed(0)+'px">'+z.name+'</div>';});
- STAGES.forEach((st,i)=>{const p=pts[i],open=stageOpen(i),dn=stageDone(i),mast=stageMastered(i),g=GEMS[st.gem],L=nLv(st);
+ (ZONES_BY[sec]||[]).forEach(z=>{const j=L.findIndex(i=>ALL[i].id===z.id);if(j<0)return;const p=pts[j];html+='<div class="zoneTag'+(z.deep?' deep':'')+'" style="left:'+p[0].toFixed(0)+'px;top:'+Math.max(2,p[1]-node*0.5-32).toFixed(0)+'px">'+z.name+'</div>';});
+ L.forEach((i,j)=>{const st=ALL[i],p=pts[j],open=stageOpen(i),mast=stageMastered(i),g=GEMS[st.gem],nl=nLv(st);
   const cls='node'+(open?'':' locked')+(i===cur?' cur':'')+(mast?' mast':'')+(st.kind==='queen'?' queenN':'');
-  let pips='';for(let k=0;k<L;k++){const r=lvRec(i,k);pips+='<i class="'+(r.done?(r.stars>=3?'p3':'p1'):'')+'"></i>';}
+  let pips='';for(let k=0;k<nl;k++){const r=lvRec(i,k);pips+='<i class="'+(r.done?(r.stars>=3?'p3':'p1'):'')+'"></i>';}
   html+='<button class="'+cls+'" data-i="'+i+'" style="left:'+(p[0]-node*0.6).toFixed(0)+'px;top:'+(p[1]-node*0.5).toFixed(0)+'px;width:'+(node*1.2).toFixed(0)+'px;--fs:'+Math.round(node*(st.short.length>2?0.26:0.34))+'px" aria-label="'+st.name+(open?'':' (locked)')+'">'+
    '<span class="gemWrap" style="width:'+node.toFixed(0)+'px;height:'+node.toFixed(0)+'px">'+gemSVG(g,Math.round(node*0.92),{gray:!open})+nodeLabel(st,node)+(open?'':'<span class="lock">'+IC.lock+'</span>')+(mast?'<span class="crown">'+IC.crown+'</span>':'')+(i===cur?'<span class="lanternMini">'+lanternSVG()+'</span>':'')+'</span>'+
    '<span class="nm">'+(open?(st.kind==='table'?g.name:st.name.replace("Crystal Queen's Throne",'Crystal Queen')):'Locked')+'</span><span class="pips">'+pips+'</span></button>';});
  if(save.keys>0)html+='<button class="btn gold pulse" id="tunnelBtn">'+goldenSVG(40)+'Secret Tunnel'+(save.keys>1?' ×'+save.keys:'')+'</button>';
+ if(sec==='div')html+='<button class="btn gold" id="shareBtn" aria-label="How fair sharing works">'+chestSVG()+'</button>';
  inner.innerHTML=html;
  $$('#mapInner .node').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.i;if(!stageOpen(i)){Snd.soft();cele(IC.lock+'<span>Finish Learn in the tunnel before this one to open it!</span>',1800);return;}tapSnd();openStage(i);}));
  on('#tunnelBtn',()=>{tapSnd();save.keys--;persist();startTunnel(null);});
- if(cur>=0){const p=pts[cur];area.scrollTop=Math.max(0,p[1]-h*0.5);}
- if(!save.seenV2)setTimeout(whatsNew,250);}
+ on('#shareBtn',()=>{tapSnd();shareIntro();});
+ if(cur>=0){const p=pts[L.indexOf(cur)];area.scrollTop=Math.max(0,p[1]-h*0.5);}
+ if(!save.seenV2&&sec==='mul')setTimeout(whatsNew,250);}
 function whatsNew(){if(save.seenV2||curScreen!=='map'||$('#modal').classList.contains('on'))return;
  const c=modal('<div class="art"><div class="rays"></div>'+gemSVG(GEMS.queen,150)+'</div><h2>New in the Crystal Cave!</h2>'+
   '<ul class="news"><li>'+gemSVG(GEMS[2],30)+'<span>Every tunnel has <b>3 levels</b>: Learn, Practice and Challenge</span></li>'+
@@ -701,8 +1043,8 @@ function whatsNew(){if(save.seenV2||curScreen!=='map'||$('#modal').classList.con
   '<li><span class="dIc">'+diffIcon(save.diff)+'</span><span>Pick <b>Easy, Normal or Tricky</b> with the gold button</span></li></ul>'+
   (save.migrated?'<p class="small">All your gems and finished tunnels came with you!</p>':'')+'<button class="btn gold big" id="newOk">Let\'s explore!</button>','newsC');
  on('#newOk',()=>{tapSnd();save.seenV2=true;persist();closeModal();});}
-function lvLabel(st,k){return st.lvNames?st.lvNames[k]:LVD[k];}
-function openStage(si){const st=STAGES[si];
+function lvLabel(st,k){if(st.id==='dmix')return divPools()[k].map(t=>'÷'+t).join(', ');return st.lvNames?st.lvNames[k]:LVD[k];}
+function openStage(si){const st=ALL[si];
  if(nLv(st)===1){const r=lvRec(si,0);modal('<div class="art"><div class="rays"></div>'+gemSVG(GEMS.queen,150)+'</div><h2>'+st.name+'</h2><p>The Crystal Queen mixes <b>everything</b>: tables, squares and missing numbers. Break her 5 gem locks to win her crown!</p>'+
    '<div class="bigStars small">'+[0,1,2].map(k=>starSVG(k<r.stars)).join('')+'</div><div class="row"><button class="btn purple" id="lvClose">Not yet</button><button class="btn gold big" id="lvGo">I\'m ready!</button></div>','queenC');
   on('#lvClose',()=>{tapSnd();closeModal();});on('#lvGo',()=>{tapSnd();closeModal();startLevel(si,0);});return;}
@@ -727,20 +1069,22 @@ on('#pBag',()=>{tapSnd();bagFrom='play';show('bag');});
 on('#padT',()=>{tapSnd();if(!S||!S.q)return;S.pad=!S.pad;if(!S.forcePad){save.pad=S.pad;persist();}S.typed='';renderAnswers();updateQ();layoutPlay();});
 on('#hintB',()=>{if(!S||S.busy||!S.q)return;tapSnd();if($('#hint').hidden){if(!S.wrong)S.helped=true;showHint();}});
 let S=null,tunnelResolve=null;
-function leavePlay(){closeModal();
+function leavePlay(){closeModal();Voice.stop();
  if(S&&S.mode==='tunnel'&&S.ret){S=S.ret;S.doorDirty=true;setupPlay();const r=tunnelResolve;tunnelResolve=null;if(r)r();return;}
  S=null;show('map');}
 // difficulty = chosen setting (Easy/Normal/Tricky) + natural ramp from the level (Learn/Practice/Challenge)
 function cfgFor(lv){const d=save.diff;return {lv,n:d===0?3:4,close:Math.min(4,lv+d),hintBtn:d===0||(d===1&&lv===0),autoHint:d<2,forcePad:d===2&&lv===2,speed:lv===2?[9,7,5][d]:0};}
-function startLevel(si,k){const st=STAGES[si];save.run++;persist();
+function startLevel(si,k){const st=ALL[si];save.run++;persist();mapSec=st.sec;
  const c=cfgFor(st.kind==='queen'?2:k);
+ // bigger numbers get more time for the speedy bonus (it is only ever a bonus); stories have no timer
+ if(st.kind==='gen')c.speed=st.story?0:c.speed*(st.lim>=1000?3:st.lim>=100?2:1);
  S={mode:'sec',si,k,st,cfg:c,gem:st.kind==='table'?null:st.gem,idx:0,boss:false,bossQs:null,bossIdx:0,locks:st.kind==='queen'?5:3,first:0,total:0,earned:{},requeued:{},busy:false,pad:save.pad||c.forcePad,forcePad:c.forcePad,speedy:0};
- S.queue=buildQueue(si,k);
+ S.queue=st.kind==='gen'?buildQueueG(si,k):buildQueue(si,k);
  show('play');setupPlay();banner(st.name,st.kind==='queen'?'The Grand Boss!':LVN[k]+': '+lvLabel(st,k),1500);nextQ();}
 function startTunnel(ret){if(!ret){save.run++;persist();}
- const c=cfgFor(1);c.speed=0;c.forcePad=false;
- S={mode:'tunnel',ret,cfg:c,gem:null,idx:0,boss:false,locks:3,first:0,total:0,earned:{},requeued:{},busy:false,pad:save.pad,forcePad:false,speedy:0};
- S.queue=buildTunnel();
+ const c=cfgFor(1);c.speed=0;c.forcePad=false;const sec=ret&&ret.st?ret.st.sec:mapSec;
+ S={mode:'tunnel',sec,ret,cfg:c,gem:null,idx:0,boss:false,locks:3,first:0,total:0,earned:{},requeued:{},busy:false,pad:save.pad,forcePad:false,speedy:0};
+ S.queue=sec==='mul'?buildTunnel():buildTunnelG(sec);
  show('play');setupPlay();banner('Secret Tunnel','Golden doors ahead!',1500);nextQ();}
 function setupPlay(){const pl=$('#play');pl.classList.toggle('goldMode',S.mode==='tunnel');pl.classList.toggle('queenMode',!!(S.st&&S.st.kind==='queen'));setMuteIcons();
  $('#secName').textContent=S.mode==='tunnel'?'Secret Golden Tunnel':(S.st.kind==='queen'?S.st.name:S.st.name+' · '+LVN[S.k]);
@@ -749,20 +1093,40 @@ function setupPlay(){const pl=$('#play');pl.classList.toggle('goldMode',S.mode==
 function layoutPlay(){if(curScreen!=='play')return;const st=$('#stage'),r=st.getBoundingClientRect();if(!r.width)return;
  const lh=Math.min(Math.max(56,Math.min(r.width,r.height)*0.24),118);$('#pLantern').style.width=(lh*100/130).toFixed(0)+'px';st.style.setProperty('--lh',lh.toFixed(0)+'px');
  const dh=Math.max(120,Math.min(r.height-58,(r.width-130)*360/300,480)),door=$('#doorBox .door');
- if(door){door.style.height=dh.toFixed(0)+'px';door.style.width=(dh*300/360).toFixed(0)+'px';const q=door.querySelector('.q');if(q)q.style.fontSize=Math.round(dh*0.15)+'px';}
+ if(door&&!door.classList.contains('story')){door.style.height=dh.toFixed(0)+'px';door.style.width=(dh*300/360).toFixed(0)+'px';const q=door.querySelector('.q');if(q)q.style.fontSize=Math.round(dh*0.15)+'px';}
  if(!$('#hint').hidden&&S&&S.q)sizeHint();}
 window.addEventListener('resize',()=>{resizeFx();if(curScreen==='map')renderMap();layoutPlay();});
 // ----- questions: {a,b,swap,miss}  miss 0=normal, 1=first number hidden, 2=second hidden, 3=square (both hidden, same number)
 const disp=q=>q.swap?[q.b,q.a]:[q.a,q.b];
-function ansOf(q){const d=disp(q);return q.miss===1?d[0]:q.miss===2?d[1]:q.miss===3?q.a:q.a*q.b;}
-function qPlain(q){const d=disp(q),P=q.a*q.b;return q.miss===1?'? × '+d[1]+' = '+P:q.miss===2?d[0]+' × ? = '+P:q.miss===3?'? × ? = '+P:d[0]+' × '+d[1]+' = ?';}
-function qHTML(q,typed){const d=disp(q),P=q.a*q.b,sl='<span class="slot">'+(typed?esc(typed):'?')+'</span>';
+// + − ÷ questions carry q.op ('add'|'sub'|'div'); × questions have no op and use the original code paths unchanged.
+// add/sub {a,b,miss}: miss 0 = a ± b = ?, 1 = first number hidden, 2 = second hidden.  div {a:divisor,b:quotient,grp}: (a·b) ÷ a = ?
+const OPSYM={add:'+',sub:'−',div:'÷'};
+const isAS=q=>!!q&&(q.op==='add'||q.op==='sub');
+const resOf=q=>q.op==='add'?q.a+q.b:q.a-q.b;
+const useCol=q=>isAS(q)&&!q.miss&&(Math.max(q.a,q.b,resOf(q))>=100||(q.a>=10&&q.b>=10&&Math.max(q.a,q.b)>20));
+function ansOf(q){if(isAS(q))return q.miss===1?q.a:q.miss===2?q.b:resOf(q);if(q.op==='div')return q.b;
+ const d=disp(q);return q.miss===1?d[0]:q.miss===2?d[1]:q.miss===3?q.a:q.a*q.b;}
+function qPlain(q){if(q.op==='div')return (q.a*q.b)+' ÷ '+q.a+' = ?';
+ if(isAS(q)){const s=OPSYM[q.op],r=resOf(q);return q.miss===1?'? '+s+' '+q.b+' = '+r:q.miss===2?q.a+' '+s+' ? = '+r:q.a+' '+s+' '+q.b+' = ?';}
+ const d=disp(q),P=q.a*q.b;return q.miss===1?'? × '+d[1]+' = '+P:q.miss===2?d[0]+' × ? = '+P:q.miss===3?'? × ? = '+P:d[0]+' × '+d[1]+' = ?';}
+function qHTML(q,typed){const sl='<span class="slot">'+(typed?esc(typed):'?')+'</span>';
+ if(q.story)return sl;
+ if(q.op==='div')return (q.a*q.b)+' ÷ '+q.a+'<span class="eq">= '+sl+'</span>';
+ if(isAS(q)){const s=OPSYM[q.op],r=resOf(q);
+  if(q.miss)return (q.miss===1?sl+' '+s+' '+q.b:q.a+' '+s+' '+sl)+'<span class="eq">= '+r+'</span>';
+  if(useCol(q))return '<span class="colq"><span class="cr">'+q.a+'</span><span class="cr">'+s+' '+q.b+'</span><span class="ln"></span><span class="cr">'+sl+'</span></span>';
+  return q.a+' '+s+' '+q.b+'<span class="eq">= '+sl+'</span>';}
+ const d=disp(q),P=q.a*q.b;
  if(!q.miss)return d[0]+' × '+d[1]+'<span class="eq">= '+sl+'</span>';
  const top=q.miss===1?sl+' × '+d[1]:q.miss===2?d[0]+' × '+sl:sl+' × '+sl;return top+'<span class="eq">= '+P+'</span>';}
-const qKey=q=>q.a+'x'+q.b;
-function weightOf(k){const r=save.facts[k];let w=Math.random()*1.5;if(!r)return w+2;if(r.box<2)w+=3;if(r.due<=save.run)w+=2;w+=Math.min(3,r.w*0.7);w-=r.box*0.4;return w;}
+const qKey=q=>q.op==='add'?q.a+'+'+q.b:q.op==='sub'?q.a+'-'+q.b:q.op==='div'?(q.a*q.b)+'÷'+q.a:q.a+'x'+q.b;
+const storeOf=k=>/^\d+x\d+$/.test(k)?save.facts:save.ofacts;
+const factRec=k=>{const r=storeOf(k)[k];return isObj(r)?r:null;};
+const gemKey=(s,q)=>s.gem||q.gem||q.a;
+function weightOf(k){const r=factRec(k);let w=Math.random()*1.5;if(!r)return w+2;if(r.box<2)w+=3;if(r.due<=save.run)w+=2;w+=Math.min(3,r.w*0.7);w-=r.box*0.4;return w;}
 const range=(a,b)=>{const o=[];for(let i=a;i<=b;i++)o.push(i);return o;};
-function factsFor(si,k){const st=STAGES[si],F=[];
+function factsFor(si,k){const st=ALL[si],F=[];
+ if(st.kind==='gen')return st.sec==='div'?divFacts(st,k):genFacts(st,k);
  if(st.kind==='table')range(1,10).forEach(b=>F.push({a:st.t,b}));
  else if(st.kind==='mix'||st.kind==='miss')st.pools[k].forEach(a=>range(2,10).forEach(b=>F.push({a,b})));
  else if(st.kind==='sq')(k===0?range(1,5):k===1?range(1,9):range(2,9)).forEach(a=>F.push({a,b:a}));
@@ -797,7 +1161,72 @@ function buildBoss(){const st=S.st,F=factsFor(S.si,S.k),used=new Set(),out=[],n=
  return shuffle(out);}
 function buildTunnel(){const op=TABLES.filter((t,i)=>stageOpen(i)),pool=[];op.forEach(a=>range(2,10).forEach(b=>pool.push({a,b,w:weightOf(a+'x'+b)})));
  pool.sort((x,y)=>y.w-x.w);return shuffle(pool.slice(0,10)).slice(0,3).map((q,i)=>({a:q.a,b:q.b,swap:Math.random()<0.4,miss:save.diff>0&&i===2?flip():0}));}
-function choicesFor(q){const c=S.cfg,ans=ansOf(q),n=c.n,set=[ans],max=q.miss?12:100,ok=v=>v>0&&v<=max&&set.indexOf(v)<0;let tiers;
+// ----- + − ÷ levels
+function genFacts(st,k){const F=[],seen=new Set(),g=GEN[st.id];
+ for(let i=0;i<160&&F.length<40;i++){const ab=g(k),f={op:st.sec,a:ab[0],b:ab[1]},key=qKey(f);if(!seen.has(key)){seen.add(key);F.push(f);}}
+ return F;}
+function divFacts(st,k){const ts=st.t?[st.t]:divPools()[k],F=[];ts.forEach(t=>range(1,10).forEach(n=>F.push({op:'div',a:t,b:n})));return F;}
+function pickW(F,n){return shuffle(F.map(f=>({f,w:weightOf(qKey(f))})).sort((x,y)=>y.w-x.w).slice(0,n)).map(o=>Object.assign({},o.f));}
+// fact families: 12 ÷ 3 becomes 3 × ? = 12
+function toFamily(q){delete q.op;delete q.grp;q.miss=2;}
+const opMax=f=>f.op==='div'?f.a*f.b:Math.max(f.a,f.b,resOf(f));
+function buildQueueG(si,k){const st=ALL[si],F=factsFor(si,k),inOrder=st.sec==='div'&&!!st.t&&k===0;let qs;
+ if(st.sec==='div'){
+  if(inOrder)qs=F.map(f=>Object.assign({},f));
+  else{qs=pickW(F,8);qs.forEach(q=>q.grp=Math.random()<0.5);if(k===2)qs.forEach((q,i)=>{if(i%3===1)toFamily(q);});}}
+ else{qs=pickW(F,8);if(st.miss&&k===2)qs.forEach((q,i)=>{if(i%3===1)q.miss=flip();});}
+ // spaced review: missed facts of the same kind come back (only ones that fit this level's number size)
+ const own=new Set(qs.map(qKey)),op=st.sec,lim=st.sec==='div'?100:Math.min(st.lim||1000,save.parent.max[op]||1000);
+ const rev=shuffle(Object.keys(save.ofacts).filter(key=>{const r=save.ofacts[key],f=parseKey(key);
+  return f&&f.op===op&&isObj(r)&&!own.has(key)&&r.w>0&&r.box<=1&&r.due<=save.run&&opMax(f)<=lim&&(op!=='div'||save.parent.divT!=='easy'||[2,5,10].indexOf(f.a)>=0);})).slice(0,2);
+ rev.forEach((key,i)=>{const q=parseKey(key);q.review=true;if(op==='div')q.grp=Math.random()<0.5;if(inOrder)qs.push(q);else qs.splice(Math.min(qs.length,2+i*3),0,q);});
+ if(st.story)qs.forEach(q=>{q.miss=0;q.story=mkStory(q);});
+ return qs;}
+function buildBossG(){const st=S.st,F=factsFor(S.si,S.k),n=S.locks,used=new Set(),out=[];
+ for(const q of pickW(F,F.length)){if(out.length>=n)break;const key=qKey(q);if(!used.has(key)){used.add(key);out.push(q);}}
+ while(out.length<n)out.push(Object.assign({},F[out.length%F.length]));
+ if(st.sec==='div'){out.forEach(q=>q.grp=Math.random()<0.5);if(S.k===2)toFamily(out[1]);}
+ else if(st.miss&&S.k===2)out[1].miss=flip();
+ shuffle(out);
+ if(st.story)out.forEach(q=>{q.miss=0;q.story=mkStory(q);});
+ else if(save.parent.stories){const q=out[n-1];if(!q.op){q.op='div';q.grp=Math.random()<0.5;}q.miss=0;q.story=mkStory(q);} // the last lock is a Story Lock
+ return out;}
+function buildTunnelG(sec){const L=secStages(sec).filter(stageOpen),out=[];
+ for(let i=0;i<3;i++){const si=pick(L),q=pick(pickW(factsFor(si,1),6));q.gem=ALL[si].gem;if(q.op==='div')q.grp=Math.random()<0.5;out.push(q);}
+ return out;}
+function choicesG(q){const c=S.cfg,ans=ansOf(q),n=c.n,set=[ans];let tiers,ok;
+ if(q.op==='div'){ok=v=>v>0&&v<=12&&set.indexOf(v)<0;
+  tiers=c.close>=2?[[ans+1,ans-1],[ans+2,ans-2,q.a]]:[[ans+2,ans-2,ans+3,ans-3],[ans+1,ans-1,ans+4]];}
+ else{ok=v=>v>=0&&v<=1999&&set.indexOf(v)<0;const big=ans>=10,errs=[];
+  // the classic slips: forgetting to carry, or taking the smaller digit from the bigger one
+  if(!q.miss&&Math.max(q.a,q.b)>=10){let s=0;for(let i=0;i<4;i++)s+=(q.op==='add'?(dg(q.a,i)+dg(q.b,i))%10:Math.abs(dg(q.a,i)-dg(q.b,i)))*Math.pow(10,i);errs.push(s);}
+  const pm=[ans+1,ans-1],tens=big?[ans+10,ans-10]:[ans+2,ans-2],far=big?[ans+100,ans-100,ans+20,ans-20,ans+2,ans-2]:[ans+3,ans-3,ans+4,ans-4];
+  tiers=c.close>=3?[errs.concat(pm,tens),far]:c.close>=1?[pm.concat(tens,errs),far]:[far.concat(tens),pm];}
+ for(const tier of tiers)for(const v of shuffle(tier.slice()))if(set.length<n&&ok(v))set.push(v);
+ let k=1;while(set.length<n&&k<300){if(ok(ans+k))set.push(ans+k);else if(ok(ans-k))set.push(ans-k);k++;}
+ return shuffle(set);}
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function mkStory(q){const C=pick(CHARS),D=pick(CHARS.filter(x=>x!==C)),T=pick(THINGS),t=T[0],e=T[1];
+ const who=save.name&&Math.random()<0.4?save.name:C[0],Who=cap(who),v=ri(0,2);
+ const pic=(n,em)=>n<=10?'<span>'+em.repeat(n)+'</span>':'<span>'+em+'<b>×'+n+'</b></span>';
+ let txt,p;
+ if(q.op==='add'){const a=q.a,b=q.b;
+  txt=v===0?Who+' found '+a+' '+t+'. Then '+who+' found '+b+' more. How many '+t+' are there now?':
+   v===1?'There are '+a+' pink '+t+' and '+b+' purple '+t+'. How many '+t+' are there in all?':
+   Who+' had '+a+' '+t+'. '+cap(D[0])+' gave '+who+' '+b+' more. How many '+t+' does '+who+' have now?';
+  p=C[1]+pic(a,e)+'<i>+</i>'+pic(b,e);}
+ else if(q.op==='sub'){const a=q.a,b=q.b;
+  txt=v===0?Who+' had '+a+' '+t+'. '+Who+' gave '+b+' of them to '+D[0]+'. How many '+t+' are left?':
+   v===1?'There were '+a+' '+t+' in the cave. '+b+' of them rolled away. How many '+t+' are still there?':
+   Who+' picked '+a+' '+t+' and used '+b+' to make a sparkly crown. How many '+t+' are left?';
+  p=C[1]+pic(a,e)+'<i>−</i>'+pic(b,e);}
+ else{const P=q.a*q.b;
+  txt=q.grp?Who+' has '+P+' '+t+' and puts '+q.a+' in each bag. How many bags does '+who+' fill?':
+   Who+' shares '+P+' '+t+' fairly into '+q.a+' treasure chests. How many '+t+' go in each chest?';
+  p=C[1]+pic(P,e)+'<i>→</i>'+(q.grp?'<span>👜<b>?</b></span>':pic(q.a,'🎁'));}
+ return {txt,pic:p};}
+function choicesFor(q){if(q.op)return choicesG(q);
+ const c=S.cfg,ans=ansOf(q),n=c.n,set=[ans],max=q.miss?12:100,ok=v=>v>0&&v<=max&&set.indexOf(v)<0;let tiers;
  if(q.miss){const d=disp(q),known=q.miss===1?d[1]:d[0];
   tiers=c.close>=3?[[ans+1,ans-1],[known,ans+2,ans-2]]:c.close>=1?[[ans+1,ans-1,ans+2,ans-2],[ans+3,ans-3]]:[[ans+3,ans-3,ans+4,ans-4],[ans+2,ans-2,ans+5,ans-5]];}
  else{const a=q.a,b=q.b,nb=[a*(b+1),a*(b-1),(a+1)*b,(a-1)*b],pm=[ans+1,ans-1,ans+2,ans-2],far=[a*(b+2),a*(b-2),ans+10,ans-10,a+b,(a+2)*b,(a-2)*b];
@@ -810,9 +1239,15 @@ function renderDots(){let h='';if(S.mode==='tunnel')S.queue.forEach((q,i)=>{h+='
  $('#dots').innerHTML=h;}
 const box$=s=>$('#doorBox '+s);
 function bossKind(){return S.st&&S.st.kind==='queen'?'queen':'boss';}
-function renderDoor(){const kind=S.mode==='tunnel'?'gold':S.boss?bossKind():'norm',box=$('#doorBox');
- if(S.boss&&!S.doorDirty&&box.querySelector('.door.'+kind+':not(.broken)')){updateQ();startSpeed();return;}
- S.doorDirty=false;const tag=S.q.review?'<span class="tag">Remember this one?</span>':S.boss?'<span class="tag"></span>':'';
+function renderDoor(){const kind=S.mode==='tunnel'?'gold':S.boss?bossKind():'norm',box=$('#doorBox'),sto=S.q.story;
+ if(!sto&&S.boss&&!S.doorDirty&&box.querySelector('.door.'+kind+':not(.broken)')){updateQ();startSpeed();return;}
+ S.doorDirty=false;
+ if(sto){let locks='';if(S.boss)for(let i=0;i<S.locks;i++)locks+='<span class="lockGem'+(i<S.bossIdx?' pop':'')+'" data-i="'+i+'">'+gemSVG(GEMS[[2,3,8,7,6][i%5]],30)+'</span>';
+  box.innerHTML='<div class="door story enter"><span class="stTag"></span>'+(locks?'<div class="stLocks">'+locks+'</div>':'')+'<div class="stPic">'+sto.pic+'</div><p class="stTxt">'+esc(sto.txt)+'</p>'+
+   '<div class="stRow"><button class="btn ibtn blue stSay" aria-label="Read it to me">'+IC.sndOn+'</button><div class="q"></div></div></div>';
+  box.querySelector('.stSay').addEventListener('click',()=>{Snd.init();Voice.say(sto.txt);});
+  if(save.parent.read&&!save.muted)Voice.say(sto.txt);
+  updateQ();startSpeed();return;}const tag=S.q.review?'<span class="tag">Remember this one?</span>':S.boss?'<span class="tag"></span>':'';
  box.innerHTML='<div class="door enter '+(kind==='queen'?'boss queen':kind)+'">'+doorSVG(kind,S.locks)+tag+'<div class="q"></div><div class="speed" hidden><span>'+IC.bolt+'</span><i></i></div></div>';
  if(S.boss)box.querySelectorAll('.lockGem').forEach((g,i)=>{if(i<S.bossIdx)g.classList.add('pop');});
  updateQ();startSpeed();layoutPlay();}
@@ -821,7 +1256,8 @@ function startSpeed(){const sp=box$('.speed');if(!sp)return;S.qStart=performance
  i.style.animation='none';void i.offsetWidth;i.style.animation='speedDown '+S.cfg.speed+'s linear forwards';
  clearTimeout(startSpeed.t);const q=S.q;startSpeed.t=setTimeout(()=>{if(S&&S.q===q)sp.classList.add('gone');},S.cfg.speed*1000);}
 function updateQ(){const q=box$('.q');if(!q||!S||!S.q)return;q.innerHTML=qHTML(S.q,S.pad?S.typed:'');q.classList.toggle('missQ',!!S.q.miss);
- const tg=box$('.door.boss .tag, .door.queen .tag');if(tg)tg.textContent=(S.st&&S.st.kind==='queen'?'Crystal Queen! Lock ':'Boss Door! Lock ')+Math.min(S.locks,S.bossIdx+1)+' of '+S.locks;}
+ const tg=box$('.door.boss .tag, .door.queen .tag');if(tg)tg.textContent=(S.st&&S.st.kind==='queen'?'Crystal Queen! Lock ':'Boss Door! Lock ')+Math.min(S.locks,S.bossIdx+1)+' of '+S.locks;
+ const stg=box$('.stTag');if(stg)stg.textContent=S.boss?'Story Lock! Lock '+Math.min(S.locks,S.bossIdx+1)+' of '+S.locks:S.q.review?'Remember this one?':'Story Door';}
 function renderAnswers(){const a=$('#answers');$('#padT').textContent=S.pad?'ABC':'123';$('#padT').setAttribute('aria-label',S.pad?'Show answer buttons':'Show number pad');
  const hb=$('#hintB');hb.hidden=!(S.cfg.hintBtn||S.wrong);
  if(S.pad){let h='<div class="pad">';[1,2,3,4,5,6,7,8,9].forEach(n=>h+='<button class="btn purple" data-k="'+n+'">'+n+'</button>');
@@ -830,7 +1266,7 @@ function renderAnswers(){const a=$('#answers');$('#padT').textContent=S.pad?'ABC
  else{const ch=S.choices||(S.choices=choicesFor(S.q));let h='<div class="choices n'+ch.length+'">';ch.forEach(c=>{const no=S.tried.indexOf(c)>=0;h+='<button class="btn'+(no?' nope':'')+'" data-v="'+c+'"'+(no?' disabled':'')+'>'+c+'</button>';});a.innerHTML=h+'</div>';
   a.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>answer(+b.dataset.v,b)));}}
 function padKey(k){if(!S||S.busy)return;Snd.tap();
- if(k==='del')S.typed=S.typed.slice(0,-1);else if(k==='go'){if(S.typed)answer(+S.typed,null);return;}else if(S.typed.length<3)S.typed=(S.typed==='0'?'':S.typed)+k;
+ if(k==='del')S.typed=S.typed.slice(0,-1);else if(k==='go'){if(S.typed)answer(+S.typed,null);return;}else if(S.typed.length<(S.q.op?4:3))S.typed=(S.typed==='0'?'':S.typed)+k;
  updateQ();}
 function nextQ(){if(!S)return;
  if(S.mode==='tunnel'){if(S.idx>=S.queue.length)return tunnelDone();S.q=S.queue[S.idx];}
@@ -838,11 +1274,15 @@ function nextQ(){if(!S)return;
  else if(S.boss){if(S.bossIdx>=S.bossQs.length)return levelDone();S.q=S.bossQs[S.bossIdx];}
  else S.q=S.queue[S.idx];
  S.wrong=false;S.helped=false;S.tries=0;S.typed='';S.tried=[];S.choices=null;S.busy=false;S.hintRows=0;S.counting=false;
- hideHint();renderDoor();renderAnswers();renderDots();}
-async function startBoss(){const s=S;s.boss=true;s.bossIdx=0;s.bossQs=buildBoss();s.doorDirty=true;s.busy=true;
+ Voice.stop();hideHint();renderDoor();renderAnswers();renderDots();}
+async function startBoss(){const s=S;s.boss=true;s.bossIdx=0;s.bossQs=s.st.kind==='gen'?buildBossG():buildBoss();s.doorDirty=true;s.busy=true;
  if(s.st.kind==='queen')banner('The Crystal Queen!','Break all 5 gem locks!',1700);else banner('Boss Door!','Break all 3 gem locks!',1500);
  Snd.streak();await wait(s.st.kind==='queen'?900:700);if(S!==s)return;s.busy=false;nextQ();}
-function record(q,ok,helped){const k=qKey(q),r=save.facts[k]||(save.facts[k]={n:0,c:0,w:0,box:0,due:0});r.n++;save.answered++;
+function record(q,ok,helped){const k=qKey(q),st=storeOf(k);
+ if(q.op){const o=isObj(save.ops[q.op])?save.ops[q.op]:(save.ops[q.op]={n:0,c:0});o.n++;if(ok&&!helped)o.c++;
+  // big + − sums are only remembered once she misses one (keeps the save small); small facts are always tracked
+  if(!isObj(st[k])&&ok&&q.op!=='div'&&Math.max(q.a,q.b)>20){save.answered++;persist();return;}}
+ const r=isObj(st[k])?st[k]:(st[k]={n:0,c:0,w:0,box:0,due:0});r.n++;save.answered++;
  if(helped){r.due=save.run+1;}else if(ok){r.c++;r.box=Math.min(5,r.box+1);r.due=save.run+[1,1,2,3,5,8][r.box];}else{r.w++;r.box=0;r.due=save.run+1;}persist();}
 function answer(v,btn){if(!S||S.busy||!S.q)return;if(v===ansOf(S.q))onCorrect(btn);else onWrong(v,btn);}
 function say(txt,ms){const b=$('#bubble');b.textContent=txt;b.classList.add('on');clearTimeout(say.t);say.t=setTimeout(()=>b.classList.remove('on'),(ms||2200)*Math.max(SPEED,0.4));}
@@ -873,13 +1313,13 @@ function shatter(gold){const door=box$('.door');if(!door)return;const r=door.get
    try{el.animate([{transform:'translate('+sx+'px,'+sy+'px) rotate(0deg)',opacity:1},{transform:'translate('+(sx+dx)+'px,'+(sy+dy+140)+'px) rotate('+rot+'deg) scale(.6)',opacity:0}],{duration:800*SPEED,easing:'cubic-bezier(.2,.7,.4,1)',fill:'forwards'}).onfinish=rm;}catch(e){}
    setTimeout(rm,900*SPEED+50);});}
  const c=centerOf(door);burst(c[0],c[1],46,gold?['#fff','#fff27a','#ffcf3a']:SPK,420);Snd.shatter();}
-async function onCorrect(btn){const s=S;s.busy=true;const q=s.q,first=!s.wrong&&!s.helped,full=!s.wrong,gk=s.gem||q.a;
- const fast=first&&s.cfg.speed&&s.mode==='sec'&&(performance.now()-(s.qStart||0))/1000<=s.cfg.speed;
+async function onCorrect(btn){const s=S;s.busy=true;const q=s.q,first=!s.wrong&&!s.helped,full=!s.wrong,gk=gemKey(s,q);
+ const fast=first&&s.cfg.speed&&s.mode==='sec'&&!q.story&&(performance.now()-(s.qStart||0))/1000<=s.cfg.speed;
  if(!s.wrong)record(q,true,s.helped);
  if(first){s.first++;save.streak++;if(save.streak>save.best)save.best=save.streak;}
  s.total++;save.correct++;persist();
  if(btn)btn.classList.add('yes');else updateQ();
- if(!$('#hint').hidden){$$('#hgrid .hrow').forEach(r=>r.classList.add('lit'));}
+ if(!$('#hint').hidden){if(isAS(q)&&s.as){s.hintRows=s.as.steps.length;asDraw();}else $$('#hgrid .hrow').forEach(r=>r.classList.add('lit'));}
  Snd.correct();updateStreak();
  say(first?pick(PRAISE)+(save.name&&Math.random()<0.35?' Go, '+save.name+'!':''):s.helped&&!s.wrong?'Great counting with Glimmer!':'You did it! Here is a little gem for trying.',1700);
  const door=box$('.door'),from=door?centerOf(door):[VW/2,VH/2];const gw=Math.round(Math.min(90,VW*0.16)),sm=Math.round(gw*0.6),G=GEMS[gk];
@@ -919,55 +1359,129 @@ function tunnelDone(){S.busy=true;const reward=TREASURES.find(x=>save.treasures.
  ch.addEventListener('click',()=>{if(ch.classList.contains('open'))return;taps++;Snd.init();
   if(taps<2){ch.classList.remove('shake');void ch.offsetWidth;ch.classList.add('shake');Snd.tone(300+taps*120,0.15,'triangle',0.15);$('#chP').textContent='It wiggled! One more tap!';return;}
   ch.classList.add('open');Snd.chest();const r=ch.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height*0.3,70,null,420);
-  if(reward)save.treasures.push(reward.id);const bonus=TABLES.filter((t,i)=>unlocked(i));for(let k=0;k<5;k++)addGem(pick(bonus),true,1);persist();
+  if(reward)save.treasures.push(reward.id);const bonus=S.sec&&S.sec!=='mul'?secStages(S.sec).filter(stageOpen).map(i=>ALL[i].gem):TABLES.filter((t,i)=>unlocked(i));for(let k=0;k<5;k++)addGem(pick(bonus),true,1);persist();
   $('#chP').innerHTML=reward?'You found the <b>'+reward.name+'</b>! Plus 5 bonus gems!':'You found a giant gem pile! Plus 5 bonus gems!';
   $('#chOut').innerHTML='<button class="btn gold big" id="chBack">'+(S&&S.ret?'Back to my tunnel':'Back to the map')+'</button>';
   on('#chBack',()=>{tapSnd();closeModal();if(S&&S.ret){S=S.ret;S.doorDirty=true;setupPlay();const r2=tunnelResolve;tunnelResolve=null;if(r2)r2();}else{S=null;show('map');}});});}
 function onWrong(v,btn){const s=S,q=s.q;Snd.soft();s.tries++;
- if(!s.wrong){s.wrong=true;if(!s.helped)record(q,false);else{const r=save.facts[qKey(q)];if(r){r.w++;r.box=0;persist();}}
-  if(s.mode==='sec'&&!s.boss&&!s.requeued[qKey(q)]){s.requeued[qKey(q)]=1;const at=Math.min(s.queue.length,s.idx+3);s.queue.splice(at,0,{a:q.a,b:q.b,swap:q.swap,miss:q.miss,review:true});renderDots();}
+ if(!s.wrong){s.wrong=true;if(!s.helped)record(q,false);else{const r=factRec(qKey(q));if(r){r.w++;r.box=0;persist();}}
+  if(s.mode==='sec'&&!s.boss&&!s.requeued[qKey(q)]){s.requeued[qKey(q)]=1;const at=Math.min(s.queue.length,s.idx+3);s.queue.splice(at,0,Object.assign({},q,{review:true}));renderDots();}
   const old=save.streak;save.streak=Math.floor(old/2);persist();updateStreak(old>=2);
   if(old>=2)cele(IC.flame+'<span>Streak resting at '+save.streak+'. You can build it back up!</span>',2600);}
  s.tried.push(v);if(btn){btn.classList.add('nope');btn.disabled=true;}else{s.typed='';updateQ();}
  $('#hintB').hidden=false;
  const d=box$('.door');if(d){d.classList.remove('enter','wobble');void d.offsetWidth;d.classList.add('wobble');}
  if($('#hint').hidden){if(s.cfg.autoHint||s.tries>=2){$('#bubble').classList.remove('on');showHint();}else say('Not quite! Try again, or tap Glimmer for help.',2600);}
- else{const w=$('#hint .worm');if(w){w.style.animation='none';void w.offsetWidth;w.style.animation='';}$('#say').textContent='Let\'s count every row together!';autoCount();}}
+ else{const w=$('#hint .worm');if(w){w.style.animation='none';void w.offsetWidth;w.style.animation='';}$('#say').textContent=isAS(q)?'Let\'s work it out together!':'Let\'s count every row together!';autoCount();}}
 // ---------- glow-worm hint ----------
-function hintShape(q){const d=disp(q);if(q.miss===1)return {rows:d[0],cols:d[1]};if(q.miss===2)return {rows:d[0],cols:d[1]};if(q.miss===3)return {rows:q.a,cols:q.a};return {rows:d[0],cols:d[1]};}
+function hintShape(q){if(q.op==='div')return q.grp?{rows:q.b,cols:q.a}:{rows:q.a,cols:q.b};const d=disp(q);if(q.miss===1)return {rows:d[0],cols:d[1]};if(q.miss===2)return {rows:d[0],cols:d[1]};if(q.miss===3)return {rows:q.a,cols:q.a};return {rows:d[0],cols:d[1]};}
 function hintIntro(q){const d=disp(q),P=q.a*q.b,pl=(n,w)=>n+' '+w+(n===1?'':'s');
+ if(q.op==='div')return q.grp?'Make groups of '+pl(q.a,'gem')+'. How many groups make '+P+'? Tap the rows to count!':P+' gems shared fairly into '+pl(q.a,'chest')+'. Each row is a chest. How many in each? Tap to count!';
  if(q.miss===1)return 'Make rows of '+pl(d[1],'gem')+'. How many rows make '+P+'? Tap the rows to count!';
  if(q.miss===2)return P+' gems shared into '+pl(d[0],'row')+'. How many in each row? Tap to count!';
  if(q.miss===3)return P+' gems make a square! How many on each side?';
  return 'I\'m Glimmer! '+pl(d[0],'row')+' of '+pl(d[1],'gem')+'. Tap each row to count!';}
-function showHint(){const q=S.q,sh=hintShape(q),gk=S.gem||q.a,h=$('#hint');
+function showHint(){if(isAS(S.q))return showHintAS();const q=S.q,sh=hintShape(q),gk=gemKey(S,q),h=$('#hint');
  let rh='';for(let r=0;r<sh.rows;r++){rh+='<div class="hrow" data-r="'+r+'"><div class="gems">';for(let c=0;c<sh.cols;c++)rh+='<span>'+gemSVG(GEMS[gk],24)+'</span>';rh+='</div><span class="lbl">'+((r+1)*sh.cols)+'</span></div>';}
  h.innerHTML='<div class="hl"><div class="hTop"><div class="worm">'+wormSVG()+'</div><div class="say" id="say">'+(S.wrong?'Almost! ':'')+hintIntro(q)+'</div></div>'+
   '<div class="hq">'+qPlain(q).replace(/\?/g,'<b>?</b>')+'</div><button class="btn gold countBtn" id="countBtn">Count with me!</button></div><div class="gridBox"><div class="hgrid" id="hgrid">'+rh+'</div></div>';
  h.hidden=false;S.hintRows=0;$('#hintB').hidden=true;
  h.querySelectorAll('.hrow').forEach(r=>r.addEventListener('click',()=>{if(!S.counting)countRow();}));on('#countBtn',()=>{Snd.init();autoCount();});sizeHint();}
-function sizeHint(){const h=$('#hint');if(!S||!S.q||h.hidden)return;const sh=hintShape(S.q),rows=sh.rows,cols=sh.cols;const r=h.getBoundingClientRect();if(!r.width)return;
- h.classList.toggle('wide',r.width>r.height*1.15);const gb=h.querySelector('.gridBox').getBoundingClientRect();
+function sizeHint(){const h=$('#hint');if(!S||!S.q||h.hidden)return;const r=h.getBoundingClientRect();if(!r.width)return;
+ h.classList.toggle('wide',r.width>r.height*1.15);if(isAS(S.q))return sizeHintAS(h);const sh=hintShape(S.q),rows=sh.rows,cols=sh.cols;const gb=h.querySelector('.gridBox').getBoundingClientRect();
  const gap=Math.max(2,Math.min(6,gb.width/cols*0.08));const g=Math.max(13,Math.min(46,(gb.width-60-gap*(cols+2))/cols,(gb.height-6-gap*(rows+1))/rows-4));
  h.style.setProperty('--g',g.toFixed(1)+'px');h.style.setProperty('--gap',gap.toFixed(1)+'px');}
-function countRow(){if(!S||$('#hint').hidden)return;const rows=$$('#hgrid .hrow');if(!rows.length)return;if(S.hintRows>=rows.length){rows.forEach(r=>r.classList.remove('lit'));S.hintRows=0;}
+function countRow(){if(!S||$('#hint').hidden)return;if(isAS(S.q))return stepAS();const rows=$$('#hgrid .hrow');if(!rows.length)return;if(S.hintRows>=rows.length){rows.forEach(r=>r.classList.remove('lit'));S.hintRows=0;}
  const r=rows[S.hintRows];r.classList.add('lit');S.hintRows++;Snd.count(S.hintRows*2);const c=centerOf(r);burst(c[0],c[1],6);
  const q=S.q,sh=hintShape(q),k=S.hintRows,end=k===rows.length,seq=[];for(let i=1;i<=k;i++)seq.push(i*sh.cols);let t;
- if(q.miss===1)t=k+' row'+(k>1?'s':'')+' make '+(k*sh.cols)+(end?'. That\'s '+k+' rows!':'...');
+ if(q.op==='div'&&q.grp)t=k+' group'+(k>1?'s':'')+' of '+sh.cols+' make '+(k*sh.cols)+(end?'. That\'s '+k+' groups!':'...');
+ else if(q.op==='div')t=seq.join(', ')+(end?'! Each chest gets '+sh.cols+'!':'...');
+ else if(q.miss===1)t=k+' row'+(k>1?'s':'')+' make '+(k*sh.cols)+(end?'. That\'s '+k+' rows!':'...');
  else if(q.miss===2)t=seq.join(', ')+(end?'! Each row has '+sh.cols+'!':'...');
  else if(q.miss===3)t=seq.join(', ')+(end?'! Each side has '+sh.cols+'!':'...');
  else t=seq.join(', ')+(end?'! That\'s '+seq[seq.length-1]+(seq[seq.length-1]===1?' gem!':' gems!'):'...');
  $('#say').textContent=t;}
-async function autoCount(){if(!S||S.counting)return;const s=S,q=s.q;s.counting=true;$$('#hgrid .hrow').forEach(r=>r.classList.remove('lit'));s.hintRows=0;const n=$$('#hgrid .hrow').length;
+async function autoCount(){if(!S||S.counting)return;const s=S,q=s.q;
+ if(isAS(q)){if(!s.as)return;s.counting=true;s.hintRows=0;asDraw();const n=s.as.steps.length,dl=s.as.kind==='col'?1800:420;
+  for(let i=0;i<n;i++){if(S!==s||s.q!==q||$('#hint').hidden)break;stepAS();await wait(dl);}s.counting=false;return;}
+ s.counting=true;$$('#hgrid .hrow').forEach(r=>r.classList.remove('lit'));s.hintRows=0;const n=$$('#hgrid .hrow').length;
  for(let i=0;i<n;i++){if(S!==s||s.q!==q||$('#hint').hidden)break;countRow();await wait(430);}s.counting=false;}
+// ---------- + − hints: ten frames up to 20, column-by-column with place-value gems above that ----------
+const PLN=['ones','tens','hundreds'],PLC=['Ones','Tens','Hundreds'];
+let HG=null;const hintGems=()=>HG||(HG={p:gemSVG({c:'#ff6fcf',cut:'heart'},24),t:gemSVG({c:'#2fd8e8',cut:'round'},24),
+ col:[gemSVG({c:'#ff6fcf',cut:'round'},20),gemSVG({c:'#3a7bf0',cut:'hex'},20),gemSVG({c:'#a347ff',cut:'diamond'},20)]});
+// a missing-number question becomes a plain sum or difference (fact families: ? + 27 = 63 → 63 − 27)
+function asModel(q){const a=q.a,b=q.b,r=resOf(q),m=q.miss|0;let op,X,Y,R;
+ if(q.op==='add'){if(m===1){op='sub';X=r;Y=b;R=a;}else if(m===2){op='sub';X=r;Y=a;R=b;}else{op='add';X=a;Y=b;R=r;}}
+ else{if(m===1){op='add';X=r;Y=b;R=a;}else if(m===2){op='sub';X=a;Y=r;R=b;}else{op='sub';X=a;Y=b;R=r;}}
+ const o={qop:q.op,miss:m,a,b,r,op,X,Y,R,think:m?'Think: '+X+(op==='add'?' + ':' − ')+Y+'! ':''};
+ return Math.max(a,b,r)<=20?tenModel(o):colModel(o);}
+function tenModel(m){const {qop,miss,a,b,r}=m,cells=[],steps=[],P=(t,lit,x)=>cells.push({t,lit:!!lit,x:!!x}),run=arr=>arr.slice(-6).join(', ');let intro;
+ if(qop==='add'){
+  if(miss===1){for(let i=0;i<a;i++)P('p');for(let i=0;i<b;i++)P('t',1);intro=r+' gems in all, and '+b+' are blue. How many pink? Count them!';
+   for(let j=1;j<=a;j++)steps.push({i:j-1,txt:run(range(1,j))+(j===a?'! There are '+a+' pink gems!':'...')});}
+  else if(miss===2){for(let i=0;i<a;i++)P('p',1);for(let i=0;i<b;i++)P('t');intro='Start at '+a+' and count on until you reach '+r+'!';
+   for(let j=1;j<=b;j++)steps.push({i:a+j-1,txt:run(range(a+1,a+j))+(j===b?'! We counted on '+b+'!':'...')});}
+  else{for(let i=0;i<a;i++)P('p',1);for(let i=0;i<b;i++)P('t');intro=a+' pink gems and '+b+' blue gems. Start at '+a+' and count on!';
+   for(let j=1;j<=b;j++)steps.push({i:a+j-1,txt:run(range(a+1,a+j))+(j===b?'! That makes '+r+'!':'...')});}}
+ else{
+  if(miss===1){for(let i=0;i<r;i++)P('p');for(let i=0;i<b;i++)P('p',0,1);intro=r+' gems were left after '+b+' were taken away. Count them all!';
+   for(let j=1;j<=a;j++)steps.push({i:j-1,txt:run(range(1,j))+(j===a?'! There were '+a+' gems!':'...')});}
+  else if(miss===2){for(let i=0;i<a;i++)P('p',1);intro='Start with '+a+'. Take gems away until '+r+' are left!';
+   for(let j=1;j<=b;j++)steps.push({i:a-j,x:1,txt:'Take away '+j+'... '+(a-j)+' left'+(j===b?'. We took away '+b+'!':'')});}
+  else{for(let i=0;i<a;i++)P('p',1);intro='Start with '+a+' gems. Take away '+b+'. Count back!';
+   for(let j=1;j<=b;j++)steps.push({i:a-j,x:1,txt:run(range(a-j,a-1).reverse())+(j===b?'! '+r+' left!':'...')});}}
+ return {kind:'ten',cells,steps,intro};}
+function colModel(m){const {op,X,Y,R}=m,nd=Math.max(2,nDig(Math.max(X,Y,R))),xd=[],yd=[],rd=[],steps=[];
+ for(let c=0;c<nd;c++){xd.push(dg(X,c));yd.push(dg(Y,c));}
+ const xw=xd.slice();let carry=0;
+ for(let c=0;c<nd;c++){const st={c,carryTo:-1,txt:''};
+  if(op==='add'){const s=xd[c]+yd[c]+carry;rd[c]=s%10;
+   st.txt=PLC[c]+': '+xd[c]+' + '+yd[c]+(carry?' + 1 carried':'')+' = '+s+'.'+(s>=10?' Keep '+(s%10)+', carry 1 ten to the '+PLN[c+1]+'!':'');
+   if(s>=10)st.carryTo=c+1;carry=s>=10?1:0;}
+  else{let note='';
+   if(xw[c]<yd[c]){let j=c+1;while(j<nd-1&&xw[j]===0)j++;
+    note=(j>c+1?xw[c]+' − '+yd[c]+'? Not enough, and no '+PLN[c+1]+'! Break 1 of the '+PLN[j]+' first. ':xw[c]+' − '+yd[c]+'? Not enough! Break 1 of the '+PLN[c+1]+' into 10 '+PLN[c]+'. ');
+    xw[j]--;for(let k=j-1;k>c;k--)xw[k]+=9;xw[c]+=10;}
+   rd[c]=xw[c]-yd[c];st.txt=PLC[c]+': '+note+xw[c]+' − '+yd[c]+' = '+rd[c]+'.';}
+  st.xs=xw.slice();steps.push(st);}
+ steps[nd-1].txt+=(m.miss?' So the missing number is ':' The answer is ')+R+'!';
+ return {kind:'col',nd,X,Y,R,op,xd,yd,rd,steps,intro:m.think+'Let\'s do it column by column. Start with the ones!'};}
+function showHintAS(){const q=S.q,h=$('#hint');S.as=asModel(q);const col=S.as.kind==='col';
+ h.innerHTML='<div class="hl"><div class="hTop"><div class="worm">'+wormSVG()+'</div><div class="say" id="say">'+(S.wrong?'Almost! ':'')+S.as.intro+'</div></div>'+
+  '<div class="hq">'+qPlain(q).replace(/\?/g,'<b>?</b>')+'</div><button class="btn gold countBtn" id="countBtn">'+(col?'Show me how!':'Count with me!')+'</button></div><div class="gridBox"><div id="hgrid" class="'+(col?'cgrid':'tgrid')+'"></div></div>';
+ h.hidden=false;S.hintRows=0;$('#hintB').hidden=true;asDraw();
+ $('#hgrid').addEventListener('click',()=>{if(!S.counting)stepAS();});on('#countBtn',()=>{Snd.init();autoCount();});sizeHint();}
+function sizeHintAS(h){const A=S.as;if(!A)return;const gb=h.querySelector('.gridBox').getBoundingClientRect();
+ if(A.kind==='col'){const cs=Math.max(34,Math.min(110,(gb.width-44-8*A.nd)/A.nd,(gb.height-30)/3.7));h.style.setProperty('--cs',cs.toFixed(1)+'px');}
+ else{const rows=Math.ceil(A.cells.length/10),g=Math.max(14,Math.min(52,(gb.width-30)/10.8,(gb.height-10)/rows/1.4));h.style.setProperty('--g',g.toFixed(1)+'px');}}
+function stepAS(){const A=S&&S.as;if(!A||!A.steps.length||$('#hint').hidden)return;if(S.hintRows>=A.steps.length)S.hintRows=0;
+ S.hintRows++;asDraw();$('#say').textContent=A.steps[S.hintRows-1].txt;Snd.count(A.kind==='col'?S.hintRows*3:S.hintRows);}
+function asDraw(){const A=S&&S.as,g=$('#hgrid');if(!A||!g)return;const n=S.hintRows,HGs=hintGems();
+ if(A.kind==='ten'){const cells=A.cells.map(c=>({t:c.t,lit:c.lit,x:c.x}));
+  for(let i=0;i<n;i++){const st=A.steps[i],c=cells[st.i];if(st.x)c.x=true;else c.lit=true;}
+  let h='';for(let r=0;r<cells.length;r+=10){h+='<div class="trow">';for(let j=r;j<Math.min(r+10,cells.length);j++){if(j-r===5)h+='<i class="tsp"></i>';const c=cells[j];
+   h+='<span class="tc'+(c.lit?' lit':'')+(c.x?' x':'')+'">'+HGs[c.t]+'</span>';}h+='</div>';}
+  g.innerHTML=h;return;}
+ const nd=A.nd,cur=n?A.steps[n-1]:null,xs=cur?cur.xs:A.xd,cols=[];for(let c=nd-1;c>=0;c--)cols.push(c);
+ const lx=nDig(A.X),ly=nDig(A.Y),lr=nDig(A.R),now=c=>cur&&cur.c===c?' now':'';
+ const clus=(d,c)=>{let s='';if(d>=10){s+='<i class="ten">10</i>';d-=10;}for(let i=0;i<d;i++)s+=HGs.col[c];return s;};
+ const cell=(d,c,blank)=>blank?'<span class="cx e'+now(c)+'"></span>':'<span class="cx'+now(c)+'"><b>'+d+'</b><span class="cl">'+clus(d,c)+'</span></span>';
+ let h='<span></span>'+cols.map(c=>'<span class="ch">'+HGs.col[c]+'<i>'+PLN[c]+'</i></span>').join('');
+ h+='<span></span>'+cols.map(c=>{let t='';if(A.op==='add'){if(A.steps.slice(0,n).some(s=>s.carryTo===c))t='+1';}else if(xs[c]!==A.xd[c])t='<s>'+A.xd[c]+'</s>'+xs[c];return '<span class="cc">'+t+'</span>';}).join('');
+ h+='<span></span>'+cols.map(c=>cell(xs[c],c,c>=lx&&xs[c]===A.xd[c])).join('');
+ h+='<span class="sg">'+(A.op==='add'?'+':'−')+'</span>'+cols.map(c=>cell(A.yd[c],c,c>=ly)).join('');
+ h+='<span class="ln"></span><span class="sg">=</span>'+cols.map(c=>{const done=c<n;return '<span class="cr'+(done?' on':'')+now(c)+'">'+(done?(c>=lr&&c>0?'':A.rd[c]):'?')+'</span>';}).join('');
+ g.style.gridTemplateColumns='auto repeat('+nd+',var(--cs,60px))';g.innerHTML=h;}
 function hideHint(){const h=$('#hint');h.hidden=true;h.innerHTML='';}
 // ---------- level done ----------
 function levelDone(){const s=S;s.busy=true;const st=s.st,si=s.si,k=s.k,ratio=s.total?s.first/s.total:1,stars=ratio>=0.9?3:ratio>=0.7?2:1;
  const key=st.id+'-'+k,rec=save.lv[key]||{stars:0,done:false,plays:0},was=rec.done,wasM=rec.stars>=3;rec.stars=Math.max(rec.stars,stars);rec.done=true;rec.plays=(rec.plays|0)+1;save.lv[key]=rec;persist();
  if(st.kind==='queen')return queenFinale(s,stars);
- let next=null,nextTxt='';if(k+1<nLv(st)){next=[si,k+1];nextTxt='Next: '+LVN[k+1]+' &#8594;';}else if(si+1<STAGES.length){next=[si+1,0];nextTxt='Next tunnel &#8594;';}
+ const SL=secStages(st.sec),sj=SL.indexOf(si),nx=sj>=0&&sj+1<SL.length?SL[sj+1]:-1;
+ let next=null,nextTxt='';if(k+1<nLv(st)){next=[si,k+1];nextTxt='Next: '+LVN[k+1]+' &#8594;';}else if(nx>=0){next=[nx,0];nextTxt='Next tunnel &#8594;';}
  let earned='';for(const g in s.earned)earned+='<span class="e">'+gemSVG(GEMS[g],40)+'×'+s.earned[g]+'</span>';
- const news=[];if(!was&&k+1<nLv(st))news.push(LVN[k+1]+' level is open!');if(!was&&k===0&&si+1<STAGES.length)news.push((STAGES[si+1].kind==='table'?'The '+STAGES[si+1].t+'s':STAGES[si+1].name)+' tunnel is open!');
+ const news=[];if(!was&&k+1<nLv(st))news.push(LVN[k+1]+' level is open!');if(!was&&k===0&&nx>=0&&!ALL[nx].start)news.push((ALL[nx].kind==='table'?'The '+ALL[nx].t+'s':ALL[nx].name)+' tunnel is open!');
  const c=modal('<h2>'+(st.kind==='table'?'Tunnel Cleared!':'Level Cleared!')+'</h2><p class="small">'+st.name+' · '+LVN[k]+'</p><div class="bigStars">'+[0,1,2].map(()=>starSVG(true)).join('')+'</div>'+
   '<p>'+(stars===3&&!wasM?'<b>'+LVN[k]+' mastered!</b> ':'')+(stars<3?'Play again to earn more stars! ':'Amazing work'+(save.name?', '+esc(save.name):'')+'! ')+(s.speedy?'<span class="sp">'+IC.bolt+s.speedy+' speedy bonus'+(s.speedy>1?'es':'')+'</span> ':'')+news.join(' ')+'</p>'+
   '<div class="earned">'+earned+'</div><div class="row"><button class="btn purple" id="dMap">Map</button><button class="btn teal" id="dAgain">Play again</button>'+(next?'<button class="btn gold big" id="dNext">'+nextTxt+'</button>':'')+'</div>');
@@ -984,21 +1498,24 @@ function queenFinale(s,stars){save.champ=(save.champ|0)+1;const firstWin=save.tr
 // ---------- backpack ----------
 let bagFrom='map';
 $('#bBack').innerHTML=IC.back;$('#sBack').innerHTML=IC.back;
-on('#bBack',()=>{tapSnd();if(bagFrom==='play'&&S)show('play');else show('map');});on('#sBack',()=>{tapSnd();show('map');});
+on('#bBack',()=>{tapSnd();if(bagFrom==='play'&&S)show('play');else show(bagFrom==='mine'?'mine':'map');});on('#sBack',()=>{tapSnd();show(setFrom);});
 function renderBag(){let h='<div class="summary"><div class="s">'+gemSVG(GEMS[2],38)+totalGems()+' gems</div><div class="s">'+goldenSVG(38)+(save.golden|0)+' golden</div><div class="s">'+IC.flame+'Best streak '+save.best+'</div>'+(save.champ?'<div class="s">'+IC.crown+'Champion ×'+save.champ+'</div>':'')+'</div>';
  h+='<div class="secH">Cave Gems</div><div class="tiles">';
  GEM_ORDER.forEach(t=>{const g=save.gems[t]||{b:0,s:0},has=(g.b+g.s)>0;h+='<div class="tile'+(has?'':' no')+'">'+gemSVG(GEMS[t],56,{sil:!has})+'<div class="n">'+GEMS[t].name+'</div><div class="c">'+g.b+(g.s?' <small>+'+g.s+' little</small>':'')+'</div></div>';});
+ SEC_ORDER.filter(x=>x!=='mul'&&secVisible(x)).forEach(x=>{h+='</div><div class="secH">'+SECS[x].name+' Gems</div><div class="tiles">';
+  secStages(x).forEach(i=>{const t=ALL[i].gem,g=save.gems[t]||{b:0,s:0},has=(g.b+g.s)>0;h+='<div class="tile'+(has?'':' no')+'">'+gemSVG(GEMS[t],56,{sil:!has})+'<div class="n">'+GEMS[t].name+'</div><div class="c">'+g.b+(g.s?' <small>+'+g.s+' little</small>':'')+'</div></div>';});});
  h+='</div><div class="secH">Rare Gems <small style="font-size:15px;opacity:.85">(get 5 in a row!)</small></div><div class="tiles">';
  RARES.forEach(r=>{const n=save.rare[r.id]|0;h+='<div class="tile'+(n?'':' no')+'">'+gemSVG(r,56,{sil:!n})+'<div class="n">'+(n?r.name:'???')+'</div><div class="c">'+(n?'×'+n:'&nbsp;')+'</div></div>';});
  h+='</div><div class="secH">Treasures <small style="font-size:15px;opacity:.85">(10 in a row opens a secret tunnel!)</small></div><div class="tiles">';
  TREASURES.concat([CHAMP]).forEach(r=>{const has=save.treasures.indexOf(r.id)>=0;h+='<div class="tile'+(has?'':' no')+(r===CHAMP?' champT':'')+'"><div style="width:62px;height:62px'+(has?'':';filter:grayscale(1) brightness(.6)')+'">'+treasureSVG(r.id)+'</div><div class="n">'+(has?r.name:(r===CHAMP?'Beat the Crystal Queen':'???'))+'</div></div>';});
- h+='</div><div class="secH">Tunnels and Levels</div><div class="tbls">';
- STAGES.forEach((st,i)=>{let c=0,n=0;if(st.kind==='table')for(let b=1;b<=10;b++){const f=save.facts[st.t+'x'+b];if(f){c+=f.c;n+=f.n;}}
+ SEC_ORDER.filter(x=>secVisible(x)||x==='mul').forEach(x=>{h+='</div><div class="secH">'+(x==='mul'?'Tunnels and Levels':SECS[x].name)+'</div><div class="tbls">';
+ secStages(x).forEach(i=>{const st=ALL[i];let c=0,n=0;if(st.kind==='table')for(let b=1;b<=10;b++){const f=save.facts[st.t+'x'+b];if(f){c+=f.c;n+=f.n;}}
   let lv='';for(let k=0;k<nLv(st);k++){const r=lvRec(i,k);lv+='<div class="lvst"><span>'+(st.kind==='queen'?'Grand Boss':LVN[k])+'</span>'+[0,1,2].map(j=>starSVG(j<r.stars)).join('')+'</div>';}
-  h+='<div class="tbl'+(stageMastered(i)?' m':'')+(stageOpen(i)?'':' lk')+'">'+gemSVG(GEMS[st.gem],40,{gray:!stageOpen(i)})+'<div><div class="tn">'+(st.kind==='table'?'×'+st.t+' '+GEMS[st.t].name:st.name)+'</div>'+lv+'<div class="acc">'+(stageMastered(i)?'Mastered! ':'')+(n?Math.round(c/n*100)+'% first try':(stageOpen(i)?'':'Locked'))+'</div></div></div>';});
+  h+='<div class="tbl'+(stageMastered(i)?' m':'')+(stageOpen(i)?'':' lk')+'">'+gemSVG(GEMS[st.gem],40,{gray:!stageOpen(i)})+'<div><div class="tn">'+(st.kind==='table'?'×'+st.t+' '+GEMS[st.t].name:st.name)+'</div>'+lv+'<div class="acc">'+(stageMastered(i)?'Mastered! ':'')+(n?Math.round(c/n*100)+'% first try':(stageOpen(i)?'':'Locked'))+'</div></div></div>';});});
  h+='</div>';
  const tricky=Object.keys(save.facts).filter(k=>{const f=save.facts[k];return f.w>0&&f.box<2;}).sort((a,b)=>save.facts[b].w-save.facts[a].w).slice(0,10);
- if(tricky.length)h+='<div class="secH">Glimmer is helping with</div><div class="chips">'+tricky.map(k=>'<span>'+k.replace('x',' × ')+'</span>').join('')+'</div>';
+ const tricky2=['add','sub','div'].filter(secVisible).reduce((o,x)=>o.concat(trickyOf(x).slice(0,6)),[]);
+ if(tricky.length||tricky2.length)h+='<div class="secH">Glimmer is helping with</div><div class="chips">'+tricky.map(k=>'<span>'+k.replace('x',' × ')+'</span>').concat(tricky2.map(k=>'<span>'+fmtKey(k)+'</span>')).join('')+'</div>';
  $('#bagBody').innerHTML=h;}
 // ---------- settings ----------
 function renderSettings(){const b=$('#setBody');
@@ -1006,18 +1523,21 @@ function renderSettings(){const b=$('#setBody');
  '<div class="setRow"><span class="lbl">'+diffIcon(save.diff)+'How tricky</span><button class="btn tog '+DIFFS[save.diff].cls+'" id="tDiff">'+DIFFS[save.diff].name+'</button></div>'+'<div class="setRow"><span class="lbl"><span style="font-size:24px">123</span>Number pad</span><button class="btn tog '+(save.pad?'green':'gray')+'" id="tPad">'+(save.pad?'On':'Off')+'</button></div>'+
  '<div class="setRow"><span class="lbl">Explorer name</span><input id="sName" maxlength="14" value="'+esc(save.name)+'" placeholder="Name" autocomplete="off"></div>'+
  (fsEnabled?'<div class="setRow"><span class="lbl">'+IC.fs+'Full screen</span><button class="btn tog blue" id="tFs">'+(isFS()?'Exit':'Go')+'</button></div>':'')+
- '<div class="setRow"><span class="lbl">Start over</span><button class="btn tog red" id="tReset">Reset</button></div>'+
- '<p class="note">Progress is saved on this device. No ads, no links, no purchases. Missed facts come back later for extra practice.</p>';
+ '<p class="note">Progress is saved on this device. No ads, no links, no purchases. Missed facts come back later for extra practice.</p>'+
+ '<p class="note">Grown-ups: press and hold the silver gear on the Mine Entrance for 3 seconds to choose caves, number ranges, stories and to start over.</p>';
  on('#tSnd',()=>{toggleMute();renderSettings();});on('#tDiff',()=>{tapSnd();openDiff();});on('#tPad',()=>{tapSnd();save.pad=!save.pad;persist();renderSettings();});
  if(fsEnabled)on('#tFs',()=>{tapSnd();toggleFS();setTimeout(renderSettings,400);});
  $('#sName').addEventListener('change',e=>{save.name=cleanName(e.target.value);persist();});
- on('#tReset',()=>{tapSnd();modal('<h2>Start over?</h2><p>This erases all gems, stars and treasures on this device.</p><div class="row"><button class="btn green big" id="rKeep">Keep my gems</button><button class="btn red" id="rYes">Yes, erase</button></div>');
-  on('#rKeep',()=>{tapSnd();closeModal();});on('#rYes',()=>{const m=save.muted;save=JSON.parse(JSON.stringify(DEF));save.muted=m;save.seenV2=true;persist();closeModal();S=null;show('welcome');});});}
+}
 // ================= boot =================
 document.addEventListener('visibilitychange',()=>{if(document.hidden)persist();});
 show('welcome');
-if('serviceWorker' in navigator&&location.protocol!=='file:'){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});});}
-window.__cc={get save(){return save;},get S(){return S;},speed(v){SPEED=v;},show,startLevel,STAGES,TABLES,ansOf,qPlain};
+if('serviceWorker' in navigator&&location.protocol!=='file:'){const sw=navigator.serviceWorker,had=!!sw.controller;
+ // only when a worker already ran this page (so never on the very first visit); maybeReload waits until she is out of a level
+ sw.addEventListener('controllerchange',()=>{if(had){swPending=true;maybeReload();}});
+ window.addEventListener('load',()=>{sw.register('./sw.js',{scope:'./'}).catch(()=>{});});}
+window.__cc={get save(){return save;},get S(){return S;},speed(v){SPEED=v;},show,startLevel,STAGES,TABLES,ansOf,qPlain,
+ ALL,SECS,secStages,stageOpen,openSec,openGate,factsFor,asModel,parseKey,get mapSec(){return mapSec;}};
 })();
 </script>
 </body>
