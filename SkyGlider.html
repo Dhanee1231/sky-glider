@@ -203,6 +203,70 @@ window.FunRecords = function (o) {
 };
 // ===== /Fun Zone records =====
 </script>
+<script id="funlearn">
+// ===== Fun Zone learning record (shared, v1): what she has practised, mastered, and still finds tricky, across all apps =====
+// The same block lives in Sky Glider (index.html + SkyGlider.html), Crystal Cave (crystal-cave/index.html), Gem Tiles (tiles/learn.js)
+// and the hub (home/learn.js). Source of truth: dev/learn/funlearn.js. After editing it, run dev/learn/sync.py.
+// Its OWN NEW key 'funzone.learn.v1' only ever grows: counts go up, items and days are added, nothing is renamed or removed.
+// Every write re-reads the store first, so two apps (or two tabs) never wipe each other's entries. No game save is read or written.
+// Shape: {v:1, items:{key:{n,c,run,best,t0,t,a:{app:n}}}, days:{'YYYY-MM-DD':{app:n}}, log:[[t,app,key,ok], …last 400]}
+//   key examples: 'mul:7x8', 'add:8+5', 'sub:12-5', 'div:56/7', 'skip:3', 'money:pay', 'rhythm:normal'
+window.FunLearn = (function () {
+  const KEY = 'funzone.learn.v1', LOG = 400;
+  const isObj = v => !!v && typeof v === 'object' && !Array.isArray(v);
+  const num = v => (typeof v === 'number' && isFinite(v) && v >= 0) ? v : 0;
+  const day = t => { const d = new Date(t); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  function read() {
+    let raw = null; try { raw = localStorage.getItem(KEY); } catch (e) { }
+    const D = { v: 1, items: {}, days: {}, log: [] };
+    if (!raw) return D;
+    try { const d = JSON.parse(raw); if (!isObj(d)) throw 0;
+      for (const k in d) D[k] = d[k];                                  // unknown fields are kept
+      if (!isObj(D.items)) D.items = {}; if (!isObj(D.days)) D.days = {}; if (!Array.isArray(D.log)) D.log = [];
+    } catch (e) { try { if (localStorage.getItem(KEY + '.bad') == null) localStorage.setItem(KEY + '.bad', raw); } catch (_) { } }
+    return D;
+  }
+  const write = D => { try { localStorage.setItem(KEY, JSON.stringify(D)); return true; } catch (e) {
+    try { D.log = D.log.slice(-100); localStorage.setItem(KEY, JSON.stringify(D)); return true; } catch (_) { return false; } } };
+  // add one practice result. app: 'cc' | 'sg' | 'gt' | …; key: item id; ok: true/false
+  function add(app, key, ok) {
+    if (!app || !key) return;
+    const D = read(), t = Date.now(); key = String(key).slice(0, 40);
+    const it = isObj(D.items[key]) ? D.items[key] : (D.items[key] = { n: 0, c: 0, run: 0, best: 0, t0: t, t: t, a: {} });
+    it.n = num(it.n) + 1; if (ok) it.c = num(it.c) + 1;
+    it.run = ok ? num(it.run) + 1 : 0; it.best = Math.max(num(it.best), it.run); it.t = t; if (!it.t0) it.t0 = t;
+    if (!isObj(it.a)) it.a = {}; it.a[app] = num(it.a[app]) + 1;
+    const dk = day(t); if (!isObj(D.days[dk])) D.days[dk] = {}; D.days[dk][app] = num(D.days[dk][app]) + 1;
+    D.log.push([t, app, key, ok ? 1 : 0]); if (D.log.length > LOG) D.log.splice(0, D.log.length - LOG);
+    write(D);
+  }
+  // mastered: right at least 5 times and the last 3 in a row right. tricky: missed at least twice and not right twice in a row since.
+  const mastered = it => num(it.c) >= 5 && num(it.run) >= 3;
+  const tricky = it => num(it.n) - num(it.c) >= 2 && num(it.run) < 2;
+  function summary(prefix) {
+    const D = read(), out = { practised: 0, mastered: [], tricky: [], right: 0, days: Object.keys(D.days).length };
+    for (const k in D.items) { if (prefix && k.indexOf(prefix) !== 0) continue; const it = D.items[k]; if (!isObj(it)) continue;
+      out.practised++; out.right += num(it.c); if (mastered(it)) out.mastered.push(k); else if (tricky(it)) out.tricky.push(k); }
+    return out;
+  }
+  // merge another copy in (family backup restore): adds missing items/days/log entries, keeps the larger counts, never removes anything
+  function merge(o) {
+    if (!isObj(o)) return; const D = read();
+    if (isObj(o.items)) for (const k in o.items) { const b = o.items[k]; if (!isObj(b)) continue; const a = D.items[k];
+      if (!isObj(a)) { D.items[k] = b; continue; }
+      for (const f of ['n', 'c', 'best']) a[f] = Math.max(num(a[f]), num(b[f]));
+      if (num(b.t) > num(a.t)) { a.t = b.t; a.run = num(b.run); } a.t0 = Math.min(num(a.t0) || Infinity, num(b.t0) || Infinity); if (!isFinite(a.t0)) a.t0 = 0;
+      if (!isObj(a.a)) a.a = {}; if (isObj(b.a)) for (const x in b.a) a.a[x] = Math.max(num(a.a[x]), num(b.a[x])); }
+    if (isObj(o.days)) for (const k in o.days) { if (!isObj(o.days[k])) continue; if (!isObj(D.days[k])) D.days[k] = {};
+      for (const x in o.days[k]) D.days[k][x] = Math.max(num(D.days[k][x]), num(o.days[k][x])); }
+    if (Array.isArray(o.log)) { const seen = new Set(D.log.map(e => JSON.stringify(e)));
+      for (const e of o.log) if (Array.isArray(e) && !seen.has(JSON.stringify(e))) D.log.push(e);
+      D.log.sort((x, y) => num(x[0]) - num(y[0])); if (D.log.length > LOG) D.log.splice(0, D.log.length - LOG); }
+    write(D);
+  }
+  return { KEY, add, read, summary, merge, mastered, tricky };
+})();
+</script>
 <script>
 (function(){
 'use strict';
@@ -270,6 +334,8 @@ function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){
  // optional (v4): first-run picture tutorial; players who already raced have clearly found the controls
  if(save.tut==null)save.tut=(save.races|0)>0?1:0;save.tut=num(save.tut,0,1,0);
 })();
+// v5: ask the browser to keep her saves even when storage runs low (no prompt on Android Chrome)
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persisted().then(p=>p||navigator.storage.persist()).catch(()=>{});}catch(e){}
 
 // ================= data =================
 let QUAL=1,RESF=1;const PCAP=420; // particle budget; QUAL drops automatically if the frame rate sags
@@ -384,6 +450,9 @@ const Snd={ac:null,master:null,mus:null,fx:null,nb:null,lastChirp:0,lastStar:0,f
   // v5: each star in a row climbs a happy scale, with a tiny glitter ping on top
   const PT=[0,2,4,7,9,12,14,16],f=988*Math.pow(2,PT[(typeof R!=='undefined'&&R?R.streak:0)%8]/12);
   this.tone(f,0.1,'sine',0.2,t);this.tone(f*1.5,0.16,'sine',0.16,t+0.05);this.tone(Math.min(5200,f*3),0.08,'sine',0.035,t+0.09);},
+ // v5 skip-count star: the n-th star of the count (1..10) climbs a major scale, so a full count is a rising tune
+ skip(n){const t=this.now();if(t-this.lastStar<0.04)return;this.lastStar=t;const PT=[0,2,4,5,7,9,11,12,14,16],f=659*Math.pow(2,PT[(n-1)%10]/12);
+  this.tone(f,0.12,'sine',0.2,t);this.tone(f*2,0.16,'sine',0.08,t+0.05);this.tone(Math.min(5200,f*3),0.08,'sine',0.03,t+0.09);},
  ring(){const t=this.now();[784,988,1175,1568].forEach((f,i)=>this.tone(f,0.14,'triangle',0.2,t+i*0.05));},
  bonk(){const t=this.now();this.tone(420,0.42,'triangle',0.45,t,110);this.tone(880,0.18,'sine',0.18,t,300);
   // "boing" wobble
@@ -1493,13 +1562,27 @@ function drawParts(arr){if(!arr.length)return;
 
 // ================= race =================
 const BASE=430;
+const SKIPS=[2,5,10,3,4,6,7,8,9],GHOST_COL={c:'#eef0ff',d:'#b9bdd8'};
+// ---------- v5 ghost runs: own NEW key skyglider.ghost.v1 = {v:1,g:{'L<idx>':{d,t,dt,s}}}; s = base64 of 3 bytes per sample
+// (x as a 16-bit fraction of the course, height 0..255) every GH_DT seconds of race time. The game save is never touched.
+const GH_KEY='skyglider.ghost.v1',GH_DT=0.15;
+function ghostStore(){try{const v=JSON.parse(localStorage.getItem(GH_KEY)||'null');if(v&&typeof v==='object'&&v.g&&typeof v.g==='object')return v;}catch(e){
+ try{const raw=localStorage.getItem(GH_KEY);if(raw!=null&&localStorage.getItem(GH_KEY+'.bad')==null)localStorage.setItem(GH_KEY+'.bad',raw);}catch(_){}}return{v:1,g:{}};}
+function loadGhost(idx,d){try{const e=ghostStore().g['L'+idx];if(!e||e.d!==d||typeof e.s!=='string')return null;const b=atob(e.s),n=Math.floor(b.length/3),xs=new Float32Array(n),ys=new Float32Array(n);
+ for(let i=0;i<n;i++){xs[i]=((b.charCodeAt(i*3)<<8)|b.charCodeAt(i*3+1))/65535;ys[i]=b.charCodeAt(i*3+2)/255;}return n>4?{xs,ys,dt:e.dt||GH_DT,t:e.t}:null;}catch(e){return null;}}
+function saveGhost(){if(!R||!R.gh||R.gh.length<5||!R.p.fin)return;const idx=R.w*3+R.lvl,st=ghostStore(),old=st.g['L'+idx];
+ if(old&&old.d===R.d&&old.t<=R.p.finT)return; // keep the faster run
+ let b='';for(const [x,y] of R.gh){const q=Math.round(clamp(x,0,1)*65535);b+=String.fromCharCode(q>>8,q&255,Math.round(clamp(y,0,1)*255));}
+ st.g['L'+idx]={d:R.d,t:Math.round(R.p.finT*100)/100,dt:GH_DT,s:btoa(b)};
+ try{localStorage.setItem(GH_KEY,JSON.stringify(st));}catch(e){}}
+function ghostAt(G,t){const f=t/G.dt,i=Math.floor(f);if(i<0||i>=G.xs.length-1)return null;const k=f-i;return{x:G.xs[i]+(G.xs[i+1]-G.xs[i])*k,ny:G.ys[i]+(G.ys[i+1]-G.ys[i])*k};}
 const RIVALS=[
  {name:'Zippy',c:'#2fd3a0',d:'#169c74',shape:0,base:0.95,ny:0.16,o:{brow:1,hat:3}},
  {name:'Wobbles',c:'#ff7eb6',d:'#d6508e',shape:1,base:0.92,ny:0.82,o:{googly:1,bigEye:1.3,hat:2}},
  {name:'Noodle',c:'#ff8a3d',d:'#d9661c',shape:2,base:0.975,ny:0.32,o:{tongue:1,hat:1}}];
-let R=null,scene='menu',sceneT=0,BOX=null,TRN=null,swReload=0;
+let R=null,scene='menu',sceneT=0,BOX=null,TRN=null,swReload=0,PAY=null;
 const MENU_SCENES=['menu','map','hangar','album','shop','diff','deco'];
-function go(s){scene=s;sceneT=0;stkInspect=null;albLite=false;ptrs.clear();wipe();if(MENU_SCENES.includes(s))Music.play(0);maybeReload();}
+function go(s){scene=s;sceneT=0;stkInspect=null;PAY=null;albLite=false;ptrs.clear();wipe();if(MENU_SCENES.includes(s))Music.play(0);maybeReload();}
 // scene change: a star-shaped wipe in the world's colour (a plain fade on the lowest effects tier)
 const WIPE_COL=['#4cd07d','#2fb7f0','#ff8fd0','#1d6fa3','#5b2a9a','#ff6fa5','#b56bff','#8d9cc8','#7a2fa8','#a066ff'];
 function wipe(){const w=R?R.w:clamp(mapPage<0?save.world:mapPage,0,WORLDS.length-1);TRN={t:0,col:WIPE_COL[w]||'#4d96ff'};}
@@ -1522,7 +1605,7 @@ function genCourse(L,w,lvl,d){
  const pick=()=>{let r=Math.random()*tot;for(let i=0;i<wt.length;i++){if((r-=wt[i])<0)return i;}return 0;};
  while(x<L-1000){const k=pick();
   if(k===0){const ny=clamp(lastNy+rand(-0.35,0.35),0.08,0.92),n=3+(Math.random()*2|0),wav=Math.random()<0.5;
-   for(let i=0;i<n;i++)o.push({t:'star',x:x+i*70,ny:clamp(ny-(wav?Math.sin(i/(n-1)*Math.PI)*0.08:0),0.03,0.97)});lastNy=ny;x+=n*70+rand(300,460);}
+   for(let i=0;i<n;i++)o.push({t:'star',row:1,x:x+i*70,ny:clamp(ny-(wav?Math.sin(i/(n-1)*Math.PI)*0.08:0),0.03,0.97)});lastNy=ny;x+=n*70+rand(300,460);}
   else if(k===1){const ny=rand(0.15,0.85);o.push({t:'ring',x,ny});o.push({t:'star',x:x+100,ny});x+=rand(380,520);lastNy=ny;}
   else if(k===2){const ny=rand(0.12,0.88);o.push({t:'char',k:cast[(Math.random()*cast.length)|0],x:x+100,ny,cy:ny,ph:rand(0,TAU)});
    if(d===2&&Math.random()<0.35){const n2=ny>0.5?ny-rand(0.35,0.5):ny+rand(0.35,0.5);o.push({t:'char',k:cast[(Math.random()*cast.length)|0],x:x+160,ny:n2,cy:n2,ph:rand(0,TAU)});}
@@ -1545,7 +1628,7 @@ function genTunnel(L,lvl,d){ // Rainbow Tunnel: rainbow rings, star swirls and l
  const D=DIFFS[d],o=[];let x=1400,ny=0.5;
  while(x<L-1000){const r=Math.random();
   if(r<0.42){ny=clamp(ny+rand(-0.3,0.3),0.15,0.85);o.push({t:'ring',x,ny,rb:1});x+=rand(520,700);}
-  else if(r<0.8){const n=5,c=clamp(ny+rand(-0.25,0.25),0.2,0.8),amp=rand(0.08,0.16),ph=rand(0,TAU);for(let i=0;i<n;i++)o.push({t:'star',x:x+i*80,ny:c+Math.sin(ph+i*0.9)*amp});ny=c;x+=n*80+rand(380,520);}
+  else if(r<0.8){const n=5,c=clamp(ny+rand(-0.25,0.25),0.2,0.8),amp=rand(0.08,0.16),ph=rand(0,TAU);for(let i=0;i<n;i++)o.push({t:'star',row:1,x:x+i*80,ny:c+Math.sin(ph+i*0.9)*amp});ny=c;x+=n*80+rand(380,520);}
   else{const c=rand(0.25,0.75);for(let i=0;i<3;i++)o.push({t:'star',x:x+i*90,ny:c});o.push({t:'gust',x:x-100,w:700,ny:c,h:0.3});x+=900;}}
  addExtras(o,L,D,lvl,TUN,true);o.sort((a,b)=>a.x-b.x);return o;}
 function birdCy(o,tt){let y=o.ny;
@@ -1564,6 +1647,11 @@ function startLevel(w,l){
   cam:0,place:1,paused:false,bird:{x:-80,y:wy(0.5)-70,say:0,kind:0},oi:0,shake:0,reward:null,collected:0,hist:[],histT:0,pu:[0,0,0,0,0,0],ot:0,streak:0,bestStreak:0,streakT:0,puPop:-1,puPopT:0,
   pop:0,squash:0,resume:0,tut:save.tut?0:1,tutT:0,bonks:[]};
  R.courseStars=R.objs.filter(o=>o.t==='star').length;
+ // v5 skip-count trails: the star rows count by this track's number (2, 4, 6 … up to 10×, then again); the chime climbs with the count
+ R.skipN=SKIPS[(R.w*3+R.lvl)%SKIPS.length];R.skipTot=0;R.skipGot=0;R.skipLast=0;R.skipRun=0;R.skipT=0;
+ {let n=0;for(const o of R.objs)if(o.t==='star'&&o.row){n=n%10+1;o.sk=n;o.sv=n*R.skipN;R.skipTot++;}}
+ // v5 ghost: her own best run on this track (same difficulty) flies along, see-through; path only, it never collides or counts
+ R.gh=[];R.ghT=0;R.ghost=loadGhost(R.w*3+R.lvl,d);
  R.cam=-V.w*V.camFrac;wparts.length=0;sparts.length=0;tilt.neutral=null;
  scene='race';sceneT=0;ptrs.clear();wipe();Music.play(WORLDS[R.w].track);
 }
@@ -1608,7 +1696,7 @@ function raceUpdate(dt){
  for(let i=R.oi;i<objs.length;i++){const o=objs[i];if(o.x>R.cam+V.w+500)break;
   switch(o.t){
    case 'star':if(!o.gone){const sy=o.mag?o.wy:wy(o.ny),dd=Math.hypot(p.x+12-o.x,py-sy);
-     if(dd<54*(R.pu[4]>0?0.8:1)){o.gone=true;const v=R.pu[3]>0?2:1;p.stars+=v;R.collected++;R.pop=Math.max(R.pop,0.6);R.hudBump=1;Snd.star();sparkle(o.x,sy,v>1?9:6,v>1?'#ffb300':undefined);glitz(wparts,o.x,sy,v>1?8:5);if(Math.random()<0.3)birdSay(0);
+     if(dd<54*(R.pu[4]>0?0.8:1)){o.gone=true;const v=R.pu[3]>0?2:1;p.stars+=v;R.collected++;R.pop=Math.max(R.pop,0.6);R.hudBump=1;if(o.sk){R.skipGot++;R.skipRun=o.sk===1?1:o.sk===R.skipLast+1?R.skipRun+1:0;R.skipLast=o.sk;Snd.skip(o.sk);if(o.sk===10&&R.skipRun===10){R.skipT=2;R.skipRun=0;Snd.twinkle();for(let i=0;i<6;i++)sparkle(p.x+20,sy,3,RAINBOW[i]);}}else Snd.star();sparkle(o.x,sy,v>1?9:6,v>1?'#ffb300':undefined);glitz(wparts,o.x,sy,v>1?8:5);if(Math.random()<0.3)birdSay(0);
       R.streak++;R.bestStreak=Math.max(R.bestStreak,R.streak);if(R.streak%12===0){p.stars+=3;R.streakT=1.6;Snd.streak();for(let i=0;i<6;i++)sparkle(p.x+20,sy,3,RAINBOW[i]);}}
      else if(going&&!p.fin&&dd<(R.pu[0]>0?300:D.magnet)){if(!o.mag){o.mag=true;o.wy=sy;}const k=Math.min(1,dt*8);o.x+=(p.x+24-o.x)*k;o.wy+=(py-o.wy)*k;}}break;
    case 'pu':if(!o.got&&going&&!p.fin&&Math.hypot(p.x+12-o.x,py-wy(o.ny))<62){o.got=true;givePU(o.k);}break;
@@ -1646,6 +1734,7 @@ function raceUpdate(dt){
   const lp=loopOffset(p);spawnTrail(save.trail,p.x-42+lp.x,py+lp.y,dt);
   if(p.boost>0)for(let n=emitN('boost',30,dt);n>0;n--)addPart(wparts,{x:p.x-40,y:py+rand(-10,10),vx:-120,vy:0,life:0.35,max:0.35,size:rand(5,9),col:'rgba(255,255,255,.9)',type:0,g:0,rot:0,vr:0});
  }
+ if(!p.fin&&R.t>=R.gh.length*GH_DT&&R.gh.length<2400)R.gh.push([p.x/R.L,p.ny]);R.skipT=Math.max(0,R.skipT-dt);
  R.histT+=dt;if(R.histT>0.03){R.histT=0;const lp=loopOffset(p);R.hist.push([p.x-40+lp.x,py+lp.y]);if(R.hist.length>22)R.hist.shift();}
  for(const r of R.rivals){
   r.tgtT-=dt;if(r.tgtT<=0){r.tgt=rand(0.08,0.92);r.tgtT=rand(1.5,3.5);}
@@ -1680,6 +1769,7 @@ function award(){
  const others=R.rivals.slice().sort((a,b)=>(a.fin&&b.fin)?a.finT-b.finT:(b.x-a.x));
  const order=[];let k=0;for(let i=0;i<4;i++){if(i===place-1)order.push('me');else order.push(others[k++]);}
  R.reward={earned,place,bonus,coins,ls,newBest:ls>prevLs,newColors,newWorld,order,frac};
+ saveGhost();try{if(window.FunLearn&&R.skipTot>0)FunLearn.add('sg','skip:'+R.skipN,R.skipGot/R.skipTot>=0.6);}catch(e){}
  R.reward.rec=REC.record({c:'L'+idx,n:lvName(idx),g:WORLDS[R.w].name,s:earned,st:ls,x:{p:place,d:R.d,tm:Math.round((R.p.finT||R.t)*10)/10}});
 }
 // ---------- mystery box ----------
@@ -1731,7 +1821,7 @@ function drawRace(){
  }
  const fx=fxTier(),sg=fx>=2?glowSprite('rgba(255,226,110,.6)'):null;
  for(let i=R.oi;i<objs.length;i++){const o=objs[i];if(o.x>x1)break;
-  if(o.t==='star'){if(!o.gone){const y=o.mag?o.wy:wy(o.ny);if(sg)drawGlow(sg,o.x,y,46,0.55+0.2*Math.sin(t*4+o.x*0.02));drawStar(o.x,y,22,t);}}
+  if(o.t==='star'){if(!o.gone){const y=o.mag?o.wy:wy(o.ny);if(sg)drawGlow(sg,o.x,y,46,0.55+0.2*Math.sin(t*4+o.x*0.02));drawStar(o.x,y,22,t);if(o.sv){const ns=o.sv>=100?14:o.sv>=10?18:20;text(String(o.sv),o.x,y+2,ns,'#7a2d00',null,'#fff6c4',3);}}}
   else if(o.t==='char')drawChar(o.k,o.x,wy(o.cy),R.ot+o.ph,o.hitT!=null?R.ot-o.hitT:-1,o,1.4);
   else if(o.t==='bird'){if(o.x+o.lx<R.cam+V.w+60){ctx.save();ctx.translate(o.x+o.lx,wy(o.cy));drawFlyBird(o.k,R.ot+o.ph,o.hitT!=null?R.ot-o.hitT:-1,1.3);ctx.restore();}}
   else if(o.t==='pu'){if(!o.got)drawPUBubble(o.k,o.x,wy(o.ny),30,t);}
@@ -1749,6 +1839,9 @@ function drawRace(){
  const shadow=(x,y,k)=>{const h=clamp((shY-y)/Math.max(1,shY-V.top+40),0,1);ctx.globalAlpha=(0.06+0.2*(1-h))*k;ctx.fillStyle=INK;ctx.beginPath();ctx.ellipse(x,shY,46*(1-h*0.45)*k,7*(1-h*0.4),0,0,TAU);ctx.fill();ctx.globalAlpha=1;};
  if(!tun){if(fx>=1)for(const r of R.rivals)if(r.x>R.cam-150&&r.x<x1)shadow(r.x,wy(r.ny),0.85);
   {const lp0=loopOffset(p);shadow(p.x+lp0.x,wy(p.ny)+lp0.y,R.pu[4]>0?0.6:1);}}
+ if(R.ghost){const g=ghostAt(R.ghost,t);if(g){const gx=g.x*R.L;if(gx>R.cam-150&&gx<x1){ctx.save();ctx.globalAlpha=0.38;ctx.translate(gx,wy(g.ny));
+  drawPlane(save.shape,GHOST_COL,0,{noFace:1});ctx.restore();ctx.globalAlpha=1;
+  if(fxTier()>=1&&Math.sin(t*9+gx)>0.6){ctx.fillStyle='rgba(255,255,255,.8)';starPath(gx-30,wy(g.ny)+rand(-8,8),4,1.8);ctx.fill();}}}}
  for(const r of R.rivals){if(r.x<R.cam-150||r.x>x1)continue;const y=wy(r.ny);
   if(r.bst>0){ctx.fillStyle='rgba(255,255,255,.35)';ctx.beginPath();ctx.ellipse(r.x-10,y,64,30,0,0,TAU);ctx.fill();}
   ctx.save();ctx.translate(r.x,y);ctx.rotate(r.dz>0?Math.sin(t*14)*0.5:(r.tgt-r.ny)*0.6);drawPlane(r.shape,{c:r.c,d:r.d},0,Object.assign({dizzy:r.dz>0},r.o));ctx.restore();
@@ -1786,6 +1879,9 @@ function drawRace(){
 function drawHUD(){
  const p=R.p,m=10*UI,B=56*UI;
  const top=SAFE.t+m,left=SAFE.l+m,right=W-SAFE.r-m,bot=H-SAFE.b-m;
+ if(R.skipT>0){const k=R.skipN,msg=k+', '+2*k+', '+3*k+' … '+10*k+'!',fs=fitSize(msg,30*UI,W*0.8),a=Math.min(1,R.skipT*2),y=H*0.3-(1-a)*20*UI;
+  ctx.globalAlpha=a;ctx.font='900 '+Math.round(fs)+'px '+FONT;const tw=mtext(msg)+fs*1.6;ctx.fillStyle='rgba(255,255,255,.92)';rr(W/2-tw/2,y-fs*0.85,tw,fs*1.7,fs*0.85);ctx.fill();
+  ctx.strokeStyle='#ffd93d';ctx.lineWidth=4*UI;ctx.stroke();text(msg,W/2,y+1,fs,'#ff5aa8',null,INK,fs*0.08);ctx.globalAlpha=1;}
  if(!p.fin&&!R.tut)roundBtn('pause',left+B/2,top+B/2,B/2,PAL.Y,'pause',pauseRace);
  const bx=left+B+m+B*0.5,cols=['#ffd23f','#d5dde8','#e8a15e','#9fd3ff'];
  circ(bx,top+B/2,B*0.5);fillStroke(cols[R.place-1],INK,3);text(['1st','2nd','3rd','4th'][R.place-1],bx,top+B/2+1,B*0.36,'#fff',null,INK);
@@ -1798,6 +1894,7 @@ function drawHUD(){
  ctx.fillStyle='rgba(255,255,255,.75)';rr(tx0,ty-7*UI,tx1-tx0,14*UI,7*UI);ctx.fill();ctx.strokeStyle=INK;ctx.lineWidth=2.5;ctx.stroke();
  for(let k=0;k<6;k++){ctx.fillStyle=k%2?INK:'#fff';ctx.fillRect(tx1-4*UI,ty-12*UI+k*4*UI,4*UI,4*UI);}
  const prog=x=>tx0+clamp(x/R.L,0,1)*(tx1-tx0-8*UI);
+ if(R.ghost){const g=ghostAt(R.ghost,R.t);if(g){ctx.globalAlpha=0.7;circ(prog(g.x*R.L),ty,7*UI);fillStroke('#eef0ff','#9aa0c8',2);ctx.globalAlpha=1;}}
  for(const r of R.rivals){circ(prog(r.x),ty,8*UI);fillStroke(r.c,INK,2);}
  ctx.save();ctx.translate(prog(p.x),ty);ctx.scale(0.3*UI,0.3*UI);drawPlane(save.shape,save.color,save.pattern,{noFace:1});ctx.restore();
  {let n=0;const pr=22*UI,y0=Math.max(top+B,ty+7*UI)+m*1.4+pr;
@@ -2297,20 +2394,70 @@ function drawShop(){
  const cs=best,rows=Math.ceil(items.length/bc),ox=ar.x+(ar.w-cs*bc)/2,oy=gy0+(gh-cs*rows)/2;
  items.forEach((it,j)=>{const c=j%bc,r=(j/bc)|0,x=ox+c*cs+cs*0.06,y=oy+r*cs+cs*0.06,s=cs*0.88,afford=save.coins>=it.cost;
   rectBtn('item'+j,x,y,s,s,it.eq?PAL.Y:PAL.Wt,(w,h)=>{
-   if(it.i===0&&kind!=='pat')noneIcon(w,h);
-   else if(kind==='trail'||kind==='glit'){ctx.save();ctx.fillStyle=kind==='glit'?'rgba(70,30,120,.75)':'rgba(80,140,220,.25)';rr(-w*0.4,-h*0.32,w*0.8,h*0.42,8);ctx.fill();trailPreview(it.i,-w*0.36,w*0.3,-h*0.1,w*0.14);ctx.restore();}
-   else if(kind==='hat'){ctx.save();if(!it.own){ctx.translate(0,-h*0.12);ctx.scale(0.85,0.85);}drawHatIcon(it.i,w*0.42);ctx.restore();} // lifted clear of the price
-   else patSwatch(it.i,0,-h*0.08,w*0.27,false);
+   itemArt(kind,it,w,h);
    if(it.own){if(it.eq){circ(w*0.3,-h*0.3,w*0.12);fillStroke('#45d36a','#fff',3);ctx.save();ctx.translate(w*0.3,-h*0.3);ctx.fillStyle='#fff';ICON.check(w*0.16);ctx.fill();ctx.restore();}}
-   else{const cs=String(it.cost),ci=w*0.24,fs=fitSize(cs,w*0.2,w*0.8-ci-w*0.04),tw=textW(cs,fs),x0=-(ci+w*0.04+tw)/2;
-    drawIcon('coin',x0+ci/2,h*0.3,ci);text(cs,x0+ci+w*0.04+tw/2,h*0.31,fs,afford?'#ffb300':'#ff5a6e',null,INK,w*0.04);}
+   else{ctx.globalAlpha=afford?1:0.5;moneyRow(it.cost,0,h*0.3,w*0.84,w*0.12);ctx.globalAlpha=1;} // v5: the price as coin pictures
   },()=>{
    const field=kind==='hat'?'hat':kind==='pat'?'pattern':'trail',own=kind==='hat'?'ownHat':kind==='pat'?'ownPat':'ownTrail';
    if(it.own){save[field]=it.i;persist();Snd.pop();return;}
    if(!afford){Snd.nope();coinFlash=1;return;}
-   save.coins-=it.cost;save[own].push(it.i);save[field]=it.i;persist();Snd.buy();confetti(40,x,x+s,y);},{sel:it.eq});});
+   PAY={kind,it,field,own,price:it.cost,tray:[],t:0,done:-1,change:[]};Snd.pop();},{sel:it.eq});});
+ if(PAY)drawPay();
  drawParts(sparts);
 }
+function itemArt(kind,it,w,h){
+ if(it.i===0&&kind!=='pat')noneIcon(w,h);
+ else if(kind==='trail'||kind==='glit'){ctx.save();ctx.fillStyle=kind==='glit'?'rgba(70,30,120,.75)':'rgba(80,140,220,.25)';rr(-w*0.4,-h*0.32,w*0.8,h*0.42,8);ctx.fill();trailPreview(it.i,-w*0.36,w*0.3,-h*0.1,w*0.14);ctx.restore();}
+ else if(kind==='hat'){ctx.save();if(!it.own){ctx.translate(0,-h*0.12);ctx.scale(0.85,0.85);}drawHatIcon(it.i,w*0.42);ctx.restore();} // lifted clear of the price
+ else patSwatch(it.i,0,-h*0.08,w*0.27,false);}
+// ---------- v5 coin shop: prices are coin pictures; she taps coins to pay and gets change back (PAY is declared with R) ----------
+const MONEY={50:['#ff9ed6','#d6339f','#fff6c4'],10:['#ffd93d','#e09a00','#fff3a6'],5:['#e8ecf5','#9aa3b8','#fff'],1:['#f0a86a','#b8642a','#ffe0c4']};
+function payParts(v){const o=[];for(const d of [50,10,5,1])while(v>=d){o.push(d);v-=d;}return o;}
+function drawMoney(v,x,y,r){const c=MONEY[v]||MONEY[10];r*=v===50?1.15:v===1?0.85:1;
+ circ(x,y+r*0.12,r);ctx.fillStyle='rgba(60,20,40,.25)';ctx.fill();circ(x,y,r);ctx.fillStyle=c[0];ctx.fill();ctx.strokeStyle=c[1];ctx.lineWidth=Math.max(1.5,r*0.12);ctx.stroke();
+ circ(x,y,r*0.72);ctx.strokeStyle=c[2];ctx.lineWidth=Math.max(1,r*0.07);ctx.stroke();
+ if(r>=7)text(String(v),x,y+r*0.05,r*(v>=10?0.78:0.95),c[1],null,'#fff',Math.max(1,r*0.1));
+ else{ctx.fillStyle=c[2];starPath(x,y,r*0.5,r*0.22);ctx.fill();}}
+function moneyRow(v,cx,cy,maxW,maxR){const cs=payParts(v),n=cs.length,r=Math.min(maxR,maxW/(n*2.2+0.4));let x=cx-(n-1)*r*1.1;
+ for(const c of cs){drawMoney(c,x,cy,r);x+=r*2.2;}}
+function payTotal(){return PAY.tray.reduce((a,c)=>a+c.v,0);}
+function drawPay(){const P=PAY,m=12*UI;
+ ctx.fillStyle='rgba(40,10,60,.55)';ctx.fillRect(0,0,W,H);
+ buttons.push({id:'payBg',x:0,y:0,w:W,h:H,onTap:()=>{if(P.done>=0&&T-P.done>0.6)PAY=null;}});
+ const pw=Math.min(W-SAFE.l-SAFE.r-m*2,560*UI),ph=Math.min(H-SAFE.t-SAFE.b-m*2,440*UI),px=SAFE.l+(W-SAFE.l-SAFE.r-pw)/2,py=SAFE.t+(H-SAFE.t-SAFE.b-ph)/2;
+ const pg=gcache('payBg'+ph,()=>{const q=ctx.createLinearGradient(0,py,0,py+ph);q.addColorStop(0,'#fff6fb');q.addColorStop(1,'#ffe0f0');return q;});
+ ctx.fillStyle=pg;rr(px,py,pw,ph,24*UI);ctx.fill();ctx.strokeStyle='#ffd93d';ctx.lineWidth=5*UI;ctx.stroke();
+ const tot=payTotal(),left=save.coins-tot,done=P.done>=0;
+ // row 1: the thing she is buying = its price in coins
+ const r1=py+ph*0.19,ia=Math.min(ph*0.3,pw*0.24);
+ ctx.save();ctx.translate(px+pw*0.16,r1+ia*0.1);itemArt(P.kind,Object.assign({},P.it,{own:true}),ia,ia);ctx.restore();
+ text('=',px+pw*0.32,r1,ph*0.1,'#d6339f',null,'#fff',3);
+ moneyRow(P.price,px+pw*0.64,r1,pw*0.56,ph*0.085);
+ // row 2: the tray she pays into (tap it to take the last coin back)
+ const ty=py+ph*0.47,tw=pw*0.86,th=ph*0.24,tx=px+(pw-tw)/2;
+ ctx.fillStyle=done?'rgba(120,230,150,.35)':'rgba(255,255,255,.75)';rr(tx,ty-th/2,tw,th,th*0.4);ctx.fill();
+ ctx.setLineDash([8*UI,6*UI]);ctx.strokeStyle=done?'#45d36a':'#ff8fd0';ctx.lineWidth=3*UI;ctx.stroke();ctx.setLineDash([]);
+ if(!done&&P.tray.length)buttons.push({id:'payTray',x:tx,y:ty-th/2,w:tw,h:th,onTap:()=>{const c=PAY&&PAY.tray.pop();if(c)Snd.pop();}});
+ {const n=Math.max(6,P.tray.length),cr=Math.min(th*0.34,tw/(n*2.25));let x=tx+cr*1.6;
+  for(const c of P.tray){const k=clamp((T-c.t0)/0.22,0,1),e=k*(2-k),cx=lerp(c.fx,x,e),cy=lerp(c.fy,ty,e)-Math.sin(k*Math.PI)*30*UI;drawMoney(c.v,cx,cy,cr);x+=cr*2.25;}}
+ // row 3: her coins to tap (50 and 10), or the change coming back
+ const r3=py+ph*0.8,br=Math.min(ph*0.12,pw*0.11);
+ if(!done){[50,10].forEach((v,i)=>{const bx=px+pw*(i?0.66:0.4),can=left>=v;
+   roundBtn('pay'+v,bx,r3,br,PAL.Wt,r=>drawMoney(v,0,0,r*0.66),()=>{if(!PAY||PAY.done>=0)return;if(save.coins-payTotal()<v){Snd.nope();coinFlash=1;return;}
+    PAY.tray.push({v,t0:T,fx:bx,fy:r3});Snd.coin();if(payTotal()>=PAY.price)finishPay();},{alpha:can?1:0.4});});
+  drawIcon('coin',px+pw*0.11,r3-br*0.25,br*0.7);text(String(left),px+pw*0.11,r3+br*0.62,br*0.5,'#ffb300',null,INK,br*0.08);}
+ else{const ch=P.change;if(ch.length){ctx.save();ctx.translate(px+pw*0.14,r3);ctx.rotate(Math.PI);drawIcon('right',0,0,br*0.8);ctx.restore();
+   ch.forEach((v,i)=>{const k=clamp((T-P.done-0.25-i*0.18)/0.3,0,1);if(k<=0)return;ctx.globalAlpha=k;drawMoney(v,px+pw*0.3+i*br*1.7,r3-(1-k)*th,br*0.62);ctx.globalAlpha=1;});}
+  else{ctx.save();ctx.translate(px+pw/2,r3);circ(0,0,br*0.8);fillStroke('#45d36a','#fff',3);ctx.fillStyle='#fff';ICON.check(br*0.9);ctx.fill();ctx.restore();}
+  if(T-P.done>2.6)PAY=null;}
+ const xr=Math.max(20*UI,22); // close ✕ at least 44 px wide on every phone
+ if(!done)roundBtn('payX',px+pw-xr-2*UI,py+xr+2*UI,xr,PAL.R,r=>{ctx.strokeStyle='#fff';ctx.lineWidth=r*0.28;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-r*0.35,-r*0.35);ctx.lineTo(r*0.35,r*0.35);ctx.moveTo(r*0.35,-r*0.35);ctx.lineTo(-r*0.35,r*0.35);ctx.stroke();},()=>{PAY=null;});}
+function finishPay(){const P=PAY,paid=payTotal();if(!P||P.done>=0||paid<P.price||save.coins<P.price)return;
+ save.coins-=P.price;if(!save[P.own].includes(P.it.i))save[P.own].push(P.it.i);save[P.field]=P.it.i;persist();
+ P.done=T;P.change=payParts(paid-P.price);
+ Snd.buy();confetti(40,W*0.3,W*0.7,H*0.3);
+ P.change.forEach((v,i)=>setTimeout(()=>{if(PAY===P)Snd.coin();},(250+i*180)));
+ try{if(window.FunLearn)FunLearn.add('sg',paid>P.price?'money:change':'money:exact',true);}catch(e){}}
 // ---------- plane sticker studio ----------
 let decoSlot=0,decoPage=0;
 function decoIcon(r){ctx.save();ctx.rotate(-0.2);ctx.fillStyle='#fff';rr(-r*0.42,-r*0.42,r*0.84,r*0.84,r*0.18);ctx.fill();ctx.strokeStyle=INK;ctx.lineWidth=2;ctx.stroke();
@@ -2429,6 +2576,7 @@ function handleBack(){
  if(REC.back())return; // the Records screen or the NEW RECORD party closes first
  if(scene==='menu')return;
  if(stkInspect){stkInspect=null;return;}
+ if(PAY){if(PAY.done<0)PAY=null;return;}
  if(scene==='finish'){R=null;mapPage=-1;go('map');return;}
  if(scene==='box'){if(!BOX||!BOX.revealed)return;if(BOX.src==='race'&&R){R=null;mapPage=-1;go('map');}else go('menu');return;}
  const b=buttons.find(q=>q.id==='back');if(b&&b.onTap){Snd.tap();b.onTap();}else go('menu');}
@@ -2443,7 +2591,7 @@ if('serviceWorker' in navigator&&location.protocol!=='file:'){window.addEventLis
  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!hadCtl||swReload)return;let lastR=0;try{lastR=+sessionStorage.getItem('sg.swr')||0;}catch(e){}
   if(Date.now()-lastR<30000)return;swReload=1;maybeReload();});}
 // test / debug hook (harmless, local only)
-window.__sky={REC,get scene(){return scene;},get race(){return R;},get save(){return save;},get fps(){return fps;},get frameMs(){return frameMs;},get V(){return V;},get BOX(){return BOX;},get keys(){return keys;},
+window.__sky={REC,get PAY(){return PAY;},ghostStore,loadGhost,payParts,get scene(){return scene;},get race(){return R;},get save(){return save;},get fps(){return fps;},get frameMs(){return frameMs;},get V(){return V;},get BOX(){return BOX;},get keys(){return keys;},
  set timeScale(v){TS=clamp(+v||1,0.1,20);},get timeScale(){return TS;},
  buttons(){return buttons.map(b=>({id:b.id,x:b.circle?b.x:b.x+b.w/2,y:b.circle?b.y:b.y+b.h/2}));},
  buttonsFull(){return buttons.map(b=>({id:b.id,circle:!!b.circle,x:b.x,y:b.y,r:b.r,w:b.w,h:b.h}));},

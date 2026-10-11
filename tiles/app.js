@@ -995,6 +995,7 @@ function finishGame(opts) {
     packs = totalStars() - before + crownsOf(id) - crownsBefore;
     coins = Math.round(G.score / 400) + stars * 5 + (fc ? 10 : 0) + 2; S.coins += coins; S.packs += packs; S.plays++; S.maxCombo = Math.max(S.maxCombo || 0, G.maxCombo);
     if (!hadClear && stars > 0) { const commons = STICKERS.filter(s => s[1] === 'c'), fresh = commons.filter(s => !S.stickers[s[0]]), pick = (fresh.length ? fresh : commons)[Math.floor(Math.random() * (fresh.length || commons.length))]; S.stickers[pick[0]] = (S.stickers[pick[0]] || 0) + 1; firstClear = pick[0]; if (STICKERS.filter(s => S.stickers[s[0]]).length >= 10) award('stick10'); } // a song's first clear always gives a sticker
+    try { if (window.FunLearn) FunLearn.add('gt', 'rhythm:' + G.diff, stars >= 2); } catch (e) { } // shared learning record (v5): one entry per finished song
     award('first'); if (stars === 3) award('star3'); if (fc) award('fc'); if (crownsOf(id) > 0) award('crown'); if (S.plays >= 10) award('p10'); if (S.plays >= 50) award('p50');
     if (G.maxCombo >= 50) award('combo50'); if (G.maxCombo >= 100) award('combo100'); if (HARDISH(G.diff) && stars > 0) award('hard'); if (G.diff === 'veryhard' && stars > 0) award('vhard'); if (totalStars() >= 50) award('allstars');
     S.stats = isObj(S.stats) ? S.stats : { pu: {}, dodged: 0 }; S.stats.pu = S.stats.pu || {}; S.stats.dodged = S.stats.dodged || 0; for (const k in G.stats.pu) S.stats.pu[k] = (S.stats.pu[k] || 0) + G.stats.pu[k]; S.stats.dodged += G.stats.dodged;
@@ -1046,6 +1047,8 @@ window.__tiles = { REC, S: () => S, G: () => G, loops: () => LOOPS, stopAll: () 
   // test hooks: jump the game clock forward (optionally scoring the skipped tiles as Perfect) to reach the natural end of a song quickly
   ff: (sec, hit) => { if (!G.on) return; const to = songTime() + sec; if (hit) for (const t of G.tiles) if (!t.state && t.t < to + 0.05) { t.state = 1; G.j.perfect++; G.combo++; G.maxCombo = Math.max(G.maxCombo, G.combo); G.score += 100; } G.startAt -= sec; },
   toEnd: hit => { if (G.on) window.__tiles.ff(G.b.end - songTime() - 0.4, hit); }, laneX, proj, save, openPack, CAL, arrange, rendered, clock, updateClock, prepare, reanalyze };
+// ask the browser to keep this site's saves and custom songs even when storage runs low (v5; no prompt on Android Chrome)
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then(p => p || navigator.storage.persist()).catch(() => { }); } catch (e) { }
 applyLang(); document.body.classList.toggle('calm', !!S.set.calm); loadCustoms().then(async () => { go('home');
   const old = customs.filter(c => (c.anv || 1) < AN.VERSION); if (!old.length) return; toast(esc(tx('updating', old.length)), 2500);
   for (const c of old) { try { const full = await DB.get(c.id); if (full) await reanalyze(full); } catch (e) { console.warn('re-chart failed', e); } }
@@ -1053,8 +1056,14 @@ applyLang(); document.body.classList.toggle('calm', !!S.set.calm); loadCustoms()
 requestAnimationFrame(menuLoop);
 window.addEventListener('resize', () => { DPR = Math.min(2, window.devicePixelRatio || 1); });
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-  const hadSW = !!navigator.serviceWorker.controller; let reloaded = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadSW && !reloaded) { reloaded = true; location.reload(); } });
+  const hadSW = !!navigator.serviceWorker.controller; let reloaded = false, swPending = false;
+  // a new version reloads once, but never mid-song, on the results card, while a song is being added/edited or during the tap test (v5):
+  // it waits until she is back on a menu. A 30 s sessionStorage guard stops any loop.
+  const calm = () => !G.on && !STARTING && !$('.modal.on, #mRes.on, #mPause.on, #mOut.on, #mLoad.on') && !(CAL.on) && !['add', 'edit', 'calib'].includes(cur);
+  const maybeReload = () => { if (!swPending || reloaded || !calm()) return; let t = 0; try { t = +sessionStorage.getItem('gt.swr') || 0; } catch (e) { }
+    if (Date.now() - t < 30000) { swPending = false; return; } try { sessionStorage.setItem('gt.swr', String(Date.now())); } catch (e) { } reloaded = true; location.reload(); };
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadSW && !reloaded) { swPending = true; maybeReload(); } });
+  setInterval(maybeReload, 1500);
   navigator.serviceWorker.register('./sw.js', { scope: './', updateViaCache: 'none' }).then(r => r.update()).catch(() => { });
 }
 })();

@@ -164,10 +164,12 @@ h1,h2,h3{margin:0}
 .lantern.l2{filter:drop-shadow(0 0 18px #ffb3ef) drop-shadow(0 0 40px rgba(170,140,255,.95))}
 .lantern.l3{filter:drop-shadow(0 0 20px #fff27a) drop-shadow(0 0 54px rgba(255,190,40,1))}
 .lantern.l1 svg,.lantern.l2 svg,.lantern.l3 svg{animation:bob 1.6s ease-in-out infinite}
-.bubble{position:absolute;z-index:7;left:8px;bottom:calc(var(--lh,90px) + 8px);max-width:min(80%,330px);background:#fff;color:var(--ink);font-size:17px;font-weight:900;
+.main{position:relative}
+.bubble{position:absolute;z-index:7;left:calc(var(--lh,90px)*.77 + 16px);bottom:6px;max-width:calc(100% - var(--lh,90px)*.77 - 24px);background:#fff;color:var(--ink);font-size:17px;font-weight:900;
  border-radius:18px;padding:8px 14px;box-shadow:0 4px 0 rgba(30,10,70,.4);opacity:0;transform:translateY(8px) scale(.9);transition:opacity .25s,transform .25s;pointer-events:none}
 .bubble.on{opacity:1;transform:none}
-.bubble:after{content:"";position:absolute;left:28px;bottom:-10px;border:10px solid transparent;border-top-color:#fff;border-bottom:0}
+.bubble.far:after{display:none}
+.bubble:after{content:"";position:absolute;left:-10px;bottom:22px;border:10px solid transparent;border-right-color:#fff;border-left:0}
 .padT{position:absolute;top:4px;right:4px;z-index:8;font-size:17px}
 .answers{min-height:0;display:flex;align-items:center;justify-content:center}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:560px;padding:4px 4px 10px}
@@ -192,7 +194,10 @@ h1,h2,h3{margin:0}
 .hint.wide .hl{width:42%}
 .hint .hTop{display:flex;align-items:center;gap:8px}
 .hint.wide .hTop{flex-direction:column}
-.hint .worm{width:88px;flex:none;animation:wiggle 1.6s ease-in-out infinite}
+.hint .worm{width:calc(88px * var(--gs,1));flex:none;animation:wiggle 1.6s ease-in-out infinite}
+.choices .btn.reveal,.pad .btn.reveal{--c1:#fff6c4;--c2:#ffcf3a;--sh:#b56a00;color:#5a2a00;animation:reveal 1.1s ease-in-out infinite;box-shadow:0 0 0 4px #fff,0 0 22px 6px rgba(255,216,74,.85)}
+@keyframes reveal{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@media (prefers-reduced-motion:reduce){.choices .btn.reveal,.pad .btn.reveal{animation:none}}
 .hint .worm svg{width:100%;height:auto;display:block}
 @keyframes wiggle{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg) translateY(-3px)}}
 .hint .say{background:#fff;color:var(--ink);font-size:16px;font-weight:900;border-radius:16px;padding:6px 12px;line-height:1.2}
@@ -234,6 +239,7 @@ h1,h2,h3{margin:0}
  display:flex;align-items:center;gap:10px;box-shadow:0 6px 0 rgba(30,10,70,.4),0 0 30px rgba(255,220,120,.8);transition:all .3s cubic-bezier(.2,1.5,.4,1);width:max-content;max-width:92vw}
 #cele.on{opacity:1;transform:translate(-50%,0) scale(1)}
 #cele svg{width:48px;height:48px;flex:none}
+#cele .celeBig{width:min(124px,32vmin);flex:none}#cele .celeBig svg{width:100%;height:auto}
 #banner{position:fixed;left:50%;top:42%;z-index:64;transform:translate(-50%,-50%) scale(.6);opacity:0;pointer-events:none;text-align:center;transition:all .35s cubic-bezier(.2,1.5,.4,1)}
 #banner.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 #banner h2{font-size:clamp(30px,8vmin,56px);text-shadow:0 4px 0 var(--ink),0 0 20px rgba(255,170,255,.9);white-space:nowrap}
@@ -468,7 +474,7 @@ h1,h2,h3{margin:0}
 .speed[hidden]{display:none}
 .secName{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.1}
 .dots{margin-top:3px}
-.stage.hinting .padT,.stage.hinting .hintB,.stage.hinting .stageHead,.stage.hinting .doorBox,.stage.hinting .bubble{visibility:hidden}
+.stage.hinting .padT,.stage.hinting .hintB,.stage.hinting .stageHead,.stage.hinting .doorBox,.main:has(>.stage.hinting)>.bubble{visibility:hidden}
 .chest{margin-top:calc(min(36vmin,210px)*.55)}
 .tbls{grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr))}
 .tbl>div{min-width:0}
@@ -631,10 +637,10 @@ h1,h2,h3{margin:0}
    <button class="btn ibtn green hintB" id="hintB" aria-label="Ask Glimmer for help" hidden></button>
    <div class="doorBox" id="doorBox"></div>
    <div class="lantern" id="pLantern"></div>
-   <div class="bubble" id="bubble"></div>
    <div class="hint" id="hint" hidden></div>
   </div>
   <div class="answers" id="answers"></div>
+  <div class="bubble" id="bubble"></div>
  </div>
 </section>
 <section id="bag" class="screen">
@@ -825,6 +831,70 @@ window.FunRecords = function (o) {
   return { record, seed, open, close, isOpen: () => !!root || !!party, back: () => endParty() || close(), celebrate, endParty, when, data: () => D, CHEERS, ttsKey };
 };
 // ===== /Fun Zone records =====
+</script>
+<script id="funlearn">
+// ===== Fun Zone learning record (shared, v1): what she has practised, mastered, and still finds tricky, across all apps =====
+// The same block lives in Sky Glider (index.html + SkyGlider.html), Crystal Cave (crystal-cave/index.html), Gem Tiles (tiles/learn.js)
+// and the hub (home/learn.js). Source of truth: dev/learn/funlearn.js. After editing it, run dev/learn/sync.py.
+// Its OWN NEW key 'funzone.learn.v1' only ever grows: counts go up, items and days are added, nothing is renamed or removed.
+// Every write re-reads the store first, so two apps (or two tabs) never wipe each other's entries. No game save is read or written.
+// Shape: {v:1, items:{key:{n,c,run,best,t0,t,a:{app:n}}}, days:{'YYYY-MM-DD':{app:n}}, log:[[t,app,key,ok], …last 400]}
+//   key examples: 'mul:7x8', 'add:8+5', 'sub:12-5', 'div:56/7', 'skip:3', 'money:pay', 'rhythm:normal'
+window.FunLearn = (function () {
+  const KEY = 'funzone.learn.v1', LOG = 400;
+  const isObj = v => !!v && typeof v === 'object' && !Array.isArray(v);
+  const num = v => (typeof v === 'number' && isFinite(v) && v >= 0) ? v : 0;
+  const day = t => { const d = new Date(t); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  function read() {
+    let raw = null; try { raw = localStorage.getItem(KEY); } catch (e) { }
+    const D = { v: 1, items: {}, days: {}, log: [] };
+    if (!raw) return D;
+    try { const d = JSON.parse(raw); if (!isObj(d)) throw 0;
+      for (const k in d) D[k] = d[k];                                  // unknown fields are kept
+      if (!isObj(D.items)) D.items = {}; if (!isObj(D.days)) D.days = {}; if (!Array.isArray(D.log)) D.log = [];
+    } catch (e) { try { if (localStorage.getItem(KEY + '.bad') == null) localStorage.setItem(KEY + '.bad', raw); } catch (_) { } }
+    return D;
+  }
+  const write = D => { try { localStorage.setItem(KEY, JSON.stringify(D)); return true; } catch (e) {
+    try { D.log = D.log.slice(-100); localStorage.setItem(KEY, JSON.stringify(D)); return true; } catch (_) { return false; } } };
+  // add one practice result. app: 'cc' | 'sg' | 'gt' | …; key: item id; ok: true/false
+  function add(app, key, ok) {
+    if (!app || !key) return;
+    const D = read(), t = Date.now(); key = String(key).slice(0, 40);
+    const it = isObj(D.items[key]) ? D.items[key] : (D.items[key] = { n: 0, c: 0, run: 0, best: 0, t0: t, t: t, a: {} });
+    it.n = num(it.n) + 1; if (ok) it.c = num(it.c) + 1;
+    it.run = ok ? num(it.run) + 1 : 0; it.best = Math.max(num(it.best), it.run); it.t = t; if (!it.t0) it.t0 = t;
+    if (!isObj(it.a)) it.a = {}; it.a[app] = num(it.a[app]) + 1;
+    const dk = day(t); if (!isObj(D.days[dk])) D.days[dk] = {}; D.days[dk][app] = num(D.days[dk][app]) + 1;
+    D.log.push([t, app, key, ok ? 1 : 0]); if (D.log.length > LOG) D.log.splice(0, D.log.length - LOG);
+    write(D);
+  }
+  // mastered: right at least 5 times and the last 3 in a row right. tricky: missed at least twice and not right twice in a row since.
+  const mastered = it => num(it.c) >= 5 && num(it.run) >= 3;
+  const tricky = it => num(it.n) - num(it.c) >= 2 && num(it.run) < 2;
+  function summary(prefix) {
+    const D = read(), out = { practised: 0, mastered: [], tricky: [], right: 0, days: Object.keys(D.days).length };
+    for (const k in D.items) { if (prefix && k.indexOf(prefix) !== 0) continue; const it = D.items[k]; if (!isObj(it)) continue;
+      out.practised++; out.right += num(it.c); if (mastered(it)) out.mastered.push(k); else if (tricky(it)) out.tricky.push(k); }
+    return out;
+  }
+  // merge another copy in (family backup restore): adds missing items/days/log entries, keeps the larger counts, never removes anything
+  function merge(o) {
+    if (!isObj(o)) return; const D = read();
+    if (isObj(o.items)) for (const k in o.items) { const b = o.items[k]; if (!isObj(b)) continue; const a = D.items[k];
+      if (!isObj(a)) { D.items[k] = b; continue; }
+      for (const f of ['n', 'c', 'best']) a[f] = Math.max(num(a[f]), num(b[f]));
+      if (num(b.t) > num(a.t)) { a.t = b.t; a.run = num(b.run); } a.t0 = Math.min(num(a.t0) || Infinity, num(b.t0) || Infinity); if (!isFinite(a.t0)) a.t0 = 0;
+      if (!isObj(a.a)) a.a = {}; if (isObj(b.a)) for (const x in b.a) a.a[x] = Math.max(num(a.a[x]), num(b.a[x])); }
+    if (isObj(o.days)) for (const k in o.days) { if (!isObj(o.days[k])) continue; if (!isObj(D.days[k])) D.days[k] = {};
+      for (const x in o.days[k]) D.days[k][x] = Math.max(num(D.days[k][x]), num(o.days[k][x])); }
+    if (Array.isArray(o.log)) { const seen = new Set(D.log.map(e => JSON.stringify(e)));
+      for (const e of o.log) if (Array.isArray(e) && !seen.has(JSON.stringify(e))) D.log.push(e);
+      D.log.sort((x, y) => num(x[0]) - num(y[0])); if (D.log.length > LOG) D.log.splice(0, D.log.length - LOG); }
+    write(D);
+  }
+  return { KEY, add, read, summary, merge, mastered, tricky };
+})();
 </script>
 <script>
 (function(){
@@ -1667,6 +1737,8 @@ function load(){const ls=k=>{try{return localStorage.getItem(k);}catch(e){return
  if(!CAVES.some(k=>p.on[k]))p.on.mul=true;if(!['spell','story','miss'].some(k=>p.eng[k]))p.eng.spell=p.eng.story=p.eng.miss=true;
  return s;}
 let save=load();
+// ask the browser to keep her saves even when storage runs low (v5)
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persisted().then(p=>p||navigator.storage.persist()).catch(()=>{});}catch(e){}
 // v3b: Word Problems keeps its own levels, facts, answer counts and gems under its own key, so the main save is never touched by it.
 // (Streaks, rare gems, golden crystals and the name stay shared in the main save, like in every other cave.)
 const WKEY='crystalcave.words.v1',WDEF={v:1,lv:{},facts:{},ops:{},gems:{},intro:false};
@@ -1765,7 +1837,13 @@ function lanternSVG(){const id='u'+(++uid);
  '<path d="M42 77 Q50 86 58 77" stroke="#3a1d6e" stroke-width="3.5" fill="none" stroke-linecap="round"/>'+
  '<rect x="23" y="104" width="54" height="15" rx="6" fill="#a77bff" stroke="#4b2a99" stroke-width="3"/>'+
  '<polygon points="50,107 56,112 50,117 44,112" fill="#ff6fcf" stroke="#fff" stroke-width="1.5"/></svg>';}
-function wormSVG(){return '<svg viewBox="0 0 140 92" aria-hidden="true">'+
+// Glimmer grows (v5): bigger, with gem accessories, as her correct-answer total (save.correct) rises. Nothing new is saved.
+const GLIM=[0,25,75,150,300,500,800],GLIMSAY=['','Glimmer grew! Look at her new pink bow!','Glimmer grew! She has a sparkly gem necklace!','Glimmer grew! Her cheeks are glittering!',
+ 'Glimmer grew! She found a silver tiara!','Glimmer grew! She is wearing a golden crown!','Glimmer grew! She is glowing like a rainbow!'];
+const glimLv=n=>{n=n==null?(save.correct|0):n;let l=0;GLIM.forEach((t,i)=>{if(n>=t)l=i;});return l;};
+function wormSVG(lv){lv=lv==null?glimLv():lv;const crown=lv>=4;
+ return '<svg viewBox="'+(crown?'0 -16 140 108':'0 0 140 92')+'" aria-hidden="true" class="glim g'+lv+'">'+
+ (lv>=6?'<ellipse cx="72" cy="50" rx="70" ry="44" fill="url(#glimRb)" opacity=".55"/><defs><radialGradient id="glimRb"><stop offset=".4" stop-color="#fff6c4"/><stop offset=".7" stop-color="#ff9ee6"/><stop offset="1" stop-color="#9ad8ff" stop-opacity="0"/></radialGradient></defs>':'')+
  '<circle cx="12" cy="66" r="13" fill="#fff27a" opacity=".55"/><circle cx="12" cy="66" r="8" fill="#fffbd0"/>'+
  '<circle cx="28" cy="66" r="12" fill="#7df08a" stroke="#2f9a55" stroke-width="3"/><circle cx="46" cy="61" r="13" fill="#86f592" stroke="#2f9a55" stroke-width="3"/>'+
  '<circle cx="64" cy="66" r="14" fill="#8ff79a" stroke="#2f9a55" stroke-width="3"/><circle cx="82" cy="61" r="15" fill="#98faa2" stroke="#2f9a55" stroke-width="3"/>'+
@@ -1776,7 +1854,13 @@ function wormSVG(){return '<svg viewBox="0 0 140 92" aria-hidden="true">'+
  '<circle cx="99" cy="41" r="4.5" fill="#2b1257"/><circle cx="118" cy="41" r="4.5" fill="#2b1257"/><circle cx="100" cy="39" r="1.6" fill="#fff"/><circle cx="119" cy="39" r="1.6" fill="#fff"/>'+
  '<ellipse cx="91" cy="53" rx="5" ry="3" fill="#ff8fb8" opacity=".8"/><ellipse cx="122" cy="53" rx="5" ry="3" fill="#ff8fb8" opacity=".8"/>'+
  '<path d="M100 54 Q107 61 114 54" stroke="#2b1257" stroke-width="3" fill="none" stroke-linecap="round"/>'+
- '<path d="M96 20 l6 -6 l6 6 l6 -6 l6 6" fill="#ff6fcf" stroke="#fff" stroke-width="1.5"/></svg>';}
+ (lv<4?'<path d="M96 20 l6 -6 l6 6 l6 -6 l6 6" fill="#ff6fcf" stroke="#fff" stroke-width="1.5"/>':'')+
+ (lv>=1?'<g transform="translate(70,40)"><path d="M0 0 L-12 -8 L-12 8Z M0 0 L12 -8 L12 8Z" fill="#ff5fb4" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><circle r="3.5" fill="#ffd1ec" stroke="#fff"/></g>':'')+
+ (lv>=2?'<path d="M84 64 Q106 78 128 64" stroke="#f5c542" stroke-width="2.5" fill="none"/><path d="M106 70 l5 5 l-5 7 l-5 -7z" fill="#ff2d8a" stroke="#fff" stroke-width="1.2"/><circle cx="94" cy="69" r="2.6" fill="#7ad8ff"/><circle cx="118" cy="69" r="2.6" fill="#b48aff"/>':'')+
+ (lv>=3?'<g fill="#fff"><path d="M88 58 l1.5 -4 l1.5 4 l4 1.5 l-4 1.5 l-1.5 4 l-1.5 -4 l-4 -1.5z"/><path d="M125 58 l1.5 -4 l1.5 4 l4 1.5 l-4 1.5 l-1.5 4 l-1.5 -4 l-4 -1.5z"/></g>':'')+
+ (lv===4?'<path d="M90 20 L94 6 L100 14 L106 0 L112 14 L118 6 L122 20Z" fill="#e8e8f5" stroke="#9a9ab0" stroke-width="2" stroke-linejoin="round"/><circle cx="106" cy="12" r="3" fill="#7ad8ff"/>':'')+
+ (lv>=5?'<path d="M88 22 L90 2 L99 12 L106 -10 L113 12 L122 2 L124 22Z" fill="#ffd84a" stroke="#a35f00" stroke-width="2.2" stroke-linejoin="round"/><circle cx="106" cy="10" r="4" fill="#ff2d55" stroke="#fff"/><circle cx="96" cy="16" r="2.4" fill="#2fd8e8"/><circle cx="116" cy="16" r="2.4" fill="#8be43c"/>':'')+
+ '</svg>';}
 function treasureSVG(id){let s='<svg viewBox="-60 -60 120 120" aria-hidden="true">';const u='u'+(++uid);
  if(id==='qcrown')s+='<defs>'+gradDef(u,['#fff6c4','#ffd84a','#ff9ee6'],1)+'</defs><path d="M-54,34 L-58,-26 L-30,2 L-14,-40 L0,-10 L14,-40 L30,2 L58,-26 L54,34 Z" fill="url(#'+u+')" stroke="#a35f00" stroke-width="4" stroke-linejoin="round"/><rect x="-54" y="28" width="108" height="18" rx="6" fill="#ffd84a" stroke="#a35f00" stroke-width="4"/><g transform="translate(0,6) scale(.36)">'+gemInner({c:'#ff6fcf',cut:'star'})+'</g><circle cx="-34" cy="37" r="5" fill="#2fd8e8" stroke="#fff" stroke-width="1.5"/><circle cx="34" cy="37" r="5" fill="#8be43c" stroke="#fff" stroke-width="1.5"/><circle cx="0" cy="37" r="5" fill="#ff2d55" stroke="#fff" stroke-width="1.5"/><circle cx="-58" cy="-30" r="5" fill="#fff"/><circle cx="58" cy="-30" r="5" fill="#fff"/><circle cx="-14" cy="-44" r="4" fill="#fff"/><circle cx="14" cy="-44" r="4" fill="#fff"/>';
  else if(id==='crown')s+='<defs>'+gradDef(u,['#fff6c4','#ffcf3a','#e08a00'],1)+'</defs><polygon points="-46,30 -50,-22 -24,4 0,-38 24,4 50,-22 46,30" fill="url(#'+u+')" stroke="#a35f00" stroke-width="4" stroke-linejoin="round"/><rect x="-46" y="24" width="92" height="16" rx="5" fill="url(#'+u+')" stroke="#a35f00" stroke-width="4"/><circle cx="0" cy="-8" r="9" fill="#ff2d55" stroke="#fff" stroke-width="2"/><circle cx="-26" cy="14" r="7" fill="#2fd8e8" stroke="#fff" stroke-width="2"/><circle cx="26" cy="14" r="7" fill="#a347ff" stroke="#fff" stroke-width="2"/><circle cx="0" cy="-42" r="5" fill="#fff"/>';
@@ -2293,7 +2377,7 @@ function layoutPlay(){if(curScreen!=='play')return;const st=$('#stage'),r=st.get
  const lh=Math.min(Math.max(56,Math.min(r.width,r.height)*0.24),118);$('#pLantern').style.width=(lh*100/130).toFixed(0)+'px';st.style.setProperty('--lh',lh.toFixed(0)+'px');
  const dh=Math.max(120,Math.min(r.height-58,(r.width-130)*360/300,480)),door=$('#doorBox .door');
  if(door&&!door.classList.contains('story')){door.style.height=dh.toFixed(0)+'px';door.style.width=(dh*300/360).toFixed(0)+'px';const q=door.querySelector('.q');if(q)q.style.fontSize=Math.round(dh*0.15)+'px';}
- if(!$('#hint').hidden&&S&&S.q)sizeHint();}
+ if(!$('#hint').hidden&&S&&S.q)sizeHint();placeBub();}
 window.addEventListener('resize',()=>{resizeFx();if(curScreen==='map')renderMap();layoutPlay();});
 // ----- questions: {a,b,swap,miss}  miss 0=normal, 1=first number hidden, 2=second hidden, 3=square (both hidden, same number)
 const disp=q=>q.swap?[q.b,q.a]:[q.a,q.b];
@@ -2585,7 +2669,7 @@ function showHintE(look){const q=S.q,h=$('#hint');let body,btn,say;
   say=tips.length?'These words sound the same! Look at what each one means.':'Try each word in the sentence. Which one sounds right?';btn=tips.length?'Read them to me':'Try each word';}
  else{body='<div class="eQ">'+esc(q.q)+'</div><p class="rd story">'+storyHTML(STORY[q.sid],look?-1:q.l)+'</p>';
   say=look?'Here is the story again. Can you find the answer?':'The answer is in the pink part of the story!';btn='Read it to me';}
- h.innerHTML='<div class="hl"><div class="hTop"><div class="worm">'+wormSVG()+'</div><div class="say" id="say">'+(S.wrong&&!look?'Almost! ':'')+say+'</div></div>'+
+ h.innerHTML='<div class="hl"><div class="hTop"><div class="worm" style="--gs:'+(1+glimLv()*0.07).toFixed(2)+'">'+wormSVG()+'</div><div class="say" id="say">'+(S.wrong&&!look?'Almost! ':'')+say+'</div></div>'+
   '<div class="hRow"><button class="btn gold countBtn" id="countBtn">'+btn+'</button><button class="btn purple eHelp" id="eHintX">Back</button></div></div><div class="gridBox"><div class="eBox">'+body+'</div></div>';
  h.hidden=false;$('#stage').classList.add('hinting');S.hintRows=0;$('#hintB').hidden=true;
  on('#countBtn',()=>{Snd.init();eHintGo();});on('#eHintX',()=>{tapSnd();Voice.stop();hideHint();$('#hintB').hidden=!(S.cfg.hintBtn||S.wrong);});sizeHint();scrollHi();
@@ -2653,13 +2737,22 @@ function nextQ(){if(!S)return;
  if(S.mode==='tunnel'){if(S.idx>=S.queue.length)return tunnelDone();S.q=S.queue[S.idx];}
  else if(!S.boss&&S.idx>=S.queue.length)return startBoss();
  else if(S.boss){if(S.bossIdx>=S.bossQs.length)return levelDone();S.q=S.bossQs[S.bossIdx];}
- else S.q=S.queue[S.idx];
- S.wrong=false;S.helped=false;S.tries=0;S.typed='';S.tried=[];S.choices=null;S.hx=null;S.busy=false;S.hintRows=0;S.counting=false;
+ else{if(S.easeNext&&S.mode==='sec'){const e=S.easeNext,prev=S.prevQ;S.easeNext=null;
+   if(e!==true&&prev){S.queue.splice(S.idx,0,Object.assign({},prev,e,{swap:false,miss:0,review:false,step:true}));}
+   else{const sz=x=>x.e?0:(+ansOf(x)||0)+(x.miss?50:0)+(x.story||x.w?30:0);let bi=-1,bv=S.queue[S.idx]?sz(S.queue[S.idx]):0;
+    for(let i=S.idx+1;i<Math.min(S.queue.length,S.idx+6);i++){const x=S.queue[i];if(!x.review&&sz(x)<bv){bv=sz(x);bi=i;}}
+    if(bi>0){const t=S.queue[bi];S.queue[bi]=S.queue[S.idx];S.queue[S.idx]=t;}}}
+  S.q=S.queue[S.idx];}
+ S.prevQ=null;S.easeNext=null;S.notYet=false;S.wrong=false;S.helped=false;S.tries=0;S.typed='';S.tried=[];S.choices=null;S.hx=null;S.busy=false;S.hintRows=0;S.counting=false;
  if(!Voice.cheer)Voice.stop();hideHint();renderDoor();renderAnswers();renderDots();}
 async function startBoss(){const s=S;s.boss=true;s.bossIdx=0;s.bossQs=s.st.kind==='gen'?buildBossG():s.st.kind==='word'?buildBossW():s.st.kind==='eng'?buildBossE():buildBoss();s.doorDirty=true;s.busy=true;
  if(s.st.kind==='queen'){banner('The Crystal Queen!','Break all 5 gem locks!',1700);autoSay('The Crystal Queen! Break all 5 gem locks!',{cheer:true});}else{banner('Boss Door!','Break all 3 gem locks!',1500);autoSay('Boss Door! Break all 3 gem locks!',{cheer:true});}
  Snd.streak();await wait(s.st.kind==='queen'?900:700);if(S!==s)return;s.busy=false;nextQ();}
-function record(q,ok,helped){const k=qKey(q),st=storeOf(k);
+// shared learning record (v5, its own key funzone.learn.v1; the cave's saves are untouched): one entry per question
+const learnKey=q=>{if(q.e)return 'eng:'+q.key;if(q.w||q.story)return 'word:'+(q.op||'mul');if(q.op==='two'||q.c!=null)return 'mix:'+q.op;
+ return (q.op==='add'?'add:':q.op==='sub'?'sub:':q.op==='div'?'div:':'mul:')+qKey(q).replace('*','x');};
+function record(q,ok,helped){try{if(window.FunLearn)FunLearn.add('cc',learnKey(q),ok&&!helped);}catch(e){}
+ const k=qKey(q),st=storeOf(k);
  if(q.e){const o=isObj(E.ops[q.e])?E.ops[q.e]:(E.ops[q.e]={n:0,c:0});o.n++;if(ok&&!helped)o.c++;}
  if(q.op){const OPS=q.w?W.ops:save.ops,o=isObj(OPS[q.op])?OPS[q.op]:(OPS[q.op]={n:0,c:0});o.n++;if(ok&&!helped)o.c++;
   // big + − sums are only remembered once she misses one (keeps the save small); small facts are always tracked
@@ -2667,7 +2760,27 @@ function record(q,ok,helped){const k=qKey(q),st=storeOf(k);
  const r=isObj(st[k])?st[k]:(st[k]={n:0,c:0,w:0,box:0,due:0});r.n++;save.answered++;
  if(helped){r.due=save.run+1;}else if(ok){r.c++;r.box=Math.min(5,r.box+1);r.due=save.run+[1,1,2,3,5,8][r.box];}else{r.w++;r.box=0;r.due=save.run+1;}persist();}
 function answer(v,btn){if(!S||S.busy||!S.q)return;if(S.q.e&&S.q.read&&!S.q.readDone)return;if(v===ansOf(S.q)){if(S.q.e)eRight();onCorrect(btn);}else onWrong(v,btn);}
-function say(txt,ms){const b=$('#bubble');b.textContent=txt;b.classList.add('on');clearTimeout(say.t);say.t=setTimeout(()=>b.classList.remove('on'),(ms||2200)*Math.max(SPEED,0.4));}
+function say(txt,ms){const b=$('#bubble');b.dataset.t=txt;b.classList.add('on');placeBub();clearTimeout(say.t);say.t=setTimeout(()=>b.classList.remove('on'),(ms||2200)*Math.max(SPEED,0.4));}
+// The bubble never covers the question, its 🔊, the answer box/blank or any answer (#12, #23). It sits beside the lantern when that
+// spot is free; otherwise it moves to the nearest free spot of the play area (stage or answers column), then tries a smaller font and
+// a shorter line (the spoken line stays complete). Only if nothing fits anywhere does it take the spot that covers the least.
+const BUBQ='button,.q,.stTxt,.rd,.eTitle,.ePic,.stPic,.tag,.stTag,.stLocks,.eWord,.eFam,.speed,.slots,.lt';
+const bubShort=t=>t.replace('Here is a trick! ','').replace(NOTYET+' ','Not yet! ').replace('Try again, or tap Glimmer for help.','Try again!');
+const bubShort2=t=>{const m=t.match(/^(Not yet! |Not quite! )?.*?((?:That is|The answer is) [^.]*\.)$/);return m?(m[1]||'')+m[2]:bubShort(t).replace(/^Not quite! /,'');};
+function placeBub(){const b=$('#bubble'),m=b.parentNode,t=b.dataset.t||b.textContent;if(!b.classList.contains('on')||!m||curScreen!=='play')return;
+ const mr=m.getBoundingClientRect(),sr=$('#stage').getBoundingClientRect(),lh=parseFloat($('#stage').style.getPropertyValue('--lh'))||90;if(!mr.width)return;
+ const vis=e=>{const r=e.getBoundingClientRect(),cs=getComputedStyle(e);return r.width>2&&r.height>2&&cs.visibility!=='hidden'&&!e.closest('[hidden]');};
+ const R=[...m.querySelectorAll(BUBQ)].filter(e=>e!==b&&vis(e)).map(e=>{const r=e.getBoundingClientRect();return [r.left-mr.left-4,r.top-mr.top-4,r.right-mr.left+4,r.bottom-mr.top+4];});
+ const c=$('#cele');if(c.classList.contains('on')){const r=c.getBoundingClientRect(),gx=r.width*.12,gy=r.height*.12+20;R.push([r.left-mr.left-gx,r.top-mr.top-gy,r.right-mr.left+gx,r.bottom-mr.top+gy]);}
+ const ax=sr.left-mr.left+lh*.77+16,ay=sr.bottom-mr.top-6,W0=Math.max(160,sr.width-lh*.77-24),ov=(x,y,w,h)=>{let a=0;for(const q of R){const ox=Math.min(x+w,q[2])-Math.max(x,q[0]),oy=Math.min(y+h,q[3])-Math.max(y,q[1]);if(ox>0&&oy>0)a+=ox*oy;}return a;};
+ const texts=[t,bubShort(t),bubShort2(t)].filter((x,i,a)=>a.indexOf(x)===i);let best=null;
+ fit:for(const tx of texts)for(const fs of [17,15])for(const mw of [W0,320,240,180]){if(mw>W0)continue;
+  b.textContent=tx;b.style.fontSize=fs+'px';b.style.maxWidth=mw+'px';const w=b.offsetWidth,h=b.offsetHeight;
+  const cand=[[ax,ay-h]];for(let y=4;y+h<=mr.height-2;y+=8)for(let x=4;x+w<=mr.width-4;x+=8)cand.push([x,y]);
+  let f=null,fd=1e9;for(const [x,y] of cand){if(x+w>mr.width-2||y<0)continue;const a=ov(x,y,w,h);if(a>0){if(!best||best.f===false&&a<best.a)best={f:false,a,x,y,tx,fs,mw};continue;}const d=Math.hypot(x-ax,y+h-ay);if(d<fd){fd=d;f=[x,y];}}
+  if(f){best={f:true,x:f[0],y:f[1],tx,fs,mw,d:fd};break fit;}}
+ if(!best)return;b.textContent=best.tx;b.style.fontSize=best.fs+'px';b.style.maxWidth=best.mw+'px';b.style.left=best.x.toFixed(0)+'px';b.style.top=best.y.toFixed(0)+'px';b.style.bottom='auto';
+ b.classList.toggle('far',!(best.f&&best.d<2));}
 function updateStreak(rest){const n=save.streak,el=$('#streak');$('#sNum').textContent=n;
  let lo,hi,next;if(n<3){lo=0;hi=3;next='lantern';}else if(n<5){lo=3;hi=5;next='rare';}else{lo=Math.floor(n/5)*5;hi=lo+5;next=hi%10===0?'gold':'rare';}
  $('#sFill').style.width=Math.round((n-lo)/(hi-lo)*100)+'%';
@@ -2699,7 +2812,8 @@ async function onCorrect(btn){const s=S;s.busy=true;const q=s.q,first=!s.wrong&&
  const fast=first&&s.cfg.speed&&s.mode==='sec'&&!q.story&&(performance.now()-(s.qStart||0))/1000<=s.cfg.speed;
  if(!s.wrong)record(q,true,s.helped);
  if(first){s.first++;save.streak++;if(save.streak>save.best)save.best=save.streak;s.rs=(s.rs|0)+1;s.rsb=Math.max(s.rsb|0,s.rs);}
- s.total++;save.correct++;persist();
+ const gl0=glimLv();s.total++;save.correct++;persist();const gl1=glimLv();
+ if(gl1>gl0){$('#hintB').innerHTML=wormSVG(gl1);setTimeout(()=>{if(S!==s)return;Snd.streak();cele('<div class="celeBig">'+wormSVG(gl1)+'</div><span>'+GLIMSAY[gl1]+'</span>',3000);autoSay(GLIMSAY[gl1],{after:true,cheer:true});},900);}
  if(btn){btn.classList.add('yes');sparkEl(btn,14);}else updateQ();
  if(!$('#hint').hidden){if(isAS(q)&&s.as){s.hintRows=s.as.steps.length;asDraw();}else $$('#hgrid .hrow').forEach(r=>r.classList.add('lit'));}
  if(q.e==='s')Snd.fanfare();else Snd.correct();updateStreak();
@@ -2746,6 +2860,36 @@ function tunnelDone(){S.busy=true;const reward=TREASURES.find(x=>save.treasures.
   $('#chP').innerHTML=reward?'You found the <b>'+reward.name+'</b>! Plus 5 bonus gems!':'You found a giant gem pile! Plus 5 bonus gems!';
   $('#chOut').innerHTML='<button class="btn gold big" id="chBack">'+(S&&S.ret?'Back to my tunnel':'Back to the map')+'</button>';
   on('#chBack',()=>{tapSnd();closeModal();if(S&&S.ret){S=S.ret;S.doorDirty=true;setupPlay();const r2=tunnelResolve;tunnelResolve=null;if(r2)r2();}else{S=null;show('map');}});});}
+// ---------- strategy hints (v5): a mental-maths trick after a miss. full=false stops before the answer; full=true finishes it.
+// Returns {t: line shown and said, step: an easier stepping-stone question or null}. Numbers are said with the number clips.
+const isMul=q=>!q.e&&!q.w&&!q.story&&(!q.op||q.op==='mul')&&!q.hm&&!q.miss&&q.c==null;
+function strat(q,full){if(!q||q.e||q.w||q.story||q.miss||isX(q))return null;
+ if(isMul(q)){const d=disp(q),P=q.a*q.b;let f=d[0],g=d[1],first=true;
+  if(q.a===1||q.b===1)return null;if(q.a===2||q.b===2){const n=q.a===2?q.b:q.a;return {t:'Double it! '+n+' + '+n+(full?' is '+P+'.':'.'),step:null};}
+  if(f===10||g===10){const n=f===10?g:f;return {t:'Here is a trick! '+f+' × '+g+' is '+n+' tens.'+(full?' That is '+P+'.':''),step:null};} // tens: every piece has a clip
+  const ok=x=>(x>=6&&x<=9)||x===11||x===12,rem=x=>x===9?0:x>10?x-10:x-5;if(!ok(f)&&!ok(g))return null;
+  if(!ok(f)||(ok(g)&&rem(g)<rem(f))){[f,g]=[g,f];first=false;} // split the factor that leaves the smallest piece (9s use the ten trick)
+  const fx=(x,y)=>first?x+' × '+y:y+' × '+x; // keep the order she sees
+  if(f===9)return {t:'Here is a trick! '+fx(9,g)+' is '+fx(10,g)+', take away '+g+'. That is '+(10*g)+' minus '+g+(full?', so '+fx(9,g)+' is '+P+'.':'.'),step:{a:first?10:g,b:first?g:10}};
+  const base=f>10?10:5,r=f-base;
+  return {t:'Here is a trick! Split it! '+fx(base,g)+' is '+(base*g)+', and '+fx(r,g)+' is '+(r*g)+'. '+(base*g)+' plus '+(r*g)+(full?' is '+P+'.':'.'),step:{a:first?base:g,b:first?g:base}};}
+ if(q.op==='add'&&q.c==null&&!q.miss&&q.a<10&&q.b<10&&q.a+q.b>10){const big=Math.max(q.a,q.b),sm=Math.min(q.a,q.b),need=10-big,rest=sm-need;
+  return {t:'Make a ten! '+big+' + '+need+' is 10, and '+rest+' more'+(full?' is '+(q.a+q.b)+'.':'.'),step:{a:big,b:need}};}
+ if(q.op==='sub'&&!q.miss&&q.a>10&&q.a<20&&q.b<10&&q.a-q.b<10){const down=q.a-10,rest=q.b-down;
+  return {t:'Count back to ten! '+q.a+' − '+down+' is 10, and '+rest+' less'+(full?' is '+(q.a-q.b)+'.':'.'),step:{a:q.a,b:down}};}
+ if(q.op==='div'&&!q.grp){const P=q.a*q.b;return {t:'Think times! '+q.a+' × what is '+P+'?'+(full?' '+q.a+' × '+q.b+' is '+P+'.':''),step:null};}
+ return null;}
+// "Not yet" coaching (v5): after 2 misses on the same question, Glimmer gently shows the answer (it glows; she taps it), the next
+// question steps down to an easier stepping stone, and the missed one comes back a little later (spaced review, below).
+const NOTYET='Not yet! That is okay.';
+function notYet(s,q){if(s.notYet){if(s.pad){s.typed=String(ansOf(q));updateQ();}if(s.nyLine&&$('#hint').hidden)say(s.nyLine,4200);return;}
+ s.notYet=true;s.helped=true;s.prevQ=q;const a=ansOf(q),st=strat(q,true);
+ s.easeNext=st&&st.step?st.step:true;
+ const line=s.nyLine=NOTYET+' '+(st?st.t.replace('Here is a trick! ',''):'The answer is '+a+'.');
+ const sayEl=$('#hint').hidden?null:$('#say');if(sayEl){sayEl.textContent=line;if(isAS(q)&&s.as){s.hintRows=s.as.steps.length;try{asDraw();}catch(e){}}else $$('#hgrid .hrow').forEach(r=>r.classList.add('lit'));}else say(line,4200);
+ autoSay(line);
+ if(s.pad){s.typed=String(a);updateQ();const g=$('#answers [data-k="go"]');if(g)g.classList.add('reveal');}
+ else $$('#answers .choices .btn').forEach(b=>{if(+b.dataset.v===a)b.classList.add('reveal');else if(!b.disabled){b.classList.add('nope');b.disabled=true;}});}
 function onWrong(v,btn){const s=S,q=s.q;Snd.soft();s.tries++;
  if(!s.wrong){s.wrong=true;if(!s.helped)record(q,false);else{const r=factRec(qKey(q));if(r){r.w++;r.box=0;persist();}}
   if(s.mode==='sec'&&!s.boss&&!s.requeued[qKey(q)]){s.requeued[qKey(q)]=1;const at=Math.min(s.queue.length,s.idx+3);s.queue.splice(at,0,Object.assign({},q,{review:true}));renderDots();}
@@ -2754,7 +2898,8 @@ function onWrong(v,btn){const s=S,q=s.q;Snd.soft();s.tries++;
  s.rs=0;s.tried.push(v);if(btn){btn.classList.add('nope');btn.disabled=true;}else if(q.e)eWrong();else{s.typed='';updateQ();}
  $('#hintB').hidden=false;
  const d=box$('.door');if(d){d.classList.remove('enter','wobble');void d.offsetWidth;d.classList.add('wobble');}
- if($('#hint').hidden){if(s.cfg.autoHint||(s.tries>=2&&!s.cfg.vh)){$('#bubble').classList.remove('on');showHint();}else{say('Not quite! Try again, or tap Glimmer for help.',2600);if(!q.e)autoSay('Not quite! Try again, or tap Glimmer for help.');}}
+ if(!q.e&&s.tries>=2){notYet(s,q);return;}
+ if($('#hint').hidden){if(s.cfg.autoHint){$('#bubble').classList.remove('on');showHint();}else{const st=strat(q,false),t=st?st.t:'Not quite! Try again, or tap Glimmer for help.';say(t,st?4200:2600);if(!q.e)autoSay(t);}}
  else{const w=$('#hint .worm');if(w){w.style.animation='none';void w.offsetWidth;w.style.animation='';}if(q.e){eHintMode(true);return;}if(S.hx){$('#say').textContent='Let\'s do it one step at a time!';autoSay($('#say').textContent);autoCount(true);return;}$('#say').textContent=isAS(q)?'Let\'s work it out together!':'Let\'s count every row together!';autoSay($('#say').textContent);autoCount(true);}}
 // ---------- glow-worm hint ----------
 function hintShape(q){if(q.op==='div')return q.grp?{rows:q.b,cols:q.a}:{rows:q.a,cols:q.b};const d=disp(q);if(q.miss===1)return {rows:d[0],cols:d[1]};if(q.miss===2)return {rows:d[0],cols:d[1]};if(q.miss===3)return {rows:q.a,cols:q.a};return {rows:d[0],cols:d[1]};}
@@ -2766,7 +2911,7 @@ function hintIntro(q){const d=disp(q),P=q.a*q.b,pl=(n,w)=>n+' '+w+(n===1?'':'s')
  return 'I\'m Glimmer! '+pl(d[0],'row')+' of '+pl(d[1],'gem')+'. Tap each row to count!';}
 function showHint(){S.hx=null;if(S.q.e)return showHintE(false);if(isX(S.q))return showHintX();if(isAS(S.q))return showHintAS();const q=S.q,sh=hintShape(q),gk=gemKey(S,q),h=$('#hint');
  let rh='';for(let r=0;r<sh.rows;r++){rh+='<div class="hrow" data-r="'+r+'"><div class="gems">';for(let c=0;c<sh.cols;c++)rh+='<span>'+gemSVG(GEMS[gk],24)+'</span>';rh+='</div><span class="lbl">'+((r+1)*sh.cols)+'</span></div>';}
- h.innerHTML='<div class="hl"><div class="hTop"><div class="worm">'+wormSVG()+'</div><div class="say" id="say">'+(S.wrong?'Almost! ':'')+hintIntro(q)+'</div></div>'+
+ h.innerHTML='<div class="hl"><div class="hTop"><div class="worm" style="--gs:'+(1+glimLv()*0.07).toFixed(2)+'">'+wormSVG()+'</div><div class="say" id="say">'+(S.wrong?'Almost! ':'')+hintIntro(q)+'</div></div>'+
   '<div class="hq">'+qPlain(q).replace(/\?/g,'<b>?</b>')+'</div><button class="btn gold countBtn" id="countBtn">Count with me!</button></div><div class="gridBox"><div class="hgrid" id="hgrid">'+rh+'</div></div>';
  h.hidden=false;$('#stage').classList.add('hinting');S.hintRows=0;$('#hintB').hidden=true;
  h.querySelectorAll('.hrow').forEach(r=>r.addEventListener('click',()=>{if(!S.counting)countRow();}));on('#countBtn',()=>{Snd.init();autoCount();});sizeHint();autoSay((S.wrong?'Almost! ':'')+hintIntro(q));}
@@ -2822,7 +2967,7 @@ function xInfo(q){const E=(say,eq)=>({say,eq});let intro,steps,plain=qPlain(q);
    steps=[E('Split '+big+' into '+tn+' and '+on+'.',big+' = '+tn+' + '+on),E(tn+' × '+sm+' = '+(tn*sm)+'.',tn+' × '+sm+' = '+(tn*sm)),E(on+' × '+sm+' = '+(on*sm)+'.',on+' × '+sm+' = '+(on*sm)),E('Add them up: '+(tn*sm)+' + '+(on*sm)+' = '+P+'. The answer is '+P+'!',(tn*sm)+' + '+(on*sm)+' = '+P)];}}
  return {intro,steps,plain};}
 function showHintX(){const q=S.q,h=$('#hint'),X=S.hx=xInfo(q);S.as=null;
- h.innerHTML='<div class="hl"><div class="hTop"><div class="worm">'+wormSVG()+'</div><div class="say" id="say">'+(S.wrong?'Almost! ':'')+X.intro+'</div></div>'+
+ h.innerHTML='<div class="hl"><div class="hTop"><div class="worm" style="--gs:'+(1+glimLv()*0.07).toFixed(2)+'">'+wormSVG()+'</div><div class="say" id="say">'+(S.wrong?'Almost! ':'')+X.intro+'</div></div>'+
   '<div class="hq">'+esc(X.plain).replace(/\?/g,'<b>?</b>')+'</div><button class="btn gold countBtn" id="countBtn">Show me how!</button></div><div class="gridBox"><div class="eBox xBox" id="hgrid"></div></div>';
  h.hidden=false;$('#stage').classList.add('hinting');S.hintRows=1;$('#hintB').hidden=true;drawX();
  $('#hgrid').addEventListener('click',()=>{if(!S.counting)stepX();});on('#countBtn',()=>{Snd.init();autoCount();});sizeHint();autoSay((S.wrong?'Almost! ':'')+X.intro);}
@@ -2876,7 +3021,7 @@ function colModel(m){const {op,X,Y,R}=m,nd=Math.max(2,nDig(Math.max(X,Y,R))),xd=
  steps[nd-1].txt+=(m.miss?' So the missing number is ':' The answer is ')+R+'!';
  return {kind:'col',nd,X,Y,R,op,xd,yd,rd,steps,intro:m.think+'Let\'s do it column by column. Start with the ones!'};}
 function showHintAS(){const q=S.q,h=$('#hint');S.as=asModel(q);const col=S.as.kind==='col';
- h.innerHTML='<div class="hl"><div class="hTop"><div class="worm">'+wormSVG()+'</div><div class="say" id="say">'+(S.wrong?'Almost! ':'')+S.as.intro+'</div></div>'+
+ h.innerHTML='<div class="hl"><div class="hTop"><div class="worm" style="--gs:'+(1+glimLv()*0.07).toFixed(2)+'">'+wormSVG()+'</div><div class="say" id="say">'+(S.wrong?'Almost! ':'')+S.as.intro+'</div></div>'+
   '<div class="hq">'+qPlain(q).replace(/\?/g,'<b>?</b>')+'</div><button class="btn gold countBtn" id="countBtn">'+(col?'Show me how!':'Count with me!')+'</button></div><div class="gridBox"><div id="hgrid" class="'+(col?'cgrid':'tgrid')+'"></div></div>';
  h.hidden=false;$('#stage').classList.add('hinting');S.hintRows=0;$('#hintB').hidden=true;asDraw();
  $('#hgrid').addEventListener('click',()=>{if(!S.counting)stepAS();});on('#countBtn',()=>{Snd.init();autoCount();});sizeHint();autoSay((S.wrong?'Almost! ':'')+S.as.intro);}
@@ -2994,7 +3139,7 @@ if('serviceWorker' in navigator&&location.protocol!=='file:'){const sw=navigator
 window.__cc={get save(){return save;},get S(){return S;},speed(v){SPEED=v;},show,startLevel,STAGES,TABLES,ansOf,qPlain,
  ALL,SECS,secStages,stageOpen,openSec,openGate,openWords:()=>openSec('word'),get W(){return W;},factsFor,asModel,parseKey,get mapSec(){return mapSec;},
  get E(){return E;},openEnglish:()=>openSec("eng"),EITEM,STORY,Voice,ttsKey,REC,
- sp:{qSay,sayText,sayParts,numWords,mkStory,hintIntro,hintShape,rowText,stepSay,xInfo,asModel,isX,isAS,nLv,PRAISE,RARES,wordQ}};
+ sp:{strat,say,glimLv,wormSVG,GLIMSAY,NOTYET,learnKey,qSay,sayText,sayParts,numWords,mkStory,hintIntro,hintShape,rowText,stepSay,xInfo,asModel,isX,isAS,nLv,PRAISE,RARES,wordQ}};
 })();
 </script>
 </body>
