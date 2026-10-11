@@ -1,12 +1,20 @@
-Sky Glider - a paper airplane racing game for kids. Play: https://dhanee1231.github.io/sky-glider/
+# Dhanee's Playground
 
-v3 "shiny, glittery and rich": 4 new sparkly worlds (Heartland, Glitterland, Silverland, Gem Kingdom) plus a
-bonus Rainbow Tunnel world, 30 levels in all. Animated multicolor glitter, shimmer and twinkles; cute flapping
-birds as obstacles; 6 power-ups (Star Magnet, Rocket Boost, Shield Bubble, Double Stars, Tiny Plane, Slow-Mo);
-glitter trail colors (pink, gold, silver, rainbow, blue, purple, green, ruby); put album stickers on your plane;
-new hats, patterns, paper colors and an 80-sticker album. Sparkle Streak bonus for collecting stars without a bonk.
+A small family site of sparkly, kid-safe games and apps, made by a dad for his 7-year-old daughter.
+Play: https://dhanee1231.github.io/sky-glider/
 
-Also: 3 difficulties (turtle / bunny / rocket), 1-3 stars per level, mystery box after every race, coins for
-duplicate stickers, cosmetic shop and an optional daily gift. Saves from v1/v2 carry over automatically.
-One self-contained HTML file, offline PWA, no ads, no purchases, no network calls, all art and sound made in code.
-Glitter automatically scales down on slower devices to keep the game smooth.
+| App | Folder | What it is |
+|---|---|---|
+| Sky Glider | `/` | Paper airplane racing: 10 worlds, power-ups, stickers, mystery boxes |
+| Crystal Cave Quest | `crystal-cave/` | Times-tables adventure with gems, Glimmer hints and the Crystal Queen |
+| Coach Sunny | `yoga/` | Beginner yoga and stretching coach with an on-device camera form check |
+| Gem Tiles | `tiles/` | Rhythm game with gem tiles: built-in songs or your own songs, analyzed on the phone |
+| Our Fun Zone | `home/` | The launcher page for all of the above |
+
+- Plain static files with relative paths and no build step, hosted on GitHub Pages.
+- Every app works offline (each folder has its own service worker).
+- No ads, no purchases, no tracking. Everything stays on the device.
+- All art and sound are made in code or self-hosted. Third-party media and models are credited in `yoga/media/CREDITS.md` and `yoga/vendor/NOTICE.txt`.
+- `dev/` holds the developer tooling and is not part of the site.
+
+Developer notes are in [CLAUDE.md](CLAUDE.md).
