@@ -62,7 +62,7 @@ const HI = { title: 'जेम टाइल्स', tag: 'संगीत के
   songSync: 'गाना सिंक', save: 'सेव', regen: 'नई टाइलें', del: 'हटाओ', paused: 'रुका हुआ', resume: 'खेलते रहो', restart: 'फिर से', quit: 'गाना रोको', outHearts: 'दिल ख़त्म!', outMsg: 'तुम बहुत अच्छा कर रही हो। जारी रखें?', cont: 'जारी रखो (अभ्यास)', finish: 'खत्म',
   addHow: 'इस फ़ोन से गाने की फ़ाइल चुनो। गाना फ़ोन से बाहर नहीं जाता।', calibHow: 'आवाज़ टेस्ट: हर क्लिक पर बड़े हीरे को टैप करो। स्क्रीन टेस्ट: जब गिरता दिल लाइन पर पहुँचे, तब टैप करो।', syncNote: 'अगर टाइलें जल्दी या देर से लगें तो टैप टेस्ट करो।',
   worlds: 'दुनिया', records: 'रिकॉर्ड', openPack: 'जादुई पैक खोलो', buyPack: '40 → 1 पैक', speedL: 'रफ़्तार', slow: 'धीमी', normalSp: 'सामान्य', fast: 'तेज़', obsL: 'रुकावटें', obsPL: 'अभ्यास में रुकावटें', puL: 'पावर-अप', shakeL: 'स्क्रीन हिलना',
-  intL: 'पीछे की चमक', low: 'कम', med: 'मध्यम', high: 'ज़्यादा', fxL: 'इफ़ेक्ट आवाज़ें (टाइल टैप पर कभी नहीं)', fxVolL: 'इफ़ेक्ट की आवाज़', labBtn: 'टेस्ट लैब', on: 'चालू', off: 'बंद', visL: 'स्क्रीन ऑफ़सेट', calmL: 'शांत मोड (कम चमक-दमक)', howTo: 'कैसे खेलें',
+  intL: 'पीछे की चमक', low: 'कम', med: 'मध्यम', high: 'ज़्यादा', fxL: 'इफ़ेक्ट आवाज़ें (टाइल टैप पर कभी नहीं)', fxVolL: 'इफ़ेक्ट की आवाज़', labBtn: 'टेस्ट लैब', on: 'चालू', off: 'बंद', visL: 'स्क्रीन ऑफ़सेट', calmL: 'शांत मोड (कम चमक-दमक)', tunL: 'सुरंग वाला रास्ता', howTo: 'कैसे खेलें',
   privacy: 'जेम टाइल्स में कोई विज्ञापन, लिंक या ख़रीदारी नहीं है। तुम्हारे गाने इसी फ़ोन पर रहते हैं।', calStart: 'आवाज़ टेस्ट', calVis: 'स्क्रीन टेस्ट', getReady: 'तैयार हो जाओ!', lab: 'टेस्ट लैब', legendTap: 'इन्हें टैप करो', legendDont: 'इन्हें मत छूना', skip: 'छोड़ो' };
 const EN = {}; $$('[data-t]').forEach(e => { e.dataset.en = e.textContent; if (!(e.dataset.t in EN)) EN[e.dataset.t] = e.textContent; });
 const tr = k => (S.set.lang === 'hi' && HI[k]) || EN[k] || k;
@@ -122,12 +122,26 @@ let customs = []; // loaded from IndexedDB (metadata only)
 const DB = { db: null,
   open() { return this.db ? Promise.resolve(this.db) : new Promise((res, rej) => { const r = indexedDB.open('gemtiles', 1); r.onupgradeneeded = () => r.result.createObjectStore('songs', { keyPath: 'id' }); r.onsuccess = () => res(this.db = r.result); r.onerror = () => rej(r.error); }); },
   async tx(mode, fn) { const db = await this.open(); return new Promise((res, rej) => { const t = db.transaction('songs', mode), st = t.objectStore('songs'), r = fn(st); t.oncomplete = () => res(r && r.result); t.onerror = () => rej(t.error); }); },
-  all() { return this.tx('readonly', s => s.getAll()); }, put(o) { return this.tx('readwrite', s => s.put(o)); }, del(id) { return this.tx('readwrite', s => s.delete(id)); }, get(id) { return this.tx('readonly', s => s.get(id)); }
+  all() { return this.tx('readonly', s => s.getAll()); }, put(o) { if (FULL.id === o.id) FULL.rec = o; return this.tx('readwrite', s => s.put(o)); }, del(id) { if (FULL.id === id) FULL.id = null; return this.tx('readwrite', s => s.delete(id)); }, get(id) { return this.tx('readonly', s => s.get(id)); }
 };
 // v3: metadata-only read: walk a cursor and keep just the small fields (no blob / analysis / charts held for the whole list)
 DB.meta = async function () { const db = await this.open(); return new Promise((res, rej) => { const out = [], t = db.transaction('songs', 'readonly'), r = t.objectStore('songs').openCursor();
-  r.onsuccess = () => { const cu = r.result; if (!cu) return; const { blob, an, charts, ...m } = cu.value; m.nt = charts ? { easy: (charts.easy || []).length, normal: (charts.normal || []).length, veryhard: (charts.veryhard || []).length, hard: (charts.hard || []).length } : { easy: 0, normal: 0, hard: 0 }; out.push(m); cu.continue(); };
+  r.onsuccess = () => { const cu = r.result; if (!cu) return; out.push(metaOf(cu.value)); cu.continue(); };
   t.oncomplete = () => res(out); t.onerror = () => rej(t.error); }); };
+// v6: custom-song analysis runs in a Worker (analyze-worker.js); if a Worker can't start (old browser, file missing offline) it runs here as before.
+const FULL = { id: null, rec: null }; // last custom song record read from IndexedDB (re-reading the blob + analysis on every replay was a start-up hitch)
+const analyzeHere = (mono, seed) => { const an = AN.analyzeMono(mono), charts = {}; for (const d of DIFFS) charts[d] = AN.makeChart(an, d, seed); return { an, charts }; };
+const AW = { w: null, n: 0, wait: new Map(), dead: false };
+function analyzeAll(mono, seed) {
+  if (AW.dead || !window.Worker) return Promise.resolve(analyzeHere(mono, seed));
+  return new Promise(res => { const id = ++AW.n, data = new Float32Array(mono); let settled = false; const fallback = () => { if (!settled) { settled = true; AW.wait.delete(id); res(analyzeHere(mono, seed)); } };
+    try { if (!AW.w) { AW.w = new Worker('./analyze-worker.js'); AW.w.onmessage = e => { const p = AW.wait.get(e.data.id); if (p) p(e.data); };
+        AW.w.onerror = ev => { if (ev && ev.preventDefault) ev.preventDefault(); AW.dead = true; try { AW.w.terminate(); } catch (_) { } AW.w = null; const ps = [...AW.wait.values()]; AW.wait.clear(); ps.forEach(p => p(null)); }; }
+      AW.wait.set(id, r => { AW.wait.delete(id); if (settled) return; if (r && r.ok) { settled = true; res({ an: r.an, charts: r.charts }); } else fallback(); });
+      AW.w.postMessage({ id, mono: data, seed }, [data.buffer]); } catch (e) { AW.dead = true; fallback(); } }); }
+function metaOf(rec) { const { blob, an, charts, ...m } = rec; m.nt = charts ? { easy: (charts.easy || []).length, normal: (charts.normal || []).length, veryhard: (charts.veryhard || []).length, hard: (charts.hard || []).length } : { easy: 0, normal: 0, hard: 0 }; return m; }
+// v6: after adding/editing one song, update just that entry (re-reading every record, audio + analysis included, was a 100+ ms freeze)
+const upsertCustom = rec => { const m = metaOf(rec), i = customs.findIndex(c => c.id === m.id); if (i >= 0) customs[i] = m; else { customs.push(m); customs.sort((a, b) => a.created - b.created); } };
 const loadCustoms = async () => { try { customs = (await DB.meta()).sort((a, b) => a.created - b.created); } catch (e) { customs = []; } };
 
 // ---------- background canvas (menus) ----------
@@ -319,9 +333,9 @@ function renderBadges() { $('#badgeGrid').innerHTML = BADGES.map(([id, e, n], i)
 // ---------- settings + calibration ----------
 function renderSettings() {
   const segOn = (sel, v) => $$(sel + ' button').forEach(b => b.classList.toggle('on', b.dataset.v === String(v)));
-  segOn('#soundSeg', S.set.sound ? 1 : 0); segOn('#speedSeg', S.set.speed || 'slow'); segOn('#obsSeg', S.set.obstacles !== false ? 1 : 0); segOn('#obsPSeg', S.set.obsPractice ? 1 : 0); segOn('#puSeg', S.set.powerups !== false ? 1 : 0); segOn('#shakeSeg', S.set.shake !== false ? 1 : 0); segOn('#fxSeg', S.set.fxOn !== false ? 1 : 0); segOn('#intSeg', S.set.intensity || 'med'); $('#fxVol').value = Math.round((S.set.fxVol == null ? 0.5 : S.set.fxVol) * 100); segOn('#beatSeg', S.set.missFx !== false ? 1 : 0); $('#visVal').textContent = S.set.vis || 0; segOn('#langSeg', S.set.lang); $('#offRange').value = S.set.offset; $('#offVal').textContent = S.set.offset; segOn('#calmSeg', S.set.calm ? 1 : 0); document.body.classList.toggle('calm', !!S.set.calm);
+  segOn('#soundSeg', S.set.sound ? 1 : 0); segOn('#speedSeg', S.set.speed || 'slow'); segOn('#obsSeg', S.set.obstacles !== false ? 1 : 0); segOn('#obsPSeg', S.set.obsPractice ? 1 : 0); segOn('#puSeg', S.set.powerups !== false ? 1 : 0); segOn('#shakeSeg', S.set.shake !== false ? 1 : 0); segOn('#fxSeg', S.set.fxOn !== false ? 1 : 0); segOn('#intSeg', S.set.intensity || 'med'); $('#fxVol').value = Math.round((S.set.fxVol == null ? 0.5 : S.set.fxVol) * 100); segOn('#beatSeg', S.set.missFx !== false ? 1 : 0); $('#visVal').textContent = S.set.vis || 0; segOn('#langSeg', S.set.lang); $('#offRange').value = S.set.offset; $('#offVal').textContent = S.set.offset; segOn('#calmSeg', S.set.calm ? 1 : 0); segOn('#tunSeg', S.set.tunnel !== false ? 1 : 0); document.body.classList.toggle('calm', !!S.set.calm);
 }
-[['obsSeg', 'obstacles'], ['obsPSeg', 'obsPractice'], ['puSeg', 'powerups'], ['shakeSeg', 'shake'], ['fxSeg', 'fxOn'], ['calmSeg', 'calm']].forEach(([id, k]) => $('#' + id).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.set[k] = b.dataset.v === '1'; save(); renderSettings(); }));
+[['obsSeg', 'obstacles'], ['obsPSeg', 'obsPractice'], ['puSeg', 'powerups'], ['shakeSeg', 'shake'], ['fxSeg', 'fxOn'], ['calmSeg', 'calm'], ['tunSeg', 'tunnel']].forEach(([id, k]) => $('#' + id).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.set[k] = b.dataset.v === '1'; save(); renderSettings(); }));
 $('#intSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.set.intensity = b.dataset.v; save(); renderSettings(); });
 $('#fxVol').addEventListener('input', e => { S.set.fxVol = +e.target.value / 100; save(); A.init(); A.setFx(S.set.fxOn !== false, S.set.fxVol); });
 $('#fxVol').addEventListener('change', () => A.fx('powerup'));
@@ -382,13 +396,13 @@ async function addSongFile(file) {
     await step(0.1, tx('opening')); const buf = await file.arrayBuffer();
     await step(0.25, tx('listening')); const { mono, duration } = await AN.decodeToMono(buf);
     if (duration < 8) return err(tx('tooShort')); if (duration > 600) return err(tx('tooLong'));
-    await step(0.5, tx('finding')); const an = AN.analyzeMono(mono);
+    await step(0.5, tx('finding')); const { an, charts } = await analyzeAll(mono, 1);
     await step(0.85, tx('making'));
     const energy = Math.min(1, an.onsets.length / duration / 4), theme = Art.suggestTheme(an.bpm, energy);
     const title = file.name.replace(/\.[a-z0-9]{2,5}$/i, '').replace(/[_]+/g, ' ').trim().slice(0, 60) || 'My song';
     const rec = { id: 'c' + Date.now().toString(36), title, emoji: '🎵', color: '#ffb3d9', theme, suggested: theme, energy, bpm: an.bpm, duration, an, seed: 1, offset: 0, created: Date.now(), type: file.type || 'audio/mpeg', blob: new Blob([buf], { type: file.type || 'audio/mpeg' }) };
-    rec.anv = AN.VERSION; rec.charts = { easy: AN.makeChart(an, 'easy', 1), normal: AN.makeChart(an, 'normal', 1), hard: AN.makeChart(an, 'hard', 1), veryhard: AN.makeChart(an, 'veryhard', 1) };
-    await DB.put(rec); decoded.set(rec.id, null); await loadCustoms(); award('custom'); await step(1, tx('doneAdd'));
+    rec.anv = AN.VERSION; rec.charts = charts;
+    await DB.put(rec); decoded.delete(rec.id); upsertCustom(rec); award('custom'); await step(1, tx('doneAdd'));
     A.sfx('unlock'); openEdit(rec.id, true);
   } catch (ex) { console.warn(ex); err(tx('cantPlay')); }
 }
@@ -414,7 +428,7 @@ $('#edEmoji').addEventListener('click', e => { const b = e.target.closest('[data
 $('#edColor').addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (b) { editing.color = b.dataset.c; renderEditPickers(); } });
 $('#edTheme').addEventListener('click', e => { const b = e.target.closest('[data-th]'); if (!b) return; if (!S.owned.theme.includes(b.dataset.th) && b.dataset.th !== editing.suggested) { toast(tx('lockedTheme')); return; } editing.theme = b.dataset.th; renderEditPickers(); });
 $('#edOff').addEventListener('input', e => { editing.offset = +e.target.value; $('#edOffVal').textContent = editing.offset; });
-$('#edSave').addEventListener('click', async () => { const full = await DB.get(editing.id); Object.assign(full, { title: $('#edTitle').value.trim() || 'My song', emoji: editing.emoji, color: editing.color, theme: editing.theme, offset: editing.offset }); await DB.put(full); await loadCustoms(); A.sfx('coin'); toast(tx('saved')); go('songs'); });
+$('#edSave').addEventListener('click', async () => { const full = await DB.get(editing.id); Object.assign(full, { title: $('#edTitle').value.trim() || 'My song', emoji: editing.emoji, color: editing.color, theme: editing.theme, offset: editing.offset }); await DB.put(full); upsertCustom(full); A.sfx('coin'); toast(tx('saved')); go('songs'); });
 $('#edRegen').addEventListener('click', async () => { const full = await DB.get(editing.id); full.seed = (full.seed || 1) + 1; full.charts = { easy: AN.makeChart(full.an, 'easy', full.seed), normal: AN.makeChart(full.an, 'normal', full.seed), hard: AN.makeChart(full.an, 'hard', full.seed), veryhard: AN.makeChart(full.an, 'veryhard', full.seed) }; await DB.put(full); await loadCustoms(); toast(tx('fresh')); openEdit(full.id); });
 $('#edDel').addEventListener('click', () => msg(`<h2>${tx('delQ')}</h2><p dir="auto">${esc(editing.title)}</p><div class="row"><button class="btn" id="delYes">${tx('delYes')}</button><button class="btn silver" onclick="this.closest('.modal').classList.remove('on')">${tx('keepIt')}</button></div>`));
 document.addEventListener('click', e => { const b = e.target.closest('[data-pick]'); if (!b) return; const id = b.dataset.song, k = b.dataset.pick, song = window.TILE_SONGS.find(x => x.id === id);
@@ -424,7 +438,10 @@ document.addEventListener('click', async e => { if (e.target.closest('#delYes'))
 // =================== GAME ENGINE (v2: Guitar-Hero model) ===================
 // The song is ONE continuous audio track. Taps never create sounds or AudioNodes. Every note position and every
 // judgement comes from the audio clock (getOutputTimestamp), never from accumulated frame deltas.
-const cv = $('#cv'), c = cv.getContext('2d'), bcv = $('#bgcv'), bc = bcv.getContext('2d', { alpha: false });
+// v6: both game layers are low-latency (desynchronized) canvases: drawing is handed straight to the display path instead of being copied through
+// the page compositor every frame (much less main-thread work per frame, and a little less tap-to-screen latency). Browsers without it ignore the hint.
+const cv = $('#cv'), c = cv.getContext('2d', { desynchronized: true }), bcv = $('#bgcv'), bc = bcv.getContext('2d', { alpha: false, desynchronized: true }),
+  dcv = $('#dyncv'), dc = dcv.getContext('2d', { desynchronized: true }); // v6: bgcv = still scenery (redrawn only on resize/theme/quality); dyncv = moving background + the track
 // v3: browser gestures in the game area are blocked by CSS (touch-action:none, overscroll-behavior, user-select, touch-callout), so there are
 // no blocking touch listeners for the compositor to wait on; only the long-press menu / iOS pinch need a handler (not on the tap path)
 $('#game').addEventListener('contextmenu', e => e.preventDefault()); document.addEventListener('gesturestart', e => e.preventDefault());
@@ -478,7 +495,8 @@ function arrange(song, diff) {
   groups.forEach((g, i) => { const n = g[0], t = tOf(n.b);
     if (prev) { const dp = n.midi - prev.midi; if (dp > 0) lane += dp > 4 ? 2 : 1; else if (dp < 0) lane -= dp < -4 ? 2 : 1; else { lane += flip; flip = -flip; } if (lane > 3) lane = 6 - lane; if (lane < 0) lane = -lane; lane = Math.max(0, Math.min(3, lane)); if (lane === prev.lane && t - prev.t < 0.45) lane = (lane + 2) % 4; }
     const holdB = diff === 'easy' ? 2 : 1.5, isHold = g.length === 1 && n.dur >= holdB;
-    tiles.push({ t, lane, dur: isHold ? (tOf(n.b + n.dur) - t) * 0.85 : 0, shapeI: i });
+    const nt = groups[i + 1] ? tOf(groups[i + 1][0].b) : tOf(n.b + n.dur) + 0.5; // v6: holds last the whole note (was 85%), but always end 0.15 s before the next tile
+    tiles.push({ t, lane, dur: isHold ? Math.max(0.3, Math.min(tOf(n.b + n.dur) - t, nt - t - 0.15)) : 0, shapeI: i });
     if (diff !== 'easy' && !isHold && n.dur >= 1 && i > 0 && (diff === 'veryhard' ? true : diff === 'hard' ? n.b % 2 === 0 : n.b % 4 === 0)) tiles.push({ t, lane: (lane + 2) % 4, dur: 0, shapeI: i + 1, pair: true });
     prev = { midi: g[g.length - 1].midi, lane, t }; });
   const beatTimes = []; for (let b = 0; b <= Math.ceil(beats); b++) beatTimes.push([tOf(b), b]);
@@ -487,15 +505,18 @@ function arrange(song, diff) {
 async function prepare(song, diff, onP) { // onP(progress, text)
   const ctx = A.init();
   if (song.custom) {
-    let full = await DB.get(song.id); if (!full) throw new Error('missing');
+    let full = FULL.id === song.id ? FULL.rec : await DB.get(song.id); if (!full) throw new Error('missing'); FULL.id = song.id; FULL.rec = full;
     if ((full.anv || 1) < AN.VERSION) { onP(0.2, tx('remaking')); full = await reanalyze(full); }
-    if (!decoded.get(song.id)) { onP(0.5, tx('gettingReady')); decoded.set(song.id, await ctx.decodeAudioData(await full.blob.arrayBuffer())); }
-    if (!full.charts[diff] && full.an) full.charts[diff] = AN.makeChart(full.an, diff, full.seed || 1); // songs added before Very Hard existed
+    if (!decoded.get(song.id)) { onP(0.5, tx('gettingReady')); const ab = await ctx.decodeAudioData(await full.blob.arrayBuffer()); decoded.set(song.id, ab); for (const k of decoded.keys()) if (decoded.size > 2) decoded.delete(k); } // v6: keep at most 2 decoded tracks (~40 MB each for a 3-min song)
+    else { const ab = decoded.get(song.id); decoded.delete(song.id); decoded.set(song.id, ab); } // LRU touch
+    if (!full.charts[diff] && full.an) { full.charts[diff] = AN.makeChart(full.an, diff, full.seed || 1); DB.put(full).catch(() => { }); } // songs added before Very Hard existed (v6: saved, made once)
     const tiles = full.charts[diff].map((n, i) => ({ t: n.t, lane: n.lane, dur: n.dur || 0, shapeI: i, lane2: n.lane2 }));
     tiles.slice().forEach(t => { if (t.lane2 != null) tiles.push({ ...t, lane: t.lane2, pair: true, shapeI: t.shapeI + 1 }); });
     tiles.sort((a, b) => a.t - b.t);
     if (DIFF[diff].gap) { const kept = []; let p = null; for (const t of tiles) { if (p && !t.pair && t.t - p.t < DIFF[diff].gap) continue; if (t.pair && p && Math.abs(t.t - p.t) > 0.001) continue; kept.push(t); if (!t.pair) p = t; } // O(n): track the last kept non-pair tile
-      for (let i = 0; i < kept.length - 1; i++) if (kept[i].dur && kept[i].t + kept[i].dur > kept[i + 1].t - DIFF[diff].gap) kept[i].dur = Math.max(0, kept[i + 1].t - DIFF[diff].gap - kept[i].t); tiles.length = 0; tiles.push(...kept); }
+      const hg = Math.min(DIFF[diff].gap, 0.2); for (let i = 0; i < kept.length - 1; i++) if (kept[i].dur && kept[i].t + kept[i].dur > kept[i + 1].t - hg) kept[i].dur = Math.max(0, kept[i + 1].t - hg - kept[i].t); tiles.length = 0; tiles.push(...kept); }
+    // v6: longer hold strings: a hold runs on until just before the next tile (it used to stop up to a quarter beat early). Stored charts are untouched.
+    for (let i = 0; i < tiles.length; i++) { const t = tiles[i]; if (!(t.dur > 0) || t.pair) continue; let j = i + 1; while (j < tiles.length && tiles[j].t - t.t < 0.001) j++; const nt = j < tiles.length ? tiles[j].t : full.duration; t.dur = Math.max(t.dur, Math.min(t.dur * 1.35 + 0.1, nt - t.t - 0.16)); }
     return { tiles, end: full.duration + 0.3, bpm: full.bpm, beatTimes: (full.an.grid || full.an.beats.map(b => b.t)).map((t, i) => [t, i]), stems: { full: decoded.get(song.id) }, energy: full.energy, theme: full.theme, songOffset: (full.offset || 0) / 1000 };
   }
   const key = song.id + '|' + diff; let r = rendered.get(key);
@@ -507,8 +528,8 @@ async function prepare(song, diff, onP) { // onP(progress, text)
   for (const k of rendered.keys()) { if (bytes <= 192e6 || rendered.size <= 1) break; const v = rendered.get(k); bytes -= (v.stems.mel.length * v.stems.mel.numberOfChannels + v.stems.back.length * v.stems.back.numberOfChannels) * 4; rendered.delete(k); }
   return r;
 }
-async function reanalyze(full) { const { mono } = await AN.decodeToMono(await full.blob.arrayBuffer()); const an = AN.analyzeMono(mono);
-  Object.assign(full, { an, bpm: an.bpm, anv: AN.VERSION, charts: { easy: AN.makeChart(an, 'easy', full.seed || 1), normal: AN.makeChart(an, 'normal', full.seed || 1), hard: AN.makeChart(an, 'hard', full.seed || 1), veryhard: AN.makeChart(an, 'veryhard', full.seed || 1) } });
+async function reanalyze(full) { const { mono } = await AN.decodeToMono(await full.blob.arrayBuffer()); const { an, charts } = await analyzeAll(mono, full.seed || 1);
+  Object.assign(full, { an, bpm: an.bpm, anv: AN.VERSION, charts });
   await DB.put(full); return full; }
 // ---------- start ----------
 const loadUI = (p, t) => { $('#mLoad').classList.add('on'); $('#loadBar').style.width = (p * 100) + '%'; $('#loadMsg').textContent = t; };
@@ -529,6 +550,7 @@ async function startGame0(song, diff) {
     flares: [0, 0, 0, 0], flareJ: [0, 0, 0, 0], streak: [0, 0, 0, 0], missFx: [0, 0, 0, 0], pu: {}, shield: 0, poofs: [], shake: 0, slow: 1, nowS: 0, win: DIFF[diff].win, lead: DIFF[diff].lead, stats: { pu: {}, dodged: 0, rainbow: false }, items: [], lab: LAB, _bi: 0, qLog: [],
     bgDirty: true, bgLast: 0, Q: null, first: 0, hudDirty: true, hudT: 0, lastProg: -1, pops: [], ft: new Float32Array(4096), fi: new Float32Array(4096), fN: 0, lastFrame: 0, ivl: [], pendingTap: null, nodesAtStart: 0,
     resuming: 0, pausedDrawn: false, missRun: 0, medal: 0, medalT: -9, holdEmitT: 0, dly: 4, cap60: false, skipTog: false, tut: tut ? { step: 0, wait: null, hand: 0, done: false } : null, seenObs: G.seenObs || new Set(), edgeA: -1, edgeCol: '' });
+  TUN.on = S.set.tunnel !== false; TUN.c = 0; // v6 tunnel vision: on unless she switched it off (older saves have no key -> on)
   // build the playback graph ONCE (no nodes are created after this until the song ends)
   const master = A.master(); G.nodes = [];
   if (b.stems.full) { const src = ctx.createBufferSource(), lp = ctx.createBiquadFilter(); src.buffer = b.stems.full; lp.type = 'lowpass'; lp.frequency.value = 20000; lp.Q.value = 0.5; src.connect(lp); lp.connect(master); G.srcs = [src]; G.muffle = lp; G.duck = null; }
@@ -540,8 +562,7 @@ async function startGame0(song, diff) {
   A.setFx(S.set.fxOn !== false, S.set.fxVol == null ? 0.5 : S.set.fxVol); G.items = buildItems(b, diff); layout(); warmSprites(); setTimeout(() => A.fx('intro'), 300); updHud(); startLoop();
   if (document.hidden) pauseGame(); // she switched apps while the song was loading: start paused (resume gets a 3-2-1)
 }
-function warmSprites() { try { resolveSprites(); for (const it of G.items) it.kind === 'pu' ? puImg(it.pu) : obsImg(it.ob); cloudPuff(); greyPuff(); edgeGlow(); for (const k of ['3', '2', '1', 'go']) countImg(k);
-  Art.scene(G.theme, L.W, L.H, 1, 'hw', h => { h.save(); h.translate(HWX(), 0); h.drawImage(highway(), 0, 0); h.restore(); }); } catch (e) { console.warn(e); } }
+function warmSprites() { try { resolveSprites(); for (const it of G.items) it.kind === 'pu' ? puImg(it.pu) : obsImg(it.ob); cloudPuff(); greyPuff(); for (const k of ['3', '2', '1', 'go']) countImg(k); } catch (e) { console.warn(e); } } // v6: dropped a call to a missing edgeGlow() (it threw before the countdown sprites were warmed) and an unused full-screen 'hw' scene
 // HUD: gem hearts (crack on a miss) + score. Only touched when the shown value changes, at most ~10x/s (no per-frame DOM writes during holds)
 const NF = window.Intl ? new Intl.NumberFormat() : { format: n => String(n) }, HUD = { s: '', h: -2, n: 0 };
 function buildHearts() { const el = $('#hHearts'); HUD.h = -2; if (G.hearts === Infinity) { el.innerHTML = '<span class="gh"></span> ∞'; HUD.n = 0; return; }
@@ -555,11 +576,13 @@ let GDPR = 2;
 let BDPR = 1;
 const VIEW = { w: 0, h: 0, left: 0, top: 0 }; // game canvas size + offset, refreshed by the ResizeObserver (never read per frame / per tap)
 function measureGame() { const r = cv.getBoundingClientRect(); if (r.width > 0 && r.height > 0) Object.assign(VIEW, { w: r.width, h: r.height, left: r.left, top: r.top }); }
+// v6: on the lowest tier a big screen (Fold inner) may render a little under 1x so a slow phone keeps 60 fps
 function fitGame() { if (!VIEW.w) measureGame(); const w = VIEW.w || innerWidth, h = VIEW.h || innerHeight, q = G.qual || 0;
-  GDPR = Math.max(1, Math.min(window.devicePixelRatio || 1, [2, 1.75, 1.25, 1][q], Math.sqrt([2.0e6, 1.4e6, 1.0e6, 0.75e6][q] / (w * h))));
+  GDPR = Math.max(q >= 3 ? 0.85 : 1, Math.min(window.devicePixelRatio || 1, [2, 1.75, 1.25, 1][q], Math.sqrt([2.0e6, 1.4e6, 1.0e6, 0.75e6][q] / (w * h))));
   BDPR = Math.max(0.5, Math.min(GDPR, [1.25, 1, 0.8, 0.6][q]));
   const cw = Math.round(w * GDPR), ch = Math.round(h * GDPR); if (cv.width !== cw || cv.height !== ch) { cv.width = cw; cv.height = ch; G.bgDirty = true; G.pausedDrawn = false; }
-  const bw = Math.round(w * BDPR), bh = Math.round(h * BDPR); if (bcv.width !== bw || bcv.height !== bh) { bcv.width = bw; bcv.height = bh; G.bgDirty = true; } return [w, h]; }
+  const bw = Math.round(w * BDPR), bh = Math.round(h * BDPR); if (bcv.width !== bw || bcv.height !== bh) { bcv.width = bw; bcv.height = bh; G.bgDirty = true; }
+  if (dcv.width !== bw || dcv.height !== bh) { dcv.width = bw; dcv.height = bh; G.bgDirty = true; } return [w, h]; }
 function layout() { const [W, H] = fitGame(); if (L.W === W && L.H === H) return false; G.bgDirty = true; G.pausedDrawn = false; const bw = Math.min(W * 0.98, H * 1.25, 860), P = 0.9;
   L = { W, H, cx: W / 2, bw, lw: bw / 4, strikeY: H * 0.8, horizonY: H * 0.08, P, sFar: 1 / (1 + P) }; L.span = L.strikeY - L.horizonY; G.spr = null; return true; }
 // fold/unfold, rotation or a big resize mid-song: pause (resume gets a 3-2-1) and pre-build the new size's sprites now, not on the next game frame
@@ -572,9 +595,22 @@ let PS = 1, PY = 0; // projection scratch (no per-call array allocation)
 const projS = u => { PS = 1 / (1 + L.P * Math.max(-0.12, u)); PY = L.strikeY - L.span * (1 - PS) / (1 - L.sFar); };
 const proj = u => { projS(u); return [PS, PY]; }; // (allocating form kept for tests/tools)
 const laneX = (l, s) => L.cx + (l - 1.5) * L.lw * s;
-function laneAt(x, y) { const fr = Math.max(0, Math.min(1, (L.strikeY - L.lw * 0.9 - y) / L.span)), s = 1 - fr * (1 - L.sFar), v = (x - L.cx) / (L.lw * s) + 2; // generous: full-width lanes near the strike line
-  return v >= -0.5 && v < 0 ? 0 : v >= 4 && v < 4.5 ? 3 : Math.floor(v); }
-const HWX = () => Math.max(0, Math.floor(L.cx - L.bw * 0.62)); const highway = () => Art.spr(`hw|${L.W}|${L.H}|${Art.highwayStyle(G.theme)}`, Math.ceil(L.bw * 1.24), L.H, (h) => { h.translate(-HWX(), 0); const HS = Art.highwayStyle(G.theme);
+// ---------- v6: tunnel vision ----------
+// The track bends left/right like a winding road seen down a tunnel. The bend is a pure function of the SONG clock (it pauses with the music
+// and never touches timing): a point at depth u (0 = strike line, 1 = far end) is shifted sideways by bend * u^2. The strike line itself never
+// moves (shift 0 at u = 0), so the lane buttons and the tap zones stay exactly where they are, and a tile is always dead centre in its lane
+// when it is judged. Taps above the strike line are mapped back through the same shift (laneV), so tap zones follow what she sees.
+const TUN = { on: false, c: 0 };
+const cdx = u => u > 0 ? TUN.c * u * u : 0;
+function tunnelBend(t) { if (!TUN.on) return 0; t = Math.max(0, t);
+  const amp = L.lw * (G.diff === 'easy' ? 0.4 : G.diff === 'normal' ? 0.62 : 0.78) * (S.set.calm ? 0.6 : 1), ease = Math.min(1, t / 4); // straight for the countdown, eases in
+  return amp * ease * (0.65 * Math.sin(t * 0.6756) + 0.35 * Math.sin(t * 1.3368 + 1.3)); } // ~9.3 s and ~4.7 s waves: slow, never twitchy
+const uOfY = y => { const ps = 1 - (L.strikeY - y) * (1 - L.sFar) / L.span; return ps >= 1 ? 0 : ps > L.sFar * 0.9 ? (1 / ps - 1) / L.P : 1.1; };
+const strikeX = l => laneX(l, 1); // lane centres at the hit line (the bend is 0 there)
+function laneV(x, y) { const fr = Math.max(0, Math.min(1, (L.strikeY - L.lw * 0.9 - y) / L.span)), s = 1 - fr * (1 - L.sFar); // generous: full-width lanes near the strike line
+  return (x - L.cx - cdx(uOfY(y))) / (L.lw * s) + 2; }
+function laneAt(x, y) { const v = laneV(x, y); return v >= -0.5 && v < 0 ? 0 : v >= 4 && v < 4.5 ? 3 : Math.floor(v); }
+const HWX = () => Math.max(0, Math.floor(L.cx - L.bw * 0.62)); const highway = (sc = 1) => Art.spr(`hw|${L.W}|${L.H}|${Art.highwayStyle(G.theme)}|${sc.toFixed(3)}`, Math.ceil(L.bw * 1.24 * sc), Math.ceil(L.H * sc), (h) => { h.scale(sc, sc); h.translate(-HWX(), 0); const HS = Art.highwayStyle(G.theme);
   const s1 = 1, s0 = L.sFar, y0 = L.horizonY, y1 = L.H, sB = 1 / (1 + L.P * -0.12);
   const pts = [[laneX(-0.5, s0), y0], [laneX(3.5, s0), y0], [L.cx + 2 * L.lw * sB, y1], [L.cx - 2 * L.lw * sB, y1]];
   const g = h.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, 'rgba(40,0,40,.05)'); g.addColorStop(0.6, 'rgba(60,0,50,.32)'); g.addColorStop(1, 'rgba(60,0,50,.45)');
@@ -588,6 +624,15 @@ const HWX = () => Math.max(0, Math.floor(L.cx - L.bw * 0.62)); const highway = (
   const rail = h.createLinearGradient(0, y0, 0, y1); rail.addColorStop(0, 'rgba(255,241,176,.2)'); rail.addColorStop(1, '#ffd76a'); h.strokeStyle = rail; h.lineWidth = 5;
   [[-0.5, -2], [3.5, 2]].forEach(([a, b]) => { h.beginPath(); h.moveTo(laneX(a, s0), y0); h.lineTo(L.cx + b * L.lw * sB, y1); h.stroke(); });
   const sl = h.createLinearGradient(L.cx - L.bw / 2, 0, L.cx + L.bw / 2, 0); sl.addColorStop(0, '#fff1b0'); sl.addColorStop(0.5, '#fff'); sl.addColorStop(1, '#f0b84a'); h.fillStyle = sl; h.fillRect(L.cx - L.bw / 2, L.strikeY - 3, L.bw, 6); });
+// v6: the highway sprite is pre-rendered at the background layer's own resolution (BDPR), so it is copied 1:1 with no scaling. With tunnel
+// vision it is copied in thin horizontal strips (4 device px), each shifted by the tunnel bend at its depth and clipped to the road's width:
+// plain unscaled copies are the cheapest thing a canvas can do, and 1 px steps over 4 px rows read as a smooth curve.
+function drawHighway(g) { const im = SPR.hw, d = BDPR, x0 = Math.round(HWX() * d); g.setTransform(1, 0, 0, 1, 0, 0);
+  if (!TUN.c) { g.drawImage(im, x0, 0); g.setTransform(d, 0, 0, d, 0, 0); return; }
+  projS(1); const yTop = Math.max(0, Math.floor((PY - 4) * d)), yS = Math.round(L.strikeY * d), cxs = (L.cx - HWX()) * d, H = im.height, W = im.width;
+  for (let y = yTop; y < yS; y += 4) { const hh = Math.min(4, yS - y), u = uOfY((y + hh / 2) / d), s = 1 / (1 + L.P * Math.min(1, u)), hw = (2.1 * L.lw * s + 10) * d,
+      a = Math.max(0, Math.floor(cxs - hw)), b = Math.min(W, Math.ceil(cxs + hw)); if (b > a) g.drawImage(im, a, y, b - a, hh, x0 + a + Math.round(cdx(u) * d), y, b - a, hh); }
+  g.drawImage(im, 0, yS, W, H - yS, x0, yS, W, H - yS); g.setTransform(d, 0, 0, d, 0, 0); }
 const LANECOL = ['#ff5fae', '#b98cff', '#5ad1ff', '#ffc94d'];
 const flareImg = l => Art.spr('flare|' + l, 128, 128, f => { f.strokeStyle = LANECOL[l]; f.lineWidth = 10; f.beginPath(); f.arc(64, 64, 52, 0, Math.PI * 2); f.stroke(); f.strokeStyle = '#fff'; f.lineWidth = 4; f.beginPath(); f.arc(64, 64, 52, 0, Math.PI * 2); f.stroke();
   for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; Art.sparkle(f, 64 + Math.cos(a) * 52, 64 + Math.sin(a) * 52, 9, '#fff'); } });
@@ -621,7 +666,7 @@ function popMake(txt, col, big) { const k = txt + '|' + col + '|' + (big ? 1 : 0
   Art.sparkle(g, w - pad - 2, pad + 2, big ? 8 : 6, '#fff'); im.cw = w; im.ch = h; if (POPC.size > 160) POPC.delete(POPC.keys().next().value); POPC.set(k, im); return im; }
 const countImg = k => popMake(k === 'go' ? tx('go') : k, k === 'go' ? '#f0a91c' : '#ff4fa3', true);
 // ---------- particles (fixed pools, no per-frame allocation; budget scales with quality) ----------
-let DT = 1 / 60; const BGMS = [33, 33, 66, 1e9], PBUDGET = [140, 100, 60, 30];
+let DT = 1 / 60; const BGMS = [33, 33, 66, 1e9], PBUDGET = [140, 100, 60, 24];
 const POOL = Array.from({ length: 140 }, () => ({ on: false, x: 0, y: 0, vx: 0, vy: 0, age: 0, life: 1, s: 1, col: '', gem: null, im: null })); let poolI = 0, poolOn = 0;
 function emit(x, y, n, big) { const GL = Art.GLITTER[G.spUntil > 0 ? 'gold' : S.eq.glitter], shape = Art.SHAPE_OF[S.eq.skin] || 'heart', q = G.qual || 0;
   if (q >= 2) n = Math.ceil(n / 2); n = Math.min(n, Math.max(0, PBUDGET[q] - poolOn)); for (let i = 0; i < n; i++) { const p = POOL[poolI = (poolI + 1) % POOL.length], a = Math.random() * Math.PI * 2, v = (big ? 220 : 120) + Math.random() * 260;
@@ -667,7 +712,7 @@ cv.addEventListener('pointerdown', e => {
   if (G.tut && G.tut.wait) { tutTap(lane, e.pointerId); return; } if (G.paused) return; try { cv.setPointerCapture(e.pointerId); } catch (_) { } if (lane < 0 || lane > 3) return;
   const perf = perfOf(e), now = judgeAt(perf); G.press.set(e.pointerId, lane); G.tapPerf = perf;
   let best = null, bd = 1e9; for (let i = G.first; i < G.tiles.length; i++) { const t = G.tiles[i]; if (t.t - now > G.win) break; if (t.state || t.lane !== lane) continue; const d = Math.abs(now - t.t); if (d <= G.win && d < bd) { bd = d; best = t; } }
-  if (!best) { const fr = Math.max(0, Math.min(1, (L.strikeY - L.lw * 0.9 - y) / L.span)), s = 1 - fr * (1 - L.sFar), v = (x - L.cx) / (L.lw * s) + 2, f = v - Math.floor(v), nb = f < 0.3 ? lane - 1 : f > 0.7 ? lane + 1 : -1;
+  if (!best) { const v = laneV(x, y), f = v - Math.floor(v), nb = f < 0.3 ? lane - 1 : f > 0.7 ? lane + 1 : -1;
     if (nb >= 0 && nb <= 3) for (let i = G.first; i < G.tiles.length; i++) { const t = G.tiles[i]; if (t.t - now > G.win) break; if (t.state || t.lane !== nb) continue; const d = Math.abs(now - t.t); if (d <= G.win * 0.8 && d < bd) { bd = d; best = t; } }
     if (best) G.press.set(e.pointerId, best.lane); }
   let it = null; if (!best) for (const x of G.items) { if (x.t - now > G.win) break; if (!x.state && x.lane === lane && Math.abs(x.t - now) <= G.win * (x.kind === 'obs' ? 0.7 : 1.3)) { it = x; break; } }
@@ -738,7 +783,7 @@ function updItems(jnow) {
 const badgeImg = () => popMake('🚫 ' + tx('dontTap'), '#e0285a', false), fingerImg = () => Art.spr('finger', 64, 64, g => { g.font = '44px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('👆', 32, 36); });
 function drawItems(vnow, lead, T) {
   for (const it of G.items) { const u = (it.t - vnow) / lead; if (u > 1.02) break; if (it.state === 1 || it.state === 2 || u < -0.15) continue;
-    projS(u); const s = PS, y = PY, sz = L.lw * 0.8 * s, x = laneX(it.lane, s) + (it.ob === 'car' ? Math.sin(T * 30) * 2 : 0), bob = it.kind === 'pu' ? Math.sin(T * 6) * 4 * s : 0;
+    projS(u); const s = PS, y = PY, sz = L.lw * 0.8 * s, x = laneX(it.lane, s) + cdx(u) + (it.ob === 'car' ? Math.sin(T * 30) * 2 : 0), bob = it.kind === 'pu' ? Math.sin(T * 6) * 4 * s : 0;
     c.drawImage(it.kind === 'pu' ? puImg(it.pu) : obsImg(it.ob), x - sz / 2, y - sz / 2 + bob, sz, sz);
     if (it.ob === 'bomb') spark(SPR.sparkGold, x + sz * 0.17, y - sz * 0.62, 6 * s * (1 + 0.5 * Math.sin(T * 25)), 1); // fuse spark
     if (it.ob === 'car') { c.globalAlpha = 0.5; c.fillStyle = '#fff'; c.fillRect(x - sz * 0.05, y - sz * 0.95, sz * 0.1, sz * 0.25 * s); c.globalAlpha = 1; }
@@ -784,19 +829,25 @@ let FONT = '', F18; const DOWN = [0, 0, 0, 0], markDown = l => { DOWN[l] = 1; },
 const initFont = () => { if (!FONT) { FONT = getComputedStyle(document.body).fontFamily; F18 = `800 18px ${FONT}`; } };
 let LOOP = 0, LOOPS = 0; // exactly one gameplay rAF loop at a time
 function startLoop() { const id = ++LOOP; LOOPS++; const step = ts => { if (id !== LOOP || !G.on) { LOOPS--; return; } requestAnimationFrame(step); if (G.cap60 && (G.skipTog = !G.skipTog)) return; frame(ts); }; requestAnimationFrame(step); }
+// v6: a level that just proved too slow is not retried for 90 s (across songs too): stepping up and straight back down was itself a hitch
+const QMEM = { bad: -1, t: -1e9 };
 function autoQuality(dtMs) { // adaptive quality: drop on sustained long frames, recover after a calm stretch. Ring buffer, percentile ~1x/s (no per-frame sort/alloc)
   const Q = G.Q || (G.Q = { base: 16.7, ema: 16.7, bad: 0, good: 0, ring: new Float32Array(120), srt: new Float32Array(120), n: 0, lastP: 0 }); if (G.paused || dtMs > 250) return;
-  Q.ring[Q.n % 120] = dtMs; Q.n++; if (Q.n >= 30 && (Q.n === 30 || Q.n - Q.lastP >= 60)) { Q.lastP = Q.n; const m = Math.min(Q.n, 120); Q.srt.set(Q.ring.subarray(0, m)); const v = Q.srt.subarray(0, m).sort(); Q.base = Math.max(6, v[Math.floor(m * 0.1)]); }
+  Q.ring[Q.n % 120] = dtMs; Q.n++; if (Q.n >= 30 && (Q.n === 30 || Q.n - Q.lastP >= 60)) { Q.lastP = Q.n; const m = Math.min(Q.n, 120); Q.srt.set(Q.ring.subarray(0, m)); const v = Q.srt.subarray(0, m).sort(); Q.base = Math.max(6, v[Math.floor(m * 0.1)]);
+    // v6: an average that looks fine can hide every 10th frame being dropped (a steady 16/33 ms stutter): >10% long frames counts as slow too
+    const lim = Q.base * (G.cap60 ? 2 : 1) * 1.45; let nl = 0; for (let i = 0; i < m; i++) if (Q.ring[i] > lim) nl++; Q.lf = Q.n >= 120 && nl > m * 0.1; }
   const base = Q.base * (G.cap60 ? 2 : 1); Q.ema += (dtMs - Q.ema) * 0.1; if (Q.ema > base * 1.3) { Q.bad += dtMs; Q.good = 0; } else if (Q.ema < base * 1.08) { Q.good += dtMs; Q.bad = 0; }
-  if (Q.bad > 700) { Q.bad = 0; Q.ema = base; Q.hold = Math.min(60000, (Q.hold || 5000) * 2); // first step on a 120 Hz panel: even 60 fps pacing before lowering resolution
+  if (Q.bad > 700 || Q.lf) { Q.bad = 0; Q.lf = false; Q.n = 0; Q.lastP = 0; Q.ema = base; // (ring restarts: judge the new level on its own frames)
+    Q.hold = Math.min(60000, (Q.hold || 5000) * 2); // first step on a 120 Hz panel: even 60 fps pacing before lowering resolution
     if (!G.cap60 && Q.base < 12 && (G.qual || 0) === (G.qMin || 0)) { G.cap60 = true; G.qLog.push(['cap60', G.qual || 0, Math.round(G.nowS)]); }
-    else if ((G.qual || 0) < 3) { G.qual = (G.qual || 0) + 1; G.bgDirty = true; G.spr = null; G.qLog.push(['down', G.qual, Math.round(G.nowS)]); } }
-  if (Q.good > (Q.hold || 5000)) { Q.good = 0; if ((G.qual || 0) > (G.qMin || 0)) { G.qual--; G.bgDirty = true; G.spr = null; G.qLog.push(['up', G.qual, Math.round(G.nowS)]); } else if (G.cap60) { G.cap60 = false; G.qLog.push(['uncap', G.qual || 0, Math.round(G.nowS)]); } } }
+    else if ((G.qual || 0) < 3) { QMEM.bad = G.qual || 0; QMEM.t = performance.now(); G.qual = (G.qual || 0) + 1; G.bgDirty = true; G.spr = null; G.qLog.push(['down', G.qual, Math.round(G.nowS)]); } }
+  if (Q.good > (Q.hold || 5000)) { Q.good = 0; if ((G.qual || 0) > (G.qMin || 0) && !(G.qual - 1 <= QMEM.bad && performance.now() - QMEM.t < 90000)) { G.qual--; G.bgDirty = true; G.spr = null; G.qLog.push(['up', G.qual, Math.round(G.nowS)]); } else if (G.cap60) { G.cap60 = false; G.qLog.push(['uncap', G.qual || 0, Math.round(G.nowS)]); } } }
 function finishTail(now) { if (G.pendingTap) { G.ivl.push(performance.now() - G.pendingTap.perf); G.pendingTap = null; } }
 // sprite references resolved once per layout / quality change (no template-string keys + Map lookups per tile per frame)
 const SPR = {};
 const ribbonImg = (a, b) => Art.spr('ribbon|' + a + b, 64, 256, g => { const h = g.createLinearGradient(0, 0, 64, 0); h.addColorStop(0, b); h.addColorStop(0.3, a); h.addColorStop(0.5, '#ffffff'); h.addColorStop(0.7, a); h.addColorStop(1, b); g.fillStyle = h; g.fillRect(0, 0, 64, 256);
   g.globalAlpha = 0.35; g.fillStyle = '#fff'; for (let y = -64; y < 256; y += 32) { g.beginPath(); g.moveTo(0, y + 20); g.lineTo(64, y); g.lineTo(64, y + 10); g.lineTo(0, y + 30); g.fill(); } g.globalAlpha = 1; });
+const neonImg = col => Art.spr('neon|' + col, 64, 8, g => { const h = g.createLinearGradient(0, 0, 64, 0); h.addColorStop(0, col + '00'); h.addColorStop(0.3, col + '88'); h.addColorStop(0.5, col); h.addColorStop(0.7, col + '88'); h.addColorStop(1, col + '00'); g.fillStyle = h; g.fillRect(0, 0, 64, 8); });
 const MEDAL = [['#ffffff', '#c9d1de', '#8f9bb0'], ['#ffe0d6', '#d98a7a', '#a8564e'], ['#fff1b0', '#f0b84a', '#b57800'], null];
 const medalImg = tier => Art.spr('medal|' + tier, 96, 96, g => { const cx = 48, R = 44; if (MEDAL[tier]) { const gr = g.createLinearGradient(0, 4, 0, 92); MEDAL[tier].forEach((c, i) => gr.addColorStop(i / 2, c)); g.fillStyle = gr; g.beginPath(); g.arc(cx, cx, R, 0, TAU); g.fill(); }
   else ['#ff6b9e', '#ffd43b', '#69db7c', '#4dabf7', '#9775fa', '#ff6b9e'].forEach((c, i, a) => { g.fillStyle = c; g.beginPath(); g.moveTo(cx, cx); g.arc(cx, cx, R, i / (a.length - 1) * TAU, (i + 1) / (a.length - 1) * TAU + 0.02); g.fill(); });
@@ -806,9 +857,10 @@ function resolveSprites() { initFont(); const tw = L.lw * 0.92, th = L.lw * 0.74
   SPR.tw = tw; SPR.th = th; SPR.tile = [0, 1, 2, 3, 4, 5].map(i => [0, 1, 2].map(f => Art.tileImg(sk, gl, fr, Art.SHAPE_OF[sk] || Art.MIX[i], tw, th, f))); SPR.star = [0, 1, 2].map(f => Art.tileImg('stars', 'gold', fr, 'star', tw, th, f));
   SPR.acc = Art.accentImg ? Art.accentImg(Art.highwayStyle(G.theme), tw, th) : null; SPR.btn = [0, 1, 2, 3].map(l => [btnImg(l, 0), btnImg(l, 1)]); SPR.glow = LANECOL.map(col => Art.glowImg(col)); SPR.flare = [0, 1, 2, 3].map(flareImg);
   SPR.bloom = Art.bloomImg ? LANECOL.map(col => Art.bloomImg(col)) : null; SPR.bloomGold = Art.bloomImg ? Art.bloomImg('#ffd76a') : SPR.flare[3]; SPR.streak = [streakImg(0), streakImg(1)]; SPR.sparkW = Art.sparkleImg('#ffffff'); SPR.sparkGold = Art.sparkleImg('#ffd76a');
-  SPR.glowGold = Art.glowImg('#ffd76a'); SPR.ribbon = ribbonImg(P1[0], P1[1]); SPR.ribbonStar = ribbonImg('#fff2c4', '#f5b82e'); SPR.bead = Art.gemImg('diamond', '#ffffff', P1[1], 24); SPR.beadStar = Art.gemImg('star', '#ffffff', '#f5b82e', 24);
-  SPR.scene = Art.scene(G.theme, L.W, L.H, 1, 'plain'); SPR.hw = highway(); SPR.grey = laneGrey(); SPR.dash = dashRing(); SPR.gpuff = greyPuff(); SPR.shadow = shadowImg(); SPR.bar = glowBar(); SPR.medal = [0, 1, 2, 3].map(medalImg);
+  SPR.glowGold = Art.glowImg('#ffd76a'); SPR.ribbon = ribbonImg(P1[0], P1[1]); SPR.ribbonStar = ribbonImg('#fff2c4', '#f5b82e'); SPR.neon = neonImg('#ff2fa8'); SPR.neonGold = neonImg('#ffc21a'); SPR.bead = Art.gemImg('diamond', '#ffffff', P1[1], 24); SPR.beadStar = Art.gemImg('star', '#ffffff', '#f5b82e', 24);
+  SPR.scene = Art.scene(G.theme, L.W, L.H, 1, 'plain'); SPR.hw = highway(BDPR); SPR.grey = laneGrey(); SPR.dash = dashRing(); SPR.gpuff = greyPuff(); SPR.shadow = shadowImg(); SPR.bar = glowBar(); SPR.medal = [0, 1, 2, 3].map(medalImg);
   G.spr = SPR; }
+const HUDS = { m: 0, mIm: null, c: -1, cIm: null, lIm: null, lang: '' };
 const spark = (im, x, y, s, a) => { if (s < 0.5 || a <= 0.02) return; c.globalAlpha = a > 1 ? 1 : a; c.drawImage(im, x - s * 1.33, y - s * 1.33, s * 2.67, s * 2.67); c.globalAlpha = 1; };
 const easeBack = x => 1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2);
 function drawSpriteC(im, x, y, h, a) { let k = h / im.ch; const maxW = L.W * 0.94; if (im.cw * k > maxW) { k = maxW / im.cw; h = im.ch * k; } const w = im.cw * k; x = Math.max(w / 2 + L.W * 0.03, Math.min(L.W * 0.97 - w / 2, x)); // big pops shrink / shift to stay on screen
@@ -822,7 +874,7 @@ function frame(ts) {
   const lag = f0 - ts; if (lag >= 0 && lag < 50) G.dly += (lag - G.dly) * 0.05; const tv = lag >= -2 && lag < 100 ? ts + G.dly : f0;
   if (!G.paused) updateClock();
   const calm = !!S.set.calm, q = G.qual || 0, T = ts / 1000, now = G.paused ? G.pauseAt : songAt(tv), jnow = now - S.set.offset / 1000, vnow = jnow + (S.set.vis || 0) / 1000, lead0 = G.D.lead * (SPEEDK[S.set.speed || 'slow'] || 1);
-  G.nowS = now; G.slow += ((G.pu.slowmo > now ? 1.5 : 1) - G.slow) * (1 - Math.pow(0.94, DT * 60)); const lead = lead0 * G.slow; G.lead = lead; G.win = G.D.win * (G.pu.slowmo > now ? 1.4 : 1);
+  TUN.c = tunnelBend(vnow); G.nowS = now; G.slow += ((G.pu.slowmo > now ? 1.5 : 1) - G.slow) * (1 - Math.pow(0.94, DT * 60)); const lead = lead0 * G.slow; G.lead = lead; G.win = G.D.win * (G.pu.slowmo > now ? 1.4 : 1);
   if (!G.paused && G.tut && !G.tut.done) tutCheck(jnow);
   if (!G.paused) {
     while (G.first < G.tiles.length && G.tiles[G.first].state && G.tiles[G.first].state !== 3 && G.tiles[G.first].t < jnow - 1) G.first++;
@@ -846,17 +898,26 @@ function frame(ts) {
   const spOn = G.spUntil > 0, energy = G.b.energy != null ? G.b.energy : 0.5;
   // background layer: separate low-res canvas redrawn on a TIME budget (~30 fps, ~15 at low quality) so a 120 Hz panel doesn't redraw it 60x/s
   if (G.bgSp !== spOn) { G.bgSp = spOn; G.bgDirty = true; }
-  if (!SK.nobg && (G.bgDirty || ts - G.bgLast >= BGMS[q] - 4)) { const bdt = Math.min(0.1, G.bgLast ? (ts - G.bgLast) / 1000 : DT); G.bgLast = ts; G.bgDirty = false; Art.intensity = { low: 0.4, med: 0.75, high: 1.2 }[calm ? 'low' : S.set.intensity || 'med'] * [1, 0.7, 0.5, 0.3][q];
-    bc.setTransform(BDPR, 0, 0, BDPR, 0, 0); bc.drawImage(SPR.scene, 0, 0, L.W, L.H); if (Art.parallax && q < 2) Art.parallax(bc, G.theme, L.W, L.H, T, calm ? 0 : beat, q === 0 ? 2 : 1); bc.drawImage(SPR.hw, HWX(), 0);
-    if (!SK.bg && q < 3) Art.bg(bc, G.theme, L.W, L.H, T, beat, energy, true); if (q < 3) drawImmersive(T, beat, energy, spOn, bc, bdt); edgeUpdate(pulse, energy, spOn, q);
-    if (spOn) { bc.globalAlpha = 0.35 + 0.25 * Math.sin(T * 8); bc.drawImage(SPR.glowGold, L.cx - L.bw * 0.6, L.strikeY - L.span * 0.5, L.bw * 1.2, L.span * 0.7); bc.globalAlpha = 1; } }
+  // v6: the still scenery (sky + decor) is drawn ONCE into #bgcv when the size/theme/quality changes; only the moving parts (parallax, the
+  // bending track, sparkles, fireworks) are redrawn into the transparent #dyncv, on a time budget (~30 fps, lower at low quality)
+  if (!SK.nobg && G.bgDirty) { bc.setTransform(BDPR, 0, 0, BDPR, 0, 0); bc.drawImage(SPR.scene, 0, 0, L.W, L.H); G.dynDirty = true; G.bgDirty = false; }
+  const dynMs = TUN.on ? Math.min(BGMS[q], 50) : BGMS[q];
+  if (!SK.nobg && (G.dynDirty || ts - G.bgLast >= dynMs - 4)) { const bdt = Math.min(0.1, G.bgLast ? (ts - G.bgLast) / 1000 : DT); G.bgLast = ts; G.dynDirty = false; Art.intensity = { low: 0.4, med: 0.75, high: 1.2 }[calm ? 'low' : S.set.intensity || 'med'] * [1, 0.7, 0.5, 0.3][q];
+    dc.setTransform(1, 0, 0, 1, 0, 0); dc.clearRect(0, 0, dcv.width, dcv.height); dc.setTransform(BDPR, 0, 0, BDPR, 0, 0);
+    if (Art.parallax && q < 2) Art.parallax(dc, G.theme, L.W, L.H, T, calm ? 0 : beat, q === 0 ? 2 : 1); drawHighway(dc);
+    if (!SK.bg && q < 3) Art.bg(dc, G.theme, L.W, L.H, T, beat, energy, true); if (q < 3) drawImmersive(T, beat, energy, spOn, dc, bdt); edgeUpdate(pulse, energy, spOn, q);
+    if (spOn) { dc.globalAlpha = 0.35 + 0.25 * Math.sin(T * 8); dc.drawImage(SPR.glowGold, L.cx - L.bw * 0.6, L.strikeY - L.span * 0.5, L.bw * 1.2, L.span * 0.7); dc.globalAlpha = 1; } }
   // gameplay layer
   c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); if (SK.all) return; const ox = shOn ? sx * GDPR : 0, oy = shOn ? sy * GDPR : 0; c.setTransform(GDPR, 0, 0, GDPR, ox, oy); window.__gc = c;
   if (SK.part1) { finishTail(now); return; }
   // strike line breathes on the beat; beat lines brighten as they reach it
   c.globalAlpha = 0.25 + 0.45 * pulse; c.drawImage(SPR.bar, L.cx - L.bw * 0.56, L.strikeY - L.lw * 0.14, L.bw * 1.12, L.lw * 0.28);
   c.strokeStyle = '#fff'; c.lineWidth = 2;
-  if (bt) for (let i = Math.max(0, (G._bi || 0) - 1); i < bt.length; i++) { const u = (bt[i][0] - vnow) / lead; if (u > 1) break; if (u < -0.1) continue; projS(u); const k = 1 - Math.max(0, u); c.globalAlpha = 0.1 + 0.5 * k * k; c.beginPath(); c.moveTo(L.cx - 2 * L.lw * PS, PY); c.lineTo(L.cx + 2 * L.lw * PS, PY); c.stroke(); }
+  if (bt) for (let i = Math.max(0, (G._bi || 0) - 1); i < bt.length; i++) { const u = (bt[i][0] - vnow) / lead; if (u > 1) break; if (u < -0.1) continue; projS(u); const k = 1 - Math.max(0, u), bx = L.cx + cdx(u); c.globalAlpha = 0.1 + 0.5 * k * k; c.beginPath(); c.moveTo(bx - 2 * L.lw * PS, PY); c.lineTo(bx + 2 * L.lw * PS, PY); c.stroke(); }
+  // v6 tunnel vision: glowing arches on the beat lines (strokes only, cheap), faint near the strike line so the tiles stay easy to read
+  if (TUN.on && bt && q < 3) { c.strokeStyle = (Art.THEMES[G.theme] || {}).ui || '#ff4fa3'; const amax = calm ? 0.22 : 0.4;
+    for (let i = Math.max(0, (G._bi || 0) - 1); i < bt.length; i++) { const u = (bt[i][0] - vnow) / lead; if (u > 1) break; if (u < 0.12 || (bt[i][1] & 1)) continue; projS(u); const r = 2.15 * L.lw * PS, a = amax * Math.sin(Math.PI * (u - 0.12) / 0.88);
+      c.globalAlpha = a; c.lineWidth = 2 + 4 * PS; c.beginPath(); c.ellipse(L.cx + cdx(u), PY, r, r * 0.8, 0, Math.PI, TAU); c.stroke(); } c.strokeStyle = '#fff'; c.lineWidth = 2; }
   c.globalAlpha = 1;
   if (SK.p1b) { finishTail(now); return; }
   // lane flashes + in-lane miss stripe
@@ -868,24 +929,33 @@ function frame(ts) {
   for (let l = 0; l < 4; l++) { const im = SPR.btn[l][down[l] || G.laneHit[l] > 0.4 ? 1 : 0]; c.drawImage(im, laneX(l, 1) - L.lw * 0.52 * bs, L.strikeY - L.lw * 0.45 * bs, L.lw * 1.04 * bs, L.lw * 0.9 * bs); }
   // notes: far to near so nearer draw on top
   const tileSet = spOn ? null : SPR.tile, tw = SPR.tw, th = SPR.th, rib = spOn ? SPR.ribbonStar : SPR.ribbon, bead = spOn ? SPR.beadStar : SPR.bead;
+  const SYNC = window.__syncLog || null;
   let last = G.first; while (last < G.tiles.length && (G.tiles[last].t - vnow) / lead <= 1.02) last++;
   if (!SK.notes) for (let i = last - 1; i >= G.first; i--) { const t = G.tiles[i]; if (t.state === 1 && !(t.dur > 0)) continue; if (t.state === 2 && vnow - t.t > 0.35) continue;
     const u = (t.t - vnow) / lead;
+    if (SYNC) { if (t._pu > 0 && u <= 0 && G.syncTv) SYNC.push([t.t, G.syncTv + (tv - G.syncTv) * t._pu / (t._pu - u), t.lane]); t._pu = u; } // test hook: moment the tile centre crosses the strike line
     if (t.dur > 0 && t.state !== 2 && !(t.state === 1 && t.holdP >= 1)) { // glossy hold ribbon, drawn slice by slice in perspective, with gem beads
-      const u1 = Math.min(1.02, (t.t + t.dur - vnow) / lead); if (u1 > -0.1) { const ua = t.state === 3 ? 0 : Math.max(-0.1, u), x = laneX(t.lane, 1), held = t.state === 3, N = q < 2 ? 8 : 4;
-        c.globalAlpha = held ? 0.95 : 0.85; projS(ua); let pS = PS, pY = PY;
-        for (let k = 1; k <= N; k++) { projS(ua + (u1 - ua) * k / N); const sm = (pS + PS) / 2, w = L.lw * 0.34 * sm, xm = laneX(t.lane, sm); c.drawImage(rib, 0, ((k * 24 + T * 90) % 192) | 0, 64, 64, xm - w / 2, PY, w, pY - PY + 1); pS = PS; pY = PY; }
+      // v6: a longer, brighter neon string: it reaches down into the socket while held, has a neon glow, and every slice is sheared so the
+      // string follows the tunnel bend smoothly (no steps)
+      const u1 = Math.min(1.02, (t.t + t.dur - vnow) / lead); if (u1 > -0.1) { const held = t.state === 3, ua = held ? -0.035 : Math.max(-0.1, u), x = laneX(t.lane, 1), N = q < 2 ? (TUN.c ? 12 : 9) : 5, neon = q < 2 ? (spOn ? SPR.neonGold : SPR.neon) : null;
+        projS(ua); let pS = PS, pY = PY, px = laneX(t.lane, PS) + cdx(ua);
+        for (let k = 1; k <= N; k++) { const uk = ua + (u1 - ua) * k / N; projS(uk); const xk = laneX(t.lane, PS) + cdx(uk), sm = (pS + PS) / 2, hh = pY - PY + 1, sh = hh > 1 ? (px - xk) / (pY - PY) : 0;
+          c.setTransform(GDPR, 0, GDPR * sh, GDPR, ox + GDPR * (xk - sh * PY), oy);
+          if (neon) { const gw = L.lw * 0.8 * sm; c.globalAlpha = held ? 0.85 : 0.6; c.drawImage(neon, -gw / 2, PY, gw, hh); }
+          const w = L.lw * 0.4 * sm; c.globalAlpha = held ? 1 : 0.9; c.drawImage(rib, 0, ((k * 24 + T * 90) % 192) | 0, 64, 64, -w / 2, PY, w, hh); pS = PS; pY = PY; px = xk; }
+        c.setTransform(GDPR, 0, 0, GDPR, ox, oy);
+        if (u1 < 1.02) { projS(u1); const cs = L.lw * 0.3 * PS; c.globalAlpha = 1; c.drawImage(bead, laneX(t.lane, PS) + cdx(u1) - cs, PY - cs, cs * 2, cs * 2); } // gem cap marks where the string ends
         c.globalAlpha = 1; const nb = Math.floor(t.dur / 0.3);
-        for (let b = t.bead + 1; b <= nb; b++) { const ub = (t.t + b * 0.3 - vnow) / lead; if (ub > 1.02) break; if (ub < -0.05) continue; projS(ub); const bs = L.lw * 0.24 * PS; c.drawImage(bead, laneX(t.lane, PS) - bs * 0.8, PY - bs * 0.8, bs * 1.6, bs * 1.6); }
+        for (let b = t.bead + 1; b <= nb; b++) { const ub = (t.t + b * 0.3 - vnow) / lead; if (ub > 1.02) break; if (ub < -0.05) continue; projS(ub); const bs = L.lw * 0.24 * PS; c.drawImage(bead, laneX(t.lane, PS) + cdx(ub) - bs * 0.8, PY - bs * 0.8, bs * 1.6, bs * 1.6); }
         if (held) { c.globalAlpha = calm ? 0.7 : 0.6 + 0.3 * Math.sin(T * 20); c.drawImage(SPR.glow[t.lane], x - L.lw * 0.5, L.strikeY - L.lw * 0.5, L.lw, L.lw); c.globalAlpha = 1; } } }
     if (t.state === 3 || (t.state === 1 && t.dur > 0)) continue;
-    if (u > 1.02) continue; projS(u); const s = PS, y = PY, w = tw * s, h = th * s, fi = Math.floor(T * 6 + t.id) % 3;
-    let im = tileSet ? tileSet[t.shapeI % 6][fi] : SPR.star[fi]; const k = w / tw, x0 = laneX(t.lane, s) - (tw / 2 + 12) * k, y0 = y - (th / 2 + 12) * k; // tile CENTRE sits on the strike line at its hit time
-    if (q < 2 && u < 0.4 && u > -0.1 && t.state === 0) { c.globalAlpha = 0.55 * (1 - Math.max(0, u) / 0.4); c.drawImage(SPR.shadow, laneX(t.lane, s) - w * 0.6, y + h * 0.36, w * 1.2, h * 0.4); c.globalAlpha = 1; } // soft shadow near the strike line
+    if (u > 1.02) continue; projS(u); const s = PS, y = PY, w = tw * s, h = th * s, fi = Math.floor(T * 6 + t.id) % 3, lx = laneX(t.lane, s) + cdx(u);
+    let im = tileSet ? tileSet[t.shapeI % 6][fi] : SPR.star[fi]; const k = w / tw, x0 = lx - (tw / 2 + 12) * k, y0 = y - (th / 2 + 12) * k; // tile CENTRE sits on the strike line at its hit time
+    if (q < 2 && u < 0.4 && u > -0.1 && t.state === 0) { c.globalAlpha = 0.55 * (1 - Math.max(0, u) / 0.4); c.drawImage(SPR.shadow, lx - w * 0.6, y + h * 0.36, w * 1.2, h * 0.4); c.globalAlpha = 1; } // soft shadow near the strike line
     if (t.state === 2) { im = greyTile(im); c.globalAlpha = Math.max(0, 0.75 * (1 - (vnow - t.t) / 0.35)); } // missed: grey, cracked, fades
     c.drawImage(im, x0, y0, im.width * k, im.height * k);
     if (SPR.acc && q < 2 && t.state !== 2) c.drawImage(SPR.acc, x0, y0, SPR.acc.width * k, SPR.acc.height * k); // world accent (frost, embers, bubbles…)
-    c.globalAlpha = 1; if (q < 1 && t.state !== 2) spark(SPR.sparkW, laneX(t.lane, s) + w * 0.3, y - h * 0.7, 4 * s, 0.5 + 0.5 * Math.sin(T * 7 + t.id)); }
+    c.globalAlpha = 1; if (q < 1 && t.state !== 2) spark(SPR.sparkW, lx + w * 0.3, y - h * 0.7, 4 * s, 0.5 + 0.5 * Math.sin(T * 7 + t.id)); }
   // hit feedback: gem ring + soft bloom + light streak across the strike line (bigger and gold on Perfect)
   for (let l = 0; l < 4; l++) { const f = G.flares[l], x = laneX(l, 1), jj = G.flareJ[l], sc = jj === 2 ? 1.25 : jj === 1 ? 1 : 0.85;
     if (f > 0.03) { const r = L.lw * (0.35 + (1 - f) * 0.45) * sc; c.globalAlpha = f; c.drawImage(SPR.flare[l], x - r, L.strikeY - r * 0.7, r * 2, r * 1.4);
@@ -911,10 +981,10 @@ function frame(ts) {
   const side = L.cx - L.bw / 2 > 90, mx = side ? L.cx - L.bw / 2 - 50 : 44, my = side ? L.H * 0.62 : Math.max(96, L.H * 0.12), m = mult(), seg = G.combo % 10 / 10, tier = Math.min(4, 1 + Math.floor(G.combo / 10)) - 1, ps = 1 + 0.06 * pulse;
   c.drawImage(SPR.medal[tier], mx - 37 * ps, my - 37 * ps, 74 * ps, 74 * ps);
   c.lineWidth = 5; c.strokeStyle = m >= 4 ? '#ffd76a' : '#ffffff'; c.beginPath(); c.arc(mx, my, 27, -Math.PI / 2, -Math.PI / 2 + TAU * (m >= 4 && !spOn ? 1 : seg)); c.stroke();
-  drawSpriteC(popMake('x' + m, '#ffd76a', false), mx, my + 1, 30, 1);
+  if (HUDS.m !== m) { HUDS.m = m; HUDS.mIm = popMake('x' + m, '#ffd76a', false); } drawSpriteC(HUDS.mIm, mx, my + 1, 30, 1); // v6: label sprites looked up only when the value changes (no per-frame strings)
   const md = G.nowS - G.medalT; if (md >= 0 && md < 0.9) { const k = md / 0.9; for (let i = 0; i < 6; i++) { const a = k * TAU + i * TAU / 6; spark(SPR.sparkGold, mx + Math.cos(a) * 40, my + Math.sin(a) * 40, 7 * (1 - k) + 2, 1 - k); } }
   c.fillStyle = 'rgba(255,255,255,.35)'; c.fillRect(mx - 30, my + 44, 60, 8); c.fillStyle = spOn ? '#ffd76a' : '#b98cff'; c.fillRect(mx - 30, my + 44, 60 * G.sp, 8);
-  if (G.combo >= 3) { const ni = popMake(String(G.combo), '#ff4fa3', false), li = popMake(tx('comboWord'), '#ff4fa3', false), hh = 24, kn = hh / ni.ch, kl = hh / li.ch, wn = ni.cw * kn, wl = li.cw * kl, x0 = mx - (wn + wl) / 2;
+  if (G.combo >= 3) { if (HUDS.c !== G.combo || HUDS.lang !== S.set.lang) { HUDS.c = G.combo; HUDS.lang = S.set.lang; HUDS.cIm = popMake(String(G.combo), '#ff4fa3', false); HUDS.lIm = popMake(tx('comboWord'), '#ff4fa3', false); } const ni = HUDS.cIm, li = HUDS.lIm, hh = 24, kn = hh / ni.ch, kl = hh / li.ch, wn = ni.cw * kn, wl = li.cw * kl, x0 = mx - (wn + wl) / 2;
     c.drawImage(ni, x0, my + 60, wn, hh); c.drawImage(li, x0 + wn - 6, my + 60, wl, hh); }
   // gem countdown (start of song, and 3-2-1 after a pause)
   let ck = null, cf = 0; if (G.resuming) { const left = Math.max(0, G.resuming - performance.now()) / 1000, per = RESUME / 3000, n = Math.min(3, Math.ceil(left / per)); if (n >= 1) { ck = String(n); cf = 1 - (left / per - (n - 1)); } }
@@ -927,7 +997,7 @@ function frame(ts) {
     c.setTransform(1, 0, 0, 1, ox, oy); Art.mascotFast(c, mxx * GDPR, myy * GDPR, ms * GDPR, performance.now() < G.moodT ? G.mood : 'idle', S.eq.outfit, T); c.setTransform(GDPR, 0, 0, GDPR, ox, oy); }
   drawPuHud(now);
   if (G.pendingTap) { G.ivl.push(performance.now() - G.pendingTap.perf); G.pendingTap = null; if (G.ivl.length > 600) G.ivl.splice(0, 300); }
-  G.ft[G.fN & 4095] = performance.now() - f0; G.fN++; G.pausedDrawn = G.paused;
+  G.syncTv = tv; G.ft[G.fN & 4095] = performance.now() - f0; G.fN++; G.pausedDrawn = G.paused;
 }
 function outOfHearts() { pauseGame(true); $('#mOut').classList.add('on'); const mc = $('#mascotOut').getContext('2d'); mc.clearRect(0, 0, 160, 130); Art.mascot(mc, 80, 75, 100, 'oops', S.eq.outfit, 0); }
 // pause shows a legend: what to tap and what to leave alone
@@ -1046,7 +1116,7 @@ document.addEventListener('click', e => {
 window.__tiles = { REC, S: () => S, G: () => G, loops: () => LOOPS, stopAll: () => { stopAudio(); G.on = false; LOOP++; $('#game').classList.remove('on'); }, go, startGame, setLab: l => { LAB = l; }, allSongs, loadCustoms, DB, songTime, judgeAt, finishGame, layout: () => L, outOfHearts, nextSongOf,
   // test hooks: jump the game clock forward (optionally scoring the skipped tiles as Perfect) to reach the natural end of a song quickly
   ff: (sec, hit) => { if (!G.on) return; const to = songTime() + sec; if (hit) for (const t of G.tiles) if (!t.state && t.t < to + 0.05) { t.state = 1; G.j.perfect++; G.combo++; G.maxCombo = Math.max(G.maxCombo, G.combo); G.score += 100; } G.startAt -= sec; },
-  toEnd: hit => { if (G.on) window.__tiles.ff(G.b.end - songTime() - 0.4, hit); }, laneX, proj, save, openPack, CAL, arrange, rendered, clock, updateClock, prepare, reanalyze };
+  toEnd: hit => { if (G.on) window.__tiles.ff(G.b.end - songTime() - 0.4, hit); }, laneX, strikeX, laneAt, TUN, setTunnel: on => { if (on !== undefined) { S.set.tunnel = !!on; TUN.on = !!on; G.dynDirty = true; } }, proj, save, openPack, CAL, arrange, rendered, clock, updateClock, prepare, reanalyze };
 // ask the browser to keep this site's saves and custom songs even when storage runs low (v5; no prompt on Android Chrome)
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then(p => p || navigator.storage.persist()).catch(() => { }); } catch (e) { }
 applyLang(); document.body.classList.toggle('calm', !!S.set.calm); loadCustoms().then(async () => { go('home');

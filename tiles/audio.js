@@ -37,8 +37,10 @@
   V.hat = (c, dest, t, v = 0.12) => { const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = c.__hat || (c.__hat = noiseBuf(c, 0.05, x => Math.pow(1 - x, 4))); f.type = 'highpass'; f.frequency.value = 7000; g.gain.value = v; s.connect(f); f.connect(g); g.connect(dest); s.start(t); };
   V.clap = (c, dest, t, v = 0.25) => { const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = c.__clap || (c.__clap = noiseBuf(c, 0.15, x => Math.exp(-x * 5))); f.type = 'bandpass'; f.frequency.value = 1500; g.gain.value = v; s.connect(f); f.connect(g); g.connect(dest); s.start(t); };
   A.V = V;
+  const IR = {}; // v6: the reverb's noise tail is made once per sample rate and copied into each render (was ~250k random/pow calls per song start)
   const reverb = (c, dest, amt) => { const v = c.createConvolver(), len = Math.round(c.sampleRate * 1.4), ir = c.createBuffer(2, len, c.sampleRate);
-    for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3) * 0.5; }
+    const src = IR[len] || (IR[len] = [0, 1].map(() => { const d = new Float32Array(len); for (let i = 0; i < len; i++) { const k = 1 - i / len; d[i] = (Math.random() * 2 - 1) * k * k * k * 0.5; } return d; }));
+    for (let ch = 0; ch < 2; ch++) ir.copyToChannel(src[ch], ch);
     v.buffer = ir; const g = c.createGain(); g.gain.value = amt; v.connect(g); g.connect(dest); return v; };
   // Render one stem. events: {type:'piano'|'bass'|'pad'|'kick'|'hat'|'clap', ...}
   A.renderStem = async (events, dur, rev = 0.2) => {
@@ -47,7 +49,8 @@
     // the compressor delays its output by a fixed look-ahead (6 ms in Chromium): schedule every note that much earlier so the
     // attack is HEARD exactly at e.t, the time its tile reaches the strike line
     const LA = 0.006;
-    for (const e0 of events) { const e = e0.t >= LA ? { ...e0, t: e0.t - LA } : e0, d = e.wet && verb ? [dry, verb] : [dry];
+    let n = 0; // v6: node scheduling is split into small batches with a yield between them (the context hasn't started yet), so preparing a song never freezes the loading screen
+    for (const e0 of events) { if (++n % 40 === 0) await new Promise(r => setTimeout(r, 0)); const e = e0.t >= LA ? { ...e0, t: e0.t - LA } : e0, d = e.wet && verb ? [dry, verb] : [dry];
       for (const dest of d) { if (e.type === 'piano') V.piano(c, dest, e.m, e.t, e.d, e.v, e.b); else if (e.type === 'bass') V.bass(c, dest, e.m, e.t, e.d, e.v); else if (e.type === 'pad') V.pad(c, dest, e.ms, e.t, e.d, e.v); else V[e.type](c, dest, e.t, e.v); } }
     return c.startRendering();
   };

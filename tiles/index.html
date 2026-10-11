@@ -190,7 +190,7 @@ input[type=range]{width:100%;accent-color:var(--pink);height:32px}
 /* game */
 #game{position:fixed;inset:0;z-index:5;display:none;touch-action:none}
 #game.on{display:block}
-#cv,#bgcv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+#cv,#bgcv,#dyncv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 #hud{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:var(--s2);padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) 0 max(10px,env(safe-area-inset-left));pointer-events:none;font-weight:800}
 #hud .pill,#hud button{pointer-events:auto}
 #hud .sp{flex:1}
@@ -361,6 +361,7 @@ body.calm .big-stars span.won{animation:pop .3s backwards}
   <div class="top"><a class="fzHome" href="../home/" aria-label="Home: Our Fun Zone" title="Home">🏠</a><button class="btn icon silver" data-go="home" aria-label="Back"><i data-ic="back"></i></button><h2 data-t="settings">Settings</h2></div>
   <div class="set-grid">
     <div class="card set"><div class="lbl"><i data-ic="speed"></i><span data-t="speedL">Speed</span></div><div class="seg" id="speedSeg"><button data-v="slow"><i data-ic="slow"></i><span data-t="slow">Slow</span></button><button data-v="normal"><i data-ic="speed"></i><span data-t="normalSp">Normal</span></button><button data-v="fast"><i data-ic="fast"></i><span data-t="fast">Fast</span></button></div></div>
+    <div class="card set"><div class="lbl"><i data-ic="tunnel"></i><span data-t="tunL">Tunnel vision</span></div><div class="seg" id="tunSeg"><button data-v="1" data-t="on">On</button><button data-v="0" data-t="off">Off</button></div></div>
     <div class="card set"><div class="lbl"><i data-ic="sound"></i><span data-t="sound">Sound</span></div><div class="seg" id="soundSeg"><button data-v="1" data-t="on">On</button><button data-v="0" data-t="off">Off</button></div></div>
     <div class="card set"><div class="lbl"><i data-ic="bomb"></i><span data-t="obsL">Obstacles</span></div><div class="seg" id="obsSeg"><button data-v="1" data-t="on">On</button><button data-v="0" data-t="off">Off</button></div></div>
     <div class="card set"><div class="lbl"><i data-ic="heart"></i><span data-t="obsPL">Obstacles in Practice</span></div><div class="seg" id="obsPSeg"><button data-v="1" data-t="on">On</button><button data-v="0" data-t="off">Off</button></div></div>
@@ -421,7 +422,7 @@ body.calm .big-stars span.won{animation:pop .3s backwards}
   </div>
 </section>
 
-<div id="game"><canvas id="bgcv"></canvas><div class="fxl" id="fxEdge"></div><canvas id="cv"></canvas><div class="fxl" id="fxFlash"></div><div class="fxl" id="fxRainbow"></div><div id="progRail"></div><div id="prog"></div><div id="progGem"></div>
+<div id="game"><canvas id="bgcv"></canvas><canvas id="dyncv"></canvas><div class="fxl" id="fxEdge"></div><canvas id="cv"></canvas><div class="fxl" id="fxFlash"></div><div class="fxl" id="fxRainbow"></div><div id="progRail"></div><div id="prog"></div><div id="progGem"></div>
   <div id="hud"><button class="hudbtn" id="pauseBtn" aria-label="Pause"><i data-ic="pause"></i></button><span class="pill" id="hHearts"></span><button class="hudbtn hidden" id="skipTut"><i data-ic="skip"></i><span data-t="skip">Skip</span></button><span class="sp"></span><span class="pill" id="hScore">0</span></div></div>
 
 <div class="modal" id="mPause"><div class="card"><h2 data-t="paused">Paused</h2><div id="legend"></div>
