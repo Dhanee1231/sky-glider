@@ -159,14 +159,15 @@
     return { bpm: +bpmRaw.toFixed(2), beats, grid, onsets, soft, sus, susFps: FPS / 4, gate };
   }
   function rng(seed) { let s = (seed * 2654435761) >>> 0 || 1; return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; }
-  // difficulty: 'easy' | 'normal' | 'hard'. Returns [{t, lane, dur, lane2?}]
+  // difficulty: 'easy' | 'normal' | 'hard' | 'veryhard'. Returns [{t, lane, dur, lane2?}]
+  // veryhard (v4c) is hard with more of the weaker onsets, closer notes and more double tiles
   function makeChart(A, diff, seed = 1) {
-    const R = rng(seed), beatGap = 60 / A.bpm; let ev;
-    const strongCut = (() => { const s = A.onsets.map(o => o.s).sort((a, b) => a - b); return s[Math.floor(s.length * (diff === 'hard' ? 0.25 : 0.6))] || 0; })();
+    const R = rng(seed), beatGap = 60 / A.bpm, VHD = diff === 'veryhard'; let ev; if (VHD) diff = 'hard';
+    const strongCut = (() => { const s = A.onsets.map(o => o.s).sort((a, b) => a - b); return s[Math.floor(s.length * (VHD ? 0.12 : diff === 'hard' ? 0.25 : 0.6))] || 0; })();
     const step = diff === 'easy' && A.bpm > 135 ? 2 : 1;
     ev = A.beats.filter((b, i) => i % step === 0).map(b => ({ ...b, beat: 1 }));
     // fallback: in stretches with no beats (alaap, rubato, quiet intros) follow melodic/vocal onsets instead
-    const fb = [], bt = [-1e9, ...A.beats.map(b => b.t), 1e9], minFb = diff === 'easy' ? 0.6 : diff === 'normal' ? 0.4 : 0.28;
+    const fb = [], bt = [-1e9, ...A.beats.map(b => b.t), 1e9], minFb = diff === 'easy' ? 0.6 : diff === 'normal' ? 0.4 : VHD ? 0.22 : 0.28;
     for (let i = 0; i < bt.length - 1; i++) if (bt[i + 1] - bt[i] > beatGap * 2.5) { let last = -9;
       const reg = (A.soft || A.onsets).filter(o => o.t > bt[i] + beatGap * 0.6 && o.t < bt[i + 1] - beatGap * 0.6);
       // max strength within ±3 s of each onset: the window is contiguous in t-order, so slide it with a monotonic deque
@@ -177,14 +178,14 @@
       for (let j = 0; j < reg.length; j++) { const o = reg[j]; if (o.s > 0.3 * mx[j] && o.t - last >= minFb) { fb.push({ ...o, beat: 0 }); last = o.t; } } }
     ev = ev.concat(fb).sort((a, b) => a.t - b.t);
     if (diff !== 'easy') {
-      const minD = diff === 'hard' ? 0.1 : 0.14;
+      const minD = VHD ? 0.085 : diff === 'hard' ? 0.1 : 0.14;
       // "no event within minD": binary-search a sorted copy of ev times (pushed onsets inserted in place), exact test on the neighbourhood
       const st = ev.map(e => e.t), lb = x => { let a = 0, b = st.length; while (a < b) { const m = (a + b) >> 1; if (st[m] < x) a = m + 1; else b = m; } return a; };
       for (const o of A.onsets) if (o.s >= strongCut) { let ok = true;
         for (let i = lb(o.t - minD - 1e-6); i < st.length && st[i] <= o.t + minD + 1e-6; i++) if (!(Math.abs(st[i] - o.t) > minD)) { ok = false; break; }
         if (ok) { ev.push({ ...o, beat: 0 }); st.splice(lb(o.t), 0, o.t); } }
       ev.sort((a, b) => a.t - b.t);
-      const minGap = diff === 'hard' ? 0.12 : 0.2; const out = []; for (const e of ev) { if (out.length && e.t - out[out.length - 1].t < minGap) continue; out.push(e); } ev = out;
+      const minGap = VHD ? 0.1 : diff === 'hard' ? 0.12 : 0.2; const out = []; for (const e of ev) { if (out.length && e.t - out[out.length - 1].t < minGap) continue; out.push(e); } ev = out;
     }
     // v4: snap onsets that sit next to the beat grid (beats, half-beats) onto it, so tiles ride an even grid; then drop near-duplicates
     { const gr = A.grid && A.grid.length ? A.grid : A.beats.map(b => b.t), pts = [];
@@ -209,7 +210,7 @@
         if (ok) n.dur = +(gap - Math.min(0.25, beatGap * 0.4)).toFixed(3);
       }
       // doubles: a strong downbeat with both bass and treble energy
-      if (diff !== 'easy' && e.beat && !n.dur && e.s > (diff === 'hard' ? 0.55 : 0.75) && e.lo > 0 && e.hi > 0 && R() < (diff === 'hard' ? 0.5 : 0.3) && (!ev[i + 1] || ev[i + 1].t - e.t > 0.3)) {
+      if (diff !== 'easy' && e.beat && !n.dur && e.s > (VHD ? 0.45 : diff === 'hard' ? 0.55 : 0.75) && e.lo > 0 && e.hi > 0 && R() < (VHD ? 0.72 : diff === 'hard' ? 0.5 : 0.3) && (!ev[i + 1] || ev[i + 1].t - e.t > 0.3)) {
         n.lane2 = (lane + 2) % 4;
       }
       notes.push(n); prevLane = lane; prevT = e.t;

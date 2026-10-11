@@ -14,11 +14,13 @@ const SHOP = {
   theme: [['pinkgold', 'Pink & Gold', 0], ['moon', 'Moonlight', 0], ['ocean', 'Ocean', 0], ['candy', 'Candy', 0], ['galaxy', 'Galaxy', 60], ['rainbow', 'Rainbow', 60], ['festival', 'Bollywood Festival', 100], ['disco', 'Neon Disco', 120], ['rainbowroad', '🌈 Rainbow Road', 150], ['candyk', '🍭 Candy Kingdom', 80], ['neon', '🌃 Neon City Drive', 120], ['reef', '🐠 Underwater Reef', 90], ['volcano', '🌋 Volcano Valley', 110], ['ice', '❄️ Ice Castle', 90], ['jungle', '🌴 Jungle Temple', 100], ['cloudc', '☁️ Cloud Castle', 100]],
   outfit: [['none', 'Just Gigi', 0], ['bow', 'Pink bow', 0], ['tiara', 'Silver tiara', 50], ['glasses', 'Star glasses', 60], ['headphones', 'Headphones', 70], ['garland', 'Marigold garland', 80], ['bindi', 'Sparkle bindi', 40], ['wizard', 'Wizard hat', 100], ['crown', 'Golden crown', 200]]
 };
+// v4c: four difficulties; 'veryhard' sits above hard (its own best/records keys; older saves simply have none yet)
+const DIFFS = ['easy', 'normal', 'hard', 'veryhard'], HARDISH = d => d === 'hard' || d === 'veryhard';
 const STICKERS = [['🦄', 'c'], ['🌈', 'c'], ['🍭', 'c'], ['🧁', 'c'], ['🐱', 'c'], ['🐰', 'c'], ['🦋', 'c'], ['🌸', 'c'], ['🍓', 'c'], ['🎀', 'c'], ['🐬', 'c'], ['🌟', 'c'], ['🍩', 'c'], ['🐼', 'c'], ['🌻', 'c'], ['🎈', 'c'], ['🐞', 'c'], ['🍉', 'c'], ['🐧', 'c'], ['🌙', 'c'],
   ['💎', 'r'], ['👸', 'r'], ['🧚', 'r'], ['🪷', 'r'], ['🪔', 'r'], ['🦚', 'r'], ['🎠', 'r'], ['🏰', 'r'], ['🫧', 'r'], ['🪩', 'r'],
   ['👑', 'g'], ['💖', 'g'], ['🏆', 'g'], ['🌠', 'g'], ['🐉', 'g'], ['🪄', 'g']];
 const BADGES = [['first', '🎵', 'First song'], ['star3', '🌟', 'First 3 stars'], ['fc', '💯', 'First full combo'], ['crown', '👑', 'First crown'], ['p10', '🔟', '10 songs played'], ['p50', '🎶', '50 songs played'],
-  ['combo50', '🔥', '50 combo'], ['combo100', '🚀', '100 combo'], ['hard', '💪', 'Clear a Hard song'], ['custom', '📀', 'Add your own song'], ['streak3', '📅', '3-day gift streak'], ['streak7', '🗓️', '7-day gift streak'],
+  ['combo50', '🔥', '50 combo'], ['combo100', '🚀', '100 combo'], ['hard', '💪', 'Clear a Hard song'], ['vhard', '💎', 'Clear a Very Hard song'], ['custom', '📀', 'Add your own song'], ['streak3', '📅', '3-day gift streak'], ['streak7', '🗓️', '7-day gift streak'],
   ['stick10', '📒', '10 stickers'], ['pu1', '🧲', 'First power-up'], ['puall', '🌟', 'All 6 power-ups'], ['rainbow', '🌈', 'Rainbow Blast!'], ['dodge25', '💨', 'Dodge 25 obstacles'], ['dodgeperfect', '🏎️', 'Dodge 5 + no misses'], ['golden', '✨', 'Golden sticker'], ['shop', '🛍️', 'First shop buy'], ['allstars', '🌌', '50 stars']];
 // Hindi names (shop items by kind|id, badges by id, worlds by theme id)
 const NAME_HI = { 'skin|pinkgem': 'गुलाबी दिल हीरा', 'skin|hearts': 'माणिक दिल', 'skin|stars': 'सुनहरे तारे', 'skin|diamonds': 'हीरे', 'skin|bubbles': 'बैंगनी मोती', 'skin|crowns': 'शाही मुकुट', 'skin|mix': 'हीरों का मेल', 'skin|candy': 'पुदीना कैंडी', 'skin|neon': 'नियॉन चमक',
@@ -27,7 +29,7 @@ const NAME_HI = { 'skin|pinkgem': 'गुलाबी दिल हीरा', '
   'outfit|none': 'बस गीगी', 'outfit|bow': 'गुलाबी रिबन', 'outfit|tiara': 'चाँदी का ताज', 'outfit|glasses': 'तारों वाला चश्मा', 'outfit|headphones': 'हेडफ़ोन', 'outfit|garland': 'गेंदे की माला', 'outfit|bindi': 'चमकीली बिंदी', 'outfit|wizard': 'जादूगर टोपी', 'outfit|crown': 'सोने का मुकुट',
   pinkgold: 'गुलाबी और सुनहरा', moon: 'चाँदनी', ocean: 'समुद्र', candy: 'कैंडी', galaxy: 'आकाशगंगा', rainbow: 'इंद्रधनुष आसमान', festival: 'बॉलीवुड त्योहार', disco: 'नियॉन डिस्को', rainbowroad: '🌈 इंद्रधनुष सड़क', candyk: '🍭 कैंडी राज्य', neon: '🌃 नियॉन शहर',
   reef: '🐠 समुद्र के नीचे', volcano: '🌋 ज्वालामुखी घाटी', ice: '❄️ बर्फ़ का महल', jungle: '🌴 जंगल मंदिर', cloudc: '☁️ बादलों का महल',
-  'b|first': 'पहला गाना', 'b|star3': 'पहले 3 सितारे', 'b|fc': 'पहला फ़ुल कॉम्बो', 'b|crown': 'पहला मुकुट', 'b|p10': '10 गाने खेले', 'b|p50': '50 गाने खेले', 'b|combo50': '50 कॉम्बो', 'b|combo100': '100 कॉम्बो', 'b|hard': 'कठिन गाना जीता', 'b|custom': 'अपना गाना जोड़ा',
+  'b|first': 'पहला गाना', 'b|vhard': 'बहुत कठिन गाना पूरा किया', 'b|star3': 'पहले 3 सितारे', 'b|fc': 'पहला फ़ुल कॉम्बो', 'b|crown': 'पहला मुकुट', 'b|p10': '10 गाने खेले', 'b|p50': '50 गाने खेले', 'b|combo50': '50 कॉम्बो', 'b|combo100': '100 कॉम्बो', 'b|hard': 'कठिन गाना जीता', 'b|custom': 'अपना गाना जोड़ा',
   'b|streak3': '3 दिन लगातार तोहफ़ा', 'b|streak7': '7 दिन लगातार तोहफ़ा', 'b|stick10': '10 स्टिकर', 'b|pu1': 'पहला पावर-अप', 'b|puall': 'सारे 6 पावर-अप', 'b|rainbow': 'इंद्रधनुष धमाका!', 'b|dodge25': '25 रुकावटों से बचे', 'b|dodgeperfect': '5 बचाव + कोई चूक नहीं', 'b|golden': 'सुनहरा स्टिकर', 'b|shop': 'पहली ख़रीदारी', 'b|allstars': '50 सितारे' };
 const nm = (key, en) => (S.set.lang === 'hi' && NAME_HI[key]) || en;
 const themeName = k => nm(k, (Art.THEMES[k] || {}).name || k);
@@ -45,7 +47,7 @@ for (const k of Object.keys(Art.THEMES)) if (!S.owned.theme.includes(k)) S.owned
 if (S.v < 2) { S.v = 2; S.set = Object.assign({ missFx: true, vis: 0, calibrated: false }, S.set); } // migrations run oldest first
 if (S.v < 3) { S.v = 3; S.set.speed = S.set.speed || 'slow'; }
 if (S.v < 4) { S.v = 4; if (S.tut == null) S.tut = S.plays > 0 ? 1 : 0; if (S.set.calm == null) S.set.calm = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); } // v4 (additive): tutorial flag, calm mode
-if (!['easy', 'normal', 'hard'].includes(S.set.diff)) S.set.diff = 'easy'; if (!['en', 'hi'].includes(S.set.lang)) S.set.lang = 'en'; if (!Number.isFinite(+S.set.offset)) S.set.offset = 0;
+if (!DIFFS.includes(S.set.diff)) S.set.diff = 'easy'; if (!['en', 'hi'].includes(S.set.lang)) S.set.lang = 'en'; if (!Number.isFinite(+S.set.offset)) S.set.offset = 0;
 // Sync model (v3b): judge time = heard song time - offset (sound test: audio-path lag + touch lag); tiles are drawn at judge time + vis
 // (screen test: display lag + touch lag). So a tile crosses the strike line on screen exactly when a tap there is judged Perfect.
 // Defaults until she runs the tap tests: Android ~30 ms tap / ~45 ms screen (touch + compositor), other devices ~20 ms screen.
@@ -56,10 +58,10 @@ A.muted = !S.set.sound;
 
 // ---------- i18n (English / Hindi labels) ----------
 const HI = { title: 'जेम टाइल्स', tag: 'संगीत के साथ चमकीली टाइलें टैप करो!', play: 'खेलो', gift: 'रोज़ का तोहफ़ा', addSong: 'मेरा गाना जोड़ो', shop: 'दुकान', album: 'स्टिकर', albumT: 'स्टिकर एल्बम', badges: 'बैज', closet: 'गीगी की अलमारी',
-  easy: 'आसान', normal: 'सामान्य', hard: 'कठिन', practice: 'अभ्यास', settings: 'सेटिंग्स', sound: 'आवाज़', beat: 'मिस इफ़ेक्ट (चूक पर गाना थोड़ा धीमा)', sync: 'सिंक (टैप टाइमिंग)', calib: 'टैप टेस्ट से सिंक करो', calibT: 'टैप टेस्ट', start: 'शुरू', choose: 'गाना चुनो', mySong: 'मेरा गाना', name: 'नाम', pic: 'तस्वीर', color: 'रंग', theme: 'थीम',
+  easy: 'आसान', normal: 'सामान्य', hard: 'कठिन', veryhard: 'बहुत कठिन', goHome: 'होम', practice: 'अभ्यास', settings: 'सेटिंग्स', sound: 'आवाज़', beat: 'मिस इफ़ेक्ट (चूक पर गाना थोड़ा धीमा)', sync: 'सिंक (टैप टाइमिंग)', calib: 'टैप टेस्ट से सिंक करो', calibT: 'टैप टेस्ट', start: 'शुरू', choose: 'गाना चुनो', mySong: 'मेरा गाना', name: 'नाम', pic: 'तस्वीर', color: 'रंग', theme: 'थीम',
   songSync: 'गाना सिंक', save: 'सेव', regen: 'नई टाइलें', del: 'हटाओ', paused: 'रुका हुआ', resume: 'खेलते रहो', restart: 'फिर से', quit: 'गाना रोको', outHearts: 'दिल ख़त्म!', outMsg: 'तुम बहुत अच्छा कर रही हो। जारी रखें?', cont: 'जारी रखो (अभ्यास)', finish: 'खत्म',
   addHow: 'इस फ़ोन से गाने की फ़ाइल चुनो। गाना फ़ोन से बाहर नहीं जाता।', calibHow: 'आवाज़ टेस्ट: हर क्लिक पर बड़े हीरे को टैप करो। स्क्रीन टेस्ट: जब गिरता दिल लाइन पर पहुँचे, तब टैप करो।', syncNote: 'अगर टाइलें जल्दी या देर से लगें तो टैप टेस्ट करो।',
-  worlds: 'दुनिया', openPack: 'जादुई पैक खोलो', buyPack: '40 → 1 पैक', speedL: 'रफ़्तार', slow: 'धीमी', normalSp: 'सामान्य', fast: 'तेज़', obsL: 'रुकावटें', obsPL: 'अभ्यास में रुकावटें', puL: 'पावर-अप', shakeL: 'स्क्रीन हिलना',
+  worlds: 'दुनिया', records: 'रिकॉर्ड', openPack: 'जादुई पैक खोलो', buyPack: '40 → 1 पैक', speedL: 'रफ़्तार', slow: 'धीमी', normalSp: 'सामान्य', fast: 'तेज़', obsL: 'रुकावटें', obsPL: 'अभ्यास में रुकावटें', puL: 'पावर-अप', shakeL: 'स्क्रीन हिलना',
   intL: 'पीछे की चमक', low: 'कम', med: 'मध्यम', high: 'ज़्यादा', fxL: 'इफ़ेक्ट आवाज़ें (टाइल टैप पर कभी नहीं)', fxVolL: 'इफ़ेक्ट की आवाज़', labBtn: 'टेस्ट लैब', on: 'चालू', off: 'बंद', visL: 'स्क्रीन ऑफ़सेट', calmL: 'शांत मोड (कम चमक-दमक)', howTo: 'कैसे खेलें',
   privacy: 'जेम टाइल्स में कोई विज्ञापन, लिंक या ख़रीदारी नहीं है। तुम्हारे गाने इसी फ़ोन पर रहते हैं।', calStart: 'आवाज़ टेस्ट', calVis: 'स्क्रीन टेस्ट', getReady: 'तैयार हो जाओ!', lab: 'टेस्ट लैब', legendTap: 'इन्हें टैप करो', legendDont: 'इन्हें मत छूना', skip: 'छोड़ो' };
 const EN = {}; $$('[data-t]').forEach(e => { e.dataset.en = e.textContent; if (!(e.dataset.t in EN)) EN[e.dataset.t] = e.textContent; });
@@ -67,6 +69,13 @@ const tr = k => (S.set.lang === 'hi' && HI[k]) || EN[k] || k;
 const applyLang = () => { document.documentElement.lang = S.set.lang; $$('[data-t]').forEach(e => e.textContent = (S.set.lang === 'hi' && HI[e.dataset.t]) || e.dataset.en); };
 // strings made in JS: [English, Hindi]; a function value takes arguments
 const TX = {
+  recTitle: ['Song Records', 'गाने के रिकॉर्ड'], recAll: ['All', 'सभी'], recBest: ['Best score ever', 'अब तक का सबसे अच्छा स्कोर'], recRecent: ['Recent songs', 'हाल के गाने'],
+  recEmpty: ['Finish a song to set your first record!', 'पहला रिकॉर्ड बनाने के लिए एक गाना पूरा करो!'], newRecord: ['NEW RECORD!', 'नया रिकॉर्ड!'],
+  rarc: ['Common', 'साधारण'], rarr: ['Rare', 'दुर्लभ'], rarg: ['GOLDEN', 'सुनहरा'], notFound: ['Not found yet', 'अभी नहीं मिला'], soShiny: ['So shiny!', 'कितना चमकीला!'], okBtn: ['OK!', 'ठीक है!'],
+  foundPack: [n => `Found in a sticker pack${n > 1 ? ` (you have ${n}!)` : ''}.`, n => `स्टिकर पैक में मिला${n > 1 ? ` (तुम्हारे पास ${n} हैं!)` : ''}।`],
+  hintPack: ['Open sticker packs to find it! You win packs by earning stars.', 'इसे पाने के लिए स्टिकर पैक खोलो! तारे जीतकर पैक मिलते हैं।'],
+  hintRare: ['A rare one! Keep opening sticker packs.', 'दुर्लभ स्टिकर! स्टिकर पैक खोलती रहो।'], hintGold: ['A GOLDEN one! Very rare in sticker packs.', 'सुनहरा स्टिकर! पैक में बहुत कम मिलता है।'],
+  badgeT: ['Badge', 'बैज'], badgeOn: [d => `Earned on ${d}.`, d => `${d} को मिला।`], badgeHow: ['Not earned yet. The name tells you how!', 'अभी नहीं मिला। नाम बताता है कैसे!'],
   practiceOn: ['💗 Practice: no hearts lost!', '💗 अभ्यास: कोई दिल नहीं जाएगा!'], practiceOff: ['Practice off', 'अभ्यास बंद'], earnMore: [n => `🔒 Earn ${n} more ⭐ to unlock!`, n => `🔒 खोलने के लिए ${n} और ⭐ जीतो!`],
   giftTomorrow: ['🎁 Come back tomorrow for another gift!', '🎁 कल फिर आना, एक और तोहफ़ा मिलेगा!'], giftTitle: ['Daily gift!', 'रोज़ का तोहफ़ा!'], giftPack: ['+ 1 mystery sticker pack 🎴', '+ 1 जादुई स्टिकर पैक 🎴'],
   giftDay: [n => `Day ${n} in a row 🔥 — come back tomorrow for more!`, n => `लगातार ${n} दिन 🔥 — कल और मिलेगा!`], yay: ['Yay!', 'वाह!'], needCoins: [n => `Need ${n} more 🪙 — play songs to earn coins!`, n => `${n} 🪙 और चाहिए — गाने खेलकर सिक्के जीतो!`],
@@ -105,7 +114,7 @@ const toast = (html, ms = 1800) => { const box = $('#toasts') || document.body, 
 const ic = (n, cls) => window.Icons ? Icons.svg(n, cls) : '';
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const totalStars = () => { let n = 0; for (const id in S.best) for (const d in S.best[id]) n += S.best[id][d].stars || 0; return n; };
-const crownsOf = id => { const b = S.best[id] || {}; return (b.normal && b.normal.stars === 3 ? 1 : 0) + (b.hard && b.hard.stars === 3 ? 1 : 0) + (b.hard && b.hard.fc ? 1 : 0); };
+const crownsOf = id => { const b = S.best[id] || {}; return (b.normal && b.normal.stars === 3 ? 1 : 0) + (b.hard && b.hard.stars === 3 ? 1 : 0) + (b.hard && b.hard.fc ? 1 : 0) + (b.veryhard && b.veryhard.stars === 3 ? 1 : 0); };
 const award = id => { if (S.badges[id]) return; S.badges[id] = Date.now(); const b = BADGES.find(x => x[0] === id); if (b) setTimeout(() => { toast(`<div style="font-size:40px">${b[1]}</div>${esc(tx('newBadge', nm('b|' + id, b[2])))}`, 2400); A.sfx('unlock'); }, 600); save(); };
 let customs = []; // loaded from IndexedDB (metadata only)
 
@@ -117,7 +126,7 @@ const DB = { db: null,
 };
 // v3: metadata-only read: walk a cursor and keep just the small fields (no blob / analysis / charts held for the whole list)
 DB.meta = async function () { const db = await this.open(); return new Promise((res, rej) => { const out = [], t = db.transaction('songs', 'readonly'), r = t.objectStore('songs').openCursor();
-  r.onsuccess = () => { const cu = r.result; if (!cu) return; const { blob, an, charts, ...m } = cu.value; m.nt = charts ? { easy: (charts.easy || []).length, normal: (charts.normal || []).length, hard: (charts.hard || []).length } : { easy: 0, normal: 0, hard: 0 }; out.push(m); cu.continue(); };
+  r.onsuccess = () => { const cu = r.result; if (!cu) return; const { blob, an, charts, ...m } = cu.value; m.nt = charts ? { easy: (charts.easy || []).length, normal: (charts.normal || []).length, veryhard: (charts.veryhard || []).length, hard: (charts.hard || []).length } : { easy: 0, normal: 0, hard: 0 }; out.push(m); cu.continue(); };
   t.oncomplete = () => res(out); t.onerror = () => rej(t.error); }); };
 const loadCustoms = async () => { try { customs = (await DB.meta()).sort((a, b) => a.created - b.created); } catch (e) { customs = []; } };
 
@@ -162,7 +171,7 @@ function renderSongs() {
   // next-unlock goal strip (no reading needed: stars, a bar and the song's picture)
   const next = window.TILE_SONGS.filter(s => s.cost > ts).sort((a, b) => a.cost - b.cost)[0], nu = $('#nextUnlock');
   if (nu) nu.innerHTML = next ? `<span>${ic('lock', 'c-pink')}${esc(tx('nextUnlock', ts, next.cost, next.emoji + ' ' + next.title))}</span><div class="bar"><i style="width:${Math.round(ts / next.cost * 100)}%"></i></div>` : `<span>${ic('crown', 'c-gold')}${esc(tx('allUnlocked'))}</span>`;
-  const dots = id => ['easy', 'normal', 'hard'].map(df => { const st = ((S.best[id] || {})[df] || {}).stars || 0; return `<span class="dd ${df}${df === S.set.diff ? ' cur' : ''}">${df[0].toUpperCase()}<i>${'●'.repeat(st)}${'○'.repeat(3 - st)}</i></span>`; }).join('');
+  const dots = id => DIFFS.map(df => { const st = ((S.best[id] || {})[df] || {}).stars || 0; return `<span class="dd ${df}${df === S.set.diff ? ' cur' : ''}">${df[0].toUpperCase()}<i>${'●'.repeat(st)}${'○'.repeat(3 - st)}</i></span>`; }).join('');
   allSongs().forEach(s => {
     const locked = s.builtin && ts < s.cost, b = (S.best[s.id] || {})[S.set.diff] || {}, cr = crownsOf(s.id), pr = ((S.best[s.id] || {}).practiced || {})[S.set.diff], d = document.createElement('div');
     d.className = 'card song' + (locked ? ' locked' : ''); d.dataset.id = s.id;
@@ -192,7 +201,7 @@ $('#giftBtn').addEventListener('click', () => {
   S.daily.streak = S.daily.last === yk ? S.daily.streak + 1 : 1; S.daily.last = today();
   const coins = 20 + Math.min(6, S.daily.streak - 1) * 5, pack = S.daily.streak % 3 === 0 ? 1 : 0; S.coins += coins; S.packs += pack; save();
   if (S.daily.streak >= 3) award('streak3'); if (S.daily.streak >= 7) award('streak7');
-  A.sfx('gift'); mascotMood = 'wow'; moodUntil = performance.now() + 2500;
+  A.sfx('gift'); SPK.burst(innerWidth / 2, innerHeight * 0.42, 40, 360, GOLD); mascotMood = 'wow'; moodUntil = performance.now() + 2500;
   msg(`<div style="font-size:64px">🎁</div><h2>${tx('giftTitle')}</h2><p style="font-size:22px;font-weight:800">+${coins} 🪙 ${pack ? tx('giftPack') : ''}</p><p>${tx('giftDay', S.daily.streak)}</p><button class="btn" onclick="this.closest('.modal').classList.remove('on')">${tx('yay')}</button>`);
   renderHome();
 });
@@ -207,7 +216,7 @@ function renderShop() {
   const g = $('#shopGrid'); g.innerHTML = '';
   SHOP[shopTab].forEach(([id, name, price]) => {
     const own = S.owned[shopTab].includes(id), eq = shopTab === 'theme' ? false : S.eq[shopTab] === id, d = document.createElement('div');
-    d.className = 'card item' + (eq ? ' eq' : ''); d.dataset.id = id;
+    d.className = 'card item' + (eq ? ' eq' : '') + (own ? ' own' : ''); d.dataset.id = id;
     d.innerHTML = `<canvas></canvas><div class="nm">${esc(shopTab === 'theme' ? nm(id, name) : nm(shopTab + '|' + id, name))}</div><div class="pr">${eq ? ic('check', 'c-pink') + esc(tx('wearing').replace(/^\S+\s/, '')) : own ? (shopTab === 'theme' ? ic('check', 'c-pink') + esc(tx('yoursT').replace(/^\S+\s/, '')) : esc(tx('tapToUse'))) : ic('coin', 'c-gold') + price}</div>`;
     g.appendChild(d); const cv = d.querySelector('canvas'); requestAnimationFrame(() => drawPreview(cv, shopTab, id));
   });
@@ -227,7 +236,7 @@ $('#shopGrid').addEventListener('click', e => {
   const it = e.target.closest('.item'); if (!it) return; A.init(); const id = it.dataset.id, [, name, price] = SHOP[shopTab].find(x => x[0] === id);
   if (!S.owned[shopTab].includes(id)) {
     if (S.coins < price) { toast(tx('needCoins', price - S.coins)); A.sfx('miss'); return; }
-    S.coins -= price; S.owned[shopTab].push(id); award('shop'); A.sfx('unlock'); toast(esc(tx('yours', shopTab === 'theme' ? nm(id, name) : nm(shopTab + '|' + id, name))));
+    S.coins -= price; S.owned[shopTab].push(id); award('shop'); A.sfx('unlock'); SPK.burst(innerWidth / 2, innerHeight * 0.5, 30, 320); toast(esc(tx('yours', shopTab === 'theme' ? nm(id, name) : nm(shopTab + '|' + id, name))));
   }
   if (shopTab === 'theme') { menuTheme = id; toast(tx('themeHint'), 2600); }
   else { S.eq[shopTab] = id; if (shopTab === 'outfit') { mascotMood = 'happy'; moodUntil = performance.now() + 1500; } }
@@ -237,20 +246,75 @@ $('#shopGrid').addEventListener('click', e => {
 // ---------- stickers ----------
 function renderAlbum() {
   const have = STICKERS.filter(s => S.stickers[s[0]]).length; $('#alCount').textContent = `${have} / ${STICKERS.length}`; $('#packN').textContent = S.packs;
-  $('#albumGrid').innerHTML = STICKERS.map(([e, r]) => { const n = S.stickers[e] || 0; return `<div class="sticker ${n ? (r === 'g' ? 'golden' : r === 'r' ? 'rare' : '') : 'none'}">${n ? e : ic('sticker')}${n > 1 ? `<small>×${n}</small>` : ''}</div>`; }).join('');
+  // v4: a display case of glossy, swaying sticker tiles; locked ones show a silhouette; tap to inspect
+  $('#albumGrid').innerHTML = STICKERS.map(([e, r], i) => { const n = S.stickers[e] || 0;
+    return `<button class="sticker gem3 ${n ? (r === 'g' ? 'golden' : r === 'r' ? 'rare' : '') : 'none'}" data-st="${i}" aria-label="${n ? esc(tx('rar' + r)) + ' ' + e : esc(tx('notFound'))}" style="--dl:-${(i * 0.37 % 3).toFixed(2)}s"><span class="glow3"></span><span class="tile3">${n ? e : `<span class="sil">${e}</span>`}</span>${n ? '<i class="tw3 a"></i><i class="tw3 b"></i>' : `<span class="lk">${ic('lock')}</span>`}${n > 1 ? `<small style="z-index:2">×${n}</small>` : ''}</button>`; }).join('');
 }
+// tap-to-inspect: a big floating sticker or badge with light rays, its rarity and how it is earned
+function inspect3(o) {
+  A.init(); if (o.has) { A.sfx('sparkle'); setTimeout(() => SPK.burst(innerWidth / 2, innerHeight * 0.36, 30, 300, o.r === 'g' ? GOLD : null), 120); } else A.sfx('tap');
+  const glow = o.r === 'g' ? 'rgba(255,214,90,.75)' : o.r === 'r' ? 'rgba(190,140,255,.7)' : 'rgba(255,190,225,.75)';
+  msg(`<div class="insp3" style="--glow:${glow}"><div class="stage">${o.has ? '<div class="rays"></div>' : ''}<div class="big${o.has ? '' : ' sil'}">${o.e}</div></div>
+    ${o.name ? `<h2>${esc(o.name)}</h2>` : ''}<span class="rar ${o.has ? o.r : 'l'}">${esc(o.has ? o.rn : tx('notFound'))}</span><p style="font-weight:700">${esc(o.how)}</p>
+    <button class="btn" onclick="this.closest('.modal').classList.remove('on')">${ic('sparkle')}<span>${esc(tx(o.has ? 'soShiny' : 'okBtn'))}</span></button></div>`);
+}
+$('#albumGrid').addEventListener('click', e => { const b = e.target.closest('[data-st]'); if (!b) return; const [em, r] = STICKERS[+b.dataset.st], n = S.stickers[em] || 0;
+  inspect3({ e: em, r, has: n > 0, rn: tx('rar' + r), how: n ? tx('foundPack', n) : tx(r === 'g' ? 'hintGold' : r === 'r' ? 'hintRare' : 'hintPack') }); });
+$('#badgeGrid').addEventListener('click', e => { const b = e.target.closest('[data-bd]'); if (!b) return; const [id, em, n] = BADGES[+b.dataset.bd], at = S.badges[id];
+  inspect3({ e: em, r: 'g', has: !!at, name: nm('b|' + id, n), rn: tx('badgeT'), how: at ? tx('badgeOn', new Date(at).toLocaleDateString(S.set.lang === 'hi' ? 'hi-IN' : undefined)) : tx('badgeHow') }); });
+// Our Fun Zone full screen: browsers leave full screen when the page changes, so if it was on (funzone-fs, set at home and by
+// this game's own full-screen button) the first tap here turns it back on (a tap is needed: full screen only starts from a tap)
+(()=>{const d=document,de=d.documentElement,ev=['pointerup','touchend','click'];let done=false;
+ const back=()=>{if(done)return;done=true;ev.forEach(n=>d.removeEventListener(n,back,true));let on='0';try{on=localStorage.getItem('funzone-fs');}catch(e){}
+  if(on!=='1'||d.fullscreenElement||d.webkitFullscreenElement)return;const f=de.requestFullscreen||de.webkitRequestFullscreen;if(f)try{const p=f.call(de,{navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}catch(e){}};
+ ev.forEach(n=>d.addEventListener(n,back,true));})();
+// ---- v4 sparkles: a light glitter layer over the menus, rewards and results. It never runs while a song plays (gameplay keeps its one
+// rAF loop and its own visual-only effects), and its sounds go through A.sfx, which is silent in a game, so tile taps stay silent.
+const SPK = (() => {
+  const cv = document.createElement('canvas'); cv.setAttribute('aria-hidden', 'true'); cv.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:45;pointer-events:none';
+  document.body.appendChild(cv); const c = cv.getContext('2d'), P = [], COL = ['#fff', '#ffd84a', '#ff8fd0', '#e6ecf7', '#ffb8e6', '#c9a4ff']; let raf = 0, lt = 0, d = 1, w = 0, h = 0;
+  const calm = () => S.set.calm || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const size = () => { d = Math.min(window.devicePixelRatio || 1, 1.5); w = innerWidth; h = innerHeight; cv.width = Math.round(w * d); cv.height = Math.round(h * d); };
+  const star = (x, y, r, rot) => { c.save(); c.translate(x, y); c.rotate(rot); c.beginPath(); for (let i = 0; i < 8; i++) { const rr = i % 2 ? r * 0.3 : r, a = i * Math.PI / 4; c.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); } c.closePath(); c.fill(); c.restore(); };
+  function tick(t) {
+    const dt = Math.min(0.05, (t - lt) / 1000 || 0.016); lt = t; c.setTransform(d, 0, 0, d, 0, 0); c.clearRect(0, 0, w, h);
+    if (G.on && !G.ended) P.length = 0; // a song started: get out of the way
+    for (let i = P.length - 1; i >= 0; i--) { const p = P[i]; p.l -= dt; if (p.l <= 0) { P.splice(i, 1); continue; } p.vy += p.g * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt;
+      c.globalAlpha = Math.min(1, p.l / p.m * 1.8) * (0.65 + 0.35 * Math.sin(p.l * 25 + p.x)); c.fillStyle = p.col; star(p.x, p.y, p.s, p.rot); }
+    c.globalAlpha = 1; raf = P.length ? requestAnimationFrame(tick) : 0; if (!raf) c.clearRect(0, 0, w, h); }
+  function burst(x, y, n, spd, cols) {
+    if (G.on && !G.ended) return; if (calm()) n = Math.ceil(n / 4); if (!w) size(); cols = cols || COL;
+    for (let i = 0; i < n && P.length < 160; i++) { const a = Math.random() * 6.283, s = (0.3 + Math.random() * 0.7) * (spd || 200);
+      P.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 50, g: 240, l: 0.5 + Math.random() * 0.6, m: 1.1, s: 3 + Math.random() * 6, col: cols[i % cols.length], rot: Math.random() * 6, vr: Math.random() * 8 - 4 }); }
+    if (!raf) { lt = performance.now(); raf = requestAnimationFrame(tick); } }
+  const at = (el, n, spd, cols) => { if (!el) return; const r = el.getBoundingClientRect(); if (r.width) burst(r.left + r.width / 2, r.top + r.height / 2, n, spd, cols); };
+  addEventListener('resize', size);
+  // every menu button gets a little glitter puff where the finger is
+  document.addEventListener('pointerdown', e => { const b = e.target.closest && e.target.closest('button,.btn,[data-go],a,.song,.card[role=button]'); if (b && !b.disabled) burst(e.clientX, e.clientY, 10, 170); }, { capture: true, passive: true });
+  return { burst, at };
+})();
+const GOLD = ['#fff', '#ffd84a', '#ffe9a0', '#ffc933', '#ff8fd0'];
+// ---- v4b records: every finished song (per song and difficulty: score, stars, accuracy, best combo), shared FunRecords block (records.js).
+// The party only ever shows on the results card, never during a song.
+const DIFN = d => tx(d) !== d ? tx(d) : tr(d);
+const REC = FunRecords({ key: 'gemtiles.records.v1', get title() { return tx('recTitle'); }, muted: () => !S.set.sound, calm: () => !!S.set.calm, voiceBase: 'audio/',
+  fmt: e => NF.format(e.s), sub: e => { const x = e.x || {}; return [x.acc != null ? x.acc + '%' : '', x.cb ? '🔥 ' + x.cb : '', x.fc ? '💯' : ''].filter(Boolean).join(' · '); },
+  groupOrder: g => DIFFS.map(DIFN).indexOf(g), get allLabel() { return tx('recAll'); }, get bestLabel() { return tx('recBest'); }, get recentLabel() { return tx('recRecent'); }, get empty() { return tx('recEmpty'); } });
+// best scores from before records existed fill the empty podiums once (built-in songs; dated "Before records")
+try { (window.TILE_SONGS || []).forEach(sg => { const b = S.best[sg.id]; if (!isObj(b)) return; DIFFS.forEach(d => { const r = b[d]; if (isObj(r) && r.score > 0) REC.seed({ c: sg.id + '|' + d, n: sg.title + ' · ' + DIFN(d), g: DIFN(d), s: r.score, st: r.stars | 0, x: { d, fc: !!r.fc } }); }); }); } catch (e) { }
+$('#recBtn').addEventListener('click', () => { A.init(); A.sfx('tap'); REC.open(); });
 function openPack() {
   if (S.packs < 1) { toast(tx('packsHow')); return; }
   S.packs--; const got = [];
   for (let i = 0; i < 3; i++) { const r = Math.random(), tier = r < 0.04 ? 'g' : r < 0.26 ? 'r' : 'c', pool = STICKERS.filter(s => s[1] === tier), s = pool[Math.floor(Math.random() * pool.length)]; got.push(s); S.stickers[s[0]] = (S.stickers[s[0]] || 0) + 1; }
-  if (got.some(s => s[1] === 'g')) award('golden'); if (STICKERS.filter(s => S.stickers[s[0]]).length >= 10) award('stick10'); save(); A.sfx('gift');
+  if (got.some(s => s[1] === 'g')) award('golden'); if (STICKERS.filter(s => S.stickers[s[0]]).length >= 10) award('stick10'); save(); A.sfx('gift'); A.sfx('sparkle'); SPK.burst(innerWidth / 2, innerHeight * 0.42, 46, 380);
   msg(`<h2>${tx('packTitle')}</h2><div class="row">${got.map(([e, r]) => `<div class="sticker ${r === 'g' ? 'golden' : r === 'r' ? 'rare' : ''}" style="width:90px;font-size:52px">${e}</div>`).join('')}</div>
     <p style="font-weight:800">${tx(got.some(s => s[1] === 'g') ? 'golden' : got.some(s => s[1] === 'r') ? 'rare' : 'cute')}</p><button class="btn" onclick="this.closest('.modal').classList.remove('on')">${tx('addAlbum')}</button>`);
   renderAlbum();
 }
 $('#openPack').addEventListener('click', () => { A.init(); openPack(); });
 $('#buyPack').addEventListener('click', () => { A.init(); if (S.coins < 40) { toast(tx('need40')); return; } S.coins -= 40; S.packs++; save(); renderAlbum(); A.sfx('coin'); });
-function renderBadges() { $('#badgeGrid').innerHTML = BADGES.map(([id, e, n]) => `<div class="card badge ${S.badges[id] ? '' : 'off'}"><div class="b">${e}</div><div class="nm" style="font-weight:800">${esc(nm('b|' + id, n))}</div></div>`).join(''); }
+function renderBadges() { $('#badgeGrid').innerHTML = BADGES.map(([id, e, n], i) => `<button class="card badge gem3 ${S.badges[id] ? '' : 'off'}" data-bd="${i}" style="--dl:-${(i * 0.41 % 3).toFixed(2)}s"><span class="glow3"></span><span class="tile3"><span class="b${S.badges[id] ? '' : ' sil'}">${e}</span></span>${S.badges[id] ? '<i class="tw3 a"></i><i class="tw3 b"></i>' : ''}<div class="nm" style="font-weight:800">${esc(nm('b|' + id, n))}</div></button>`).join(''); }
 
 // ---------- settings + calibration ----------
 function renderSettings() {
@@ -266,7 +330,7 @@ const LABS = { world: null, obs: null, pu: null, song: 'ode', diff: 'easy', dens
 function renderLab() { const w = Object.keys(Art.THEMES), ob = ['bomb', 'car', 'spiky', 'cloud', 'snowball', 'lava', 'crab'], pu = Object.keys(PU);
   const btns = (arr, key, lab) => arr.map(x => `<button class="btn small ${LABS[key] === x ? 'gold' : 'silver'}" data-lab="${key}" data-v="${esc(x)}">${esc(lab(x))}</button>`).join('');
   $('#labBody').innerHTML = `<div class="lbl">${ic('music')}<span>${tx('labSong')}</span></div><div class="row">${btns(allSongs().map(s => s.id), 'song', x => { const s = allSongs().find(q => q.id === x); return (s.emoji || '🎵') + ' ' + s.title; })}</div>
-  <div class="lbl">${ic('speed')}<span>${tx('labDiff')}</span></div><div class="row">${btns(['easy', 'normal', 'hard'], 'diff', x => tr(x))}</div><div class="lbl">${ic('list')}<span>${tx('labDens')}</span></div><div class="row">${btns(['2.6', '1.6', '0.9'], 'dens', x => tx({ '2.6': 'sparse', '1.6': 'normalD', '0.9': 'dense' }[x]))}</div>
+  <div class="lbl">${ic('speed')}<span>${tx('labDiff')}</span></div><div class="row">${btns(DIFFS, 'diff', x => tr(x))}</div><div class="lbl">${ic('list')}<span>${tx('labDens')}</span></div><div class="row">${btns(['2.6', '1.6', '0.9'], 'dens', x => tx({ '2.6': 'sparse', '1.6': 'normalD', '0.9': 'dense' }[x]))}</div>
   <div class="lbl">${ic('rainbow')}<span>${tx('labWorld')}</span></div><div class="row">${btns(w, 'world', themeName)}</div><div class="lbl">${ic('bomb')}<span>${tx('labObs')}</span></div><div class="row">${btns(ob, 'obs', x => ({ bomb: '💣', car: '🚗', spiky: '🦔', cloud: '⛈️', snowball: '☃️', lava: '🌋', crab: '🦀' }[x] || x))}<button class="btn small ${!LABS.obs ? 'gold' : 'silver'}" data-lab="obs" data-v="">${tx('labOwn')}</button></div>
   <div class="lbl">${ic('magnet')}<span>${tx('labPu')}</span></div><div class="row">${btns(pu, 'pu', x => PU[x].e + ' ' + PU[x].name)}<button class="btn small ${!LABS.pu ? 'gold' : 'silver'}" data-lab="pu" data-v="">${tx('labMix')}</button></div>
   <div class="lbl">${ic('sound')}<span>${tx('labFx')}</span></div><div class="row">${['powerup', 'poof', 'combo', 'starpower', 'intro', 'fanfare'].map(k => `<button class="btn small silver" data-fx="${k}">${k}</button>`).join('')}</div>
@@ -323,7 +387,7 @@ async function addSongFile(file) {
     const energy = Math.min(1, an.onsets.length / duration / 4), theme = Art.suggestTheme(an.bpm, energy);
     const title = file.name.replace(/\.[a-z0-9]{2,5}$/i, '').replace(/[_]+/g, ' ').trim().slice(0, 60) || 'My song';
     const rec = { id: 'c' + Date.now().toString(36), title, emoji: '🎵', color: '#ffb3d9', theme, suggested: theme, energy, bpm: an.bpm, duration, an, seed: 1, offset: 0, created: Date.now(), type: file.type || 'audio/mpeg', blob: new Blob([buf], { type: file.type || 'audio/mpeg' }) };
-    rec.anv = AN.VERSION; rec.charts = { easy: AN.makeChart(an, 'easy', 1), normal: AN.makeChart(an, 'normal', 1), hard: AN.makeChart(an, 'hard', 1) };
+    rec.anv = AN.VERSION; rec.charts = { easy: AN.makeChart(an, 'easy', 1), normal: AN.makeChart(an, 'normal', 1), hard: AN.makeChart(an, 'hard', 1), veryhard: AN.makeChart(an, 'veryhard', 1) };
     await DB.put(rec); decoded.set(rec.id, null); await loadCustoms(); award('custom'); await step(1, tx('doneAdd'));
     A.sfx('unlock'); openEdit(rec.id, true);
   } catch (ex) { console.warn(ex); err(tx('cantPlay')); }
@@ -351,7 +415,7 @@ $('#edColor').addEventListener('click', e => { const b = e.target.closest('[data
 $('#edTheme').addEventListener('click', e => { const b = e.target.closest('[data-th]'); if (!b) return; if (!S.owned.theme.includes(b.dataset.th) && b.dataset.th !== editing.suggested) { toast(tx('lockedTheme')); return; } editing.theme = b.dataset.th; renderEditPickers(); });
 $('#edOff').addEventListener('input', e => { editing.offset = +e.target.value; $('#edOffVal').textContent = editing.offset; });
 $('#edSave').addEventListener('click', async () => { const full = await DB.get(editing.id); Object.assign(full, { title: $('#edTitle').value.trim() || 'My song', emoji: editing.emoji, color: editing.color, theme: editing.theme, offset: editing.offset }); await DB.put(full); await loadCustoms(); A.sfx('coin'); toast(tx('saved')); go('songs'); });
-$('#edRegen').addEventListener('click', async () => { const full = await DB.get(editing.id); full.seed = (full.seed || 1) + 1; full.charts = { easy: AN.makeChart(full.an, 'easy', full.seed), normal: AN.makeChart(full.an, 'normal', full.seed), hard: AN.makeChart(full.an, 'hard', full.seed) }; await DB.put(full); await loadCustoms(); toast(tx('fresh')); openEdit(full.id); });
+$('#edRegen').addEventListener('click', async () => { const full = await DB.get(editing.id); full.seed = (full.seed || 1) + 1; full.charts = { easy: AN.makeChart(full.an, 'easy', full.seed), normal: AN.makeChart(full.an, 'normal', full.seed), hard: AN.makeChart(full.an, 'hard', full.seed), veryhard: AN.makeChart(full.an, 'veryhard', full.seed) }; await DB.put(full); await loadCustoms(); toast(tx('fresh')); openEdit(full.id); });
 $('#edDel').addEventListener('click', () => msg(`<h2>${tx('delQ')}</h2><p dir="auto">${esc(editing.title)}</p><div class="row"><button class="btn" id="delYes">${tx('delYes')}</button><button class="btn silver" onclick="this.closest('.modal').classList.remove('on')">${tx('keepIt')}</button></div>`));
 document.addEventListener('click', e => { const b = e.target.closest('[data-pick]'); if (!b) return; const id = b.dataset.song, k = b.dataset.pick, song = window.TILE_SONGS.find(x => x.id === id);
   if (!S.owned.theme.includes(k) && k !== song.theme) { toast(tx('lockedTheme')); return; } if (k === song.theme) delete S.songTheme[id]; else S.songTheme[id] = k; save(); A.sfx('coin'); $$('[data-pick]').forEach(x => x.className = 'btn small ' + (x === b ? 'gold' : 'silver')); });
@@ -368,7 +432,8 @@ const G = { on: false };
 const decoded = new Map(), rendered = new Map();
 const DIFF = { easy: { lead: 2.3, gap: 0.4, hearts: 6, mul: 0.85, ramp: 0.06, win: 0.2, great: 0.11, perf: 0.065, heal: 15 }, // v3: Easy/Normal a little more forgiving
   normal: { lead: 1.8, gap: 0.25, hearts: 3, mul: 1, ramp: 0.12, win: 0.14, great: 0.07, perf: 0.036, heal: 25 },
-  hard: { lead: 1.35, gap: 0, hearts: 3, mul: 1.12, ramp: 0.22, win: 0.09, great: 0.055, perf: 0.028 } };
+  hard: { lead: 1.35, gap: 0, hearts: 3, mul: 1.12, ramp: 0.22, win: 0.09, great: 0.055, perf: 0.028 },
+  veryhard: { lead: 1.12, gap: 0, hearts: 2, mul: 1.24, ramp: 0.32, win: 0.075, great: 0.045, perf: 0.022 } }; // v4c: faster, tighter timing, 2 hearts
 let LAB = null; const COUNT = 2.0, PAD = 0.35; // countdown seconds; silence at the start of rendered built-in tracks
 // ---------- audio clock ----------
 const clock = { off: null };
@@ -414,7 +479,7 @@ function arrange(song, diff) {
     if (prev) { const dp = n.midi - prev.midi; if (dp > 0) lane += dp > 4 ? 2 : 1; else if (dp < 0) lane -= dp < -4 ? 2 : 1; else { lane += flip; flip = -flip; } if (lane > 3) lane = 6 - lane; if (lane < 0) lane = -lane; lane = Math.max(0, Math.min(3, lane)); if (lane === prev.lane && t - prev.t < 0.45) lane = (lane + 2) % 4; }
     const holdB = diff === 'easy' ? 2 : 1.5, isHold = g.length === 1 && n.dur >= holdB;
     tiles.push({ t, lane, dur: isHold ? (tOf(n.b + n.dur) - t) * 0.85 : 0, shapeI: i });
-    if (diff !== 'easy' && !isHold && n.dur >= 1 && i > 0 && (diff === 'hard' ? n.b % 2 === 0 : n.b % 4 === 0)) tiles.push({ t, lane: (lane + 2) % 4, dur: 0, shapeI: i + 1, pair: true });
+    if (diff !== 'easy' && !isHold && n.dur >= 1 && i > 0 && (diff === 'veryhard' ? true : diff === 'hard' ? n.b % 2 === 0 : n.b % 4 === 0)) tiles.push({ t, lane: (lane + 2) % 4, dur: 0, shapeI: i + 1, pair: true });
     prev = { midi: g[g.length - 1].midi, lane, t }; });
   const beatTimes = []; for (let b = 0; b <= Math.ceil(beats); b++) beatTimes.push([tOf(b), b]);
   return { tiles, mel, back, end: tOf(beats) + 0.6, beatTimes, bpm: bpm0, melTimes: mel.map(e => e.t) };
@@ -425,6 +490,7 @@ async function prepare(song, diff, onP) { // onP(progress, text)
     let full = await DB.get(song.id); if (!full) throw new Error('missing');
     if ((full.anv || 1) < AN.VERSION) { onP(0.2, tx('remaking')); full = await reanalyze(full); }
     if (!decoded.get(song.id)) { onP(0.5, tx('gettingReady')); decoded.set(song.id, await ctx.decodeAudioData(await full.blob.arrayBuffer())); }
+    if (!full.charts[diff] && full.an) full.charts[diff] = AN.makeChart(full.an, diff, full.seed || 1); // songs added before Very Hard existed
     const tiles = full.charts[diff].map((n, i) => ({ t: n.t, lane: n.lane, dur: n.dur || 0, shapeI: i, lane2: n.lane2 }));
     tiles.slice().forEach(t => { if (t.lane2 != null) tiles.push({ ...t, lane: t.lane2, pair: true, shapeI: t.shapeI + 1 }); });
     tiles.sort((a, b) => a.t - b.t);
@@ -442,7 +508,7 @@ async function prepare(song, diff, onP) { // onP(progress, text)
   return r;
 }
 async function reanalyze(full) { const { mono } = await AN.decodeToMono(await full.blob.arrayBuffer()); const an = AN.analyzeMono(mono);
-  Object.assign(full, { an, bpm: an.bpm, anv: AN.VERSION, charts: { easy: AN.makeChart(an, 'easy', full.seed || 1), normal: AN.makeChart(an, 'normal', full.seed || 1), hard: AN.makeChart(an, 'hard', full.seed || 1) } });
+  Object.assign(full, { an, bpm: an.bpm, anv: AN.VERSION, charts: { easy: AN.makeChart(an, 'easy', full.seed || 1), normal: AN.makeChart(an, 'normal', full.seed || 1), hard: AN.makeChart(an, 'hard', full.seed || 1), veryhard: AN.makeChart(an, 'veryhard', full.seed || 1) } });
   await DB.put(full); return full; }
 // ---------- start ----------
 const loadUI = (p, t) => { $('#mLoad').classList.add('on'); $('#loadBar').style.width = (p * 100) + '%'; $('#loadMsg').textContent = t; };
@@ -590,7 +656,7 @@ function missTile(t, now) {
   if (S.set.missFx !== false) { const ctx = A.ctx(), n = ctx.currentTime; // subtle GH-style miss: duck the melody stem / muffle the track (~200 ms). Param automation only, no new nodes.
     if (G.duck) { const g = G.duck.gain; g.cancelScheduledValues(n); g.setValueAtTime(g.value, n); g.linearRampToValueAtTime(0.35, n + 0.03); g.linearRampToValueAtTime(1, n + 0.25); }
     if (G.muffle) { const f = G.muffle.frequency; f.cancelScheduledValues(n); f.setValueAtTime(f.value, n); f.exponentialRampToValueAtTime(900, n + 0.03); f.exponentialRampToValueAtTime(20000, n + 0.28); } }
-  if (!t.pair && ++G.missRun >= 3 && G.diff !== 'hard' && !(G.pu.slowmo > now)) { G.missRun = 0; G.pu.slowmo = now + 5; pop(L.cx, L.H * 0.36, tx('slowHelp'), '#22a37f', 1.4, true); } // Easy/Normal assist: 3 misses in a row -> automatic slow-mo
+  if (!t.pair && ++G.missRun >= 3 && !HARDISH(G.diff) && !(G.pu.slowmo > now)) { G.missRun = 0; G.pu.slowmo = now + 5; pop(L.cx, L.H * 0.36, tx('slowHelp'), '#22a37f', 1.4, true); } // Easy/Normal assist: 3 misses in a row -> automatic slow-mo
   if (G.shield > 0 && !t.pair) { G.shield--; pop(L.cx, L.H * 0.4, tx('savedPop'), '#3aa0d8', 1.2, false); G.combo = 0; return; }
   if (G.hearts !== Infinity && !t.pair) { G.hearts--; if (G.hearts <= 0) outOfHearts(); }
 }
@@ -605,7 +671,7 @@ cv.addEventListener('pointerdown', e => {
     if (nb >= 0 && nb <= 3) for (let i = G.first; i < G.tiles.length; i++) { const t = G.tiles[i]; if (t.t - now > G.win) break; if (t.state || t.lane !== nb) continue; const d = Math.abs(now - t.t); if (d <= G.win * 0.8 && d < bd) { bd = d; best = t; } }
     if (best) G.press.set(e.pointerId, best.lane); }
   let it = null; if (!best) for (const x of G.items) { if (x.t - now > G.win) break; if (!x.state && x.lane === lane && Math.abs(x.t - now) <= G.win * (x.kind === 'obs' ? 0.7 : 1.3)) { it = x; break; } }
-  if (best) hitTile(best, now - best.t, e.pointerId); else if (it) { if (it.kind === 'pu') collect(it); else hitObstacle(it); } else { G.laneFlash[lane] = 0.6; if (G.diff === 'hard') { G.combo = 0; G.hudDirty = true; } }
+  if (best) hitTile(best, now - best.t, e.pointerId); else if (it) { if (it.kind === 'pu') collect(it); else hitObstacle(it); } else { G.laneFlash[lane] = 0.6; if (HARDISH(G.diff)) { G.combo = 0; G.hudDirty = true; } }
 }, { passive: true });
 const endHold = e => { G.press.delete(e.pointerId); const t = G.holds.get(e.pointerId); if (!t) return; G.holds.delete(e.pointerId); if (t.holdP >= 0.85) { t.holdP = 1; G.score += 50 * mult(); emit(laneX(t.lane, 1), L.strikeY, 12, true); } t.state = 1; };
 cv.addEventListener('pointerup', endHold, { passive: true }); cv.addEventListener('pointercancel', endHold, { passive: true });
@@ -920,17 +986,17 @@ function finishGame(opts) {
   stopAudio(); if (!quitRun) G.tiles.forEach(t => { if (t.state === 0) { t.state = 2; G.j.miss++; } }); window.__lastItems = G.items.map(i => ({ kind: i.kind, k: i.pu || i.ob, state: i.state, t: i.t, lane: i.lane }));
   const j = G.j, n = quitRun ? j.perfect + j.great + j.good + j.miss : G.tiles.length, acc = n ? (j.perfect + j.great * 0.85 + j.good * 0.6) / n : 0;
   const fc = !quitRun && j.miss === 0 && n > 0; let stars = quitRun ? 0 : acc >= 0.88 ? 3 : acc >= 0.7 ? 2 : acc >= 0.3 ? 1 : 0;
-  const id = G.song.id, lab = !!G.lab, noSave = lab || quitRun; let coins = 0, packs = 0, newBest = false, firstClear = null, practiceStar = false;
+  const id = G.song.id, lab = !!G.lab, noSave = lab || quitRun; let coins = 0, packs = 0, newBest = false, firstClear = null, practiceStar = false, hadScore = false;
   if (!noSave) { // Test lab runs and stopped songs never touch real progress (best, coins, packs, plays, badges, stickers)
     const before = totalStars(), crownsBefore = crownsOf(id), hadClear = Object.keys(S.best[id] || {}).some(d => ((S.best[id] || {})[d] || {}).stars > 0); S.best[id] = S.best[id] || {}; const prev = S.best[id][G.diff] || { stars: 0, score: 0 };
-    newBest = G.score > (prev.score || 0);
+    newBest = G.score > (prev.score || 0); hadScore = (prev.score || 0) > 0;
     S.best[id][G.diff] = { stars: Math.max(prev.stars || 0, stars), score: Math.max(prev.score || 0, G.score), fc: prev.fc || (fc && !G.usedPractice) };
     if (G.usedPractice && stars > 0) { const pr = S.best[id].practiced = isObj(S.best[id].practiced) ? S.best[id].practiced : {}; practiceStar = !pr[G.diff]; pr[G.diff] = 1; } // additive: S.best[id].practiced
     packs = totalStars() - before + crownsOf(id) - crownsBefore;
     coins = Math.round(G.score / 400) + stars * 5 + (fc ? 10 : 0) + 2; S.coins += coins; S.packs += packs; S.plays++; S.maxCombo = Math.max(S.maxCombo || 0, G.maxCombo);
     if (!hadClear && stars > 0) { const commons = STICKERS.filter(s => s[1] === 'c'), fresh = commons.filter(s => !S.stickers[s[0]]), pick = (fresh.length ? fresh : commons)[Math.floor(Math.random() * (fresh.length || commons.length))]; S.stickers[pick[0]] = (S.stickers[pick[0]] || 0) + 1; firstClear = pick[0]; if (STICKERS.filter(s => S.stickers[s[0]]).length >= 10) award('stick10'); } // a song's first clear always gives a sticker
     award('first'); if (stars === 3) award('star3'); if (fc) award('fc'); if (crownsOf(id) > 0) award('crown'); if (S.plays >= 10) award('p10'); if (S.plays >= 50) award('p50');
-    if (G.maxCombo >= 50) award('combo50'); if (G.maxCombo >= 100) award('combo100'); if (G.diff === 'hard' && stars > 0) award('hard'); if (totalStars() >= 50) award('allstars');
+    if (G.maxCombo >= 50) award('combo50'); if (G.maxCombo >= 100) award('combo100'); if (HARDISH(G.diff) && stars > 0) award('hard'); if (G.diff === 'veryhard' && stars > 0) award('vhard'); if (totalStars() >= 50) award('allstars');
     S.stats = isObj(S.stats) ? S.stats : { pu: {}, dodged: 0 }; S.stats.pu = S.stats.pu || {}; S.stats.dodged = S.stats.dodged || 0; for (const k in G.stats.pu) S.stats.pu[k] = (S.stats.pu[k] || 0) + G.stats.pu[k]; S.stats.dodged += G.stats.dodged;
     if (Object.keys(S.stats.pu).length) award('pu1'); if (Object.keys(S.stats.pu).length >= 6) award('puall'); if (G.stats.rainbow) award('rainbow'); if (S.stats.dodged >= 25) award('dodge25'); if (G.stats.dodged >= 5 && G.j.miss === 0) award('dodgeperfect');
     if (G.tut) S.tut = 1; save(); }
@@ -946,6 +1012,12 @@ function finishGame(opts) {
       <button class="btn silver" id="resSongs">${ic(lab ? 'flask' : 'list')}<span>${lab ? tx('labBack') : tx('songList')}</span></button><button class="btn silver" id="resHome">${ic('home')}<span>${tx('homeBtn')}</span></button>
       ${S.packs && !noSave ? `<button class="btn gold" id="resPack">${ic('cards')}<span>${tx('openPackBtn')} (${S.packs})</span></button>` : ''}</div>`;
   $('#mRes').classList.add('on'); $('#mRes').scrollTop = 0; document.body.classList.add('res-open');
+  if (!noSave && n > 0) { // v4b: records; a beaten best gets the NEW RECORD party once the results card has popped in
+    const rr = REC.record({ c: id + '|' + G.diff, n: G.song.title + ' · ' + DIFN(G.diff), g: DIFN(G.diff), s: G.score, st: stars, x: { d: G.diff, acc: Math.round(acc * 100), cb: G.maxCombo, fc } });
+    if (G.score > 0 && (rr.isNew || (newBest && hadScore))) setTimeout(() => { if ($('#mRes').classList.contains('on') && !G.on) REC.celebrate({ title: tx('newRecord'), score: NF.format(G.score), name: G.song.title + ' · ' + DIFN(G.diff) }); }, 1700); }
+  // v4: each won star bursts with gold glitter and a twinkle as it pops in; a full combo or new best gets one more shower
+  $$('#resCard .big-stars span.won').forEach((el, i) => setTimeout(() => { if (!$('#mRes').classList.contains('on')) return; SPK.at(el, 22, 260, GOLD); A.sfx('sparkle'); }, (450 + i * 300)));
+  if (fc || (newBest && !noSave && G.score > 0)) setTimeout(() => { if ($('#mRes').classList.contains('on')) { SPK.burst(innerWidth / 2, innerHeight * 0.3, 40, 420); A.sfx('star'); } }, 1500);
   const rm = $('#resMascot').getContext('2d'), sEl = $('#resScore'), fx = $('#resFx'), fc2 = fx.getContext('2d'), t0 = performance.now(), final = G.score, mood = quitRun ? 'happy' : stars >= 2 ? 'wow' : 'happy';
   const [fw, fh] = [innerWidth, innerHeight], fd = Math.min(DPR, 1.5); fx.width = Math.round(fw * fd); fx.height = Math.round(fh * fd); let shown = -1;
   const nGems = S.set.calm ? 8 : 10 + stars * 10, gems = Array.from({ length: nGems }, (_, i) => ({ x: Math.random() * fw, y: -Math.random() * fh, v: 60 + Math.random() * 120, r: Math.random() * 6, s: 14 + Math.random() * 18, im: i % 3 ? Art.gemImg(Art.MIX[i % 6], '#ffffff', ['#ff5fae', '#ffd76a', '#b98cff', '#5ad1ff'][i % 4], 32) : Art.sparkleImg(['#ffd76a', '#ffffff', '#ff8ccf'][i % 3]) }));
@@ -970,7 +1042,7 @@ document.addEventListener('click', e => {
 });
 
 // ---------- boot ----------
-window.__tiles = { S: () => S, G: () => G, loops: () => LOOPS, stopAll: () => { stopAudio(); G.on = false; LOOP++; $('#game').classList.remove('on'); }, go, startGame, setLab: l => { LAB = l; }, allSongs, loadCustoms, DB, songTime, judgeAt, finishGame, layout: () => L, outOfHearts, nextSongOf,
+window.__tiles = { REC, S: () => S, G: () => G, loops: () => LOOPS, stopAll: () => { stopAudio(); G.on = false; LOOP++; $('#game').classList.remove('on'); }, go, startGame, setLab: l => { LAB = l; }, allSongs, loadCustoms, DB, songTime, judgeAt, finishGame, layout: () => L, outOfHearts, nextSongOf,
   // test hooks: jump the game clock forward (optionally scoring the skipped tiles as Perfect) to reach the natural end of a song quickly
   ff: (sec, hit) => { if (!G.on) return; const to = songTime() + sec; if (hit) for (const t of G.tiles) if (!t.state && t.t < to + 0.05) { t.state = 1; G.j.perfect++; G.combo++; G.maxCombo = Math.max(G.maxCombo, G.combo); G.score += 100; } G.startAt -= sec; },
   toEnd: hit => { if (G.on) window.__tiles.ff(G.b.end - songTime() - 0.4, hit); }, laneX, proj, save, openPack, CAL, arrange, rendered, clock, updateClock, prepare, reanalyze };

@@ -32,6 +32,9 @@ h2{margin:0;font-size:24px;font-weight:900;letter-spacing:-.01em;line-height:1.1
 .fzHome{display:inline-grid;place-items:center;flex:none;width:calc(var(--tap) - 6px);height:calc(var(--tap) - 6px);border-radius:50%;background:linear-gradient(180deg,#fff,#ffd3ec);border:3px solid #ffc933;box-shadow:0 3px 0 #b8760a,0 6px 12px rgba(0,0,0,.2);font-size:24px;line-height:1;text-decoration:none;color:#000;touch-action:manipulation;-webkit-tap-highlight-color:transparent;font-family:inherit}
 .fzHome:active{transform:translateY(2px);box-shadow:0 1px 0 #b8760a}
 #hud .fzHome{pointer-events:auto}
+#pauseHome{text-decoration:none}
+@media (max-width:400px){#songs .top .btn.small{white-space:nowrap;font-size:14px;padding:8px 10px;gap:6px}} /* QA: "Add my song" stays on one line on 360 px phones */
+#mOut .stack .btn{min-width:0}#mOut .stack .btn span{white-space:normal;line-height:1.1} /* QA: "Keep going (practice)" wraps instead of running to the edge in landscape */ /* QA fix: Home lives in the pause menu, not the HUD (it ran off narrow screens and was one tap from leaving mid-song) */
 .top{width:100%;max-width:820px;display:flex;align-items:center;gap:var(--s2);min-height:var(--tap)}
 .top h2{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:var(--s2)}
 .top .sp{flex:1}
@@ -57,7 +60,7 @@ h2{margin:0;font-size:24px;font-weight:900;letter-spacing:-.01em;line-height:1.1
 .menu{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);width:100%;max-width:460px;margin-top:var(--s2)}
 .menu .btn{font-size:18px;padding:10px 12px}
 .menu .btn.wide{grid-column:1/-1;font-size:26px;min-height:72px}
-.menu .btn.wide2{grid-column:1/-1}
+.menu .btn.wide2{grid-column:auto} /* Worlds sits beside Records (v4b) */
 .menu .btn.wide .ic{width:30px;height:30px}
 /* cards, lists */
 .card{background:var(--card);border-radius:var(--r3);padding:var(--s4);box-shadow:0 4px 16px rgba(200,40,120,.16);border:2px solid rgba(255,255,255,.95)}
@@ -81,6 +84,11 @@ h2{margin:0;font-size:24px;font-weight:900;letter-spacing:-.01em;line-height:1.1
 .seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:1 1 auto;border:0;font:inherit;font-weight:800;font-size:17px;padding:8px 14px;min-height:52px;min-width:64px;border-radius:14px;background:transparent;color:var(--ink);cursor:pointer}
 .seg button .ic{width:22px;height:22px}
 .seg button.on{background:linear-gradient(180deg,#ff8cc6,#ff3d96);color:#fff;box-shadow:0 3px 0 #c2186b}
+/* v4c Very Hard: a purple-gold button so it stands apart from Hard */
+.seg button.vh{color:#6b2fb0}.seg button.vh.on{background:linear-gradient(180deg,#c79bff,#7a3fe0);color:#fff;box-shadow:0 3px 0 #4a1f8f,0 0 0 2px #f0c75e inset}
+.song .dd.veryhard{color:#7a3fe0}
+#diffSeg{flex-wrap:nowrap}#diffSeg button{flex:1 1 auto;min-width:0;padding:8px 11px;white-space:nowrap}
+@media (max-width:480px){#diffSeg button{font-size:15px;padding:8px 8px}}
 .row{display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap;justify-content:center;width:100%;max-width:820px}
 .tabs{display:flex;gap:var(--s2);flex-wrap:wrap;justify-content:center}
 .tabs .btn{min-height:52px;padding:8px 14px;font-size:16px}
@@ -91,6 +99,11 @@ h2{margin:0;font-size:24px;font-weight:900;letter-spacing:-.01em;line-height:1.1
 .item .pr{font-size:14px;font-weight:700;color:var(--ink2);display:flex;align-items:center;gap:4px}
 .item .pr .ic{width:18px;height:18px}
 .item.eq{outline:4px solid var(--gold);outline-offset:-2px}
+/* v4: owned shop things shine in their case: a gold glow and a light sweep over the preview */
+.item.own{box-shadow:0 0 0 3px #f0c75e,0 0 18px rgba(255,210,90,.55);overflow:hidden}
+.item.own::after{content:"";position:absolute;top:-10%;bottom:-10%;width:35%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.7),transparent);transform:skewX(-18deg);animation:glint3 5s ease-in-out infinite;pointer-events:none}
+.item.own:nth-child(3n+1)::after{animation-delay:-1.6s}.item.own:nth-child(3n+2)::after{animation-delay:-3.2s}
+@media (prefers-reduced-motion:reduce){.item.own::after{animation:none;display:none}}body.calm .item.own::after{animation:none;display:none}
 .sticker{font-size:38px;text-align:center;padding:6px;border-radius:16px;background:var(--card);position:relative;aspect-ratio:1;display:grid;place-items:center}
 .sticker.rare{background:linear-gradient(135deg,#e9ddff,#fff);box-shadow:0 0 0 3px #b98cff}
 .sticker.golden{background:linear-gradient(135deg,#fff1b0,#f0b84a);box-shadow:0 0 0 3px #d4a017,0 0 16px #ffd76a}
@@ -102,6 +115,49 @@ h2{margin:0;font-size:24px;font-weight:900;letter-spacing:-.01em;line-height:1.1
 .badge .b{font-size:38px;line-height:1}
 .badge .nm{font-weight:800;font-size:14px;line-height:1.2}
 .badge.off{opacity:.4;filter:grayscale(1)}
+/* v4 collections: velvet display cases with spotlights and gold shelves; each item is a glossy tile that sways in 3D, with a light glint,
+   twinkles and a rarity glow. Locked items are silhouettes. Tap one to inspect it. Only transform/opacity animate. */
+#albumGrid,#badgeGrid{position:relative;padding:14px 12px 10px;border-radius:24px;overflow:hidden;
+ background:radial-gradient(ellipse 80% 40% at 50% -6%,rgba(255,240,200,.45),transparent 70%),linear-gradient(180deg,#8a1f6f,#4a1340 70%,#3a0f33);
+ border:4px solid #f0c75e;box-shadow:inset 0 0 0 3px rgba(255,255,255,.15),inset 0 -14px 24px rgba(0,0,0,.3),0 8px 18px rgba(120,20,80,.35)}
+#albumGrid::after,#badgeGrid::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(112deg,rgba(255,255,255,.14) 0 9%,transparent 9% 27%,rgba(255,255,255,.07) 27% 31%,transparent 31%)}
+#albumGrid{row-gap:22px}#badgeGrid{row-gap:24px}
+.gem3{appearance:none;border:0;font:inherit;color:inherit;cursor:pointer;perspective:300px;overflow:visible;-webkit-tap-highlight-color:transparent;--glow:rgba(255,255,255,.6)}
+.gem3::before{content:"";position:absolute;left:-8px;right:-8px;bottom:-12px;height:9px;background:linear-gradient(180deg,#ffe9a6,#d3a03c 45%,#8a5d17);box-shadow:0 4px 6px rgba(0,0,0,.4);z-index:0}
+.gem3 .tile3{position:relative;z-index:1;width:100%;height:100%;display:grid;place-items:center;border-radius:inherit;background:inherit;box-shadow:inherit;overflow:hidden;
+ animation:sway3 4.8s ease-in-out infinite;animation-delay:var(--dl,0s)}
+.gem3 .tile3::after{content:"";position:absolute;top:-20%;bottom:-20%;width:40%;left:-70%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.8),transparent);transform:skewX(-18deg);animation:glint3 4s ease-in-out infinite;animation-delay:var(--dl,0s)}
+@keyframes sway3{0%,100%{transform:rotateY(-24deg) translateY(0)}50%{transform:rotateY(24deg) translateY(-3px)}}
+@keyframes glint3{0%,60%{left:-70%}90%,100%{left:130%}}
+.gem3 .glow3{position:absolute;inset:-14px;border-radius:50%;background:radial-gradient(circle,var(--glow),transparent 68%);z-index:0;pointer-events:none}
+.sticker.gem3{font-size:38px;background:linear-gradient(145deg,#fff,#ffe3f3);box-shadow:0 0 0 3px #e3e8f5}
+.sticker.gem3.rare{--glow:rgba(185,140,255,.85);background:linear-gradient(135deg,#efe4ff,#fff);box-shadow:0 0 0 3px #b98cff}
+.sticker.gem3.golden{--glow:rgba(255,210,80,.95);background:linear-gradient(135deg,#fff6c6,#f0b84a);box-shadow:0 0 0 3px #d4a017,0 0 16px #ffd76a}
+.tw3{position:absolute;z-index:2;width:11px;height:11px;background:#fff;clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%);opacity:0;pointer-events:none;animation:tw3 2.6s ease-in-out infinite}
+.tw3.a{right:-2px;top:-2px;animation-delay:calc(var(--dl,0s) + .5s)}.tw3.b{left:0;bottom:4px;width:8px;height:8px;background:#fff27a;animation-delay:calc(var(--dl,0s) + 1.6s)}
+@keyframes tw3{0%,100%{opacity:0;transform:scale(.2)}50%{opacity:1;transform:scale(1) rotate(45deg)}}
+.sticker.gem3.none{opacity:1;background:rgba(255,255,255,.12);box-shadow:0 0 0 2px rgba(255,255,255,.4)}
+.gem3.none .tile3,.badge.gem3.off .tile3{animation:none}.gem3.none .tile3::after,.badge.gem3.off .tile3::after,.gem3.none .tw3,.badge.gem3.off .tw3,.gem3.none .glow3,.badge.gem3.off .glow3{display:none}
+.sil{filter:brightness(0);opacity:.38}
+.gem3 .lk{position:absolute;right:3px;bottom:3px;z-index:2;color:#ffd1ec}.gem3 .lk .ic{width:15px;height:15px}
+.badge.gem3{background:none;box-shadow:none;border:0;padding:0;--glow:rgba(255,215,120,.85)}
+.badge.gem3 .tile3{width:76px;height:76px;flex:none;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#ffe1f1 45%,#f0b84a);box-shadow:0 0 0 4px #f0c75e,0 4px 0 #b8760a}
+.badge.gem3 .b{font-size:40px}
+.badge.gem3 .nm{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);margin-top:16px}
+.modal .insp3 .btn{flex:0 0 auto;padding:12px 28px}
+.insp3 .big.sil{filter:brightness(0);opacity:.35}
+.badge.gem3.off{opacity:1;filter:none}.badge.gem3.off .tile3{background:rgba(255,255,255,.14);box-shadow:0 0 0 3px rgba(255,255,255,.4)}.badge.gem3.off .nm{opacity:.75}
+.badge.gem3::before{bottom:auto;top:84px}
+.insp3{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.insp3 .stage{position:relative;width:min(48vmin,200px);height:min(48vmin,200px);display:grid;place-items:center;perspective:600px}
+.insp3 .rays{position:absolute;inset:-25%;border-radius:50%;background:repeating-conic-gradient(var(--glow) 0 10deg,transparent 10deg 30deg);-webkit-mask:radial-gradient(circle,#000 30%,transparent 70%);mask:radial-gradient(circle,#000 30%,transparent 70%);animation:spin3 8s linear infinite}
+@keyframes spin3{to{transform:rotate(360deg)}}
+.insp3 .big{position:relative;font-size:min(26vmin,110px);line-height:1;animation:float3 5s ease-in-out infinite;filter:drop-shadow(0 6px 10px rgba(0,0,0,.25))}
+@keyframes float3{0%,100%{transform:rotateY(-25deg) translateY(0)}50%{transform:rotateY(25deg) translateY(-8px)}}
+.insp3 .rar{display:inline-block;font-weight:900;padding:3px 14px;border-radius:99px;color:#fff;background:linear-gradient(90deg,#a7b0c8,#dfe4f0,#a7b0c8)}
+.insp3 .rar.r{background:linear-gradient(90deg,#b98cff,#ff7ac8)}.insp3 .rar.g{background:linear-gradient(90deg,#d4a017,#ffe082,#d4a017);color:#5a3a00}.insp3 .rar.l{background:#a58aa0}
+@media (prefers-reduced-motion:reduce){.gem3 .tile3,.gem3 .tile3::after,.tw3,.insp3 .rays,.insp3 .big{animation:none}.tw3{opacity:.8}}
+body.calm .gem3 .tile3,body.calm .tw3,body.calm .insp3 .rays{animation:none}
 /* settings: labelled rows in a responsive grid */
 .set-grid{width:100%;max-width:820px;display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:var(--s3)}
 .set{display:flex;flex-direction:column;gap:var(--s2);padding:var(--s3) var(--s4)}
@@ -233,6 +289,7 @@ body.calm .big-stars span.won{animation:pop .3s backwards}
   .menu{flex:1;max-width:none;grid-template-columns:repeat(3,1fr);gap:10px;margin:0}
   .menu .btn{min-height:52px;font-size:16px}
   .menu .btn.wide{min-height:60px;font-size:22px}
+  .menu .btn.wide2{grid-column:span 2}
   .song{min-height:84px}
   .modal>.card{max-width:640px}
   #mPause .stack,#mOut .stack{display:grid;grid-template-columns:1.4fr 1fr 1fr}
@@ -249,7 +306,7 @@ body.calm .big-stars span.won{animation:pop .3s backwards}
   .res-actions #resPack{grid-column:1/-1;min-height:44px}
   .tabs .btn{min-height:48px}
 }
-@media (orientation:landscape) and (max-height:560px) and (max-width:700px){.menu{grid-template-columns:1fr 1fr}}
+@media (orientation:landscape) and (max-height:560px) and (max-width:700px){.menu{grid-template-columns:1fr 1fr}.menu .btn.wide2{grid-column:auto}}
 /* very small heights: drop the mascot on the results card */
 @media (max-height:440px){#resMascot{display:none}}
 </style>
@@ -269,6 +326,7 @@ body.calm .big-stars span.won{animation:pop .3s backwards}
       <button class="btn silver" data-go="album"><i data-ic="album" class="c-lilac"></i><span data-t="album">Stickers</span></button>
       <button class="btn silver" data-go="badges"><i data-ic="medal" class="c-gold"></i><span data-t="badges">Badges</span></button>
       <button class="btn silver" data-go="closet"><i data-ic="bow" class="c-pink"></i><span data-t="closet">Gigi's closet</span></button>
+      <button class="btn gold" id="recBtn"><i data-ic="trophy"></i><span data-t="records">Records</span></button>
       <button class="btn gold wide2" data-go="worlds"><i data-ic="rainbow"></i><span data-t="worlds">Worlds</span></button>
     </div>
   </div>
@@ -276,7 +334,7 @@ body.calm .big-stars span.won{animation:pop .3s backwards}
 
 <section class="screen" id="songs">
   <div class="top"><a class="fzHome" href="../home/" aria-label="Home: Our Fun Zone" title="Home">🏠</a><button class="btn icon silver" data-go="home" aria-label="Back"><i data-ic="back"></i></button><span class="pill"><i data-ic="star" class="c-gold"></i><span id="sStars">0</span></span><span class="sp"></span><button class="btn small" data-go="add"><i data-ic="addsong"></i><span data-t="addSong">Add my song</span></button></div>
-  <div class="row"><div class="seg" id="diffSeg"><button data-d="easy" data-t="easy">Easy</button><button data-d="normal" data-t="normal">Normal</button><button data-d="hard" data-t="hard">Hard</button></div>
+  <div class="row"><div class="seg" id="diffSeg"><button data-d="easy" data-t="easy">Easy</button><button data-d="normal" data-t="normal">Normal</button><button data-d="hard" data-t="hard">Hard</button><button data-d="veryhard" data-t="veryhard" class="vh">Very Hard</button></div>
     <div class="seg"><button id="practiceBtn"><i data-ic="heart"></i><span data-t="practice">Practice</span></button></div></div>
   <div id="nextUnlock"></div>
   <div class="list" id="songList"></div>
@@ -364,10 +422,10 @@ body.calm .big-stars span.won{animation:pop .3s backwards}
 </section>
 
 <div id="game"><canvas id="bgcv"></canvas><div class="fxl" id="fxEdge"></div><canvas id="cv"></canvas><div class="fxl" id="fxFlash"></div><div class="fxl" id="fxRainbow"></div><div id="progRail"></div><div id="prog"></div><div id="progGem"></div>
-  <div id="hud"><button class="hudbtn" id="pauseBtn" aria-label="Pause"><i data-ic="pause"></i></button><span class="pill" id="hHearts"></span><button class="hudbtn hidden" id="skipTut"><i data-ic="skip"></i><span data-t="skip">Skip</span></button><span class="sp"></span><span class="pill" id="hScore">0</span><a class="fzHome" href="../home/" aria-label="Home: Our Fun Zone" title="Home">🏠</a></div></div>
+  <div id="hud"><button class="hudbtn" id="pauseBtn" aria-label="Pause"><i data-ic="pause"></i></button><span class="pill" id="hHearts"></span><button class="hudbtn hidden" id="skipTut"><i data-ic="skip"></i><span data-t="skip">Skip</span></button><span class="sp"></span><span class="pill" id="hScore">0</span></div></div>
 
 <div class="modal" id="mPause"><div class="card"><h2 data-t="paused">Paused</h2><div id="legend"></div>
-  <div class="stack"><button class="btn" id="resumeBtn"><i data-ic="play"></i><span data-t="resume">Keep playing</span></button><button class="btn silver" id="restartBtn"><i data-ic="replay"></i><span data-t="restart">Restart</span></button><button class="btn silver" id="quitBtn"><i data-ic="flag"></i><span data-t="quit">Stop song</span></button></div></div></div>
+  <div class="stack"><button class="btn" id="resumeBtn"><i data-ic="play"></i><span data-t="resume">Keep playing</span></button><button class="btn silver" id="restartBtn"><i data-ic="replay"></i><span data-t="restart">Restart</span></button><button class="btn silver" id="quitBtn"><i data-ic="flag"></i><span data-t="quit">Stop song</span></button><a class="btn silver" id="pauseHome" href="../home/" aria-label="Home: Our Fun Zone"><i data-ic="home"></i><span data-t="goHome">Home</span></a></div></div></div>
 <div class="modal" id="mOut"><div class="card"><canvas id="mascotOut" width="160" height="130" style="width:140px;height:114px"></canvas><h2 data-t="outHearts">Out of hearts!</h2><p class="note" data-t="outMsg">You're doing great. Want to keep going?</p>
   <div class="stack"><button class="btn" id="contBtn"><i data-ic="heart"></i><span data-t="cont">Keep going (practice)</span></button><button class="btn silver" id="outRetry"><i data-ic="replay"></i><span data-t="restart">Restart</span></button><button class="btn silver" id="outEnd"><i data-ic="flag"></i><span data-t="finish">Finish</span></button></div></div></div>
 <div class="modal" id="mLoad"><div class="card"><h2 data-t="getReady">Get ready!</h2><p id="loadMsg" class="note">Loading…</p><div class="bar" style="width:100%"><i id="loadBar"></i></div></div></div>
@@ -381,5 +439,6 @@ body.calm .big-stars span.won{animation:pop .3s backwards}
 <script src="./audio.js"></script>
 <script src="./analyze.js"></script>
 <script src="./art.js"></script>
+<script src="./records.js"></script>
 <script src="./app.js"></script>
 </body></html>

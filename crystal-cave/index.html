@@ -143,6 +143,7 @@ h1,h2,h3{margin:0}
 .door .q{position:absolute;left:0;right:0;top:44%;transform:translateY(-50%);text-align:center;font-weight:900;color:#fff;white-space:nowrap;
  text-shadow:0 3px 0 #4a1f8f,0 0 10px #4a1f8f,0 0 3px #4a1f8f;line-height:1;transition:opacity .2s}
 .door.boss .q{top:58%}
+.door>.qSay{position:absolute;right:2%;bottom:3%;width:46px;height:46px;z-index:2}.door>.qSay svg{width:28px;height:28px}.door.broken>.qSay{visibility:hidden}
 .door .q .eq{display:block;font-size:.62em;margin-top:.18em}
 .door .q .eq b{display:inline-block;min-width:1.6em;border-bottom:4px dashed rgba(255,255,255,.8)}
 .door .tag{position:absolute;left:50%;top:15%;transform:translateX(-50%);font-size:14px;background:#ffe873;color:#5a2a00;padding:3px 10px;border-radius:12px;white-space:nowrap;font-weight:900;z-index:2}
@@ -253,6 +254,44 @@ h1,h2,h3{margin:0}
 .tile .c{font-size:20px;font-weight:900;color:#ffe873;text-shadow:0 2px 0 var(--ink)}
 .tile .c small{font-size:13px;color:#fff}
 .tile.no{opacity:.55}
+/* v4 backpack display cases: velvet cases with a spotlight, glass glare and gold shelves; every gem sways in 3D with a shimmer and twinkles */
+.case{position:relative;border-radius:22px;padding:14px 10px 8px;overflow:hidden;
+ background:radial-gradient(ellipse 75% 45% at 50% -5%,rgba(255,236,190,.32),transparent 70%),linear-gradient(180deg,#43197a,#28104f 65%,#1d0b40);
+ border:4px solid #e2bd5f;box-shadow:inset 0 0 0 3px rgba(255,255,255,.1),inset 0 -14px 24px rgba(0,0,0,.35),0 8px 18px rgba(0,0,0,.35)}
+.case::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;background:linear-gradient(112deg,rgba(255,255,255,.13) 0 9%,transparent 9% 27%,rgba(255,255,255,.07) 27% 31%,transparent 31%)}
+.case .tiles{gap:16px 0;grid-template-columns:repeat(auto-fill,minmax(98px,1fr))}
+.tile.gT{background:none;border:0;border-radius:0;padding:2px 0 0;gap:3px;cursor:pointer;opacity:1;-webkit-tap-highlight-color:transparent}
+.gT .stand{position:relative;width:84px;height:80px;display:grid;place-items:center;perspective:320px}
+.gT .stand::before{content:"";position:absolute;left:50%;top:44%;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:50%;background:radial-gradient(circle,var(--glow) 0%,transparent 66%)}
+.gT .stand>svg,.gT .stand>.tr{position:relative;width:62px;height:62px;animation:sway 4.6s ease-in-out infinite;animation-delay:var(--dl,0s)}
+.gT .stand>.tr svg{width:100%;height:100%}
+@keyframes sway{0%,100%{transform:rotateY(-30deg) translateY(0)}50%{transform:rotateY(30deg) translateY(-5px)}}
+.gT .gl{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-31px 0 0 -29px;border-radius:50%;overflow:hidden;pointer-events:none}
+.gT .gl::after{content:"";position:absolute;top:-20%;bottom:-20%;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.75),transparent);transform:skewX(-18deg);animation:glint 3.8s ease-in-out infinite;animation-delay:var(--dl,0s)}
+@keyframes glint{0%,55%{left:-60%}85%,100%{left:130%}}
+.tw{position:absolute;width:12px;height:12px;background:#fff;clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%);animation:tw 2.4s ease-in-out infinite;opacity:0;pointer-events:none}
+.tw.a{right:6px;top:6px;animation-delay:calc(var(--dl,0s) + .4s)}.tw.b{left:8px;bottom:14px;width:9px;height:9px;animation-delay:calc(var(--dl,0s) + 1.5s);background:#fff27a}
+@keyframes tw{0%,100%{opacity:0;transform:scale(.2) rotate(0)}50%{opacity:1;transform:scale(1) rotate(45deg)}}
+.gT .shelf{align-self:stretch;height:11px;margin-top:-6px;background:linear-gradient(180deg,#ffe9a6,#d3a03c 45%,#8a5d17);box-shadow:0 5px 7px rgba(0,0,0,.45)}
+.gT .n{font-size:14px;line-height:1.1;padding:0 3px;margin-top:3px}
+.gT .c{font-size:18px}
+.gT .lkH{font-size:12px;line-height:1.15;opacity:.85;padding:0 4px}
+.gT.no .stand>svg,.gT.no .stand>.tr{animation:none;transform:none;opacity:.75}.gT.no .gl,.gT.no .tw{display:none}.gT.no .stand::before{background:radial-gradient(circle,rgba(255,255,255,.12),transparent 66%)}
+.gT:active .stand{transform:scale(.92)}
+[data-r=cave]{--glow:rgba(220,230,255,.55)}[data-r=rare]{--glow:rgba(255,120,220,.75)}[data-r=treasure]{--glow:rgba(255,214,90,.8)}[data-r=legend]{--glow:rgba(255,170,250,.9)}
+.gT[data-r=legend] .stand::before{background:conic-gradient(from 0deg,rgba(255,90,140,.55),rgba(255,220,90,.55),rgba(120,240,200,.55),rgba(140,150,255,.55),rgba(255,90,140,.55));-webkit-mask:radial-gradient(circle,#000 25%,transparent 66%);mask:radial-gradient(circle,#000 25%,transparent 66%);animation:spin 8s linear infinite}
+/* tap to inspect */
+.card.insp{gap:8px}
+.insp .art{width:min(44vmin,210px);height:min(44vmin,210px);perspective:600px}
+.insp .art>svg,.insp .art>.tr{position:relative;width:78%;height:78%;animation:spinY 7s linear infinite;filter:drop-shadow(0 0 14px var(--glow))}
+.insp .art>.tr svg{width:100%;height:100%}
+@keyframes spinY{0%{transform:rotateY(0) translateY(0)}50%{transform:rotateY(180deg) translateY(-6px)}100%{transform:rotateY(360deg) translateY(0)}}
+.insp .art .tw{width:18px;height:18px}.insp .art .tw.a{right:12%;top:10%}.insp .art .tw.b{left:12%;bottom:18%;width:14px;height:14px}
+.insp .rar{display:inline-block;font-weight:900;font-size:16px;padding:3px 14px;border-radius:99px;color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.35)}
+.rar.cave{background:linear-gradient(90deg,#9aa6c9,#e9edf6,#9aa6c9)}.rar.rare{background:linear-gradient(90deg,#ff5fb4,#c56bff)}.rar.treasure{background:linear-gradient(90deg,#ffb300,#ffe082,#ffb300)}
+.rar.legend{background:linear-gradient(90deg,#ff5a8a,#ffd84a,#5ef0e6,#b98cff)}.rar.lock{background:#6d6497}
+.insp .how{font-size:clamp(15px,3.4vmin,19px);opacity:.92}
+@media (prefers-reduced-motion:reduce){.gT .stand>svg,.gT .stand>.tr,.insp .art>svg,.insp .art>.tr,.gT .gl::after,.tw,.gT[data-r=legend] .stand::before{animation:none}.tw{opacity:.8}}
 .summary{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
 .summary .s{display:flex;align-items:center;gap:6px;background:rgba(30,10,70,.45);border:3px solid rgba(255,255,255,.4);border-radius:20px;padding:6px 12px;font-size:18px;font-weight:900}
 .summary .s svg{width:38px;height:38px}
@@ -351,7 +390,8 @@ h1,h2,h3{margin:0}
 .cBar{display:block;height:14px;border-radius:7px;background:rgba(30,10,70,.35);border:2px solid rgba(255,255,255,.7);overflow:hidden}
 .cBar i{display:block;height:100%;background:linear-gradient(90deg,#fff6c4,#ffd84a)}
 .cSt{display:flex;align-items:center;gap:4px;font-size:17px;font-weight:900;text-shadow:0 1px 0 var(--ink)}.cSt svg{width:24px;height:24px}
-.cNew{position:absolute;top:-12px;right:-6px;background:#ff3d7a;border:3px solid #fff;border-radius:14px;padding:2px 10px;font-weight:900;font-size:15px;animation:pulse 1.2s ease-in-out infinite}
+.cNew{position:absolute;top:-12px;left:-6px; /* QA: over the cave picture, never over the cave name */background:#ff3d7a;border:3px solid #fff;border-radius:14px;padding:2px 10px;font-weight:900;font-size:15px;animation:pulse 1.2s ease-in-out infinite}
+.scroll:has(.caves){padding-bottom:calc(var(--sb,0px) + 80px)} /* QA fix: the last cave card can scroll clear of the grown-ups gear */
 .pGear{position:fixed;z-index:8;right:calc(var(--sr) + 12px);bottom:calc(var(--sb) + 12px);width:56px;height:56px;border-radius:50%;border:0;padding:4px;cursor:pointer;touch-action:none;
  background:conic-gradient(#fff calc(var(--p,0)*360deg),rgba(210,218,235,.4) 0);box-shadow:0 3px 8px rgba(0,0,0,.35);-webkit-touch-callout:none}
 .pGear span{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:linear-gradient(#f4f6fb,#98a3bc);pointer-events:none}
@@ -440,6 +480,7 @@ h1,h2,h3{margin:0}
 .stPic .gone:after{content:"";position:absolute;left:0;right:0;top:46%;height:12%;background:#ff4d7d;border-radius:3px;transform:rotate(-30deg)}
 .stPic .grp{display:inline-grid;grid-template-columns:repeat(var(--c,5),auto);border:2px dashed #b48cff;border-radius:12px;padding:1px 3px;font-size:.78em;line-height:1.05;background:rgba(180,140,255,.12)}
 @media (max-width:480px){#mine .panelTitle,#words .panelTitle{display:none}.secName{font-size:15px}}
+@media (min-width:401px) and (max-width:440px){.topbar{gap:6px}.topbar .ibtn{width:52px;height:52px;min-width:52px;min-height:52px}.topbar .ibtn svg{width:30px;height:30px}} /* v4b + QA: every topbar fits the Fold cover (412) and 412 phones */
 @media (max-width:400px){.topbar{gap:5px}.topbar .ibtn{width:48px;height:48px;min-width:48px;min-height:48px}.topbar .ibtn svg{width:28px;height:28px}
  .streak{padding:0 6px 0 4px;gap:3px}.streak .sIcon{width:30px;height:30px}.streak .sNext{width:26px;height:32px}.streak .sNum{font-size:24px;min-width:18px}.streak .sBar{min-width:8px}
  .mapStats{font-size:18px;padding:2px 10px 2px 4px;gap:4px}.mapStats svg{width:28px;height:28px}.streak{height:52px}
@@ -484,6 +525,9 @@ h1,h2,h3{margin:0}
 .slots{display:flex;gap:6px;justify-content:center;align-items:center;width:100%}
 .slotB{appearance:none;flex:0 1 58px;min-width:0;height:clamp(56px,10vmin,72px);border-radius:14px;border:3px dashed rgba(255,242,122,.85);background:rgba(255,242,122,.12);
  color:#fff;font-family:inherit;font-size:clamp(28px,6vmin,42px);font-weight:900;padding:0;text-shadow:0 2px 0 var(--ink);cursor:pointer;touch-action:manipulation}
+.spell.won .slotB{animation:lHop .55s calc(var(--i)*70ms) both}
+@keyframes lHop{0%{transform:none}35%{transform:translateY(-14px) scale(1.15) rotate(-6deg);box-shadow:0 0 18px #fff27a}70%{transform:translateY(2px) scale(.96)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.spell.won .slotB{animation:none}}
 .slots.many .slotB{font-size:clamp(20px,5vmin,28px);border-radius:10px;border-width:2px}
 .slotB .gh{opacity:.38}
 .slotB.full{border-style:solid;background:rgba(255,255,255,.22)}
@@ -532,6 +576,7 @@ h1,h2,h3{margin:0}
   <button class="btn ibtn purple" id="eHome" aria-label="Back"></button>
   <div class="panelTitle">Mine Entrance</div>
   <div class="mapStats" id="eStats"></div>
+  <button class="btn ibtn gold" id="eRec" aria-label="Records"></button>
   <button class="btn ibtn teal" id="eBag" aria-label="Backpack"></button>
   <button class="btn ibtn blue" id="eSet" aria-label="Settings"></button>
  </div>
@@ -604,6 +649,183 @@ h1,h2,h3{margin:0}
 <div id="cele"></div>
 <div id="banner"></div>
 <noscript><div style="position:fixed;inset:0;display:grid;place-items:center;font:bold 24px sans-serif">Crystal Cave Quest needs JavaScript turned on.</div></noscript>
+<script id="funrecords">
+// ===== Fun Zone records (shared): score history, top-3 podiums, a Records screen and the NEW RECORD party =====
+// The same block lives in Sky Glider (index.html + SkyGlider.html), Crystal Cave (crystal-cave/index.html) and Gem Tiles (tiles/records.js).
+// Source of truth: dev/records/funrecords.js. After editing it, run dev/records/sync.py so every copy is identical.
+// Each app keeps its records under its OWN NEW localStorage key (o.key); the game's existing save is never read or written here.
+// Dates and times are shown in America/New_York (ET).
+window.FunRecords = function (o) {
+  const KEEP_RUNS = 200, CHEERS = ['New record! You\'re amazing!', 'Wow! That\'s your best score ever!', 'Hooray! A brand new high score!',
+    'You did it! A new record! Super star!', 'Sparkly! You beat your own record!', 'Incredible! New high score!'];
+  const RM = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) || (o.calm && o.calm());
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const isObj = v => !!v && typeof v === 'object' && !Array.isArray(v);
+  // ---------- storage (additive, never destroys: an unreadable store is copied to <key>.bad first) ----------
+  let D = { v: 1, runs: [], top: {}, best: null };
+  try { const raw = localStorage.getItem(o.key); if (raw) { const d = JSON.parse(raw); if (isObj(d)) { D.runs = Array.isArray(d.runs) ? d.runs.filter(isObj) : []; D.top = isObj(d.top) ? d.top : {}; D.best = isObj(d.best) ? d.best : null; for (const k in d) if (!(k in D)) D[k] = d[k]; } } }
+  catch (e) { try { const raw = localStorage.getItem(o.key); if (raw != null && localStorage.getItem(o.key + '.bad') == null) localStorage.setItem(o.key + '.bad', raw); } catch (_) { } }
+  const persist = () => { try { localStorage.setItem(o.key, JSON.stringify(D)); } catch (e) { } };
+  const better = o.better || ((a, b) => a.s > b.s || (a.s === b.s && a.t < b.t));
+  const overall = o.overall || (e => e.s);
+  // ---------- dates in ET ----------
+  let FMT = null; try { FMT = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }); } catch (e) { }
+  const when = t => !t ? 'Before records' : (FMT ? FMT.format(new Date(t)).replace(/, (\d{4}),/, ' $1 ·') + ' ET' : new Date(t).toLocaleString());
+  // ---------- recording ----------
+  // e = {c: category id, n: category name, g: group (cave / difficulty / world), s: score for ranking, st: stars, x: {extra shown values}}
+  function record(e) {
+    e = Object.assign({ t: Date.now() }, e); D.runs.push(e); if (D.runs.length > KEEP_RUNS) D.runs.splice(0, D.runs.length - KEEP_RUNS);
+    const list = Array.isArray(D.top[e.c]) ? D.top[e.c].slice() : [], prev = list[0] || null;
+    let at = list.findIndex(x => better(e, x)); if (at < 0) at = list.length; list.splice(at, 0, e); D.top[e.c] = list.slice(0, 3);
+    const rank = at < 3 ? at : -1, prevBest = D.best, newOverall = !prevBest || overall(e) > overall(prevBest); if (newOverall) D.best = e;
+    persist();
+    return { rank, isNew: rank === 0 && !!prev, newOverall: newOverall && !!prevBest, prev, first: !prev };
+  }
+  // a past best from before records existed (shown as "Before records"); only fills an empty podium
+  function seed(e) { if (Array.isArray(D.top[e.c]) && D.top[e.c].length) return; e = Object.assign({ t: 0 }, e); D.top[e.c] = [e]; if (!D.best || overall(e) > overall(D.best)) D.best = e; persist(); }
+  // ---------- styles (injected once) ----------
+  if (!document.getElementById('frCss')) { const st = document.createElement('style'); st.id = 'frCss'; st.textContent = `
+.frRoot{position:fixed;inset:0;z-index:9000;display:flex;flex-direction:column;color:#fff;font-family:inherit;overscroll-behavior:contain;
+ background:radial-gradient(ellipse 90% 45% at 50% -8%,rgba(255,236,190,.4),transparent 70%),linear-gradient(170deg,#5a1a86,#2a0f58 60%,#1b0a3d);
+ padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));animation:frIn .25s ease-out}
+@keyframes frIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+.frTop{display:flex;align-items:center;gap:10px;flex:none;max-width:860px;width:100%;margin:0 auto}
+.frTop h1{flex:1;margin:0;font-size:clamp(24px,6vmin,38px);line-height:1;text-align:center;background:linear-gradient(90deg,#fff6c4,#f5c542,#fff,#e8e8f2,#f5c542);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:frShine 5s linear infinite;filter:drop-shadow(0 2px 0 #4a1066)}
+@keyframes frShine{to{background-position:300% 0}}
+.frX{flex:none;width:52px;height:52px;border-radius:50%;border:3px solid #f0c75e;background:linear-gradient(145deg,#fff,#ffd3ec);font-size:24px;font-weight:900;color:#7a1066;cursor:pointer;box-shadow:0 3px 0 #b8760a;touch-action:manipulation}
+.frX:active{transform:translateY(2px)}
+.frBody{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;max-width:860px;width:100%;margin:8px auto 0;padding-bottom:16px}
+.frBest{position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;border-radius:22px;padding:12px 14px;margin:6px 0 12px;background:linear-gradient(135deg,#fff6c4,#f5c542 55%,#ffb3e0);color:#4a1340;box-shadow:0 0 0 3px #fff,0 6px 18px rgba(0,0,0,.35)}
+.frBest::after{content:"";position:absolute;top:-20%;bottom:-20%;width:30%;left:-40%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.8),transparent);transform:skewX(-18deg);animation:frGl 4s ease-in-out infinite}
+@keyframes frGl{0%,55%{left:-40%}90%,100%{left:120%}}
+.frBest .cup{font-size:46px;line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
+.frBest b{display:block;font-size:clamp(26px,7vmin,40px);line-height:1}.frBest small{display:block;font-weight:800;font-size:14px;opacity:.85}
+.frChips{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 10px}
+.frChips button{font:inherit;font-weight:800;font-size:15px;border:2px solid rgba(255,255,255,.55);border-radius:99px;padding:6px 14px;background:rgba(255,255,255,.12);color:#fff;cursor:pointer;touch-action:manipulation}
+.frChips button.on{background:linear-gradient(180deg,#fff6c4,#f5c542);color:#4a1340;border-color:#fff}
+.frH{font-size:20px;font-weight:900;margin:14px 2px 8px;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.frGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.frCard{border-radius:20px;padding:10px 10px 8px;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06));border:2px solid rgba(255,255,255,.3)}
+.frCard h3{margin:0 0 4px;font-size:16px;line-height:1.15;text-align:center}
+.frPod{display:grid;grid-template-columns:1fr 1.1fr 1fr;align-items:end;gap:6px}
+.frStep{display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0}
+.frMed{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:19px;color:#4a1340;border:3px solid #fff;box-shadow:0 0 12px var(--g);background:radial-gradient(circle at 35% 30%,#fff,var(--m) 60%)}
+.frStep .sc{font-weight:900;font-size:17px;line-height:1.1;margin-top:3px;word-break:break-word}
+.frStep .dt{font-size:11px;opacity:.8;line-height:1.15}
+.frStep .st{font-size:13px;letter-spacing:-1px;color:#ffe873;min-height:1em}
+.frBlock{width:100%;border-radius:10px 10px 4px 4px;margin-top:4px;background:linear-gradient(180deg,var(--m),var(--d));box-shadow:inset 0 2px 0 rgba(255,255,255,.6)}
+.frStep.g{--m:#ffd84a;--d:#c99014;--g:rgba(255,216,74,.9)}.frStep.g .frBlock{height:46px}
+.frStep.s{--m:#e9edf6;--d:#9aa6c9;--g:rgba(220,230,255,.8)}.frStep.s .frBlock{height:32px}
+.frStep.b{--m:#f0a868;--d:#a65d24;--g:rgba(240,168,104,.8)}.frStep.b .frBlock{height:22px}
+.frStep.e{opacity:.35}
+.frStep.g .frMed{animation:frBob 2.4s ease-in-out infinite}
+@keyframes frBob{50%{transform:translateY(-4px) scale(1.06)}}
+.frList{display:flex;flex-direction:column;gap:6px}
+.frRow{display:flex;align-items:center;gap:10px;border-radius:14px;padding:7px 10px;background:rgba(255,255,255,.1)}
+.frRow .w{flex:none;width:7.5em;font-size:12px;line-height:1.2;opacity:.85}
+.frRow .n{flex:1;min-width:0;font-weight:800;font-size:14px;line-height:1.2}
+.frRow .v{flex:none;font-weight:900;font-size:16px;text-align:right}.frRow .v i{font-style:normal;color:#ffe873;font-size:12px;display:block;letter-spacing:-1px}
+.frEmpty{text-align:center;font-size:18px;font-weight:800;opacity:.9;padding:30px 10px}
+.frParty{position:fixed;inset:0;z-index:9500;overflow:hidden;display:grid;place-items:center;cursor:pointer;background:radial-gradient(circle at 50% 45%,rgba(60,12,90,.88),rgba(12,0,30,.95));animation:frIn .2s ease-out}
+.frParty canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.frWave{position:absolute;top:-10%;bottom:-10%;width:45%;left:-60%;pointer-events:none;background:linear-gradient(100deg,transparent,rgba(255,240,200,.15) 30%,rgba(255,255,255,.65) 50%,rgba(255,200,240,.15) 70%,transparent);transform:skewX(-14deg);animation:frWave 1.5s ease-in-out .2s 2 both}
+@keyframes frWave{from{left:-60%}to{left:120%}}
+.frBan{position:relative;text-align:center;padding:0 16px;animation:frPop .6s cubic-bezier(.2,1.6,.4,1) both}
+.frBan::before{content:"";position:absolute;left:50%;top:50%;width:min(130vw,900px);height:min(90vw,560px);transform:translate(-50%,-50%);z-index:-1;pointer-events:none;background:radial-gradient(ellipse,rgba(255,216,74,.4),rgba(255,106,213,.18) 40%,transparent 68%)}
+@keyframes frPop{from{transform:scale(.2) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
+.frBan h2{margin:0;font-size:clamp(44px,13vmin,110px);line-height:.95;font-weight:900;letter-spacing:1px;color:#fff6c4;
+ text-shadow:0 0 18px #ffd84a,0 0 40px #ff6ad5,0 4px 0 #b8760a,0 7px 0 #7a1066;animation:frGlow 1.1s ease-in-out infinite alternate}
+@keyframes frGlow{from{text-shadow:0 0 12px #ffd84a,0 0 28px #ff6ad5,0 4px 0 #b8760a,0 7px 0 #7a1066}to{text-shadow:0 0 26px #fff27a,0 0 60px #ff6ad5,0 4px 0 #b8760a,0 7px 0 #7a1066}}
+.frBan .sc{margin-top:12px;font-size:clamp(30px,8vmin,60px);font-weight:900;color:#fff;text-shadow:0 3px 0 #7a1066,0 0 16px rgba(255,255,255,.6)}
+.frBan .nm{margin-top:6px;font-size:clamp(17px,4vmin,26px);font-weight:800;color:#ffd1ec;text-shadow:0 2px 0 rgba(0,0,0,.4)}
+.frBan .tap{display:inline-block;margin-top:14px;font-size:15px;font-weight:800;padding:5px 14px;border-radius:99px;background:rgba(40,8,70,.7);color:rgba(255,255,255,.9)}
+@media (prefers-reduced-motion:reduce){.frRoot,.frParty,.frBan,.frBan h2,.frWave,.frStep.g .frMed,.frBest::after,.frTop h1{animation:none}.frWave{display:none}}`; document.head.appendChild(st); }
+  // ---------- Records screen ----------
+  let root = null, grp = 'all', onClose = null;
+  const starStr = n => n == null ? '' : '★'.repeat(Math.max(0, Math.min(3, n | 0))) + '☆'.repeat(Math.max(0, 3 - (n | 0)));
+  function step(e, cls, num) {
+    if (!e) return `<div class="frStep ${cls} e"><div class="frMed">${num}</div><div class="sc">–</div><div class="dt">&nbsp;</div><div class="frBlock"></div></div>`;
+    return `<div class="frStep ${cls}"><div class="frMed">${num}</div><div class="sc">${o.fmt(e)}</div><div class="st">${starStr(e.st)}</div><div class="dt">${esc(o.sub ? o.sub(e) : '')}</div><div class="dt">${esc(when(e.t))}</div><div class="frBlock"></div></div>`;
+  }
+  function render() {
+    const cats = Object.keys(D.top).filter(c => Array.isArray(D.top[c]) && D.top[c].length), groups = [];
+    cats.forEach(c => { const g = D.top[c][0].g; if (g && groups.indexOf(g) < 0) groups.push(g); });
+    if (o.groupOrder) groups.sort((a, b) => o.groupOrder(a) - o.groupOrder(b));
+    if (grp !== 'all' && groups.indexOf(grp) < 0) grp = 'all';
+    const shown = cats.filter(c => grp === 'all' || D.top[c][0].g === grp)
+      .sort((a, b) => Math.max(...D.top[b].map(e => e.t)) - Math.max(...D.top[a].map(e => e.t)));
+    let h = '';
+    if (!cats.length) h = `<div class="frEmpty">🏆<br>${esc(o.empty || 'Play to set your first record!')}</div>`;
+    else {
+      const B = D.best; if (B) h += `<div class="frBest"><span class="cup">🏆</span><div><small>${esc(o.bestLabel || 'Best ever')}</small><b>${o.fmt(B)}</b><small>${esc(B.n)}${o.sub ? ' · ' + esc(o.sub(B)) : ''} · ${esc(when(B.t))}</small></div></div>`;
+      if (groups.length > 1) h += '<div class="frChips">' + ['all'].concat(groups).map(g => `<button data-g="${esc(g)}" class="${g === grp ? 'on' : ''}">${esc(g === 'all' ? (o.allLabel || 'All') : g)}</button>`).join('') + '</div>';
+      h += '<div class="frGrid">' + shown.map(c => { const L = D.top[c]; return `<div class="frCard"><h3>${esc(L[0].n)}</h3><div class="frPod">${step(L[1], 's', 2)}${step(L[0], 'g', 1)}${step(L[2], 'b', 3)}</div></div>`; }).join('') + '</div>';
+      const recent = D.runs.slice(-25).reverse().filter(e => grp === 'all' || e.g === grp);
+      if (recent.length) h += `<div class="frH">${esc(o.recentLabel || 'Recent games')}</div><div class="frList">` + recent.map(e => `<div class="frRow"><span class="w">${esc(when(e.t))}</span><span class="n">${esc(e.n)}${o.sub ? `<br><small style="opacity:.8;font-weight:700">${esc(o.sub(e))}</small>` : ''}</span><span class="v">${o.fmt(e)}<i>${starStr(e.st)}</i></span></div>`).join('') + '</div>';
+    }
+    root.querySelector('.frBody').innerHTML = h;
+  }
+  function open(cb) {
+    if (root) return; onClose = cb || null; root = document.createElement('div'); root.className = 'frRoot'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', o.title || 'Records');
+    root.innerHTML = `<div class="frTop"><button class="frX" aria-label="Close">✕</button><h1>🏆 ${esc(o.title || 'Records')}</h1><span style="width:52px;flex:none"></span></div><div class="frBody"></div>`;
+    if (o.font) root.style.fontFamily = o.font; document.body.appendChild(root); render();
+    root.querySelector('.frX').addEventListener('click', () => { tap(); close(); });
+    root.querySelector('.frBody').addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (b) { grp = b.dataset.g; tap(); render(); } });
+  }
+  function close() { if (!root) return false; root.remove(); root = null; const f = onClose; onClose = null; if (f) f(); return true; }
+  // ---------- sounds: a little tap, and the fanfare (own audio context unless the app shares one) ----------
+  let AC = null; const ctx = () => { if (o.ac) { const c = o.ac(); if (c) return c; } if (!AC) { const C = window.AudioContext || window.webkitAudioContext; if (C) try { AC = new C(); } catch (e) { } } if (AC && AC.state === 'suspended') AC.resume().catch(() => { }); return AC; };
+  const tone = (c, f, at, d, type, v, f2) => { const os = c.createOscillator(), g = c.createGain(); os.type = type; os.frequency.setValueAtTime(f, at); if (f2) os.frequency.exponentialRampToValueAtTime(f2, at + d);
+    g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(v, at + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, at + d); os.connect(g); g.connect(c.destination); os.start(at); os.stop(at + d + 0.05); };
+  function tap() { if (o.muted && o.muted()) return; const c = ctx(); if (!c) return; const t = c.currentTime; tone(c, 988, t, 0.07, 'triangle', 0.08); tone(c, 1976, t + 0.03, 0.06, 'sine', 0.03); }
+  function fanfare() { if (o.muted && o.muted()) return; const c = ctx(); if (!c) return; const t = c.currentTime + 0.05;
+    [0, 4, 7, 12].forEach((s, i) => tone(c, 523 * Math.pow(2, s / 12), t + i * 0.1, 0.18, 'triangle', 0.14));
+    [12, 16, 19, 24].forEach(s => tone(c, 523 * Math.pow(2, s / 12), t + 0.45, 0.9, 'triangle', 0.06));
+    tone(c, 262, t + 0.45, 0.9, 'sine', 0.1); for (let i = 0; i < 10; i++) tone(c, 2200 + Math.random() * 2200, t + 0.5 + i * 0.07, 0.14, 'sine', 0.035); }
+  // ---------- the human cheer: Kokoro clips listed in <voiceBase>manifest.json; the phone's voice only if a clip is missing ----------
+  const ttsKey = t => { const s = String(t).toLowerCase().replace(/\s+/g, ' ').trim().replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ''); let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(16).padStart(8, '0'); };
+  let MAN = null; if (o.voiceBase) try { fetch(o.voiceBase + 'manifest.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { if (j && isObj(j.clips)) MAN = j.clips; }).catch(() => { }); } catch (e) { }
+  let lastCheer = '';
+  function cheer() {
+    if (o.muted && o.muted()) return; const pool = CHEERS.filter(x => x !== lastCheer), line = pool[Math.floor(Math.random() * pool.length)]; lastCheer = line;
+    if (o.say) { o.say(line); return; }
+    const syn = () => { try { if (window.speechSynthesis) { const u = new SpeechSynthesisUtterance(line); u.rate = 0.95; u.pitch = 1.15; speechSynthesis.cancel(); speechSynthesis.speak(u); } } catch (e) { } };
+    if (!MAN || MAN[ttsKey(line)] == null) return syn();
+    try { const a = new Audio(o.voiceBase + ttsKey(line) + '.ogg'); a.onerror = syn; const p = a.play(); if (p && p.catch) p.catch(syn); } catch (e) { syn(); }
+  }
+  // ---------- NEW RECORD party: fireworks, gem confetti, a shimmer wave across the screen, a glowing banner, fanfare and a cheer ----------
+  let party = null;
+  function celebrate(info) {
+    if (party) endParty(); info = info || {}; const calm = RM();
+    const el = document.createElement('div'); el.className = 'frParty'; el.setAttribute('role', 'alertdialog'); el.setAttribute('aria-label', 'New record');
+    el.innerHTML = `<canvas></canvas>${calm ? '' : '<div class="frWave"></div>'}<div class="frBan"><h2>${esc(info.title || 'NEW RECORD!')}</h2>${info.score != null ? `<div class="sc">${info.score}</div>` : ''}${info.name ? `<div class="nm">${esc(info.name)}</div>` : ''}<div class="tap">✨ Tap to keep playing ✨</div></div>`;
+    if (o.font) el.style.fontFamily = o.font; document.body.appendChild(el);
+    const cv = el.querySelector('canvas'), g = cv.getContext('2d'), DPR = Math.min(window.devicePixelRatio || 1, 1.5); let W = innerWidth, H = innerHeight; cv.width = W * DPR; cv.height = H * DPR;
+    const P = [], CAP = calm ? 40 : 260, COLS = ['#fff', '#ffd84a', '#ff6ad5', '#7ff3ff', '#c79bff', '#e9edf6', '#ff9ec7'];
+    const gem = (x, y, r, rot, col) => { g.save(); g.translate(x, y); g.rotate(rot); g.fillStyle = col; g.beginPath(); g.moveTo(0, -r); g.lineTo(r * 0.8, -r * 0.2); g.lineTo(0, r); g.lineTo(-r * 0.8, -r * 0.2); g.closePath(); g.fill(); g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.moveTo(0, -r); g.lineTo(r * 0.8, -r * 0.2); g.lineTo(0, -r * 0.1); g.closePath(); g.fill(); g.restore(); };
+    const star = (x, y, r) => { g.beginPath(); for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, rr = i % 2 ? r * 0.32 : r; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } g.closePath(); g.fill(); };
+    const boom = (x, y) => { const c = COLS[(Math.random() * COLS.length) | 0], n = calm ? 0 : 34; for (let i = 0; i < n && P.length < CAP; i++) { const a = i / n * 6.283 + Math.random() * 0.2, s = 120 + Math.random() * 180; P.push({ k: 's', x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, l: 1 + Math.random() * 0.5, m: 1.5, r: 2.5 + Math.random() * 2.5, c: Math.random() < 0.3 ? '#fff' : c }); } };
+    const rocket = () => P.length < CAP && P.push({ k: 'r', x: W * (0.15 + Math.random() * 0.7), y: H + 10, vx: (Math.random() - 0.5) * 60, vy: -(H * 0.9 + Math.random() * H * 0.4), l: 0.75 + Math.random() * 0.35, m: 1, r: 3, c: '#fff6c4' });
+    const confetti = n => { for (let i = 0; i < n && P.length < CAP; i++) P.push({ k: 'g', x: Math.random() * W, y: -20 - Math.random() * H * 0.5, vx: (Math.random() - 0.5) * 60, vy: 90 + Math.random() * 140, l: 4, m: 4, r: 6 + Math.random() * 7, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 6, c: COLS[i % COLS.length] }); };
+    confetti(calm ? 30 : 70); let rk = 0, lt = performance.now(), t0 = lt, raf = 0;
+    function tick(t) { const dt = Math.min(0.05, (t - lt) / 1000); lt = t; const age = (t - t0) / 1000; g.setTransform(DPR, 0, 0, DPR, 0, 0); g.clearRect(0, 0, W, H);
+      if (!calm && age < 3.2) { rk -= dt; if (rk <= 0) { rocket(); rk = 0.28 + Math.random() * 0.25; } }
+      if (!calm && age < 2.5 && Math.random() < dt * 8) confetti(3);
+      for (let i = P.length - 1; i >= 0; i--) { const p = P[i]; p.l -= dt; if (p.k === 'r' && (p.l <= 0 || p.vy > -40)) { boom(p.x, p.y); P.splice(i, 1); continue; } if (p.l <= 0 || p.y > H + 40) { P.splice(i, 1); continue; }
+        if (p.k === 'r') { p.vy += 500 * dt; } else if (p.k === 's') { p.vx *= Math.pow(0.3, dt); p.vy = p.vy * Math.pow(0.3, dt) + 160 * dt; } else { p.rot += p.vr * dt; p.x += Math.sin(age * 3 + i) * 20 * dt; }
+        p.x += p.vx * dt; p.y += p.vy * dt; g.globalAlpha = p.k === 'g' ? 1 : Math.min(1, p.l / p.m * 2); g.fillStyle = p.c;
+        if (p.k === 'g') gem(p.x, p.y, p.r, p.rot, p.c); else if (p.k === 'r') { g.beginPath(); g.arc(p.x, p.y, p.r, 0, 6.283); g.fill(); } else star(p.x, p.y, p.r * 1.6); }
+      g.globalAlpha = 1; if (age < 6 && (P.length || age < 3.5)) raf = requestAnimationFrame(tick); }
+    raf = requestAnimationFrame(tick);
+    fanfare(); setTimeout(() => { if (party && party.el === el) cheer(); }, 650);
+    const born = performance.now(); el.addEventListener('click', () => { if (performance.now() - born > 700) endParty(); });
+    party = { el, stop: () => cancelAnimationFrame(raf), timer: setTimeout(() => endParty(), calm ? 4000 : 5500), done: info.done };
+  }
+  function endParty() { if (!party) return false; const p = party; party = null; clearTimeout(p.timer); p.stop(); p.el.remove(); if (p.done) p.done(); return true; }
+  return { record, seed, open, close, isOpen: () => !!root || !!party, back: () => endParty() || close(), celebrate, endParty, when, data: () => D, CHEERS, ttsKey };
+};
+// ===== /Fun Zone records =====
+</script>
 <script>
 (function(){
 'use strict';
@@ -633,7 +855,9 @@ const nLv=st=>st.levels||3;
 const LVN=['Learn','Practice','Challenge'];
 const LVD=['In order, with lots of help','Mixed up, both ways round','Missing numbers and speedy bonus'];
 const ZONES=[{from:0,name:'Sparkle Shallows'},{from:4,name:'Amethyst Hollow'},{from:6,name:'Deep Crystal Caverns'},{from:10,name:'Treasure Depths'}];
-const DIFFS=[{name:'Easy',desc:'The classic questions. 3 choices. Glimmer helps right away.',cls:'green'},{name:'Normal',desc:'Grade 3 questions. 4 choices. Glimmer helps after a miss.',cls:'blue'},{name:'Tricky',desc:'Grade 3 questions with close choices. Number pad on Challenge.',cls:'red'}];
+const DIFFS=[{name:'Easy',desc:'The classic questions. 3 choices. Glimmer helps right away.',cls:'green'},{name:'Normal',desc:'Grade 3 questions. 4 choices. Glimmer helps after a miss.',cls:'blue'},{name:'Tricky',desc:'Grade 3 questions with close choices. Number pad on Challenge.',cls:'red'},
+ {name:'Very Hard',desc:'Grade 4: bigger numbers, ×11 and ×12, closest choices, number pad, fewer hints. Expert English.',cls:'purple'}]; // v4c: diff 3
+const isVH=()=>save.diff===3;
 const RARES=[
  {id:'opal',name:'Rainbow Opal',grad:['#ffd6f0','#b9f0ff','#e3c8ff','#c8ffe0'],cut:'round'},
  {id:'moon',name:'Moonstone',grad:['#ffffff','#a9c8ff','#e8f0ff'],cut:'oval'},
@@ -1245,12 +1469,34 @@ hstory('z6',`The Turtle Trail`,'🐢🌅',[`Each spring, a mother sea turtle ret
 Object.assign(TIPS,{break:['💥','to crack or smash: do not <b>break</b> it'],brake:['🛑','makes a bike or car stop'],mail:['📬','letters and packages'],male:['👦','a boy or a man'],steal:['🙅','taking what is not yours'],steel:['🔩','a strong, hard metal'],
  heal:['🩹','to get better after a hurt'],heel:['🦶','the back part of your foot'],wait:['⏳','to stay until something happens'],weight:['⚖️','how heavy something is'],son:['👦','a boy child in a family'],sun:['☀️','the bright star in our sky'],
  bear:['🐻','a big furry animal'],bare:['🌳','with nothing on it'],knight:['🛡️','a brave rider in armor'],night:['🌙','when it is dark'],scent:['🌹','a smell'],sent:['📮','mailed or passed on'],cent:['🪙','a penny'],hour:['🕐','sixty minutes'],our:['👪','belongs to us']});
+// ----- v4c: Expert English (tier 3, only on Very Hard, next to the Hard tier): grade 4 spelling and grammar
+ESTAGES.push(
+ E3('espell','ves1','Grade 4 Words','G4','grade 4 spelling words',SP_LV,{hard:1,tier:3,start:1,words:sw('necessary|It is necessary to drink water.;especially|I love fruit, especially mangoes.;environment|We keep our environment clean.;vocabulary|Reading grows your vocabulary.;government|The government builds new roads.;knowledge|Books give us knowledge.;mysterious|A mysterious box sat on the step.;character|My favorite character is a brave fox.;curious|The curious cat peeked inside.;opposite|Hot is the opposite of cold.;thorough|Give the floor a thorough sweep.;bicycle|I ride my bicycle to the park.;island|We sailed to a tiny island.;foreign|She speaks a foreign language.')}),
+ E3('espell','ves2','Expert Spellings','Ex','spellings that trick grown-ups too',SP_LV,{hard:1,tier:3,words:sw('Wednesday|We have art on Wednesday.;February|February is a short month.;library|We borrowed books from the library.;surprise|The party was a big surprise.;calendar|Mark the date on the calendar.;answered|She answered every question.;beginning|This is the beginning of the story.;believe|I believe you can do it.;doubt|There is no doubt she will win.;guard|The guard stood by the gate.;through|We walked through the forest.;quarter|A quarter of the pizza is left.;height|Measure your height on the wall.;muscle|Exercise makes every muscle strong.')}),
+ E3('emiss','vem1','Expert Twins','≈','accept or except, than or then, lose or loose',['Pick from 4','Pick from 4','Gem challenge'],{hard:1,tier:3,start:1,miss:[
+  [`Everyone came to the party ___ Max, who was sick.`,`except`,`accept`,`expect`,`excess`],[`Please ___ this gift as a thank you.`,`accept`,`except`,`expect`,`access`],
+  [`My sister is taller ___ me.`,`than`,`then`,`that`,`thin`],[`First we ate lunch, and ___ we played outside.`,`then`,`than`,`them`,`there`],
+  [`Hold the kite string tight so you do not ___ it.`,`lose`,`loose`,`lost`,`loss`],[`My tooth is ___ and wiggly.`,`loose`,`lose`,`lost`,`loss`],
+  [`Please be ___ in the library.`,`quiet`,`quite`,`quit`,`quilt`],[`The soup is ___ hot, so blow on it first.`,`quite`,`quiet`,`quit`,`quote`],
+  [`The rain had a big ___ on the garden.`,`effect`,`affect`,`afford`,`effort`],[`Not sleeping can ___ how well you learn.`,`affect`,`effect`,`effort`,`afford`],
+  [`The bird flapped ___ wings.`,`its`,`it's`,`is`,`his`],[`___ coat is this on the floor?`,`Whose`,`Who's`,`Who`,`Whom`],
+  [`There are ___ apples in the bowl than yesterday.`,`fewer`,`less`,`lesser`,`few`],[`She sings very ___.`,`well`,`good`,`best`,`better`]]}),
+ E3('emiss','vem2','Expert Grammar','Gr+','tricky verbs, comparing words and agreement',['Pick from 4','Pick from 4','Gem challenge'],{hard:1,tier:3,miss:[
+  [`Yesterday the bell ___ at noon.`,`rang`,`ringed`,`rung`,`ring`],[`The children ___ their lunch already.`,`have eaten`,`has eaten`,`have ate`,`eaten`],
+  [`Neither of the puppies ___ hungry.`,`is`,`are`,`were`,`be`],[`This is the ___ cake I have ever tasted.`,`best`,`goodest`,`better`,`most good`],
+  [`The river ___ over its banks last spring.`,`overflowed`,`overflew`,`overflown`,`overflowing`],[`My friend and ___ built a fort.`,`I`,`me`,`myself`,`mine`],
+  [`The geese ___ south every winter.`,`fly`,`flies`,`flys`,`flying`],[`Last night she ___ the whole book.`,`read`,`readed`,`reading`,`reads`],
+  [`Of the three sisters, Mia is the ___.`,`tallest`,`taller`,`most tall`,`tall`],[`He ___ his keys under the couch yesterday.`,`found`,`finded`,`find`,`founded`],
+  [`By the time we arrived, the movie ___ started.`,`had`,`has`,`have`,`having`],[`Each of the girls ___ a red hat.`,`wears`,`wear`,`wearing`,`are wearing`]]}));
+Object.assign(TIPS,{accept:['🤲','to take something that is given'],except:['🚫','all but, leaving out'],than:['⚖️','used to compare: taller <b>than</b>'],then:['⏭️','next, after that'],
+ lose:['🔍','to not be able to find'],loose:['🦷','not tight, wiggly'],quiet:['🤫','making very little noise'],quite:['💯','very, really'],
+ affect:['👉','to change something (an action)'],effect:['✨','the result of a change'],fewer:['🍎','not as many (things you count)'],less:['🥛','not as much (things you can not count)']});
 // give every stage a tier (the older harder stages are Medium) and the new gems their names
 ESTAGES.forEach(st=>{if(st.tier==null)st.tier=st.hard?1:0;});
 {const P=['#ff8fd0','#6be7ff','#c29cff','#ffd24a','#7ff3a8','#ff9a7a','#9fb8ff','#f9a8ff'],CU=['hex','round','cushion','emerald','oval','heart','pear','diamond','marquise','trillion','star'],
  N={es9:'Cloud Quartz',es10:'Rain Aquamarine',es11:'Brook Peridot',es12:'Tick Topaz',es13:'Hop Opal',er4:'Snowflake Pearl',er5:'Barn Ruby',em5:'Helper Jade',em6:'Mirror Moonstone',em7:'Many Amethyst',
  hes7:'Scholar Sapphire',hes8:'Twin Citrine',hes9:'Double Diamond',hes10:'Team Turquoise',hes11:'Past Garnet',her4:'Village Rose',her5:'Starlight Pearl',hem6:'Pronoun Peridot',hem7:'Link Lapis',hem8:'Apostrophe Amber',
- xes1:'Grand Emerald',xes2:'Prefix Prism',xes3:'Suffix Sunstone',xes4:'Riddle Ruby',xes5:'Ending Opal',xer1:'Sleuth Sapphire',xer2:'Garden Jade',xer3:'Deep Blue Beryl',xem1:'Prefix Pearl',xem2:'Twin Topaz',xem3:'Context Crystal',xem4:'Bridge Berylite',xem5:'Grammar Garnet'};
+ xes1:'Grand Emerald',xes2:'Prefix Prism',xes3:'Suffix Sunstone',xes4:'Riddle Ruby',xes5:'Ending Opal',xer1:'Sleuth Sapphire',xer2:'Garden Jade',xer3:'Deep Blue Beryl',xem1:'Prefix Pearl',xem2:'Twin Topaz',xem3:'Context Crystal',xem4:'Bridge Berylite',xem5:'Grammar Garnet',ves1:'Scholar Starstone',ves2:'Expert Emerald',vem1:'Twin Tanzanite',vem2:'Grammar Galaxy Gem'};
  Object.keys(N).forEach((id,i)=>{GEMS[id]={name:N[id],c:P[i%P.length],cut:CU[i%CU.length]};});}
 const hashS=s=>{let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(36);};
 // every English question, by fact key (so missed ones can come back later)
@@ -1412,7 +1658,7 @@ function load(){const ls=k=>{try{return localStorage.getItem(k);}catch(e){return
    const sec=isObj(o.sec)?o.sec:{};
    TABLES.forEach(t=>{const r=sec[t];if(r&&r.done)s.lv['t'+t+'-0']={stars:Math.max(1,Math.min(3,r.stars|0)),done:true,plays:r.plays|0};});
    put(KEY,JSON.stringify(s));}}
- s.v=3;if(!(s.diff>=0&&s.diff<=2))s.diff=0;
+ s.v=3;if(!(s.diff>=0&&s.diff<=3))s.diff=0;
  // v3d: a one-time "full level harder". Old Easy becomes Normal and old Normal becomes Tricky (the old Easy questions are still on Easy).
  // Nothing is erased: levels, gems and facts stay as they were, and the raw save is copied aside first.
  if((s.dv|0)<4){if(d||s.migrated){if(d&&ls(KEY+'.pre-v3d')==null)put(KEY+'.pre-v3d',raw);s.diff=Math.min(2,s.diff+1);['add','sub'].forEach(k=>{if(s.parent.max[k]===1000)s.parent.max[k]=10000;});}
@@ -1439,7 +1685,7 @@ const caveOf=sec=>isW(sec)?'word':isE(sec)?'eng':sec;
 const hardOn=()=>save.diff>=1;
 function stageVisible(st){const p=save.parent;
  // v3d: Easy lists the original stages, Normal and Tricky list the harder ones (the × tables stay on every setting)
- if(isE(st.sec)){if((st.tier|0)!==save.diff)return false;}else if(st.sec!=='mul'||st.hard){if(!!st.hard!==hardOn())return false;}
+ if(isE(st.sec)){const t=st.tier|0;if(save.diff===3?t<2:t!==save.diff)return false;}else if(st.sec!=='mul'||st.hard){if(!!st.hard!==hardOn())return false;}
  if(st.sec==='add'||st.sec==='sub')return !st.lim||st.lim<=p.max[st.sec];
  if(st.sec==='wadd'||st.sec==='wsub')return !st.lim||st.lim<=p.max[st.op];if(st.sec==='wdiv'&&p.divT==='easy')return st.id==='wd1';if(st.sec==='div'&&st.t&&p.divT==='easy')return [2,5,10].indexOf(st.t)>=0;return true;}
 // the Sharing Stories sub-area only shows once a grown-up has switched division (the Golden Geode) on
@@ -1592,7 +1838,7 @@ const Voice={ok:'speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='
  load(){try{fetch('audio/manifest.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{if(j&&j.clips&&typeof j.clips==='object')this.man=j.clips;}).catch(()=>{});}catch(e){}},
  has(t){return !!this.man&&this.man[ttsKey(t)]!=null;},
  // ends any read-along: its timer stops, the clip stops and its highlight is cleared
- clr(){this.tok++;clearTimeout(this.tm);const e=this.el;if(e){e.onended=e.onerror=null;try{e.pause();}catch(x){}}const f=this.off;this.off=null;if(f)f();},
+ clr(){this.tok++;this.req=(this.req|0)+1;this.end=0;this.cheer=false;if(this.stopSrc)this.stopSrc();clearTimeout(this.tm);const e=this.el;if(e){e.onended=e.onerror=null;try{e.pause();}catch(x){}}const f=this.off;this.off=null;if(f)f();},
  // plays one clip: st() when it starts, en() when it ends, fl() once if it cannot play
  clip(t,tok,st,en,fl){const me=this,e=me.el||(me.el=new Audio());let bad=false;const no=()=>{if(bad||me.tok!==tok)return;bad=true;fl();};
   e.onended=()=>{if(me.tok===tok&&!bad)en();};e.onerror=no;e.src='audio/'+ttsKey(t)+'.ogg';
@@ -1624,6 +1870,58 @@ const Voice={ok:'speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='
     speechSynthesis.speak(u);});}catch(e){}
   me.tm=setTimeout(()=>{if(!any&&me.tok===tok)tick(0,flat.length,fin);},900);}};
 
+// ----- v4 maths speech: the same neural voice for every maths line (questions, Glimmer's hints, word problems, cheers).
+// Numbers and signs are said in words ("7 × 8 = ?" → "seven times eight equals what?"). A line plays as one clip when it has one
+// (every small fact does); otherwise it is stitched from phrase clips and number clips (0–999, plus "N thousand") with Web Audio,
+// so the joins are tight. A line with a missing clip falls back to the phone's voice; her name, if it has no clip, is said by the phone's voice in place.
+const N19='zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen'.split(' '),N10=',,twenty,thirty,forty,fifty,sixty,seventy,eighty,ninety'.split(',');
+function numWords(n){n=Math.floor(Math.abs(n));if(n<20)return N19[n];if(n<100)return N10[n/10|0]+(n%10?'-'+N19[n%10]:'');
+ if(n<1000)return N19[n/100|0]+' hundred'+(n%100?' '+numWords(n%100):'');return numWords(n/1000|0)+' thousand'+(n%1000?' '+numWords(n%1000):'');}
+const sayMath=t=>String(t).replace(/<[^>]+>/g,'').replace(/[()]/g,'').replace(/([×+−÷=])\s*\?/g,'$1 what').replace(/\?\s*([×+−÷=])/g,'what $1')
+ .replace(/×/g,' times ').replace(/÷/g,' divided by ').replace(/−/g,' minus ').replace(/\+/g,' plus ').replace(/=/g,' equals ').replace(/…/g,'...').replace(/\s+/g,' ').trim();
+const sayText=t=>sayMath(t).replace(/\d+/g,d=>numWords(+d));
+const reEsc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+// a line in pieces: {k:clip text, gap:pause before it in seconds} or {name}; sentences, numbers and her name each start a new piece
+function sayParts(t){const nm=save.name&&save.name.trim(),re=nm?new RegExp('(\\d+|\\b'+reEsc(nm)+'\\b)','i'):/(\d+)/,out=[];
+ sayMath(t).split(/(?<=[.!?])\s+/).forEach((sen,si)=>{let gap=si?0.2:0;
+  sen.split(re).forEach((x,j)=>{if(!x)return;
+   if(j%2){if(/^\d+$/.test(x)){const n=+x,th=Math.floor(n/1000),r=n%1000;
+     if(th){out.push({k:numWords(th)+' thousand',gap});gap=0;}if(r||!th){out.push({k:numWords(r),gap});}gap=0;}
+    else{out.push({name:x,gap});gap=0;}return;}
+   if(/[A-Za-z]/.test(x)){out.push({k:x.trim(),gap});gap=0;}else if(/[,;:]/.test(x))gap=Math.max(gap,0.12);});});
+ return out;}
+Object.assign(Voice,{req:0,end:0,srcs:[],bufs:new Map(),cheer:false,
+ // whole clip, else pieces (null = say it with the phone's voice)
+ plan(t){const w=sayText(t);if(this.has(w))return [{k:w,gap:0}];if(!this.man)return null;const ps=sayParts(t);
+  for(const p of ps){if(p.name!=null){if(this.has(p.name)){p.k=p.name;delete p.name;}continue;}if(!this.has(p.k))return null;}return ps.length?ps:null;},
+ // o.force: speak even when muted (a 🔊 tap); o.after: wait for a cheer that is still playing; o.cheer: the next question may wait for it
+ async speak(t,o){o=o||{};if(!t||(save.muted&&!o.force))return;const req=++this.req;
+  if(o.after&&this.end>performance.now())await this.idle(4000);if(req!==this.req)return;
+  this.clr();this.req=req;const tok=this.tok,ps=this.plan(t);this.cheer=!!o.cheer;this.end=performance.now()+30000;
+  if(!ps){this.syn(sayText(t));this.end=performance.now()+600+sayText(t).length*62;return;}
+  const segs=[];let cur=null;for(const p of ps){if(p.name!=null){segs.push(p);cur=null;}else{if(!cur)segs.push(cur=[]);cur.push(p);}}
+  let any=false;for(const sg of segs){if(this.tok!==tok)return;
+   if(!Array.isArray(sg)){await this.synW(sg.name,tok);continue;}
+   if(!await this.play(sg,tok)){if(this.tok===tok&&!any){this.syn(sayText(t));this.end=performance.now()+600+sayText(t).length*62;}return;}any=true;}
+  if(this.tok===tok){this.end=0;this.cheer=false;}},
+ idle(max){const t0=performance.now();return new Promise(r=>{const f=()=>{const n=performance.now();if(n>=this.end||n-t0>(max||8000))r();else setTimeout(f,60);};f();});},
+ buf(k){const key=ttsKey(k),B=this.bufs;if(B.has(key)){const v=B.get(key);B.delete(key);B.set(key,v);return v;}
+  const p=fetch('audio/'+key+'.ogg').then(r=>{if(!r.ok)throw new Error('clip');return r.arrayBuffer();}).then(a=>new Promise((res,rej)=>Snd.c.decodeAudioData(a,res,rej)));
+  p.catch(()=>B.delete(key));B.set(key,p);if(B.size>90)B.delete(B.keys().next().value);return p;},
+ stopSrc(){this.srcs.forEach(s=>{try{s.stop();}catch(e){}});this.srcs=[];clearTimeout(this.tm2);if(this.wake){const w=this.wake;this.wake=null;w();}},
+ // one run of clips, back to back (Web Audio); without a running audio context they play one after another in the <audio> element
+ async play(ps,tok){const c=Snd.c;
+  if(!c||c.state!=='running'){for(const p of ps){if(this.tok!==tok)return true;const ok=await new Promise(r=>this.clip(p.k,tok,()=>{},()=>r(true),()=>r(false)));if(!ok)return false;}return true;}
+  let bufs;try{bufs=await Promise.all(ps.map(p=>this.buf(p.k)));}catch(e){return false;}if(this.tok!==tok)return true;
+  let t=c.currentTime+0.03;const g=c.createGain();g.connect(c.destination);
+  ps.forEach((p,i)=>{t+=p.gap;const s=c.createBufferSource();s.buffer=bufs[i];s.connect(g);s.start(t);this.srcs.push(s);
+   const nx=ps[i+1];t+=Math.max(0.05,bufs[i].duration-(nx&&!nx.gap?0.07:0));});
+  const ms=(t-c.currentTime)*1000+40;this.end=performance.now()+ms;
+  await new Promise(r=>{this.wake=r;this.tm2=setTimeout(()=>{this.wake=null;r();},ms);});this.srcs=[];return true;},
+ synW(t,tok){return new Promise(r=>{if(!this.ok||this.tok!==tok)return r();let done=false;const fin=()=>{if(!done){done=true;clearTimeout(this.tm2);r();}};
+  try{speechSynthesis.cancel();const u=this.utt(t);u.onend=u.onerror=fin;speechSynthesis.speak(u);}catch(e){fin();}this.tm2=setTimeout(fin,1800);});}});
+// automatic maths speech follows the grown-ups' read-aloud switch and mute
+const autoSay=(t,o)=>{if(save.parent.read&&!save.muted)Voice.speak(t,o);};
 Voice.load();
 // ================= sound =================
 const Snd={c:null,
@@ -1635,7 +1933,13 @@ const Snd={c:null,
  noise(d,v,hp){if(save.muted||!this.c)return;try{const c=this.c,n=Math.floor(c.sampleRate*d),buf=c.createBuffer(1,n,c.sampleRate),a=buf.getChannelData(0);
   for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();
   s.buffer=buf;f.type='highpass';f.frequency.value=hp||2500;g.gain.value=v||0.2;s.connect(f);f.connect(g);g.connect(c.destination);s.start();}catch(e){}},
- tap(){this.tone(700,0.07,'triangle',0.1);},
+ tap(){const f=pick([784,880,988,1175,1319]);this.tone(f,0.07,'triangle',0.09);this.tone(f*2,0.06,'sine',0.03,0.03);},
+ // v4 sparkle chime for a tapped letter gem: a funny little "bloop" up into a bright twinkle; i walks up a happy (pentatonic) scale
+ sparkle(i){const PT=[0,2,4,7,9,12,14,16,19,21],f=659*Math.pow(2,PT[(i|0)%10]/12)*rand(0.98,1.03);
+  this.tone(f*0.5,0.09,'sine',0.09,0,f*1.1);this.tone(f,0.2,'triangle',0.12,0.04);this.tone(f*2,0.13,'sine',0.05,0.07);this.tone(f*3*rand(0.99,1.01),0.1,'sine',0.03,0.11);},
+ // a whole word spelled: a little trumpet run, a big shiny chord and a shower of twinkles
+ fanfare(){[0,4,7,12].forEach((s,i)=>this.tone(523*Math.pow(2,s/12),0.16,'triangle',0.13,i*0.085));this.tone(330,0.12,'sine',0.08,0.3,990);
+  [12,16,19,24].forEach(s=>this.tone(523*Math.pow(2,s/12),0.7,'triangle',0.07,0.38));for(let i=0;i<8;i++)this.tone(rand(2200,4200),0.12,'sine',0.03,0.42+i*0.06);},
  correct(){[0,4,7,12].forEach((s,i)=>this.tone(784*Math.pow(2,s/12),0.28,'triangle',0.15,i*0.07));},
  shatter(){this.noise(0.4,0.18,2600);for(let i=0;i<7;i++)this.tone(rand(1800,3800),0.2,'sine',0.05,0.02+i*0.045);},
  gem(i){i=i||0;this.tone(1320*Math.pow(2,(i%8)/12),0.16,'sine',0.13);this.tone(2640*Math.pow(2,(i%8)/12),0.1,'sine',0.04,0.03);},
@@ -1644,10 +1948,12 @@ const Snd={c:null,
  streak(){[0,5,9,12,16].forEach((s,i)=>this.tone(880*Math.pow(2,s/12),0.22,'sine',0.1,i*0.05));},
  golden(){[0,4,7,12,7,12,16,19,24].forEach((s,i)=>this.tone(523*Math.pow(2,s/12),0.3,i%2?'sine':'triangle',0.12,i*0.09));},
  chest(){this.tone(196,0.25,'triangle',0.15,0,392);this.golden();}};
-document.addEventListener('pointerdown',()=>Snd.init(),{capture:true});
+document.addEventListener('pointerdown',e=>{Snd.init();
+ // v4: a small glitter puff on every button (the letter gems and answers make their own bigger bursts)
+ const b=e.target&&e.target.closest&&e.target.closest('button,.btn,[role=button],a');if(b&&!b.disabled&&!b.classList.contains('lt')&&typeof glitter==='function')glitter(e.clientX,e.clientY,7);},{capture:true,passive:true});
 
-function diffIcon(d){let s='<svg viewBox="0 0 24 24" aria-hidden="true">';for(let i=0;i<3;i++){const h=6+i*5;s+='<rect x="'+(3+i*7)+'" y="'+(21-h)+'" width="5" height="'+h+'" rx="1.5" fill="'+(i<=d?['#8cf27f','#7cc4ff','#ff8a8a'][d]:'rgba(255,255,255,.35)')+'" stroke="#2b1257" stroke-width="1.2"/>';}return s+'</svg>';}
-function confetti(n){const cols=['#ff5a8a','#ffd84a','#5ef0e6','#b98cff','#8cf27f','#ff9ee6'];for(let i=0;i<n&&parts.length<400;i++)parts.push({x:rand(0,VW),y:rand(-40,VH*0.2),vx:rand(-60,60),vy:rand(40,220),life:rand(1.6,3),max:3,size:rand(5,11),col:pick(cols),rot:rand(0,6),vr:rand(-8,8),g:120});}
+function diffIcon(d){let s='<svg viewBox="0 0 24 24" aria-hidden="true">';for(let i=0;i<4;i++){const h=5+i*4.5;s+='<rect x="'+(1.5+i*5.5)+'" y="'+(21-h)+'" width="4" height="'+h+'" rx="1.3" fill="'+(i<=d?['#8cf27f','#7cc4ff','#ff8a8a','#d58bff'][d]:'rgba(255,255,255,.35)')+'" stroke="#2b1257" stroke-width="1.2"/>';}return s+'</svg>';}
+function confetti(n){if(typeof RM!=='undefined'&&RM)n=Math.ceil(n/4);const cols=['#ff5a8a','#ffd84a','#5ef0e6','#b98cff','#8cf27f','#ff9ee6'];for(let i=0;i<n&&parts.length<400;i++)parts.push({x:rand(0,VW),y:rand(-40,VH*0.2),vx:rand(-60,60),vy:rand(40,220),life:rand(1.6,3),max:3,size:rand(5,11),col:pick(cols),rot:rand(0,6),vr:rand(-8,8),g:120});}
 
 // ================= background & particles =================
 (function buildBG(){const bg=$('#bg');const cols=[['#ff9ee6','#c04ad6'],['#7ff3ff','#2f8de0'],['#d5b3ff','#7a45e6'],['#fff2a8','#ffb23a'],['#a8ffcf','#24b37a']];
@@ -1661,8 +1967,13 @@ const fx=$('#fx'),fc=fx.getContext('2d');let VW=1,VH=1,DPR=1;
 function resizeFx(){DPR=Math.min(2,window.devicePixelRatio||1);VW=innerWidth;VH=innerHeight;fx.width=Math.round(VW*DPR);fx.height=Math.round(VH*DPR);fx.style.width=VW+'px';fx.style.height=VH+'px';}
 resizeFx();
 const parts=[],motes=[];const SPK=['#ffffff','#fff27a','#ff9ee6','#7ff3ff','#c79bff'];
-function burst(x,y,n,cols,spd){cols=cols||SPK;spd=spd||240;for(let i=0;i<n&&parts.length<300;i++){const a=rand(0,Math.PI*2),s=rand(spd*0.3,spd);
+const RM=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches); // calm: a quarter of the sparkles
+function burst(x,y,n,cols,spd){cols=cols||SPK;spd=spd||240;if(RM)n=Math.ceil(n/4);for(let i=0;i<n&&parts.length<300;i++){const a=rand(0,Math.PI*2),s=rand(spd*0.3,spd);
  parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-60,life:rand(0.5,1),max:1,size:rand(4,10),col:pick(cols),rot:rand(0,6),vr:rand(-6,6),g:220});}}
+// v4 glitter: tiny slow twinkles that drift and fade (a softer layer under the bursts)
+function glitter(x,y,n,cols){if(RM)n=Math.ceil(n/4);cols=cols||['#fff','#fff27a','#ffc4ec','#e9edf6'];for(let i=0;i<n&&parts.length<300;i++){const a=rand(0,Math.PI*2),s=rand(20,110);
+ parts.push({x:x+rand(-14,14),y:y+rand(-10,10),vx:Math.cos(a)*s,vy:Math.sin(a)*s-30,life:rand(0.6,1.3),max:1.3,size:rand(2,4.5),col:pick(cols),rot:rand(0,6),vr:rand(-3,3),g:40});}}
+const sparkEl=(el,n,cols,spd)=>{if(!el||!el.isConnected)return;const c=centerOf(el);burst(c[0],c[1],n,cols,spd);glitter(c[0],c[1],Math.ceil(n/2));};
 function star4(x,y,r,rot){fc.save();fc.translate(x,y);fc.rotate(rot);fc.beginPath();for(let i=0;i<8;i++){const rr=i%2?r*0.32:r,a=i*Math.PI/4;fc.lineTo(Math.cos(a)*rr,Math.sin(a)*rr);}fc.closePath();fc.fill();fc.restore();}
 let lastT=0,lanternEmit=0,curScreen='welcome';
 function frame(t){requestAnimationFrame(frame);const dt=Math.min(0.05,(t-lastT)/1000||0.016);lastT=t;if(document.hidden)return;
@@ -1691,7 +2002,13 @@ function setMuteIcons(){$$('#wMute,#pMute').forEach(b=>{b.innerHTML=save.muted?I
 function toggleMute(){save.muted=!save.muted;persist();setMuteIcons();if(!save.muted){Snd.init();Snd.tap();}}
 const fsEnabled=!!(document.fullscreenEnabled||document.webkitFullscreenEnabled);
 const isFS=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
-function toggleFS(){const d=document.documentElement;
+// Our Fun Zone full screen: browsers leave full screen when the page changes, so if it was on (funzone-fs, set at home and by
+// this game's own full-screen button) the first tap here turns it back on (a tap is needed: full screen only starts from a tap)
+(()=>{const d=document,de=d.documentElement,ev=['pointerup','touchend','click'];let done=false;
+ const back=()=>{if(done)return;done=true;ev.forEach(n=>d.removeEventListener(n,back,true));let on='0';try{on=localStorage.getItem('funzone-fs');}catch(e){}
+  if(on!=='1'||d.fullscreenElement||d.webkitFullscreenElement)return;const f=de.requestFullscreen||de.webkitRequestFullscreen;if(f)try{const p=f.call(de,{navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}catch(e){}};
+ ev.forEach(n=>d.addEventListener(n,back,true));})();
+function toggleFS(){const d=document.documentElement;try{localStorage.setItem('funzone-fs',isFS()?'0':'1');}catch(_){}
  if(isFS()){const f=document.exitFullscreen||document.webkitExitFullscreen;if(f){try{const p=f.call(document);if(p&&p.catch)p.catch(()=>{});}catch(_){}}}
  else{const f=d.requestFullscreen||d.webkitRequestFullscreen;if(f){try{const p=f.call(d,{navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}catch(_){}}}}
 function tapSnd(){Snd.init();Snd.tap();}
@@ -1720,6 +2037,15 @@ on('#mDiff',()=>{tapSnd();openDiff();});
 let setFrom='mine';
 const SECGEM={add:'a1',sub:'s1',mul:6,div:'d2',word:'wa1',wadd:'wa1',wsub:'ws1',wmul:'wm1',wdiv:'wd1',eng:'es1',espell:'es1',estory:'er1',emiss:'em1'};
 $('#eHome').innerHTML=IC.back;$('#eBag').innerHTML=IC.bag;$('#eSet').innerHTML=IC.gear;$('#pGear span').innerHTML=IC.sgear;$('#gBack').innerHTML=IC.back;
+// ----- v4b records: every finished level (per cave and level: first-try accuracy, best streak in a row, time); shared FunRecords block -----
+const fmtTime=s=>Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0');
+const REC=FunRecords({key:'crystalcave.records.v1',title:'Crystal Records',muted:()=>save.muted,ac:()=>Snd.c,say:t=>Voice.speak(t,{force:true}),
+ fmt:e=>'🎯 '+e.s+'%',sub:e=>{const x=e.x||{};return '🔥 '+(x.rs|0)+' in a row · ⏱ '+fmtTime(x.tm||0);},
+ better:(a,b)=>a.s>b.s||(a.s===b.s&&((a.x&&a.x.rs)|0)>((b.x&&b.x.rs)|0))||(a.s===b.s&&((a.x&&a.x.rs)|0)===((b.x&&b.x.rs)|0)&&((a.x&&a.x.tm)||1e9)<((b.x&&b.x.tm)||1e9)),
+ overall:e=>e.s*100000+(((e.x&&e.x.rs)|0)*100)-Math.min(99,((e.x&&e.x.tm)||0)/60),
+ groupOrder:g=>{const i=Object.keys(SECS).findIndex(k=>SECS[k].name===g);return i<0?99:i;},bestLabel:'Best level ever',recentLabel:'Recent levels',empty:'Finish a level to set your first record!'});
+const TROPHY='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" fill="#ffd84a" stroke="#7a4b00" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 5H4v1a4 4 0 0 0 4 4M17 5h3v1a4 4 0 0 1-4 4" fill="none" stroke="#7a4b00" stroke-width="1.6"/><path d="M10.5 13h3v3h-3zM8 19h8v2H8z" fill="#ffd84a" stroke="#7a4b00" stroke-width="1.4"/><path d="M9 4.5v3" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg>';
+$('#eRec').innerHTML=TROPHY;on('#eRec',()=>{tapSnd();REC.open();});
 on('#eHome',()=>{tapSnd();show('welcome');});on('#eBag',()=>{tapSnd();bagFrom='mine';show('bag');});on('#eSet',()=>{tapSnd();setFrom='mine';show('settings');});
 on('#gBack',()=>{tapSnd();show('mine');});
 // one big cave card (Mine Entrance and the Word Problems picker share it)
@@ -1734,7 +2060,7 @@ function renderMine(){$('#eStats').innerHTML=gemSVG(GEMS[2],36)+'<span>'+totalGe
 // ---------- Word Problems: pick a story sub-area ----------
 $('#wBack').innerHTML=IC.back;$('#wSay').innerHTML=IC.sndOn;
 on('#wBack',()=>{tapSnd();show('mine');});
-on('#wSay',()=>{Snd.init();Voice.say('Word problems! Pick a story cave: '+(secVisible('wdiv')?'adding, taking away, times or sharing.':'adding, taking away or times.'));});
+on('#wSay',()=>{Snd.init();Voice.speak('Word problems! Pick a story cave: '+(secVisible('wdiv')?'adding, taking away, times or sharing.':'adding, taking away or times.'),{force:true});});
 function renderWords(){$('#wStats').innerHTML=gemSVG(GEMS.wa1,36)+'<span>'+secProgress('word').stars+'</span>';$('#wStats').setAttribute('aria-label','Word Problems stars');
  $('#wsubs').innerHTML=WSECS.filter(secVisible).map(sec=>caveCard(sec,false)).join('');
  $$('#wsubs .cave').forEach(b=>b.addEventListener('click',()=>{tapSnd();openSec(b.dataset.s);}));
@@ -1744,8 +2070,8 @@ function wordsIntro(){if(W.intro||curScreen!=='words'||$('#modal').classList.con
  modal('<div class="art"><div class="rays"></div>'+caveSVG('word')+'<span class="cSym em" style="top:42%">📖</span></div><h2>Word Problems!</h2><p>'+txt+'</p>'+
   '<div class="stPic" style="color:#fff"><span>🐰</span><span>🌸🌸🌸</span><i style="color:#ffe873">+</i><span>🌸🌸</span><i style="color:#ffe873">=</i><span>❓</span></div>'+
   '<div class="row"><button class="btn ibtn blue" id="wiSay" aria-label="Read it to me">'+IC.sndOn+'</button><button class="btn gold big" id="wIntroOk">Let\'s read!</button></div>','newsC');
- if(save.parent.read&&!save.muted)Voice.say('Word problems! '+txt);
- on('#wiSay',()=>{Snd.init();Voice.say('Word problems! '+txt);});
+ autoSay('Word problems! '+txt);
+ on('#wiSay',()=>{Snd.init();Voice.speak('Word problems! '+txt,{force:true});});
  on('#wIntroOk',()=>{tapSnd();Voice.stop();W.intro=true;persist();closeModal();});}
 // ---------- v3c English Cave: pick an activity ----------
 $('#enBack').innerHTML=IC.back;$('#enSay').innerHTML=IC.sndOn;
@@ -1851,10 +2177,10 @@ function renderParent(){const p=save.parent,b=$('#parBody'),y=b.scrollTop;
   '<div class="setRow">'+lbl('div','Sharing tables<small>Also the Sharing Stories</small>')+seg('divT',[['easy','÷2, 5, 10'],['all','÷2 to ÷9']],p.divT)+'</div>';
  h+='<div class="secH">Skip ahead: open every level</div>';
  CAVES.forEach(s=>{h+='<div class="setRow">'+lbl(s,SECS[s].name)+tog('open-'+s,p.open[s])+'</div>';});
- h+='<div class="secH">How tricky</div><div class="setRow"><span class="lbl">'+diffIcon(save.diff)+'<span>Difficulty<small>'+DIFFS[save.diff].desc+'</small></span></span>'+seg('diff',[[0,'Easy'],[1,'Normal'],[2,'Tricky']],save.diff)+'</div>';
+ h+='<div class="secH">How tricky</div><div class="setRow"><span class="lbl">'+diffIcon(save.diff)+'<span>Difficulty<small>'+DIFFS[save.diff].desc+'</small></span></span>'+seg('diff',[[0,'Easy'],[1,'Normal'],[2,'Tricky'],[3,'Very Hard']],save.diff)+'</div>';
  h+='<div class="secH">Reading</div>'+
   '<div class="setRow"><span class="lbl"><span>Story Doors<small>One word problem guards each boss door (+, −, ÷)</small></span></span>'+tog('stories',p.stories)+'</div>'+
-  '<div class="setRow"><span class="lbl">'+IC.sndOn+'<span>Read stories aloud<small>Story Doors, Word Problems, Story Pages and Missing Gem. Uses the phone\'s own voice. Spelling words are always said. The 🔊 button always works.</small></span></span>'+tog('read',p.read)+'</div>';
+  '<div class="setRow"><span class="lbl">'+IC.sndOn+'<span>Read aloud<small>Questions, Glimmer\'s hints, cheers, Story Doors, Word Problems, Story Pages and Missing Gem, in a friendly recorded voice. Spelling words are always said. The 🔊 button always works.</small></span></span>'+tog('read',p.read)+'</div>';
  h+='<div class="secH">Progress</div><div class="prog">'+CAVES.map(progCard).join('')+'</div>';
  h+='<div class="secH">Start over</div><div class="setRow"><span class="lbl"><span>Erase all gems, stars and treasures<small>A backup copy is kept on this device.</small></span></span><button class="btn tog red" id="pReset">Reset</button></div>';
  b.innerHTML=h;b.scrollTop=y;
@@ -1878,7 +2204,7 @@ function renderParent(){const p=save.parent,b=$('#parBody'),y=b.scrollTop;
 function currentIdx(sec){const L=secStages(sec||mapSec);for(const i of L)if(!lvRec(i,0).done)return stageOpen(i)?i:-1;return -1;}
 function nodeLabel(st,size){if(st.kind==='queen')return '<span class="crownT">'+IC.crown+'</span>';return '<span class="tbl">'+st.short+'</span>';}
 function renderMap(){const area=$('#mapArea'),inner=$('#mapInner'),sec=mapSec,L=secStages(sec);
- $('#mapTitle').textContent=sec==='mul'?'The Crystal Cave':isE(sec)?SECS[sec].name+' · '+['Easy','Medium','Hard'][save.diff]:SECS[sec].name;
+ $('#mapTitle').textContent=sec==='mul'?'The Crystal Cave':isE(sec)?SECS[sec].name+' · '+['Easy','Medium','Hard','Expert'][save.diff]:SECS[sec].name;
  $('#mStats').innerHTML=gemSVG(GEMS[2],36)+'<span id="mTotal">'+totalGems()+'</span>';$('#mDiff').innerHTML=diffIcon(save.diff);$('#mDiff').setAttribute('aria-label','Difficulty: '+DIFFS[save.diff].name);
  const n=L.length;
  // the Secret Tunnel / sharing buttons sit in their own strip under the map, so they never cover a node
@@ -1911,7 +2237,7 @@ function whatsNew(){if(save.seenV2||curScreen!=='map'||$('#modal').classList.con
   '<ul class="news"><li>'+gemSVG(GEMS[2],30)+'<span>Every tunnel has <b>3 levels</b>: Learn, Practice and Challenge</span></li>'+
   '<li>'+gemSVG(GEMS.miss,30)+'<span>New deep caves: <b>Mixed Mines, Squares Grotto, Missing Gem Pools</b></span></li>'+
   '<li>'+gemSVG(GEMS.queen,30)+'<span>Beat the <b>Crystal Queen</b> to win her crown!</span></li>'+
-  '<li><span class="dIc">'+diffIcon(save.diff)+'</span><span>Pick <b>Easy, Normal or Tricky</b> with the gold button</span></li></ul>'+
+  '<li><span class="dIc">'+diffIcon(save.diff)+'</span><span>Pick <b>Easy, Normal, Tricky or Very Hard</b> with the gold button</span></li></ul>'+
   (save.migrated?'<p class="small">All your gems and finished tunnels came with you!</p>':'')+'<button class="btn gold big" id="newOk">Let\'s explore!</button>','newsC');
  on('#newOk',()=>{tapSnd();save.seenV2=true;persist();closeModal();});}
 function lvLabel(st,k){if(st.id==='dmix')return divPools()[k].map(t=>'÷'+t).join(', ');return st.lvNames?st.lvNames[k]:LVD[k];}
@@ -1944,12 +2270,14 @@ function leavePlay(){closeModal();Voice.stop();
  if(S&&S.mode==='tunnel'&&S.ret){S=S.ret;S.doorDirty=true;setupPlay();const r=tunnelResolve;tunnelResolve=null;if(r)r();return;}
  S=null;show('map');}
 // difficulty = chosen setting (Easy/Normal/Tricky) + natural ramp from the level (Learn/Practice/Challenge)
-function cfgFor(lv){const d=save.diff;return {lv,n:d===0?3:4,close:Math.min(4,lv+d),hintBtn:d===0||(d===1&&lv===0),autoHint:d<2,forcePad:d===2&&lv===2,speed:lv===2?[9,7,5][d]:0};}
+function cfgFor(lv){const d=save.diff;if(d===3)return {lv,n:4,close:4,hintBtn:false,autoHint:false,vh:1,forcePad:lv>=1,speed:lv===2?4:0}; // Very Hard: hints only after a miss and only when she taps Glimmer
+ return {lv,n:d===0?3:4,close:Math.min(4,lv+d),hintBtn:d===0||(d===1&&lv===0),autoHint:d<2,forcePad:d===2&&lv===2,speed:lv===2?[9,7,5][d]:0};}
 function startLevel(si,k){const st=ALL[si];save.run++;persist();mapSec=st.sec;
  const c=cfgFor(st.kind==='queen'?2:k);
  // bigger numbers get more time for the speedy bonus (it is only ever a bonus); stories have no timer
  if(st.kind==='gen')c.speed=st.story?0:c.speed*(st.hard?3:st.lim>=1000?3:st.lim>=100?2:1);else if(st.kind==='word'||st.kind==='eng'){c.speed=0;if(st.kind==='eng')c.forcePad=false;}
  S={mode:'sec',si,k,st,cfg:c,gem:st.kind==='table'?null:st.gem,idx:0,boss:false,bossQs:null,bossIdx:0,locks:st.kind==='queen'?5:3,first:0,total:0,earned:{},requeued:{},busy:false,pad:st.kind!=='eng'&&(save.pad||c.forcePad),forcePad:c.forcePad,speedy:0};
+ S.t0=performance.now();S.rs=0;S.rsb=0; // v4b records: time and the best run of first-try answers
  S.queue=st.kind==='gen'?buildQueueG(si,k):st.kind==='word'?buildQueueW(si,k):st.kind==='eng'?buildQueueE(si,k):buildQueue(si,k);
  show('play');setupPlay();banner(st.name,st.kind==='queen'?'The Grand Boss!':LVN[k]+': '+lvLabel(st,k),1500);nextQ();}
 function startTunnel(ret){if(!ret){save.run++;persist();}
@@ -1980,6 +2308,14 @@ function ansOf(q){if(q.e||q.op==='two')return q.ans;if(isAS(q))return q.miss===1
 function qPlain(q){if(q.op==='two')return twoPlain(q);if(q.op==='div')return (q.a*q.b)+' ÷ '+q.a+' = ?';
  if(isAS(q)){const s=OPSYM[q.op],r=resOf(q);return q.miss===1?'? '+s+' '+q.b+' = '+r:q.miss===2?q.a+' '+s+' ? = '+r:q.a+' '+s+' '+q.b+(q.c!=null?' '+s+' '+q.c:'')+' = ?';}
  const d=disp(q),P=q.a*q.b;return q.miss===1?'? × '+d[1]+' = '+P:q.miss===2?d[0]+' × ? = '+P:q.miss===3?'? × ? = '+P:d[0]+' × '+d[1]+' = ?';}
+// v4: the question as it is read aloud (a story door reads its story)
+function qSay(q){if(q.story)return q.story.txt;if(q.op==='div')return 'What is '+(q.a*q.b)+' divided by '+q.a+'?';
+ if(isAS(q)){const s=q.op==='add'?' plus ':' minus ',m=q.op==='add'?' makes ':' leaves ',r=resOf(q);
+  return q.miss===1?'What'+s+q.b+m+r+'?':q.miss===2?q.a+s+'what'+m+r+'?':'What is '+q.a+s+q.b+(q.c!=null?s+q.c:'')+'?';}
+ if(q.op==='two')return sayMath(qPlain(q));
+ const d=disp(q),P=q.a*q.b;return q.miss===1?'What times '+d[1]+' makes '+P+'?':q.miss===2?d[0]+' times what makes '+P+'?':q.miss===3?'What number times itself makes '+P+'?':'What is '+d[0]+' times '+d[1]+'?';}
+// read the maths question once when it appears (after any cheer that is still playing); force = the 🔊 button
+function sayQ(force){const q=S&&S.q;if(!q||q.e)return;if(force){Snd.init();Voice.speak(qSay(q),{force:true});return;}if(S.saidQ!==q){S.saidQ=q;autoSay(qSay(q),{after:true});}}
 function qHTML(q,typed){const sl='<span class="slot">'+(typed?esc(typed):'?')+'</span>';
  if(q.story)return sl;
  if(q.op==='div')return (q.a*q.b)+' ÷ '+q.a+'<span class="eq">= '+sl+'</span>';
@@ -2000,8 +2336,9 @@ function factsFor(si,k){const st=ALL[si],F=[];
  if(st.kind==='gen')return st.sec==='div'&&!st.hard?divFacts(st,k):genFacts(st,k);
  if(st.kind==='word')return wordFacts(st,k);
  if(st.kind==='eng')return engFacts(st,k);
- if(st.kind==='table')range(1,10).forEach(b=>F.push({a:st.t,b}));
- else if(st.kind==='mix'||st.kind==='miss')st.pools[k].forEach(a=>range(2,10).forEach(b=>F.push({a,b})));
+ const top=isVH()?12:10; // Very Hard adds ×11 and ×12
+ if(st.kind==='table')range(1,top).forEach(b=>F.push({a:st.t,b}));
+ else if(st.kind==='mix'||st.kind==='miss')st.pools[k].forEach(a=>range(2,top).forEach(b=>F.push({a,b})));
  else if(st.kind==='sq')(k===0?range(1,5):k===1?range(1,9):range(2,9)).forEach(a=>F.push({a,b:a}));
  else range(2,9).forEach(a=>range(2,10).forEach(b=>F.push({a,b})));
  return F;}
@@ -2035,10 +2372,10 @@ function buildBoss(){const st=S.st,F=factsFor(S.si,S.k),used=new Set(),out=[],n=
 function buildTunnel(){const op=TABLES.filter((t,i)=>stageOpen(i)),pool=[];op.forEach(a=>range(2,10).forEach(b=>pool.push({a,b,w:weightOf(a+'x'+b)})));
  pool.sort((x,y)=>y.w-x.w);return shuffle(pool.slice(0,10)).slice(0,3).map((q,i)=>({a:q.a,b:q.b,swap:Math.random()<0.4,miss:save.diff>0&&i===2?flip():0}));}
 // ----- + − ÷ levels
-function genFacts(st,k){const F=[],seen=new Set(),g=GEN[st.id];
+function genFacts(st,k){const F=[],seen=new Set(),g=GEN[st.id];if(isVH())k=Math.min(2,k+1); // Very Hard: each level uses the next level's bigger numbers
  for(let i=0;i<160&&F.length<40;i++){const ab=g(k),f={op:st.sec,a:ab[0],b:ab[1]};if(ab[2]!=null)f.c=ab[2];if(st.sec==='mul')f.hm=1;const key=qKey(f);if(!seen.has(key)){seen.add(key);F.push(f);}}
  return F;}
-function divFacts(st,k){const ts=st.t?[st.t]:divPools()[k],F=[];ts.forEach(t=>range(1,10).forEach(n=>F.push({op:'div',a:t,b:n})));return F;}
+function divFacts(st,k){const ts=st.t?[st.t]:divPools()[k],F=[];ts.forEach(t=>range(1,isVH()?12:10).forEach(n=>F.push({op:'div',a:t,b:n})));return F;}
 function pickW(F,n){return shuffle(F.map(f=>({f,w:weightOf(qKey(f))})).sort((x,y)=>y.w-x.w).slice(0,n)).map(o=>Object.assign({},o.f));}
 // fact families: 12 ÷ 3 becomes 3 × ? = 12
 function toFamily(q){delete q.op;delete q.grp;q.miss=2;}
@@ -2083,10 +2420,10 @@ function choicesG(q){const c=S.cfg,ans=ansOf(q),n=c.n,set=[ans];let tiers,ok;
  return shuffle(set);}
 // ----- Word Problems levels: 6 stories, then a boss door with 3 Story Locks. Every fact is a w: fact in the Word Problems save.
 const wLim=st=>st.op==='add'||st.op==='sub'?Math.min(st.lim,save.parent.max[st.op]):100;
-function wordFacts(st,k){const F=[],seen=new Set(),add=(a,b)=>{const f={w:1,op:st.op,a,b},key=qKey(f);if(!seen.has(key)){seen.add(key);F.push(f);}};
+function wordFacts(st,k){if(isVH())k=Math.min(2,k+1);const top=isVH()?12:10,F=[],seen=new Set(),add=(a,b)=>{const f={w:1,op:st.op,a,b},key=qKey(f);if(!seen.has(key)){seen.add(key);F.push(f);}};
  if(st.two){const g=WGENH[st.id];for(let i=0;i<120&&F.length<30;i++){const f=Object.assign({w:1,op:'two'},g(k)),key=qKey(f);if(!seen.has(key)){seen.add(key);F.push(f);}}}
- else if(st.op==='mul')st.pool.forEach(t=>range(k===0?1:2,k===0?5:10).forEach(n=>add(n,t))); // n groups of t
- else if(st.op==='div')st.pool.forEach(t=>range(1,k===0?5:10).forEach(n=>add(t,n))); // n·t shared by t
+ else if(st.op==='mul')st.pool.forEach(t=>range(k===0?1:2,k===0?5:top).forEach(n=>add(n,t))); // n groups of t
+ else if(st.op==='div')st.pool.forEach(t=>range(1,k===0?5:top).forEach(n=>add(t,n))); // n·t shared by t
  else{const g=WGEN[st.id];for(let i=0;i<160&&F.length<40;i++){const ab=g(k);const L=wLim(st);if(Math.max(ab[0],ab[1],st.op==='add'?ab[0]+ab[1]:0)<=(L>=100?L-1:L))add(ab[0],ab[1]);}}
  return F;}
 function wordQ(q,st,k){if(q.op==='div')q.grp=k===0?false:k===1?Math.random()<0.5:Math.random()<0.7;if(q.op==='mul')q.rows=k===2;q.story=mkStory(q);return q;}
@@ -2168,7 +2505,7 @@ function buildTunnelE(sec){const L=secStages(sec).filter(stageOpen);if(!L.length
  const pool=[];sts.forEach(st=>engFacts(st,1).forEach(f=>pool.push(Object.assign({},f,{gem:st.gem}))));
  return pickW(pool,8).slice(0,3);}
 function eChoices(q){const d=save.diff,k=S.mode==='tunnel'?1:S.k;
- const n=q.hd?(q.e==='r'&&d===1&&k===0?3:4):q.e==='r'?(d===0&&k===0?2:3):[[2,2,3],[2,3,3],[2,3,4]][d][k];
+ const n=q.hd?(q.e==='r'&&d===1&&k===0?3:4):q.e==='r'?(d===0&&k===0?2:3):[[2,2,3],[2,3,3],[2,3,4],[3,4,4]][d][k];
  return shuffle([q.ans].concat(shuffle(q.c.slice()).slice(0,Math.max(1,n-1))));}
 // words she can tap to hear; ___ is the missing gem
 function rdHTML(t){return toks(t).map((w,i)=>/^___/.test(w)?'<span class="w eBlank" data-i="'+i+'">?</span>'+esc(w.slice(3)):'<span class="w" data-i="'+i+'">'+esc(w)+'</span>').join(' ');}
@@ -2212,25 +2549,28 @@ function renderAnswersE(){const a=$('#answers'),q=S.q,hb=$('#hintB');hb.style.di
 const CONF={b:'d',d:'b',p:'q',q:'p',m:'n',n:'m',a:'e',e:'a',i:'e',o:'u',u:'o',c:'k',k:'c',s:'z',t:'f',w:'v',h:'n',l:'i',g:'j',y:'i',r:'n',f:'t',v:'w'};
 let TG=null;const tileGem=i=>(TG||(TG=[['#ff6fcf','hex'],['#2fd8e8','round'],['#a347ff','cushion'],['#ffb52e','hex'],['#3a7bf0','round']].map(g=>gemSVG({c:g[0],cut:g[1]},74))))[i%5];
 function renderSpell(){const q=S.q;
- if(!S.sp||S.sp.q!==q){const L=q.ans.split(''),k=S.mode==='tunnel'?1:S.k,extra=[[0,1,2],[0,2,3],[0,3,4]][save.diff][k],pool=L.slice();
+ if(!S.sp||S.sp.q!==q){const L=q.ans.split(''),k=S.mode==='tunnel'?1:S.k,extra=[[0,1,2],[0,2,3],[0,3,4],[2,4,5]][save.diff][k],pool=L.slice();
   // extra letters are look-alikes first (b/d, m/n, vowels), never a letter that is already in the word
   for(const c of shuffle(L.map(x=>CONF[x]).filter(Boolean)).concat(shuffle('abcdefghiklmnoprstuwy'.split('')))){if(pool.length>=L.length+extra)break;if(pool.indexOf(c)<0)pool.push(c);}
   S.sp={q,tiles:shuffle(pool),slots:L.map(()=>-1),lock:L.map(()=>false),bad:null,wait:false,done:false};}
  drawSpell();}
-function drawSpell(){const sp=S.sp,q=S.q,a=$('#answers'),ghost=S.mode==='sec'&&S.k===0,used=new Set(sp.slots);
- let h='<div class="spell"><div class="slots'+(sp.slots.length>=9?' many':'')+'">';
- sp.slots.forEach((t,i)=>{h+='<button class="slotB'+(t>=0?' full':'')+(sp.done||sp.lock[i]?' ok':'')+(sp.bad&&sp.bad[i]?' bad':'')+'" data-s="'+i+'" aria-label="Letter '+(i+1)+'">'+(t>=0?esc(sp.tiles[t]):ghost?'<span class="gh">'+esc(q.ans[i])+'</span>':'')+'</button>';});
+function drawSpell(){const sp=S.sp,q=S.q,a=$('#answers'),ghost=S.mode==='sec'&&S.k===0&&!isVH(),used=new Set(sp.slots);
+ let h='<div class="spell'+(sp.done?' won':'')+'"><div class="slots'+(sp.slots.length>=9?' many':'')+'">';
+ sp.slots.forEach((t,i)=>{h+='<button style="--i:'+i+'" class="slotB'+(t>=0?' full':'')+(sp.done||sp.lock[i]?' ok':'')+(sp.bad&&sp.bad[i]?' bad':'')+'" data-s="'+i+'" aria-label="Letter '+(i+1)+'">'+(t>=0?esc(sp.tiles[t]):ghost?'<span class="gh">'+esc(q.ans[i])+'</span>':'')+'</button>';});
  h+='<button class="btn spDel" id="spDel" aria-label="Take back a letter">⌫</button></div><div class="lts">';
  sp.tiles.forEach((l,i)=>{h+='<button class="lt'+(used.has(i)?' used':'')+'" data-t="'+i+'" aria-label="'+esc(l)+'">'+tileGem(i)+'<b>'+esc(l)+'</b></button>';});
  a.innerHTML=h+'</div></div>';
- a.querySelectorAll('.lt').forEach(b=>b.addEventListener('click',()=>spTap(+b.dataset.t)));
+ a.querySelectorAll('.lt').forEach(b=>b.addEventListener('click',()=>spTap(+b.dataset.t,b)));
  a.querySelectorAll('.slotB').forEach(b=>b.addEventListener('click',()=>spBack(+b.dataset.s)));
  on('#spDel',()=>{const s=S&&S.sp;if(!s)return;for(let i=s.slots.length-1;i>=0;i--)if(s.slots[i]>=0&&!s.lock[i])return spBack(i);});}
-function spTap(t){const sp=S&&S.sp;if(!sp||S.busy||sp.wait||sp.done||sp.slots.indexOf(t)>=0)return;const i=sp.slots.indexOf(-1);if(i<0)return;
- sp.slots[i]=t;Snd.gem(i);drawSpell();
+function spTap(t,el){const sp=S&&S.sp;if(!sp||S.busy||sp.wait||sp.done||sp.slots.indexOf(t)>=0)return;const i=sp.slots.indexOf(-1);if(i<0)return;
+ sp.slots[i]=t;Snd.sparkle(i);sparkEl(el,14,null,200);drawSpell();sparkEl($('#answers .slotB[data-s="'+i+'"]'),8,['#fff','#fff27a','#ffc4ec'],140);
  if(sp.slots.indexOf(-1)<0){sp.wait=true;setTimeout(()=>{if(!S||S.sp!==sp)return;sp.wait=false;answer(sp.slots.map(j=>sp.tiles[j]).join(''),null);},250*SPEED);}}
 function spBack(i){const sp=S&&S.sp;if(!sp||S.busy||sp.wait||sp.done||sp.lock[i]||sp.slots[i]<0)return;sp.slots[i]=-1;Snd.tap();drawSpell();}
-function eRight(){const q=S.q;if(q.e==='s'&&S.sp){S.sp.done=true;drawSpell();}else if(q.e==='m'){const b=box$('.eBlank');if(b){b.textContent=q.ans;b.classList.add('full');}}}
+function eRight(){const q=S.q;if(q.e==='s'&&S.sp){S.sp.done=true;drawSpell();wordParty();}else if(q.e==='m'){const b=box$('.eBlank');if(b){b.textContent=q.ans;b.classList.add('full');}}}
+// v4: a spelled word gets a party: every letter pops with sparkles, one after another, then a shower of confetti
+function wordParty(){const sl=$$('#answers .slotB');sl.forEach((b,i)=>setTimeout(()=>sparkEl(b,12,['#fff','#fff27a','#ffcf3a','#ff9ee6'],260),i*70*Math.max(SPEED,0.3)));
+ const box=$('#answers .slots');if(box){const r=box.getBoundingClientRect();setTimeout(()=>burst(r.left+r.width/2,r.top+r.height/2,36,null,420),sl.length*70*Math.max(SPEED,0.3));}confetti(36);}
 // a wrong spelling: letters in the right place stay (green), the others hop back to the gems
 function eWrong(){const sp=S.sp,q=S.q;if(!sp)return;sp.bad=sp.slots.map((t,i)=>!sp.lock[i]&&sp.tiles[t]!==q.ans[i]);sp.bad.forEach((b,i)=>{if(!b)sp.lock[i]=true;});sp.wait=true;drawSpell();
  setTimeout(()=>{if(!S||S.sp!==sp)return;sp.slots=sp.slots.map((t,i)=>sp.bad[i]?-1:t);sp.bad=null;sp.wait=false;drawSpell();},650*Math.max(SPEED,0.3));}
@@ -2284,12 +2624,13 @@ function renderDoor(){if(S.q.e)return renderDoorE();const kind=S.mode==='tunnel'
  if(sto){let locks='';if(S.boss)for(let i=0;i<S.locks;i++)locks+='<span class="lockGem'+(i<S.bossIdx?' pop':'')+'" data-i="'+i+'">'+gemSVG(GEMS[[2,3,8,7,6][i%5]],30)+'</span>';
   box.innerHTML='<div class="door story enter"><span class="stTag"></span>'+(locks?'<div class="stLocks">'+locks+'</div>':'')+'<div class="stPic">'+sto.pic+'</div><p class="stTxt">'+esc(sto.txt)+'</p>'+
    '<div class="stRow"><button class="btn ibtn blue stSay" aria-label="Read it to me">'+IC.sndOn+'</button><div class="q"></div></div></div>';
-  box.querySelector('.stSay').addEventListener('click',()=>{Snd.init();Voice.say(sto.txt);});
-  if(save.parent.read&&!save.muted)Voice.say(sto.txt);
+  box.querySelector('.stSay').addEventListener('click',()=>sayQ(true));
+  sayQ();
   updateQ();startSpeed();return;}const tag=S.q.review?'<span class="tag">Remember this one?</span>':S.boss?'<span class="tag"></span>':'';
- box.innerHTML='<div class="door enter '+(kind==='queen'?'boss queen':kind)+'">'+doorSVG(kind,S.locks)+tag+'<div class="q"></div><div class="speed" hidden><span>'+IC.bolt+'</span><i></i></div></div>';
+ box.innerHTML='<div class="door enter '+(kind==='queen'?'boss queen':kind)+'">'+doorSVG(kind,S.locks)+tag+'<div class="q"></div><div class="speed" hidden><span>'+IC.bolt+'</span><i></i></div><button class="btn ibtn blue qSay" aria-label="Read it to me">'+IC.sndOn+'</button></div>';
+ box.querySelector('.qSay').addEventListener('click',e=>{e.stopPropagation();sayQ(true);});
  if(S.boss)box.querySelectorAll('.lockGem').forEach((g,i)=>{if(i<S.bossIdx)g.classList.add('pop');});
- updateQ();startSpeed();layoutPlay();}
+ updateQ();startSpeed();layoutPlay();sayQ();}
 function startSpeed(){const sp=box$('.speed');if(!sp)return;S.qStart=performance.now();
  if(!S.cfg.speed||S.mode!=='sec'){sp.hidden=true;return;}sp.hidden=false;const i=sp.querySelector('i');sp.classList.remove('gone');
  i.style.animation='none';void i.offsetWidth;i.style.animation='speedDown '+S.cfg.speed+'s linear forwards';
@@ -2314,9 +2655,9 @@ function nextQ(){if(!S)return;
  else if(S.boss){if(S.bossIdx>=S.bossQs.length)return levelDone();S.q=S.bossQs[S.bossIdx];}
  else S.q=S.queue[S.idx];
  S.wrong=false;S.helped=false;S.tries=0;S.typed='';S.tried=[];S.choices=null;S.hx=null;S.busy=false;S.hintRows=0;S.counting=false;
- Voice.stop();hideHint();renderDoor();renderAnswers();renderDots();}
+ if(!Voice.cheer)Voice.stop();hideHint();renderDoor();renderAnswers();renderDots();}
 async function startBoss(){const s=S;s.boss=true;s.bossIdx=0;s.bossQs=s.st.kind==='gen'?buildBossG():s.st.kind==='word'?buildBossW():s.st.kind==='eng'?buildBossE():buildBoss();s.doorDirty=true;s.busy=true;
- if(s.st.kind==='queen')banner('The Crystal Queen!','Break all 5 gem locks!',1700);else banner('Boss Door!','Break all 3 gem locks!',1500);
+ if(s.st.kind==='queen'){banner('The Crystal Queen!','Break all 5 gem locks!',1700);autoSay('The Crystal Queen! Break all 5 gem locks!',{cheer:true});}else{banner('Boss Door!','Break all 3 gem locks!',1500);autoSay('Boss Door! Break all 3 gem locks!',{cheer:true});}
  Snd.streak();await wait(s.st.kind==='queen'?900:700);if(S!==s)return;s.busy=false;nextQ();}
 function record(q,ok,helped){const k=qKey(q),st=storeOf(k);
  if(q.e){const o=isObj(E.ops[q.e])?E.ops[q.e]:(E.ops[q.e]={n:0,c:0});o.n++;if(ok&&!helped)o.c++;}
@@ -2339,7 +2680,7 @@ function bagUpd(){$('#bagN').textContent=totalGems();}
 function flyGem(html,from,size,delay){return new Promise(res=>{const el=document.createElement('div');el.className='flyGem';el.innerHTML=html;document.body.appendChild(el);
  const to=centerOf($('#pBag')),x0=from[0]-size/2,y0=from[1]-size/2,x1=to[0]-size/2,y1=to[1]-size/2,mx=(x0+x1)/2+rand(-80,80),my=Math.max(10,Math.min(y0,y1)-rand(40,120));
  el.style.transform='translate('+x0+'px,'+y0+'px) scale(0.2)';
- let done=false;const fin=()=>{if(done)return;done=true;el.remove();const b=$('#pBag');b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump');burst(to[0],to[1],8);res();};
+ let done=false;const fin=()=>{if(done)return;done=true;el.remove();const b=$('#pBag');b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump');burst(to[0],to[1],8);glitter(to[0],to[1],6,['#fff','#fff27a','#ffcf3a']);res();};
  try{const an=el.animate([{transform:'translate('+x0+'px,'+y0+'px) scale(0.2) rotate(0deg)'},{transform:'translate('+mx+'px,'+my+'px) scale(1.25) rotate(20deg)',offset:0.4},{transform:'translate('+x1+'px,'+y1+'px) scale(0.45) rotate(-10deg)'}],
   {duration:900*SPEED,delay:(delay||0)*SPEED,easing:'cubic-bezier(.3,.1,.4,1)',fill:'both'});an.onfinish=fin;}catch(e){}
  setTimeout(fin,(1300+(delay||0))*SPEED+50);});}
@@ -2357,12 +2698,12 @@ function shatter(gold){const door=box$('.door');if(!door)return;const r=door.get
 async function onCorrect(btn){const s=S;s.busy=true;const q=s.q,first=!s.wrong&&!s.helped,full=!s.wrong,gk=gemKey(s,q);
  const fast=first&&s.cfg.speed&&s.mode==='sec'&&!q.story&&(performance.now()-(s.qStart||0))/1000<=s.cfg.speed;
  if(!s.wrong)record(q,true,s.helped);
- if(first){s.first++;save.streak++;if(save.streak>save.best)save.best=save.streak;}
+ if(first){s.first++;save.streak++;if(save.streak>save.best)save.best=save.streak;s.rs=(s.rs|0)+1;s.rsb=Math.max(s.rsb|0,s.rs);}
  s.total++;save.correct++;persist();
- if(btn)btn.classList.add('yes');else updateQ();
+ if(btn){btn.classList.add('yes');sparkEl(btn,14);}else updateQ();
  if(!$('#hint').hidden){if(isAS(q)&&s.as){s.hintRows=s.as.steps.length;asDraw();}else $$('#hgrid .hrow').forEach(r=>r.classList.add('lit'));}
- Snd.correct();updateStreak();
- say(first?pick(PRAISE)+(save.name&&Math.random()<0.35?' Go, '+save.name+'!':''):s.helped&&!s.wrong?'Great counting with Glimmer!':'You did it! Here is a little gem for trying.',1700);
+ if(q.e==='s')Snd.fanfare();else Snd.correct();updateStreak();
+ const cheer=first?pick(PRAISE)+(save.name&&Math.random()<0.35?' Go, '+save.name+'!':''):s.helped&&!s.wrong?'Great counting with Glimmer!':'You did it! Here is a little gem for trying.';say(cheer,1700);if(!q.e)autoSay(cheer,{cheer:true});
  const door=box$('.door'),from=door?centerOf(door):[VW/2,VH/2];const gw=Math.round(Math.min(90,VW*0.16)),sm=Math.round(gw*0.6),G=GEMS[gk];
  await wait(first?150:500);if(S!==s)return;hideHint();
  if(fast){addGem(gk,false,1);s.speedy++;s.earned[gk]=(s.earned[gk]||0)+1;persist();cele(IC.bolt+'<span>Speedy! +1 bonus gem!</span>',1500);flyGem(gemSVG(G,sm),from,sm,350).then(bagUpd);}
@@ -2382,16 +2723,17 @@ async function onCorrect(btn){const s=S;s.busy=true;const q=s.q,first=!s.wrong&&
  if(S!==s)return;
  await wait(200);if(S!==s)return;s.busy=false;nextQ();}
 async function milestones(s){const n=save.streak;
- if(n===3){Snd.streak();cele(lanternSVG()+'<span>3 in a row! Your lantern is sparkling!</span>',1900);await wait(450);}
+ if(n===3){Snd.streak();cele(lanternSVG()+'<span>3 in a row! Your lantern is sparkling!</span>',1900);autoSay('3 in a row! Your lantern is sparkling!',{after:true,cheer:true});await wait(450);}
  else if(n%10===5){Snd.streak();const own=RARES.filter(r=>!save.rare[r.id]);const g=own.length?own[0]:pick(RARES);save.rare[g.id]=(save.rare[g.id]|0)+1;persist();
-  cele(gemSVG(g,48)+'<span>'+n+' in a row! You found a rare <b>'+g.name+'</b>!</span>',2600);
+  cele(gemSVG(g,48)+'<span>'+n+' in a row! You found a rare <b>'+g.name+'</b>!</span>',2600);autoSay(n+' in a row! You found a rare '+g.name+'!',{after:true,cheer:true});
   await flyGem(gemSVG(g,72),centerOf($('#pLantern')),72,150);bagUpd();}
  else if(n%10===0&&n>0){save.golden++;persist();Snd.golden();bagUpd();
-  if(s.mode==='tunnel'){save.keys++;persist();cele(goldenSVG(48)+'<span>'+n+' in a row! Another Golden Crystal, saved for later!</span>',2600);await wait(600);return;}
+  if(s.mode==='tunnel'){save.keys++;persist();cele(goldenSVG(48)+'<span>'+n+' in a row! Another Golden Crystal, saved for later!</span>',2600);autoSay(n+' in a row! Another Golden Crystal, saved for later!',{after:true,cheer:true});await wait(600);return;}
   await goldenModal(n);}}
 function goldenModal(n){return new Promise(res=>{const c=modal('<div class="art"><div class="rays"></div>'+goldenSVG(160)+'</div><h2>Golden Crystal!</h2><p>'+n+' in a row! Your golden crystal opened a <b>secret side tunnel</b>!</p>'+
   '<div class="row"><button class="btn gold big" id="gNow" style="--c1:#fff6c4;--c2:#ffd84a">Explore it now!</button><button class="btn purple" id="gLater">Save it for later</button></div>','goldC');
  setTimeout(()=>{const r=c.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height*0.3,60,['#fff','#fff27a','#ffcf3a'],380);},120);
+ autoSay('Golden Crystal! '+n+' in a row! Your golden crystal opened a secret side tunnel!',{after:true});
  on('#gNow',()=>{tapSnd();closeModal();tunnelResolve=res;startTunnel(S);});
  on('#gLater',()=>{tapSnd();save.keys++;persist();closeModal();cele(goldenSVG(48)+'<span>Saved! Find the Secret Tunnel on the cave map.</span>',2400);res();});});}
 function tunnelDone(){S.busy=true;const reward=TREASURES.find(x=>save.treasures.indexOf(x.id)<0);
@@ -2409,11 +2751,11 @@ function onWrong(v,btn){const s=S,q=s.q;Snd.soft();s.tries++;
   if(s.mode==='sec'&&!s.boss&&!s.requeued[qKey(q)]){s.requeued[qKey(q)]=1;const at=Math.min(s.queue.length,s.idx+3);s.queue.splice(at,0,Object.assign({},q,{review:true}));renderDots();}
   const old=save.streak;save.streak=Math.floor(old/2);persist();updateStreak(old>=2);
   if(old>=2)cele(IC.flame+'<span>Streak resting at '+save.streak+'. You can build it back up!</span>',2600);}
- s.tried.push(v);if(btn){btn.classList.add('nope');btn.disabled=true;}else if(q.e)eWrong();else{s.typed='';updateQ();}
+ s.rs=0;s.tried.push(v);if(btn){btn.classList.add('nope');btn.disabled=true;}else if(q.e)eWrong();else{s.typed='';updateQ();}
  $('#hintB').hidden=false;
  const d=box$('.door');if(d){d.classList.remove('enter','wobble');void d.offsetWidth;d.classList.add('wobble');}
- if($('#hint').hidden){if(s.cfg.autoHint||s.tries>=2){$('#bubble').classList.remove('on');showHint();}else say('Not quite! Try again, or tap Glimmer for help.',2600);}
- else{const w=$('#hint .worm');if(w){w.style.animation='none';void w.offsetWidth;w.style.animation='';}if(q.e){eHintMode(true);return;}if(S.hx){$('#say').textContent='Let\'s do it one step at a time!';autoCount();return;}$('#say').textContent=isAS(q)?'Let\'s work it out together!':'Let\'s count every row together!';autoCount();}}
+ if($('#hint').hidden){if(s.cfg.autoHint||(s.tries>=2&&!s.cfg.vh)){$('#bubble').classList.remove('on');showHint();}else{say('Not quite! Try again, or tap Glimmer for help.',2600);if(!q.e)autoSay('Not quite! Try again, or tap Glimmer for help.');}}
+ else{const w=$('#hint .worm');if(w){w.style.animation='none';void w.offsetWidth;w.style.animation='';}if(q.e){eHintMode(true);return;}if(S.hx){$('#say').textContent='Let\'s do it one step at a time!';autoSay($('#say').textContent);autoCount(true);return;}$('#say').textContent=isAS(q)?'Let\'s work it out together!':'Let\'s count every row together!';autoSay($('#say').textContent);autoCount(true);}}
 // ---------- glow-worm hint ----------
 function hintShape(q){if(q.op==='div')return q.grp?{rows:q.b,cols:q.a}:{rows:q.a,cols:q.b};const d=disp(q);if(q.miss===1)return {rows:d[0],cols:d[1]};if(q.miss===2)return {rows:d[0],cols:d[1]};if(q.miss===3)return {rows:q.a,cols:q.a};return {rows:d[0],cols:d[1]};}
 function hintIntro(q){const d=disp(q),P=q.a*q.b,pl=(n,w)=>n+' '+w+(n===1?'':'s');
@@ -2427,27 +2769,34 @@ function showHint(){S.hx=null;if(S.q.e)return showHintE(false);if(isX(S.q))retur
  h.innerHTML='<div class="hl"><div class="hTop"><div class="worm">'+wormSVG()+'</div><div class="say" id="say">'+(S.wrong?'Almost! ':'')+hintIntro(q)+'</div></div>'+
   '<div class="hq">'+qPlain(q).replace(/\?/g,'<b>?</b>')+'</div><button class="btn gold countBtn" id="countBtn">Count with me!</button></div><div class="gridBox"><div class="hgrid" id="hgrid">'+rh+'</div></div>';
  h.hidden=false;$('#stage').classList.add('hinting');S.hintRows=0;$('#hintB').hidden=true;
- h.querySelectorAll('.hrow').forEach(r=>r.addEventListener('click',()=>{if(!S.counting)countRow();}));on('#countBtn',()=>{Snd.init();autoCount();});sizeHint();}
+ h.querySelectorAll('.hrow').forEach(r=>r.addEventListener('click',()=>{if(!S.counting)countRow();}));on('#countBtn',()=>{Snd.init();autoCount();});sizeHint();autoSay((S.wrong?'Almost! ':'')+hintIntro(q));}
 function sizeHint(){const h=$('#hint');if(!S||!S.q||h.hidden)return;const r=h.getBoundingClientRect();if(!r.width)return;
  h.classList.toggle('wide',r.width>r.height*1.15);if(S.q.e||S.hx)return;if(isAS(S.q))return sizeHintAS(h);const sh=hintShape(S.q),rows=sh.rows,cols=sh.cols;const gb=h.querySelector('.gridBox').getBoundingClientRect();
  const gap=Math.max(2,Math.min(6,gb.width/cols*0.08));const g=Math.max(13,Math.min(46,(gb.width-60-gap*(cols+2))/cols,(gb.height-6-gap*(rows+1))/rows-4));
  h.style.setProperty('--g',g.toFixed(1)+'px');h.style.setProperty('--gap',gap.toFixed(1)+'px');}
 function countRow(){if(!S||$('#hint').hidden||S.q.e)return;if(S.hx)return stepX();if(isAS(S.q))return stepAS();const rows=$$('#hgrid .hrow');if(!rows.length)return;if(S.hintRows>=rows.length){rows.forEach(r=>r.classList.remove('lit'));S.hintRows=0;}
  const r=rows[S.hintRows];r.classList.add('lit');S.hintRows++;Snd.count(S.hintRows*2);const c=centerOf(r);burst(c[0],c[1],6);
- const q=S.q,sh=hintShape(q),k=S.hintRows,end=k===rows.length,seq=[];for(let i=1;i<=k;i++)seq.push(i*sh.cols);let t;
+ const q=S.q,t=rowText(q,hintShape(q).cols,S.hintRows,S.hintRows===rows.length);
+ $('#say').textContent=t;autoSay(stepSay(t));}
+// what Glimmer says after counting k of the rows (cols gems in each)
+function rowText(q,cols,k,end){const sh={cols},seq=[];for(let i=1;i<=k;i++)seq.push(i*sh.cols);let t;
  if(q.op==='div'&&q.grp)t=k+' group'+(k>1?'s':'')+' of '+sh.cols+' make '+(k*sh.cols)+(end?'. That\'s '+k+' groups!':'...');
  else if(q.op==='div')t=seq.join(', ')+(end?'! Each chest gets '+sh.cols+'!':'...');
  else if(q.miss===1)t=k+' row'+(k>1?'s':'')+' make '+(k*sh.cols)+(end?'. That\'s '+k+' rows!':'...');
  else if(q.miss===2)t=seq.join(', ')+(end?'! Each row has '+sh.cols+'!':'...');
  else if(q.miss===3)t=seq.join(', ')+(end?'! Each side has '+sh.cols+'!':'...');
  else t=seq.join(', ')+(end?'! That\'s '+seq[seq.length-1]+(seq[seq.length-1]===1?' gem!':' gems!'):'...');
- $('#say').textContent=t;}
-async function autoCount(){if(!S||S.counting)return;const s=S,q=s.q;if(q.e)return eHintGo();
- if(s.hx){s.counting=true;s.hintRows=0;drawX();for(let i=0;i<s.hx.steps.length;i++){if(S!==s||s.q!==q||$('#hint').hidden)break;stepX();await wait(1500);}s.counting=false;return;}
+ return t;}
+// a counting step out loud: only the newest number of a running list (3, 6, 9... → nine)
+const stepSay=t=>t.replace(/^(\d+, )+/,'').replace(/\.\.\.$/,'');
+async function autoCount(after){if(!S||S.counting)return;const s=S,q=s.q;if(q.e)return eHintGo();
+ // Glimmer finishes what she is saying when the count starts by itself; a tap on the button starts right away
+ if(after){s.counting=true;await Voice.idle(4000);s.counting=false;if(S!==s||s.q!==q||$('#hint').hidden)return;}else Voice.stop();
+ if(s.hx){s.counting=true;s.hintRows=0;drawX();for(let i=0;i<s.hx.steps.length;i++){if(S!==s||s.q!==q||$('#hint').hidden)break;stepX();await Promise.all([wait(1500),Voice.idle(12000)]);}s.counting=false;return;}
  if(isAS(q)){if(!s.as)return;s.counting=true;s.hintRows=0;asDraw();const n=s.as.steps.length,dl=s.as.kind==='col'?1800:420;
-  for(let i=0;i<n;i++){if(S!==s||s.q!==q||$('#hint').hidden)break;stepAS();await wait(dl);}s.counting=false;return;}
+  for(let i=0;i<n;i++){if(S!==s||s.q!==q||$('#hint').hidden)break;stepAS();await Promise.all([wait(dl),Voice.idle(12000)]);}s.counting=false;return;}
  s.counting=true;$$('#hgrid .hrow').forEach(r=>r.classList.remove('lit'));s.hintRows=0;const n=$$('#hgrid .hrow').length;
- for(let i=0;i<n;i++){if(S!==s||s.q!==q||$('#hint').hidden)break;countRow();await wait(430);}s.counting=false;}
+ for(let i=0;i<n;i++){if(S!==s||s.q!==q||$('#hint').hidden)break;countRow();await Promise.all([wait(430),Voice.idle(4000)]);}s.counting=false;}
 // ---------- v3d: step-by-step hints for 3-number sums, 2-step stories, 2-digit × 1-digit and bigger sharing ----------
 const isX=q=>!q.e&&(q.op==='two'||(q.op==='add'&&q.c!=null)||((q.op==='mul'||q.op==='div')&&!q.w&&Math.max(q.a,q.b)>12));
 const twoPlain=q=>{const a=q.a,b=q.b,c=q.c,d=q.d,T=q.t;return (T==='aa'?'('+a+' + '+b+') + '+c:T==='as'?'('+a+' + '+b+') − '+c:T==='sa'?'('+a+' − '+b+') + '+c:T==='ss'?'('+a+' − '+b+') − '+c:
@@ -2476,9 +2825,9 @@ function showHintX(){const q=S.q,h=$('#hint'),X=S.hx=xInfo(q);S.as=null;
  h.innerHTML='<div class="hl"><div class="hTop"><div class="worm">'+wormSVG()+'</div><div class="say" id="say">'+(S.wrong?'Almost! ':'')+X.intro+'</div></div>'+
   '<div class="hq">'+esc(X.plain).replace(/\?/g,'<b>?</b>')+'</div><button class="btn gold countBtn" id="countBtn">Show me how!</button></div><div class="gridBox"><div class="eBox xBox" id="hgrid"></div></div>';
  h.hidden=false;$('#stage').classList.add('hinting');S.hintRows=1;$('#hintB').hidden=true;drawX();
- $('#hgrid').addEventListener('click',()=>{if(!S.counting)stepX();});on('#countBtn',()=>{Snd.init();autoCount();});sizeHint();}
+ $('#hgrid').addEventListener('click',()=>{if(!S.counting)stepX();});on('#countBtn',()=>{Snd.init();autoCount();});sizeHint();autoSay((S.wrong?'Almost! ':'')+X.intro);}
 function drawX(){const X=S&&S.hx,g=$('#hgrid');if(!X||!g)return;const n=S.hintRows;g.innerHTML=X.steps.map((st,i)=>'<div class="xs'+(i<n?' seen':'')+(i===n-1?' on':'')+'">'+esc(st.eq)+'</div>').join('');}
-function stepX(){const X=S&&S.hx;if(!X||$('#hint').hidden)return;if(S.hintRows>=X.steps.length)S.hintRows=0;S.hintRows++;drawX();$('#say').textContent=X.steps[S.hintRows-1].say;Snd.count(S.hintRows*2);}
+function stepX(){const X=S&&S.hx;if(!X||$('#hint').hidden)return;if(S.hintRows>=X.steps.length)S.hintRows=0;S.hintRows++;drawX();$('#say').textContent=X.steps[S.hintRows-1].say;autoSay(X.steps[S.hintRows-1].say);Snd.count(S.hintRows*2);}
 function choicesTwo(q){const c=S.cfg,ans=q.ans,set=[ans],ok=v=>v>0&&set.indexOf(v)<0,T=q.t,plus=T==='aa'||T==='sa'||T==='ma'||T==='da';
  const mid=T[0]==='a'?q.a+q.b:T[0]==='s'?q.a-q.b:T[0]==='m'?q.a*q.b:q.b,other=T==='mm'?q.c*q.d:plus?mid-q.c:mid+q.c;
  const tiers=[[mid,other],[ans+10,ans-10,ans+1,ans-1],[ans+2,ans-2,ans+20,ans-20,ans+100,ans-100]];
@@ -2530,12 +2879,12 @@ function showHintAS(){const q=S.q,h=$('#hint');S.as=asModel(q);const col=S.as.ki
  h.innerHTML='<div class="hl"><div class="hTop"><div class="worm">'+wormSVG()+'</div><div class="say" id="say">'+(S.wrong?'Almost! ':'')+S.as.intro+'</div></div>'+
   '<div class="hq">'+qPlain(q).replace(/\?/g,'<b>?</b>')+'</div><button class="btn gold countBtn" id="countBtn">'+(col?'Show me how!':'Count with me!')+'</button></div><div class="gridBox"><div id="hgrid" class="'+(col?'cgrid':'tgrid')+'"></div></div>';
  h.hidden=false;$('#stage').classList.add('hinting');S.hintRows=0;$('#hintB').hidden=true;asDraw();
- $('#hgrid').addEventListener('click',()=>{if(!S.counting)stepAS();});on('#countBtn',()=>{Snd.init();autoCount();});sizeHint();}
+ $('#hgrid').addEventListener('click',()=>{if(!S.counting)stepAS();});on('#countBtn',()=>{Snd.init();autoCount();});sizeHint();autoSay((S.wrong?'Almost! ':'')+S.as.intro);}
 function sizeHintAS(h){const A=S.as;if(!A)return;const gb=h.querySelector('.gridBox').getBoundingClientRect();
  if(A.kind==='col'){const cs=Math.max(34,Math.min(110,(gb.width-44-8*A.nd)/A.nd,(gb.height-30)/3.7));h.style.setProperty('--cs',cs.toFixed(1)+'px');}
  else{const rows=Math.ceil(A.cells.length/10),g=Math.max(14,Math.min(52,(gb.width-30)/10.8,(gb.height-10)/rows/1.4));h.style.setProperty('--g',g.toFixed(1)+'px');}}
 function stepAS(){const A=S&&S.as;if(!A||!A.steps.length||$('#hint').hidden)return;if(S.hintRows>=A.steps.length)S.hintRows=0;
- S.hintRows++;asDraw();$('#say').textContent=A.steps[S.hintRows-1].txt;Snd.count(A.kind==='col'?S.hintRows*3:S.hintRows);}
+ S.hintRows++;asDraw();$('#say').textContent=A.steps[S.hintRows-1].txt;autoSay(stepSay(A.steps[S.hintRows-1].txt));Snd.count(A.kind==='col'?S.hintRows*3:S.hintRows);}
 function asDraw(){const A=S&&S.as,g=$('#hgrid');if(!A||!g)return;const n=S.hintRows,HGs=hintGems();
  if(A.kind==='ten'){const cells=A.cells.map(c=>({t:c.t,lit:c.lit,x:c.x}));
   for(let i=0;i<n;i++){const st=A.steps[i],c=cells[st.i];if(st.x)c.x=true;else c.lit=true;}
@@ -2556,6 +2905,9 @@ function hideHint(){const h=$('#hint');h.hidden=true;h.innerHTML='';$('#stage').
 // ---------- level done ----------
 function levelDone(){const s=S;s.busy=true;const st=s.st,si=s.si,k=s.k,ratio=s.total?s.first/s.total:1,stars=ratio>=0.9?3:ratio>=0.7?2:1;
  const LV=lvStore(st),key=st.id+'-'+k,rec=isObj(LV[key])?LV[key]:{stars:0,done:false,plays:0},was=rec.done,wasM=rec.stars>=3;rec.stars=Math.max(rec.stars|0,stars);rec.done=true;rec.plays=(rec.plays|0)+1;LV[key]=rec;persist();
+ const acc=Math.round(ratio*100),stName=st.kind==='table'?'×'+st.t+' '+GEMS[st.t].name+' Tunnel':st.name;
+ const rr=s.mode==='sec'&&s.t0?REC.record({c:st.id+'-'+k,n:stName+' · '+(st.kind==='queen'?'Grand Boss':LVN[k]),g:SECS[st.sec]?SECS[st.sec].name:'Caves',s:acc,st:stars,x:{rs:s.rsb|0,tm:Math.round((performance.now()-s.t0)/1000)}}):null;
+ if(rr&&rr.isNew)setTimeout(()=>{if(curScreen==='play')REC.celebrate({score:'🎯 '+acc+'%',name:stName});},1300*Math.max(SPEED,0.2));
  if(st.kind==='queen')return queenFinale(s,stars);
  const SL=secStages(st.sec),sj=SL.indexOf(si),nx=sj>=0&&sj+1<SL.length?SL[sj+1]:-1;
  let next=null,nextTxt='';if(k+1<nLv(st)){next=[si,k+1];nextTxt='Next: '+LVN[k+1]+' &#8594;';}else if(nx>=0){next=[nx,0];nextTxt='Next tunnel &#8594;';}
@@ -2565,7 +2917,8 @@ function levelDone(){const s=S;s.busy=true;const st=s.st,si=s.si,k=s.k,ratio=s.t
   '<p>'+(stars===3&&!wasM?'<b>'+LVN[k]+' mastered!</b> ':'')+(stars<3?'Play again to earn more stars! ':'Amazing work'+(save.name?', '+esc(save.name):'')+'! ')+(s.speedy?'<span class="sp">'+IC.bolt+s.speedy+' speedy bonus'+(s.speedy>1?'es':'')+'</span> ':'')+news.join(' ')+'</p>'+
   '<div class="earned">'+earned+'</div><div class="row"><button class="btn purple" id="dMap">Map</button><button class="btn teal" id="dAgain">Play again</button>'+(next?'<button class="btn gold big" id="dNext">'+nextTxt+'</button>':'')+'</div>');
  c.querySelectorAll('.bigStars svg').forEach((el,j)=>setTimeout(()=>{if(j<stars){el.classList.add('on');Snd.tone(880*(1+j*0.25),0.25,'triangle',0.15);const r=el.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,18,['#fff27a','#ffcf3a','#fff']);}},(300+j*350)*SPEED));
- Snd.golden();on('#dMap',()=>{tapSnd();closeModal();S=null;show('map');});on('#dAgain',()=>{tapSnd();closeModal();startLevel(si,k);});
+ Snd.golden();autoSay((st.kind==='table'?'Tunnel cleared! ':'Level cleared! ')+(stars<3?'Play again to earn more stars!':'Amazing work'+(save.name?', '+save.name:'')+'!'));
+ on('#dMap',()=>{tapSnd();closeModal();S=null;show('map');});on('#dAgain',()=>{tapSnd();closeModal();startLevel(si,k);});
  if(next)on('#dNext',()=>{tapSnd();closeModal();startLevel(next[0],next[1]);});}
 function queenFinale(s,stars){save.champ=(save.champ|0)+1;const firstWin=save.treasures.indexOf(CHAMP.id)<0;if(firstWin)save.treasures.push(CHAMP.id);persist();
  Snd.golden();setTimeout(()=>Snd.chest(),700*SPEED);for(let i=0;i<5;i++)setTimeout(()=>confetti(70),i*450*Math.max(SPEED,0.3));
@@ -2577,17 +2930,39 @@ function queenFinale(s,stars){save.champ=(save.champ|0)+1;const firstWin=save.tr
 // ---------- backpack ----------
 let bagFrom='map';
 $('#bBack').innerHTML=IC.back;$('#sBack').innerHTML=IC.back;
+function inspectBag(o){if(!o)return;Snd.init();if(o.has){Snd.sparkle(4);Snd.tone(1568,0.5,'triangle',0.06,0.15,2093);}else Snd.tap();
+ const c=modal('<div class="insp" data-r="'+o.r+'"><div class="art">'+(o.has?'<div class="rays"></div>':'')+o.art(180,!o.has)+(o.has?'<i class="tw a"></i><i class="tw b"></i>':'')+'</div></div>'+
+  '<h2>'+esc(o.has?o.name:o.lockName||o.name)+'</h2><div><span class="rar '+(o.has?o.r:'lock')+'">'+(o.has?o.rn:'🔒 Not found yet')+'</span></div>'+
+  '<p class="how">'+(o.has?esc(o.how):'Hint: '+esc(o.hint)+'!')+'</p><button class="btn gold big" id="iOk">'+(o.has?'So shiny!':'OK!')+'</button>','insp');
+ if(o.has)setTimeout(()=>{const a=c.querySelector('.art');if(a)sparkEl(a,30,null,300);},120);
+ on('#iOk',()=>{tapSnd();closeModal();});}
+$('#bagBody').addEventListener('click',e=>{const t=e.target.closest('[data-bi]');if(t)inspectBag(BAG[+t.dataset.bi]);});
+$('#bagBody').addEventListener('keydown',e=>{const t=e.target.closest('[data-bi]');if(t&&(e.key==='Enter'||e.key===' ')){e.preventDefault();inspectBag(BAG[+t.dataset.bi]);}});
 on('#bBack',()=>{tapSnd();if(bagFrom==='play'&&S)show('play');else show(bagFrom==='mine'?'mine':'map');});on('#sBack',()=>{tapSnd();show(setFrom);});
-function renderBag(){let h='<div class="summary"><div class="s">'+gemSVG(GEMS[2],38)+totalGems()+' gems</div><div class="s">'+goldenSVG(38)+(save.golden|0)+' golden</div><div class="s">'+IC.flame+'Best streak '+save.best+'</div>'+(save.champ?'<div class="s">'+IC.crown+'Champion ×'+save.champ+'</div>':'')+'</div>';
- h+='<div class="secH">Cave Gems</div><div class="tiles">';
- GEM_ORDER.forEach(t=>{const g=save.gems[t]||{b:0,s:0},has=(g.b+g.s)>0;h+='<div class="tile'+(has?'':' no')+'">'+gemSVG(GEMS[t],56,{sil:!has})+'<div class="n">'+GEMS[t].name+'</div><div class="c">'+g.b+(g.s?' <small>+'+g.s+' little</small>':'')+'</div></div>';});
- secStages('mul').filter(i=>ALL[i].hard).forEach(i=>{const t=ALL[i].gem,g=gemRec(t),has=(g.b+g.s)>0;h+='<div class="tile'+(has?'':' no')+'">'+gemSVG(GEMS[t],56,{sil:!has})+'<div class="n">'+GEMS[t].name+'</div><div class="c">'+g.b+(g.s?' <small>+'+g.s+' little</small>':'')+'</div></div>';});
- CAVES.filter(x=>x!=='mul'&&secVisible(x)).forEach(x=>{h+='</div><div class="secH">'+SECS[x].name+' Gems</div><div class="tiles">';
-  secStages(x).forEach(i=>{const t=ALL[i].gem,g=gemRec(t),has=(g.b+g.s)>0;h+='<div class="tile'+(has?'':' no')+'">'+gemSVG(GEMS[t],56,{sil:!has})+'<div class="n">'+GEMS[t].name+'</div><div class="c">'+g.b+(g.s?' <small>+'+g.s+' little</small>':'')+'</div></div>';});});
- h+='</div><div class="secH">Rare Gems <small style="font-size:15px;opacity:.85">(get 5 in a row!)</small></div><div class="tiles">';
- RARES.forEach(r=>{const n=save.rare[r.id]|0;h+='<div class="tile'+(n?'':' no')+'">'+gemSVG(r,56,{sil:!n})+'<div class="n">'+(n?r.name:'???')+'</div><div class="c">'+(n?'×'+n:'&nbsp;')+'</div></div>';});
- h+='</div><div class="secH">Treasures <small style="font-size:15px;opacity:.85">(10 in a row opens a secret tunnel!)</small></div><div class="tiles">';
- TREASURES.concat([CHAMP]).forEach(r=>{const has=save.treasures.indexOf(r.id)>=0;h+='<div class="tile'+(has?'':' no')+(r===CHAMP?' champT':'')+'"><div style="width:62px;height:62px'+(has?'':';filter:grayscale(1) brightness(.6)')+'">'+treasureSVG(r.id)+'</div><div class="n">'+(has?r.name:(r===CHAMP?'Beat the Crystal Queen':'???'))+'</div></div>';});
+// v4 backpack: each collection is a display case; BAG keeps what every item is, so a tap can open its inspect view
+let BAG=[];
+function bagItem(o){const i=BAG.push(o)-1,dl=((i*0.37)%3).toFixed(2);
+ return '<div class="tile gT'+(o.has?'':' no')+'" data-r="'+o.r+'" data-bi="'+i+'" role="button" tabindex="0" aria-label="'+esc(o.has?o.name:'Locked: '+o.hint)+'" style="--dl:-'+dl+'s"><div class="stand">'+o.art(66,!o.has)+'<span class="gl"></span><i class="tw a"></i><i class="tw b"></i></div><div class="shelf"></div>'+
+  '<div class="n">'+esc(o.has?o.name:o.lockName||o.name)+'</div>'+(o.has?(o.cnt?'<div class="c">'+o.cnt+'</div>':''):'<div class="lkH">🔒 '+esc(o.hint)+'</div>')+'</div>';}
+const stageOf=t=>{for(let i=0;i<ALL.length;i++)if(ALL[i].gem===t)return ALL[i];return null;};
+function caveGemItem(t){const g=gemRec(t),has=(g.b+g.s)>0,st=stageOf(t),where=st?(st.kind==='table'?'the ×'+st.t+' tunnel':st.name):'the caves';
+ return {r:'cave',rn:'Cave Gem',has,name:GEMS[t].name,art:(z,l)=>gemSVG(GEMS[t],z,{sil:l}),cnt:g.b+(g.s?' <small>+'+g.s+' little</small>':''),
+  how:'Won by breaking doors in '+where+'. '+(g.b?g.b+' big gem'+(g.b>1?'s':''):'')+(g.b&&g.s?' and ':'')+(g.s?g.s+' little one'+(g.s>1?'s':'')+' (with Glimmer\'s help)':'')+'.',hint:'Win it in '+where};}
+function renderBag(){BAG=[];let h='<div class="summary"><div class="s">'+gemSVG(GEMS[2],38)+totalGems()+' gems</div><div class="s">'+goldenSVG(38)+(save.golden|0)+' golden</div><div class="s">'+IC.flame+'Best streak '+save.best+'</div>'+(save.champ?'<div class="s">'+IC.crown+'Champion ×'+save.champ+'</div>':'')+'</div>';
+ h+='<div class="secH">Cave Gems</div><div class="case"><div class="tiles">';
+ GEM_ORDER.forEach(t=>{h+=bagItem(caveGemItem(t));});
+ secStages('mul').filter(i=>ALL[i].hard).forEach(i=>{h+=bagItem(caveGemItem(ALL[i].gem));});
+ CAVES.filter(x=>x!=='mul'&&secVisible(x)).forEach(x=>{h+='</div></div><div class="secH">'+SECS[x].name+' Gems</div><div class="case"><div class="tiles">';
+  secStages(x).forEach(i=>{h+=bagItem(caveGemItem(ALL[i].gem));});});
+ h+='</div></div><div class="secH">Rare Gems <small style="font-size:15px;opacity:.85">(get 5 in a row!)</small></div><div class="case"><div class="tiles">';
+ RARES.forEach(r=>{const n=save.rare[r.id]|0;h+=bagItem({r:'rare',rn:'Rare Gem',has:!!n,name:r.name,lockName:'???',art:(z,l)=>gemSVG(r,z,{sil:l}),cnt:'×'+n,
+  how:'A prize for answering 5, 15, 25… in a row. You found '+n+'!',hint:'Get 5 in a row'});});
+ h+='</div></div><div class="secH">Treasures <small style="font-size:15px;opacity:.85">(10 in a row opens a secret tunnel!)</small></div><div class="case"><div class="tiles">';
+ TREASURES.concat([CHAMP]).forEach(r=>{const has=save.treasures.indexOf(r.id)>=0,ch=r===CHAMP;
+  h+=bagItem({r:ch?'legend':'treasure',rn:ch?'Legendary':'Treasure',has,name:r.name,lockName:ch?'Queen\'s Crown':'???',art:(z,l)=>'<div class="tr" style="'+(l?'filter:brightness(0) invert(1);opacity:.28':'')+'">'+treasureSVG(r.id)+'</div>',
+   how:ch?'Given by the Crystal Queen herself when you beat her at her throne!'+(save.champ>1?' Beaten '+save.champ+' times!':''):'Found in the treasure chest at the end of a Secret Golden Tunnel.',
+   hint:ch?'Beat the Crystal Queen':'10 in a row opens a secret tunnel'});});
+ h+='</div></div><div>';
  SEC_ORDER.filter(x=>secVisible(x)||x==='mul').concat(WSECS.filter(secVisible),ESECS.filter(secVisible)).forEach(x=>{h+='</div><div class="secH">'+(x==='mul'?'Tunnels and Levels':SECS[x].name)+'</div><div class="tbls">';
  secStages(x).forEach(i=>{const st=ALL[i];let c=0,n=0;if(st.kind==='table')for(let b=1;b<=10;b++){const f=save.facts[st.t+'x'+b];if(f){c+=f.c;n+=f.n;}}
   let lv='';for(let k=0;k<nLv(st);k++){const r=lvRec(i,k);lv+='<div class="lvst"><span>'+(st.kind==='queen'?'Grand Boss':LVN[k])+'</span>'+[0,1,2].map(j=>starSVG(j<r.stars)).join('')+'</div>';}
@@ -2618,7 +2993,8 @@ if('serviceWorker' in navigator&&location.protocol!=='file:'){const sw=navigator
  window.addEventListener('load',()=>{sw.register('./sw.js',{scope:'./'}).catch(()=>{});});}
 window.__cc={get save(){return save;},get S(){return S;},speed(v){SPEED=v;},show,startLevel,STAGES,TABLES,ansOf,qPlain,
  ALL,SECS,secStages,stageOpen,openSec,openGate,openWords:()=>openSec('word'),get W(){return W;},factsFor,asModel,parseKey,get mapSec(){return mapSec;},
- get E(){return E;},openEnglish:()=>openSec("eng"),EITEM,STORY,Voice,ttsKey};
+ get E(){return E;},openEnglish:()=>openSec("eng"),EITEM,STORY,Voice,ttsKey,REC,
+ sp:{qSay,sayText,sayParts,numWords,mkStory,hintIntro,hintShape,rowText,stepSay,xInfo,asModel,isX,isAS,nLv,PRAISE,RARES,wordQ}};
 })();
 </script>
 </body>

@@ -54,7 +54,9 @@
   // menu-only sound effects (never used during gameplay)
   A.click = (t, hi) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = hi ? 1760 : 1320; g.gain.setValueAtTime(0.35, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.06); o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.07); };
   A.sfx = (kind) => { if (!ctx || A.inGame) return; const t = ctx.currentTime;
-    const seq = { coin: [88, 93], star: [84, 88, 91, 96], miss: [62, 58], tap: [84], unlock: [79, 83, 86, 91, 95], gift: [72, 76, 79, 84, 88, 91] }[kind] || [84];
+    // v4: menu taps twinkle on a happy (pentatonic) note pair; 'sparkle' is a quick glittery run for rewards
+    const PT = [84, 86, 88, 91, 93, 96], r = () => PT[Math.floor(Math.random() * PT.length)];
+    const seq = kind === 'tap' ? [r(), r() + 12] : kind === 'sparkle' ? [r() + 12, r() + 12, r() + 12, 108] : { coin: [88, 93], star: [84, 88, 91, 96], miss: [62, 58], unlock: [79, 83, 86, 91, 95], gift: [72, 76, 79, 84, 88, 91] }[kind] || [84];
     seq.forEach((m, i) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = mf(m); const s = t + i * 0.07;
       g.gain.setValueAtTime(0, s); g.gain.linearRampToValueAtTime(0.16, s + 0.01); g.gain.exponentialRampToValueAtTime(0.001, s + 0.25); o.connect(g); g.connect(sfxBus); o.start(s); o.stop(s + 0.3); }); };
   // gameplay effects (power-ups, poofs, combos, star power, world intro, results): own bus + volume. Never used for tile taps.

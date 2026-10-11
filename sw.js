@@ -1,8 +1,10 @@
 // Sky Glider service worker: offline support, no network calls beyond its own files.
-const CACHE='sky-glider-v4b';
+const CACHE='sky-glider-v5d';
 // Only Sky Glider's own root files are handled here. Everything else (e.g. ./crystal-cave/, ./home/, ./yoga/ and any
 // future sub-apps, which have their own service workers and caches) is ignored and never touched.
-const FILES=['./','./index.html','./SkyGlider.html','./manifest.json','./icon.svg','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
+const FILES=['./','./index.html','./SkyGlider.html','./manifest.json','./icon.svg','./icon-192.png','./icon-512.png','./icon-maskable-512.png',
+  // NEW RECORD cheers (Kokoro af_heart voice clips)
+  './audio/manifest.json','./audio/548beca9.ogg','./audio/cb07e4ed.ogg','./audio/21f15e94.ogg','./audio/7e56e9f5.ogg','./audio/2587fe25.ogg','./audio/d34e3a57.ogg'];
 const OWN=new Set(FILES.map(f=>new URL(f,self.location).pathname));
 // install: fetch fresh copies (skip the HTTP cache) so a new version never caches stale files
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES.map(f=>new Request(f,{cache:'reload'})))).then(()=>self.skipWaiting()));});
