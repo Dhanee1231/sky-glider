@@ -589,13 +589,20 @@ h1,h2,h3{margin:0}
 .fz-shapes .door .lockGem.pop{outline:3px dashed #fff;border-radius:50%}
 /* ===== Batch 01 item 9: Place Value Palace, Pattern Pools, Array Gardens ===== */
 .c-pv{--k1:#ffb3e1;--k2:#e04fa8;--k3:#8c1f5a}.c-pat{--k1:#8fe8ff;--k2:#2f8fd0;--k3:#174f86}.c-arr{--k1:#b8ffcf;--k2:#2faa6a;--k3:#13633a}
-.stPic .pvB4{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:flex-end;max-width:100%}
+.stPic .pvB4{--u:clamp(22px,6vmin,28px);display:flex;flex-wrap:wrap;gap:8px;row-gap:8px;justify-content:center;align-items:flex-end;max-width:100%}
 .pvG{display:inline-flex;flex-wrap:wrap;gap:3px;align-items:flex-end;justify-content:center;padding:3px 5px;border-radius:12px;background:rgba(255,255,255,.7);box-shadow:inset 0 0 0 2px rgba(194,51,127,.25);max-width:100%}
 .pvB{display:block;border-radius:4px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.75),0 2px 0 rgba(60,20,100,.35)}
+/* v7: every block keeps a countable size at every difficulty (ones never under 22px, tens bars never under 18px wide, hundreds and thousands never under 34px); big counts group in fives (ones/hundreds/thousands in rows of 5 like ten-frames, tens side by side with a gap after every 5th) and wrap onto more rows instead of shrinking */
+.pvG{display:grid;grid-template-columns:repeat(var(--n,5),auto);gap:5px;align-items:end;justify-items:center;padding:6px 8px}
+.pvG.g1{display:flex;flex-wrap:nowrap;gap:4px;align-items:flex-end}
+.pvG.g1 .pvB:nth-child(5n+1):not(:first-child){margin-left:10px}
+.pvG.g0{gap:5px 6px}
+/* a short screen first drops the Story Door tag and trims padding and the biggest blocks; the ones and tens never shrink, and only then does the door scroll */
+.door.pvTight{gap:3px;padding:4px 12px 6px}.door.pvTight>.stTag{display:none}.door.pvTight .stPic .pvB4{gap:6px;row-gap:5px}.door.pvTight .pvG{padding:3px 5px;gap:4px}.door.pvTight .pvG.g0{gap:4px 6px}.door.pvTight .pvB.b3{width:34px;height:34px}.door.pvTight .pvB.b2{width:30px;height:30px}
 .pvB.b0{width:var(--u);height:var(--u);border-radius:50%;background:radial-gradient(circle at 32% 30%,#fff,#ff6fcf 55%,#c2337f)}
-.pvB.b1{width:calc(var(--u)*.78);height:calc(var(--u)*3.4);background:repeating-linear-gradient(180deg,rgba(255,255,255,.8) 0 2px,transparent 2px calc(var(--u)*.34)),linear-gradient(90deg,#b8e4ff,#3a7bf0)}
-.pvB.b2{width:calc(var(--u)*2.6);height:calc(var(--u)*2.6);background:repeating-linear-gradient(90deg,rgba(255,255,255,.7) 0 2px,transparent 2px calc(var(--u)*.26)),repeating-linear-gradient(0deg,rgba(255,255,255,.7) 0 2px,transparent 2px calc(var(--u)*.26)),linear-gradient(135deg,#d9b3ff,#a347ff)}
-.pvB.b3{width:calc(var(--u)*3);height:calc(var(--u)*3);background:repeating-linear-gradient(90deg,rgba(255,255,255,.7) 0 2px,transparent 2px calc(var(--u)*.3)),linear-gradient(135deg,#fff0a8,#ffb52e)}
+.pvB.b1{width:max(18px,calc(var(--u)*.8));height:calc(var(--u)*2.6);background:repeating-linear-gradient(180deg,rgba(255,255,255,.8) 0 2px,transparent 2px calc(var(--u)*.26)),linear-gradient(90deg,#b8e4ff,#3a7bf0)}
+.pvB.b2{width:max(34px,calc(var(--u)*1.5));height:max(34px,calc(var(--u)*1.5));background:repeating-linear-gradient(90deg,rgba(255,255,255,.7) 0 2px,transparent 2px calc(var(--u)*.3)),repeating-linear-gradient(0deg,rgba(255,255,255,.7) 0 2px,transparent 2px calc(var(--u)*.3)),linear-gradient(135deg,#d9b3ff,#a347ff)}
+.pvB.b3{width:max(38px,calc(var(--u)*1.7));height:max(38px,calc(var(--u)*1.7));background:repeating-linear-gradient(90deg,rgba(255,255,255,.7) 0 2px,transparent 2px calc(var(--u)*.34)),linear-gradient(135deg,#fff0a8,#ffb52e)}
 .pvNum{font-weight:900;font-size:1.5em;letter-spacing:.04em;color:#4a1f8f;font-variant-numeric:tabular-nums}
 .pvNum b{color:#fff;background:#ff6fb5;border-radius:.2em;padding:0 .12em;box-shadow:0 0 0 3px #ffd84a}
 .pvPart{font-weight:900;font-size:1.25em;color:#4a1f8f;background:#fff;border-radius:14px;padding:0 .35em;box-shadow:0 0 0 3px rgba(194,51,127,.35)}
@@ -2063,8 +2070,8 @@ function choicesP(q){const c=S.cfg,n=c.n,ans=q.ans;
  return shuffle(set);}
 
 // ----- pictures (pure HTML / CSS, no external files)
-function pvBlocks(n){const D=D4(n),tot=D[0]+D[1]+D[2]+D[3],u=tot>24?8:tot>16?10:tot>9?13:17;let h='<div class="pvB4" style="--u:'+u+'px">';
- for(let c=3;c>=0;c--){const d=D[3-c];if(!d)continue;h+='<span class="pvG">';for(let i=0;i<d;i++)h+='<i class="pvB b'+c+'"></i>';h+='</span>';}
+function pvBlocks(n){const D=D4(n);let h='<div class="pvB4">';
+ for(let c=3;c>=0;c--){const d=D[3-c];if(!d)continue;h+='<span class="pvG g'+c+'" style="--n:'+Math.min(d,5)+'">';for(let i=0;i<d;i++)h+='<i class="pvB b'+c+'"></i>';h+='</span>';}
  return h+'</div>';}
 function pvNumHTML(n,c){const s=String(n);let h='<span class="pvNum">';for(let i=0;i<s.length;i++)h+=(s.length-1-i===c)?'<b>'+s[i]+'</b>':s[i];return h+'</span>';}
 // place-value chart (the same gems as Glimmer's column hints): hl = the column to light up
@@ -3550,7 +3557,7 @@ function showHintX(){const q=S.q,h=$('#hint'),X=S.hx=xInfo(q);S.as=null;
  $('#hgrid').addEventListener('click',()=>{if(!S.counting)stepX();});on('#countBtn',()=>{Snd.init();autoCount();});sizeHint();autoSay((S.wrong?'Almost! ':'')+X.intro);}
 // new-cave pictures shrink (zoom) so the whole door, picture and text, fits the space she has (small phones, landscape, big buttons)
 function fitPic(){if(!S||!S.q||!S.q.p||curScreen!=='play')return;const door=document.querySelector('#doorBox .door.story'),pic=door&&door.querySelector('.stPic');if(!pic)return;
- pic.style.zoom='';const over=door.scrollHeight-door.clientHeight,ovw=door.scrollWidth-door.clientWidth;if(over<=2&&ovw<=2)return;
+ pic.style.zoom='';if(pic.querySelector('.pvB4')){door.classList.remove('pvTight');if(door.scrollHeight-door.clientHeight>2)door.classList.add('pvTight');return;}const over=door.scrollHeight-door.clientHeight,ovw=door.scrollWidth-door.clientWidth;if(over<=2&&ovw<=2)return;
  const r=pic.getBoundingClientRect();if(r.height<=0||r.width<=0)return;const f=Math.max(0.3,Math.min(over>2?(r.height-over-4)/r.height:1,ovw>2?(r.width-ovw-4)/r.width:1));pic.style.zoom=f.toFixed(3);}
 function fitHintVis(){const g=$('#hgrid'),v=g&&g.querySelector('.xvis');if(!v)return;v.style.zoom='';const over=g.scrollHeight-g.clientHeight;if(over<=2)return;const h=v.getBoundingClientRect().height;if(h<=0)return;v.style.zoom=Math.max(0.35,(h-over-4)/h).toFixed(3);}
 function drawX(){const X=S&&S.hx,g=$('#hgrid');if(!X||!g)return;const n=S.hintRows;g.innerHTML=(X.vis?'<div class="xvis">'+X.vis(n)+'</div>':'')+X.steps.map((st,i)=>'<div class="xs'+(i<n?' seen':'')+(i===n-1?' on':'')+'">'+esc(st.eq)+'</div>').join('');if(X.vis)fitHintVis();}
