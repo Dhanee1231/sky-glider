@@ -4,14 +4,6 @@
 const $ = s => document.querySelector(s), $$ = s => Array.from(document.querySelectorAll(s));
 const A = window.TAudio, Art = window.Art, AN = window.TileAnalyze;
 const KEY = 'gemtiles-v1';
-// Fun Zone (Batch 01): grown-up settings from the hub, vibration, wake lock, break card, praise. Every call is guarded so the game works without it.
-const FZ = window.FunZone;
-const fzp = () => { try { return FZ ? FZ.parent() : {}; } catch (e) { return {}; } };
-const CALM = () => !!(S && S.set && S.set.calm) || !!(FZ && FZ.calm());
-const fzBuzz = p => { try { if (FZ) FZ.buzz(p); } catch (e) { } };
-// break card: only on the home / songs screens (never mid-song or over the results card)
-const fzBreak = () => { try { if (FZ && FZ.timeUp()) setTimeout(() => { if (!G.on && !STARTING && (cur === 'home' || cur === 'songs') && !document.querySelector('.modal.on')) FZ.breakCheck({ dir: 'audio/', muted: !S.set.sound }); }, 700); } catch (e) { } };
-const fzWake = on => { try { if (FZ) FZ.wake(on); } catch (e) { } };
 const today = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
 
 // ---------- catalog of rewards ----------
@@ -19,7 +11,7 @@ const SHOP = {
   skin: [['pinkgem', 'Pink Heart Gem', 0], ['hearts', 'Ruby Hearts', 60], ['stars', 'Gold Stars', 60], ['diamonds', 'Diamonds', 90], ['bubbles', 'Lilac Pearls', 90], ['crowns', 'Royal Crowns', 140], ['mix', 'Gem Mix', 160], ['candy', 'Mint Candy', 110], ['neon', 'Neon Glow', 180]],
   glitter: [['pink', 'Pink', 0], ['gold', 'Gold', 0], ['silver', 'Silver', 30], ['lilac', 'Lilac', 40], ['aqua', 'Aqua', 40], ['mint', 'Mint', 40], ['rainbow', 'Rainbow', 90]],
   frame: [['none', 'No frame', 0], ['silver', 'Silver frame', 0], ['gold', 'Gold frame', 70], ['rosegold', 'Rose-gold frame', 90], ['pearl', 'Pearl frame', 110]],
-  theme: [['pinkgold', 'Pink & Gold', 0], ['moon', 'Moonlight', 0], ['ocean', 'Ocean', 0], ['candy', 'Candy', 0], ['galaxy', 'Galaxy', 60], ['rainbow', 'Rainbow', 60], ['festival', 'Bollywood Festival', 100], ['disco', 'Neon Disco', 120], ['rainbowroad', '🌈 Rainbow Road', 150], ['candyk', '🍭 Candy Kingdom', 80], ['neon', '🌃 Neon City Drive', 120], ['reef', '🐠 Underwater Reef', 90], ['volcano', '🌋 Volcano Valley', 110], ['ice', '❄️ Ice Castle', 90], ['jungle', '🌴 Jungle Temple', 100], ['cloudc', '☁️ Cloud Castle', 100], ['heartpalace', '💖 Heart Pearl Palace', 110]],
+  theme: [['pinkgold', 'Pink & Gold', 0], ['moon', 'Moonlight', 0], ['ocean', 'Ocean', 0], ['candy', 'Candy', 0], ['galaxy', 'Galaxy', 60], ['rainbow', 'Rainbow', 60], ['festival', 'Bollywood Festival', 100], ['disco', 'Neon Disco', 120], ['rainbowroad', '🌈 Rainbow Road', 150], ['candyk', '🍭 Candy Kingdom', 80], ['neon', '🌃 Neon City Drive', 120], ['reef', '🐠 Underwater Reef', 90], ['volcano', '🌋 Volcano Valley', 110], ['ice', '❄️ Ice Castle', 90], ['jungle', '🌴 Jungle Temple', 100], ['cloudc', '☁️ Cloud Castle', 100]],
   outfit: [['none', 'Just Gigi', 0], ['bow', 'Pink bow', 0], ['tiara', 'Silver tiara', 50], ['glasses', 'Star glasses', 60], ['headphones', 'Headphones', 70], ['garland', 'Marigold garland', 80], ['bindi', 'Sparkle bindi', 40], ['wizard', 'Wizard hat', 100], ['crown', 'Golden crown', 200]]
 };
 // v4c: four difficulties; 'veryhard' sits above hard (its own best/records keys; older saves simply have none yet)
@@ -36,7 +28,7 @@ const NAME_HI = { 'skin|pinkgem': 'गुलाबी दिल हीरा', '
   'frame|none': 'कोई फ़्रेम नहीं', 'frame|silver': 'चाँदी का फ़्रेम', 'frame|gold': 'सोने का फ़्रेम', 'frame|rosegold': 'रोज़-गोल्ड फ़्रेम', 'frame|pearl': 'मोती का फ़्रेम',
   'outfit|none': 'बस गीगी', 'outfit|bow': 'गुलाबी रिबन', 'outfit|tiara': 'चाँदी का ताज', 'outfit|glasses': 'तारों वाला चश्मा', 'outfit|headphones': 'हेडफ़ोन', 'outfit|garland': 'गेंदे की माला', 'outfit|bindi': 'चमकीली बिंदी', 'outfit|wizard': 'जादूगर टोपी', 'outfit|crown': 'सोने का मुकुट',
   pinkgold: 'गुलाबी और सुनहरा', moon: 'चाँदनी', ocean: 'समुद्र', candy: 'कैंडी', galaxy: 'आकाशगंगा', rainbow: 'इंद्रधनुष आसमान', festival: 'बॉलीवुड त्योहार', disco: 'नियॉन डिस्को', rainbowroad: '🌈 इंद्रधनुष सड़क', candyk: '🍭 कैंडी राज्य', neon: '🌃 नियॉन शहर',
-  reef: '🐠 समुद्र के नीचे', volcano: '🌋 ज्वालामुखी घाटी', ice: '❄️ बर्फ़ का महल', jungle: '🌴 जंगल मंदिर', cloudc: '☁️ बादलों का महल', heartpalace: '💖 दिल मोती महल',
+  reef: '🐠 समुद्र के नीचे', volcano: '🌋 ज्वालामुखी घाटी', ice: '❄️ बर्फ़ का महल', jungle: '🌴 जंगल मंदिर', cloudc: '☁️ बादलों का महल',
   'b|first': 'पहला गाना', 'b|vhard': 'बहुत कठिन गाना पूरा किया', 'b|star3': 'पहले 3 सितारे', 'b|fc': 'पहला फ़ुल कॉम्बो', 'b|crown': 'पहला मुकुट', 'b|p10': '10 गाने खेले', 'b|p50': '50 गाने खेले', 'b|combo50': '50 कॉम्बो', 'b|combo100': '100 कॉम्बो', 'b|hard': 'कठिन गाना जीता', 'b|custom': 'अपना गाना जोड़ा',
   'b|streak3': '3 दिन लगातार तोहफ़ा', 'b|streak7': '7 दिन लगातार तोहफ़ा', 'b|stick10': '10 स्टिकर', 'b|pu1': 'पहला पावर-अप', 'b|puall': 'सारे 6 पावर-अप', 'b|rainbow': 'इंद्रधनुष धमाका!', 'b|dodge25': '25 रुकावटों से बचे', 'b|dodgeperfect': '5 बचाव + कोई चूक नहीं', 'b|golden': 'सुनहरा स्टिकर', 'b|shop': 'पहली ख़रीदारी', 'b|allstars': '50 सितारे' };
 const nm = (key, en) => (S.set.lang === 'hi' && NAME_HI[key]) || en;
@@ -44,12 +36,12 @@ const themeName = k => nm(k, (Art.THEMES[k] || {}).name || k);
 
 // ---------- state ----------
 const def = () => ({ v: 2, coins: 30, best: {}, plays: 0, owned: { skin: ['pinkgem'], glitter: ['pink', 'gold'], frame: ['none', 'silver'], theme: ['pinkgold', 'moon', 'ocean', 'candy'], outfit: ['none', 'bow'] },
-  eq: { skin: 'pinkgem', glitter: 'pink', frame: 'silver', outfit: 'bow' }, songTheme: {}, stickers: {}, packs: 1, daily: { last: '', streak: 0 }, badges: {}, maxCombo: 0, fav: {}, chest: { n: 0, c: 0 },
+  eq: { skin: 'pinkgem', glitter: 'pink', frame: 'silver', outfit: 'bow' }, songTheme: {}, stickers: {}, packs: 1, daily: { last: '', streak: 0 }, badges: {}, maxCombo: 0,
   set: { sound: true, beat: true, missFx: true, vis: 0, calibrated: false, offset: 0, lang: 'en', practice: false, diff: 'easy' } });
 // v3: deep-merge nested objects so an old save can never wipe newer defaults (missing diff/lang used to crash/garble)
 const isObj = o => o && typeof o === 'object' && !Array.isArray(o);
 let S; try { const raw = JSON.parse(localStorage.getItem(KEY) || '{}'); S = isObj(raw) ? raw : {}; } catch (e) { S = {}; }
-const hadV = S.v; S = Object.assign(def(), S); S.v = hadV || 1; { const D0 = def(); for (const k of ['set', 'owned', 'eq', 'daily']) S[k] = Object.assign(D0[k], isObj(S[k]) ? S[k] : {}); for (const k of ['best', 'songTheme', 'stickers', 'badges', 'fav']) if (!isObj(S[k])) S[k] = {}; S.chest = Object.assign({ n: 0, c: 0 }, isObj(S.chest) ? S.chest : {}); }
+const hadV = S.v; S = Object.assign(def(), S); S.v = hadV || 1; { const D0 = def(); for (const k of ['set', 'owned', 'eq', 'daily']) S[k] = Object.assign(D0[k], isObj(S[k]) ? S[k] : {}); for (const k of ['best', 'songTheme', 'stickers', 'badges']) if (!isObj(S[k])) S[k] = {}; }
 for (const k in def().owned) if (!Array.isArray(S.owned[k])) S.owned[k] = def().owned[k];
 for (const k of Object.keys(Art.THEMES)) if (!S.owned.theme.includes(k)) S.owned.theme.push(k); // all worlds unlocked
 if (S.v < 2) { S.v = 2; S.set = Object.assign({ missFx: true, vis: 0, calibrated: false }, S.set); } // migrations run oldest first
@@ -62,7 +54,7 @@ if (!DIFFS.includes(S.set.diff)) S.set.diff = 'easy'; if (!['en', 'hi'].includes
 { const android = /Android/i.test(navigator.userAgent); if (!S.set.calibrated && android) S.set.offset = 30;
   if (!S.set.visCal && (!S.set.vis || S.set.vis === 10)) S.set.vis = android ? 45 : 20; } // 0/10 were the old uncalibrated defaults
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } };
-A.muted = !S.set.sound; const applyVol = () => { A.vol = 0.9 * (FZ ? FZ.vol() : 1); if (A.master()) A.master().gain.setTargetAtTime(A.muted ? 0 : A.vol, A.ctx().currentTime, 0.02); }; applyVol();
+A.muted = !S.set.sound;
 
 // ---------- i18n (English / Hindi labels) ----------
 const HI = { title: 'जेम टाइल्स', tag: 'संगीत के साथ चमकीली टाइलें टैप करो!', play: 'खेलो', gift: 'रोज़ का तोहफ़ा', addSong: 'मेरा गाना जोड़ो', shop: 'दुकान', album: 'स्टिकर', albumT: 'स्टिकर एल्बम', badges: 'बैज', closet: 'गीगी की अलमारी',
@@ -77,7 +69,6 @@ const tr = k => (S.set.lang === 'hi' && HI[k]) || EN[k] || k;
 const applyLang = () => { document.documentElement.lang = S.set.lang; $$('[data-t]').forEach(e => e.textContent = (S.set.lang === 'hi' && HI[e.dataset.t]) || e.dataset.en); };
 // strings made in JS: [English, Hindi]; a function value takes arguments
 const TX = {
-  favs: ['Favourites', 'पसंदीदा'],
   recTitle: ['Song Records', 'गाने के रिकॉर्ड'], recAll: ['All', 'सभी'], recBest: ['Best score ever', 'अब तक का सबसे अच्छा स्कोर'], recRecent: ['Recent songs', 'हाल के गाने'],
   recEmpty: ['Finish a song to set your first record!', 'पहला रिकॉर्ड बनाने के लिए एक गाना पूरा करो!'], newRecord: ['NEW RECORD!', 'नया रिकॉर्ड!'],
   rarc: ['Common', 'साधारण'], rarr: ['Rare', 'दुर्लभ'], rarg: ['GOLDEN', 'सुनहरा'], notFound: ['Not found yet', 'अभी नहीं मिला'], soShiny: ['So shiny!', 'कितना चमकीला!'], okBtn: ['OK!', 'ठीक है!'],
@@ -168,18 +159,18 @@ function menuLoop(ts) {
   const t = ts / 1000, [w, h] = szOf(bg), d = Math.max(1, Math.min(DPR, Math.sqrt(1.6e6 / (w * h))));
   if (bg.width !== Math.round(w * d) || bg.height !== Math.round(h * d)) { bg.width = Math.round(w * d); bg.height = Math.round(h * d); }
   bgc.setTransform(1, 0, 0, 1, 0, 0); bgc.drawImage(Art.scene(menuTheme, w, h, d, 'menu'), 0, 0); bgc.setTransform(d, 0, 0, d, 0, 0);
-  if (Art.parallax && !CALM()) Art.parallax(bgc, menuTheme, w, h, t, t * 1.6, 1); Art.bg(bgc, menuTheme, w, h, t, t * 1.6, 0.4, true);
-  if (cur === 'shop' && !CALM()) animPreviews(ts);
+  if (Art.parallax && !S.set.calm) Art.parallax(bgc, menuTheme, w, h, t, t * 1.6, 1); Art.bg(bgc, menuTheme, w, h, t, t * 1.6, 0.4, true);
+  if (cur === 'shop' && !S.set.calm) animPreviews(ts);
   if (cur === 'home') { const [mw, mhh] = fit(mh); mhc.setTransform(1, 0, 0, 1, 0, 0); mhc.clearRect(0, 0, mh.width, mh.height); Art.mascotFast(mhc, mw / 2 * DPR, mhh * 0.58 * DPR, Math.min(mw, mhh) * 0.75 * DPR, ts < moodUntil ? mascotMood : 'idle', S.eq.outfit, t); } // cached sprite at device pixels
 
 }
 
 // ---------- screens ----------
 let cur = 'home';
-function go(id) { fzWake(false); if (id === 'closet') { shopTab = 'outfit'; id = 'shop'; } if (id === 'worlds') { shopTab = 'theme'; id = 'shop'; }
+function go(id) { if (id === 'closet') { shopTab = 'outfit'; id = 'shop'; } if (id === 'worlds') { shopTab = 'theme'; id = 'shop'; }
   if (cur === 'calib' && id !== 'calib' && CAL.on) { CAL.on = false; clearTimeout(CAL.timer); } // leaving the tap test cancels it (never applies a half test)
   $$('.screen').forEach(s => s.classList.toggle('on', s.id === id)); cur = id; menuTheme = Art.THEMES[S.lastWorld] ? S.lastWorld : 'pinkgold'; // menus show the last-played world
-  ({ home: renderHome, songs: renderSongs, shop: renderShop, album: renderAlbum, badges: renderBadges, settings: renderSettings, add: resetAdd, lab: () => renderLab() }[id] || (() => { }))(); if (id === 'home' || id === 'songs') fzBreak(); }
+  ({ home: renderHome, songs: renderSongs, shop: renderShop, album: renderAlbum, badges: renderBadges, settings: renderSettings, add: resetAdd, lab: () => renderLab() }[id] || (() => { }))(); }
 document.addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (!b) return; A.init(); A.sfx('tap');
   if (b.dataset.go === 'songs' && cur === 'home' && !S.tut) { startTutorial(); return; } // very first ▶ Play: guided, no-reading tutorial
   go(b.dataset.go); });
@@ -195,24 +186,20 @@ function renderSongs() {
   const next = window.TILE_SONGS.filter(s => s.cost > ts).sort((a, b) => a.cost - b.cost)[0], nu = $('#nextUnlock');
   if (nu) nu.innerHTML = next ? `<span>${ic('lock', 'c-pink')}${esc(tx('nextUnlock', ts, next.cost, next.emoji + ' ' + next.title))}</span><div class="bar"><i style="width:${Math.round(ts / next.cost * 100)}%"></i></div>` : `<span>${ic('crown', 'c-gold')}${esc(tx('allUnlocked'))}</span>`;
   const dots = id => DIFFS.map(df => { const st = ((S.best[id] || {})[df] || {}).stars || 0; return `<span class="dd ${df}${df === S.set.diff ? ' cur' : ''}">${df[0].toUpperCase()}<i>${'●'.repeat(st)}${'○'.repeat(3 - st)}</i></span>`; }).join('');
-  const favFirst = allSongs().filter(x => S.fav[x.id] && !(x.builtin && ts < x.cost));
-  const songRow = (s, inFav) => {
+  allSongs().forEach(s => {
     const locked = s.builtin && ts < s.cost, b = (S.best[s.id] || {})[S.set.diff] || {}, cr = crownsOf(s.id), pr = ((S.best[s.id] || {}).practiced || {})[S.set.diff], d = document.createElement('div');
-    d.className = 'card song' + (locked ? ' locked' : '') + (inFav ? ' fav' : ''); d.dataset.id = s.id;
+    d.className = 'card song' + (locked ? ' locked' : ''); d.dataset.id = s.id;
     const col = s.color || ({ moon: '#b9a6ff', pinkgold: '#ffb3d9', ocean: '#8fe3ff', galaxy: '#c08cff', candy: '#ffd6ec', disco: '#ff7ce0', festival: '#ffc04d', rainbow: '#bfe9ff' })[s.theme] || '#ffb3d9';
     const st = b.stars || 0, stars = [0, 1, 2].map(i => ic(i < st ? 'star' : 'starO', i < st ? 'c-gold' : 'c-grey')).join('');
     d.innerHTML = `<div class="em" style="background:${esc(col)}">${esc(s.emoji || '🎵')}</div><div class="info"><div class="ti" dir="auto">${esc(s.title)}</div>
       <div class="sub">${s.custom ? ic('music') + esc(tx('mySong').replace(/^\S+\s/, '')) + ' · ' + Math.round(s.bpm) + ' BPM' : esc(s.by)}${locked ? ` · ${ic('lock')} ${s.cost}` + ic('star', 'c-gold') : ''}</div>
-      <div class="stars">${stars}${cr ? `<span class="crown">${ic('crown')}${cr > 1 ? '×' + cr : ''}</span>` : ''}${pr ? ic('heart', 'c-pink') : ''}</div><div class="dots">${dots(s.id)}</div></div>` + (s.custom ? `<button class="btn icon silver edit" data-edit="${s.id}" aria-label="Edit">${ic('edit')}</button>` : locked ? '' : `<button class="btn icon silver edit" data-theme="${s.id}" aria-label="Theme">${ic('palette', 'c-pink')}</button>`) + (locked ? '' : `<button class="btn icon silver favbtn${S.fav[s.id] ? ' on' : ''}" data-fav="${s.id}" aria-label="Favourite" aria-pressed="${S.fav[s.id] ? 'true' : 'false'}">${ic('heart', S.fav[s.id] ? 'c-pink' : 'c-grey')}</button>`);
+      <div class="stars">${stars}${cr ? `<span class="crown">${ic('crown')}${cr > 1 ? '×' + cr : ''}</span>` : ''}${pr ? ic('heart', 'c-pink') : ''}</div><div class="dots">${dots(s.id)}</div></div>` + (s.custom ? `<button class="btn icon silver edit" data-edit="${s.id}" aria-label="Edit">${ic('edit')}</button>` : locked ? '' : `<button class="btn icon silver edit" data-theme="${s.id}" aria-label="Theme">${ic('palette', 'c-pink')}</button>`);
     L.appendChild(d);
-  };
-  if (favFirst.length) { const h = document.createElement('div'); h.className = 'favhead'; h.innerHTML = ic('heart', 'c-pink') + `<span>${esc(tx('favs'))}</span>` + ic('heart', 'c-pink'); L.appendChild(h); favFirst.forEach(x => songRow(x, true)); const h2 = document.createElement('div'); h2.className = 'favhead sub2'; h2.innerHTML = ic('music', 'c-pink'); L.appendChild(h2); }
-  allSongs().forEach(x => songRow(x, false));
+  });
 }
 $('#diffSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.set.diff = b.dataset.d; save(); renderSongs(); });
 $('#practiceBtn').addEventListener('click', () => { S.set.practice = !S.set.practice; save(); renderSongs(); toast(tx(S.set.practice ? 'practiceOn' : 'practiceOff')); });
 $('#songList').addEventListener('click', e => {
-  const fv = e.target.closest('[data-fav]'); if (fv) { e.stopPropagation(); const id = fv.dataset.fav; if (S.fav[id]) delete S.fav[id]; else S.fav[id] = true; save(); try { A.init(); A.sfx('tap'); } catch (e) { } const sc = $('#songs'), top = sc.scrollTop; renderSongs(); sc.scrollTop = top; return; }
   const ed = e.target.closest('[data-edit]'); if (ed) { e.stopPropagation(); openEdit(ed.dataset.edit); return; }
   const th = e.target.closest('[data-theme]'); if (th) { e.stopPropagation(); const id = th.dataset.theme, song = window.TILE_SONGS.find(x => x.id === id), curT = S.songTheme[id] || song.theme;
     msg(`<h2>${tx('themeFor')}</h2><div class="row">${Object.keys(Art.THEMES).map(k => `<button class="btn small ${k === curT ? 'gold' : 'silver'}" data-pick="${k}" data-song="${id}">${esc(themeName(k))}${S.owned.theme.includes(k) || k === song.theme ? '' : ' 🔒'}</button>`).join('')}</div><button class="btn" onclick="this.closest('.modal').classList.remove('on')">${tx('done')}</button>`); return; }
@@ -300,7 +287,7 @@ $('#badgeGrid').addEventListener('click', e => { const b = e.target.closest('[da
 const SPK = (() => {
   const cv = document.createElement('canvas'); cv.setAttribute('aria-hidden', 'true'); cv.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:45;pointer-events:none';
   document.body.appendChild(cv); const c = cv.getContext('2d'), P = [], COL = ['#fff', '#ffd84a', '#ff8fd0', '#e6ecf7', '#ffb8e6', '#c9a4ff']; let raf = 0, lt = 0, d = 1, w = 0, h = 0;
-  const calm = () => CALM() || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const calm = () => S.set.calm || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
   const size = () => { d = Math.min(window.devicePixelRatio || 1, 1.5); w = innerWidth; h = innerHeight; cv.width = Math.round(w * d); cv.height = Math.round(h * d); };
   const star = (x, y, r, rot) => { c.save(); c.translate(x, y); c.rotate(rot); c.beginPath(); for (let i = 0; i < 8; i++) { const rr = i % 2 ? r * 0.3 : r, a = i * Math.PI / 4; c.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); } c.closePath(); c.fill(); c.restore(); };
   function tick(t) {
@@ -324,7 +311,7 @@ const GOLD = ['#fff', '#ffd84a', '#ffe9a0', '#ffc933', '#ff8fd0'];
 // ---- v4b records: every finished song (per song and difficulty: score, stars, accuracy, best combo), shared FunRecords block (records.js).
 // The party only ever shows on the results card, never during a song.
 const DIFN = d => tx(d) !== d ? tx(d) : tr(d);
-const REC = FunRecords({ key: 'gemtiles.records.v1', get title() { return tx('recTitle'); }, muted: () => !S.set.sound, calm: () => CALM(), voiceBase: 'audio/',
+const REC = FunRecords({ key: 'gemtiles.records.v1', get title() { return tx('recTitle'); }, muted: () => !S.set.sound, calm: () => !!S.set.calm, voiceBase: 'audio/',
   fmt: e => NF.format(e.s), sub: e => { const x = e.x || {}; return [x.acc != null ? x.acc + '%' : '', x.cb ? '🔥 ' + x.cb : '', x.fc ? '💯' : ''].filter(Boolean).join(' · '); },
   groupOrder: g => DIFFS.map(DIFN).indexOf(g), get allLabel() { return tx('recAll'); }, get bestLabel() { return tx('recBest'); }, get recentLabel() { return tx('recRecent'); }, get empty() { return tx('recEmpty'); } });
 // best scores from before records existed fill the empty podiums once (built-in songs; dated "Before records")
@@ -346,7 +333,7 @@ function renderBadges() { $('#badgeGrid').innerHTML = BADGES.map(([id, e, n], i)
 // ---------- settings + calibration ----------
 function renderSettings() {
   const segOn = (sel, v) => $$(sel + ' button').forEach(b => b.classList.toggle('on', b.dataset.v === String(v)));
-  segOn('#soundSeg', S.set.sound ? 1 : 0); segOn('#speedSeg', S.set.speed || 'slow'); segOn('#obsSeg', S.set.obstacles !== false ? 1 : 0); segOn('#obsPSeg', S.set.obsPractice ? 1 : 0); segOn('#puSeg', S.set.powerups !== false ? 1 : 0); segOn('#shakeSeg', S.set.shake !== false ? 1 : 0); segOn('#fxSeg', S.set.fxOn !== false ? 1 : 0); segOn('#intSeg', S.set.intensity || 'med'); $('#fxVol').value = Math.round((S.set.fxVol == null ? 0.5 : S.set.fxVol) * 100); segOn('#beatSeg', S.set.missFx !== false ? 1 : 0); $('#visVal').textContent = S.set.vis || 0; segOn('#langSeg', S.set.lang); $('#offRange').value = S.set.offset; $('#offVal').textContent = S.set.offset; segOn('#calmSeg', S.set.calm ? 1 : 0); document.body.classList.toggle('calm', CALM());
+  segOn('#soundSeg', S.set.sound ? 1 : 0); segOn('#speedSeg', S.set.speed || 'slow'); segOn('#obsSeg', S.set.obstacles !== false ? 1 : 0); segOn('#obsPSeg', S.set.obsPractice ? 1 : 0); segOn('#puSeg', S.set.powerups !== false ? 1 : 0); segOn('#shakeSeg', S.set.shake !== false ? 1 : 0); segOn('#fxSeg', S.set.fxOn !== false ? 1 : 0); segOn('#intSeg', S.set.intensity || 'med'); $('#fxVol').value = Math.round((S.set.fxVol == null ? 0.5 : S.set.fxVol) * 100); segOn('#beatSeg', S.set.missFx !== false ? 1 : 0); $('#visVal').textContent = S.set.vis || 0; segOn('#langSeg', S.set.lang); $('#offRange').value = S.set.offset; $('#offVal').textContent = S.set.offset; segOn('#calmSeg', S.set.calm ? 1 : 0); document.body.classList.toggle('calm', !!S.set.calm);
 }
 [['obsSeg', 'obstacles'], ['obsPSeg', 'obsPractice'], ['puSeg', 'powerups'], ['shakeSeg', 'shake'], ['fxSeg', 'fxOn'], ['calmSeg', 'calm']].forEach(([id, k]) => $('#' + id).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.set[k] = b.dataset.v === '1'; save(); renderSettings(); }));
 $('#intSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.set.intensity = b.dataset.v; save(); renderSettings(); });
@@ -354,11 +341,11 @@ $('#fxVol').addEventListener('input', e => { S.set.fxVol = +e.target.value / 100
 $('#fxVol').addEventListener('change', () => A.fx('powerup'));
 // ---------- test lab ----------
 const LABS = { world: null, obs: null, pu: null, song: 'ode', diff: 'easy', dens: '1.6' }; // Test lab runs never touch real progress (see finishGame)
-function renderLab() { const w = Object.keys(Art.THEMES), ob = ['bomb', 'car', 'spiky', 'cloud', 'snowball', 'lava', 'crab', 'rose'], pu = Object.keys(PU);
+function renderLab() { const w = Object.keys(Art.THEMES), ob = ['bomb', 'car', 'spiky', 'cloud', 'snowball', 'lava', 'crab'], pu = Object.keys(PU);
   const btns = (arr, key, lab) => arr.map(x => `<button class="btn small ${LABS[key] === x ? 'gold' : 'silver'}" data-lab="${key}" data-v="${esc(x)}">${esc(lab(x))}</button>`).join('');
   $('#labBody').innerHTML = `<div class="lbl">${ic('music')}<span>${tx('labSong')}</span></div><div class="row">${btns(allSongs().map(s => s.id), 'song', x => { const s = allSongs().find(q => q.id === x); return (s.emoji || '🎵') + ' ' + s.title; })}</div>
   <div class="lbl">${ic('speed')}<span>${tx('labDiff')}</span></div><div class="row">${btns(DIFFS, 'diff', x => tr(x))}</div><div class="lbl">${ic('list')}<span>${tx('labDens')}</span></div><div class="row">${btns(['2.6', '1.6', '0.9'], 'dens', x => tx({ '2.6': 'sparse', '1.6': 'normalD', '0.9': 'dense' }[x]))}</div>
-  <div class="lbl">${ic('rainbow')}<span>${tx('labWorld')}</span></div><div class="row">${btns(w, 'world', themeName)}</div><div class="lbl">${ic('bomb')}<span>${tx('labObs')}</span></div><div class="row">${btns(ob, 'obs', x => ({ bomb: '💣', car: '🚗', spiky: '🦔', cloud: '⛈️', snowball: '☃️', lava: '🌋', crab: '🦀', rose: '🌹' }[x] || x))}<button class="btn small ${!LABS.obs ? 'gold' : 'silver'}" data-lab="obs" data-v="">${tx('labOwn')}</button></div>
+  <div class="lbl">${ic('rainbow')}<span>${tx('labWorld')}</span></div><div class="row">${btns(w, 'world', themeName)}</div><div class="lbl">${ic('bomb')}<span>${tx('labObs')}</span></div><div class="row">${btns(ob, 'obs', x => ({ bomb: '💣', car: '🚗', spiky: '🦔', cloud: '⛈️', snowball: '☃️', lava: '🌋', crab: '🦀' }[x] || x))}<button class="btn small ${!LABS.obs ? 'gold' : 'silver'}" data-lab="obs" data-v="">${tx('labOwn')}</button></div>
   <div class="lbl">${ic('magnet')}<span>${tx('labPu')}</span></div><div class="row">${btns(pu, 'pu', x => PU[x].e + ' ' + PU[x].name)}<button class="btn small ${!LABS.pu ? 'gold' : 'silver'}" data-lab="pu" data-v="">${tx('labMix')}</button></div>
   <div class="lbl">${ic('sound')}<span>${tx('labFx')}</span></div><div class="row">${['powerup', 'poof', 'combo', 'starpower', 'intro', 'fanfare'].map(k => `<button class="btn small silver" data-fx="${k}">${k}</button>`).join('')}</div>
   <div class="row" style="margin-top:var(--s3)"><button class="btn gold" id="labGo">${ic('play')}<span>${tx('labGo')}</span></button></div>`; }
@@ -453,8 +440,10 @@ document.addEventListener('click', async e => { if (e.target.closest('#delYes'))
 // judgement comes from the audio clock (getOutputTimestamp), never from accumulated frame deltas.
 // v6: both game layers are low-latency (desynchronized) canvases: drawing is handed straight to the display path instead of being copied through
 // the page compositor every frame (much less main-thread work per frame, and a little less tap-to-screen latency). Browsers without it ignore the hint.
-const cv = $('#cv'), c = cv.getContext('2d', { desynchronized: true }), bcv = $('#bgcv'), bc = bcv.getContext('2d', { alpha: false, desynchronized: true }),
-  dcv = $('#dyncv'), dc = dcv.getContext('2d', { desynchronized: true }); // v6: bgcv = still scenery (redrawn only on resize/theme/quality); dyncv = moving background + the track
+// v6d: back to normal (composited) canvases. The v6 'desynchronized' low-latency hint + a scenery layer painted only once left the in-game
+// background BLACK on Android Chrome (front-buffer canvases lose a layer that is not redrawn). Scenery + moving layers are again redrawn together into #bgcv.
+const cv = $('#cv'), c = cv.getContext('2d'), bcv = $('#bgcv'), bc = bcv.getContext('2d', { alpha: false }),
+  dcv = $('#dyncv'), dc = bc; // v6: bgcv = still scenery (redrawn only on resize/theme/quality); dyncv = moving background + the track
 // v3: browser gestures in the game area are blocked by CSS (touch-action:none, overscroll-behavior, user-select, touch-callout), so there are
 // no blocking touch listeners for the compositor to wait on; only the long-press menu / iOS pinch need a handler (not on the tap path)
 $('#game').addEventListener('contextmenu', e => e.preventDefault()); document.addEventListener('gesturestart', e => e.preventDefault());
@@ -474,7 +463,10 @@ function updateClock() { // off = (audio time being HEARD) - (performance time)
   const nowP = performance.now() / 1000;
   if (ctx.getOutputTimestamp) { const ts = ctx.getOutputTimestamp(); if (ts && ts.contextTime > 0 && ts.performanceTime > 0) { const e = ts.contextTime - ts.performanceTime / 1000, ahead = ctx.currentTime - (e + nowP); if (ahead > -0.01 && ahead < 0.5) est = e; } }
   if (est == null) est = ctx.currentTime - (ctx.outputLatency || ctx.baseLatency || 0) - nowP;
-  if (clock.off == null || Math.abs(est - clock.off) > 0.04) clock.off = est; else clock.off += (est - clock.off) * 0.08;
+  // v6e: no more 40 ms snaps mid-song. Android's output timestamp moves in audio-buffer steps (worst on long decoded custom tracks), and every
+  // snap/0.08 jump moved the whole highway: a visible micro-hitch. Now: snap only on (re)start or a real discontinuity (>150 ms); otherwise
+  // slew toward the estimate at most 1.5 ms per frame (invisible), so the average sync is exactly the same as before.
+  if (clock.off == null || Math.abs(est - clock.off) > 0.15) clock.off = est; else { const d = (est - clock.off) * 0.08; clock.off += d > 0.0015 ? 0.0015 : d < -0.0015 ? -0.0015 : d; }
 }
 const perfOf = e => { const t = e && e.timeStamp, n = performance.now(); return t > 0 && t <= n + 5 && n - t < 1000 ? t : n; };
 const songAt = perfMs => perfMs / 1000 + clock.off - G.startAt; // audio-track position heard at that moment
@@ -554,17 +546,16 @@ async function startGame0(song, diff) {
   if (!ctx.__watch) { ctx.__watch = 1; ctx.addEventListener('statechange', () => { if (ctx.state !== 'running' && G.on && !G.paused && !G.ended) pauseGame(); }); }
   let b; try { loadUI(0.05, tx('loading')); b = await prepare(song, diff, loadUI); } catch (e) { console.warn(e); $('#mLoad').classList.remove('on'); A.inGame = false; toast(tx('couldNotLoad')); if (!$$('.screen.on').length) go(LAB ? 'lab' : 'songs'); return; }
   loadUI(1, tx('ready'));
-  const tut = TUT.pending; TUT.pending = false; const cp = (!LAB && !tut) ? chestPlan(b.tiles, b.end) : null; // gem chest: only real runs; the thinned chart is a COPY used for play (audio untouched)
-  const tiles = (cp ? cp.tiles : b.tiles).map((t, i) => ({ ...t, id: i, state: 0, holdP: 0, bead: 0 }));
+  const tiles = b.tiles.map((t, i) => ({ ...t, id: i, state: 0, holdP: 0, bead: 0 })), tut = TUT.pending; TUT.pending = false;
   let theme = (LAB && LAB.world) || S.songTheme[song.id] || b.theme || song.theme || 'pinkgold';
   if (!LAB && !tut && Art.THEMES[theme] && S.lastWorld !== theme) { S.lastWorld = theme; save(); } // menus show the last-played world (additive key)
   const practice = S.set.practice || tut;
+  if (G.qUp && (G.qual || 0) > (G.qMin || 0)) G.qual--; // v6e: the tier earned last song is applied here, while the loading card is up
   Object.assign(G, { on: true, song, diff, D: DIFF[diff], b, tiles, theme, score: 0, combo: 0, maxCombo: 0, hearts: practice ? Infinity : DIFF[diff].hearts, practice, usedPractice: practice,
     j: { perfect: 0, great: 0, good: 0, miss: 0 }, holds: new Map(), press: new Map(), mood: 'idle', moodT: 0, paused: false, ended: false, sp: 0, spUntil: -1, laneFlash: [0, 0, 0, 0], laneHit: [0, 0, 0, 0],
     flares: [0, 0, 0, 0], flareJ: [0, 0, 0, 0], streak: [0, 0, 0, 0], missFx: [0, 0, 0, 0], pu: {}, shield: 0, poofs: [], shake: 0, slow: 1, nowS: 0, win: DIFF[diff].win, lead: DIFF[diff].lead, stats: { pu: {}, dodged: 0, rainbow: false }, items: [], lab: LAB, _bi: 0, qLog: [],
-    bgDirty: true, bgLast: 0, Q: null, first: 0, hudDirty: true, hudT: 0, lastProg: -1, pops: [], ft: new Float32Array(4096), fi: new Float32Array(4096), fN: 0, lastFrame: 0, ivl: [], pendingTap: null, nodesAtStart: 0,
-    resuming: 0, pausedDrawn: false, missRun: 0, medal: 0, medalT: -9, holdEmitT: 0, dly: 4, cap60: false, skipTog: false, tut: tut ? { step: 0, wait: null, hand: 0, done: false } : null, seenObs: G.seenObs || new Set(), edgeA: -1, edgeCol: '', chest: cp ? { at: cp.at, len: cp.len, st: 0 } : null });
-  chestHide();
+    bgDirty: true, bgLast: 0, Q: null, qUp: false, qGrace: 0, first: 0, hudDirty: true, hudT: 0, lastProg: -1, pops: [], ft: new Float32Array(4096), fi: new Float32Array(4096), fN: 0, lastFrame: 0, ivl: [], pendingTap: null, nodesAtStart: 0,
+    resuming: 0, pausedDrawn: false, missRun: 0, medal: 0, medalT: -9, holdEmitT: 0, dly: 4, cap60: false, skipTog: false, tut: tut ? { step: 0, wait: null, hand: 0, done: false } : null, seenObs: G.seenObs || new Set(), edgeA: -1, edgeCol: '' });
   // build the playback graph ONCE (no nodes are created after this until the song ends)
   const master = A.master(); G.nodes = [];
   if (b.stems.full) { const src = ctx.createBufferSource(), lp = ctx.createBiquadFilter(); src.buffer = b.stems.full; lp.type = 'lowpass'; lp.frequency.value = 20000; lp.Q.value = 0.5; src.connect(lp); lp.connect(master); G.srcs = [src]; G.muffle = lp; G.duck = null; }
@@ -573,31 +564,10 @@ async function startGame0(song, diff) {
   clock.off = null; updateClock();
   $('#mLoad').classList.remove('on'); $('#game').classList.add('on'); $$('.screen').forEach(s => s.classList.remove('on')); wipe();
   $('#skipTut').classList.toggle('hidden', !G.tut); measureGame(); buildHearts();
-  A.setFx(S.set.fxOn !== false, S.set.fxVol == null ? 0.5 : S.set.fxVol); G.items = buildItems(b, diff); fzWake(true); layout(); warmSprites(); setTimeout(() => A.fx('intro'), 300); updHud(); startLoop();
+  A.setFx(S.set.fxOn !== false, S.set.fxVol == null ? 0.5 : S.set.fxVol); G.items = buildItems(b, diff); layout(); warmSprites(); setTimeout(() => A.fx('intro'), 300); updHud(); startLoop();
   if (document.hidden) pauseGame(); // she switched apps while the song was loading: start paused (resume gets a 3-2-1)
 }
-// ---------- gem chest (once per real song, in a musical gap of >= 3 s; never pauses or touches the clock/judging) ----------
-function chestGap(a, end) { const gaps = []; let pe = 0; for (const n of a) { if (n.t - pe >= 3) gaps.push([pe, n.t]); pe = Math.max(pe, n.t + (n.dur || 0)); }
-  let best = null, bd = 1e9; for (const g of gaps) { const s0 = Math.max(g[0], 6), e0 = Math.min(g[1], end - 4); if (e0 - s0 < 3) continue; const d = Math.abs((s0 + e0) / 2 - end * 0.5); if (d < bd) { bd = d; best = [s0, e0]; } } return best; }
-function chestPlan(tl, end) { if (!(end > 18) || !tl.length) return null; let a = tl.slice().sort((x, y) => x.t - y.t), g = chestGap(a, end);
-  if (!g) { let bs = -1, bc = 1e9; for (let s0 = 6; s0 + 3.5 <= end - 4; s0 += 0.25) { let c = 0; for (const n of a) { if (n.t >= s0 + 3.5) break; if (n.t + (n.dur || 0) > s0) c++; } const d = Math.abs(s0 + 1.75 - end * 0.5); if (c < bc || (c === bc && d < Math.abs(bs + 1.75 - end * 0.5))) { bc = c; bs = s0; } }
-    if (bs < 0) return null; a = a.filter(n => !(n.t < bs + 3.5 && n.t + (n.dur || 0) > bs)); g = chestGap(a, end); if (!g) return null; }
-  const at = g[0] + 0.3, len = Math.min(7, g[1] - at - 0.7); return len >= 2 ? { tiles: a, at, len } : null; }
-const CHEST_SVG = '<svg viewBox="0 0 120 96" aria-hidden="true"><defs><linearGradient id="chg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6c8"/><stop offset=".5" stop-color="#ffcf4a"/><stop offset="1" stop-color="#d4930a"/></linearGradient><linearGradient id="chp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff9cc9"/><stop offset="1" stop-color="#e0287f"/></linearGradient></defs><rect x="10" y="44" width="100" height="44" rx="8" fill="url(#chp)" stroke="#8a1750" stroke-width="3"/><path d="M10 48 Q10 12 60 12 Q110 12 110 48 Z" fill="url(#chp)" stroke="#8a1750" stroke-width="3"/><rect x="10" y="42" width="100" height="9" fill="url(#chg)" stroke="#8a5a00" stroke-width="2"/><rect x="28" y="14" width="10" height="74" fill="url(#chg)" opacity=".9"/><rect x="82" y="14" width="10" height="74" fill="url(#chg)" opacity=".9"/><path d="M60 72 C46 62 50 52 60 58 C70 52 74 62 60 72 Z" fill="#fff" stroke="#8a5a00" stroke-width="2"/><circle cx="18" cy="26" r="3" fill="#fff"/><circle cx="104" cy="30" r="2.5" fill="#fff"/></svg>';
-let chestT = 0;
-function chestHide() { clearTimeout(chestT); const el = $('#chest'); if (el) { el.classList.remove('on'); el.innerHTML = ''; } }
-function chestShow() { const d = G.diff, R = n => 1 + Math.floor(Math.random() * n); let a, b, op, ans; const ri = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
-  if (d === 'easy') { a = R(5); b = R(5); op = '+'; } else if (d === 'normal') { if (Math.random() < 0.5) { a = ri(3, 9); b = ri(2, 9); op = '+'; } else { a = ri(2, 3); b = ri(2, 5); op = '×'; } } else if (d === 'hard') { a = ri(2, 6); b = ri(2, 9); op = '×'; } else { a = ri(3, 9); b = ri(3, 9); op = '×'; }
-  ans = op === '+' ? a + b : a * b; const opts = new Set([ans]); const cand = [1, -1, 2, -2, 10, -10, 3, 4]; for (const x of cand.sort(() => Math.random() - 0.5)) { if (opts.size >= (d === 'easy' ? 2 : 3)) break; if (ans + x > 0) opts.add(ans + x); }
-  const arr = [...opts].sort(() => Math.random() - 0.5); let el = $('#chest'); if (!el) { el = document.createElement('div'); el.id = 'chest'; $('#game').appendChild(el); }
-  el.innerHTML = `<div class="chBox"><div class="chIc">${CHEST_SVG}</div><div class="chQ">${a} ${op} ${b} = ?</div><div class="chA">${arr.map(v => `<button type="button" class="chBtn" data-v="${v}">${v}</button>`).join('')}</div><div class="chWin" id="chWin"></div></div>`;
-  el.dataset.ans = ans; el.dataset.done = ''; el.classList.add('on'); S.chest.n = (S.chest.n || 0) + 1; save(); }
-document.addEventListener('click', e => { const bt = e.target.closest && e.target.closest('#chest .chBtn'); if (!bt) return; const el = $('#chest'); if (!el || el.dataset.done || !G.on) return; el.dataset.done = '1';
-  const ok = +bt.dataset.v === +el.dataset.ans; $$('#chest .chBtn').forEach(b => { if (+b.dataset.v === +el.dataset.ans) b.classList.add('good'); else if (b === bt) b.classList.add('soft'); });
-  if (ok) { const bonus = { easy: 5, normal: 8, hard: 12, veryhard: 15 }[G.diff] || 5; S.coins += bonus; S.chest.c = (S.chest.c || 0) + 1; save(); G.hudDirty = true; $('#chWin').innerHTML = '+' + bonus + ' 🪙 ✨'; if (!CALM()) { try { emit(L.cx, L.H * 0.3, 18, true); emit(L.cx, L.H * 0.4, 12, false); } catch (x) { } } }
-  clearTimeout(chestT); chestT = setTimeout(chestHide, ok ? 1100 : 1300); });
-function chestTick(now) { const c = G.chest; if (!c || c.st === 2) return; if (c.st === 0) { if (now >= c.at + c.len) c.st = 2; else if (now >= c.at) { c.st = 1; chestShow(); } } else if (now >= c.at + c.len) { c.st = 2; chestHide(); } }
-function warmSprites() { try { resolveSprites(); for (const it of G.items) it.kind === 'pu' ? puImg(it.pu) : obsImg(it.ob); cloudPuff(); greyPuff(); for (const k of ['3', '2', '1', 'go']) countImg(k); } catch (e) { console.warn(e); } } // v6: dropped a call to a missing edgeGlow() (it threw before the countdown sprites were warmed) and an unused full-screen 'hw' scene
+function warmSprites() { try { resolveSprites(); for (const it of G.items) it.kind === 'pu' ? puImg(it.pu) : obsImg(it.ob); cloudPuff(); greyPuff(); for (const k of ['3', '2', '1', 'go']) countImg(k); for (const j in JCOL) popMake(tx(j), JCOL[j], false); popMake(tx('miss'), '#7a8396', false); popMake(tx('heartPlus'), '#ff4fa3', false); for (const m of MILES) popMake(tx('combo', m), '#ff4fa3', true); popMake(tx('starPower'), '#d4a017', true); } catch (e) { console.warn(e); } } // v6: dropped a call to a missing edgeGlow() (it threw before the countdown sprites were warmed) and an unused full-screen 'hw' scene
 // HUD: gem hearts (crack on a miss) + score. Only touched when the shown value changes, at most ~10x/s (no per-frame DOM writes during holds)
 const NF = window.Intl ? new Intl.NumberFormat() : { format: n => String(n) }, HUD = { s: '', h: -2, n: 0 };
 function buildHearts() { const el = $('#hHearts'); HUD.h = -2; if (G.hearts === Infinity) { el.innerHTML = '<span class="gh"></span> ∞'; HUD.n = 0; return; }
@@ -617,7 +587,7 @@ function fitGame() { if (!VIEW.w) measureGame(); const w = VIEW.w || innerWidth,
   BDPR = Math.max(0.5, Math.min(GDPR, [1.25, 1, 0.8, 0.6][q]));
   const cw = Math.round(w * GDPR), ch = Math.round(h * GDPR); if (cv.width !== cw || cv.height !== ch) { cv.width = cw; cv.height = ch; G.bgDirty = true; G.pausedDrawn = false; }
   const bw = Math.round(w * BDPR), bh = Math.round(h * BDPR); if (bcv.width !== bw || bcv.height !== bh) { bcv.width = bw; bcv.height = bh; G.bgDirty = true; }
-  if (dcv.width !== bw || dcv.height !== bh) { dcv.width = bw; dcv.height = bh; G.bgDirty = true; } return [w, h]; }
+  return [w, h]; }
 function layout() { const [W, H] = fitGame(); if (L.W === W && L.H === H) return false; G.bgDirty = true; G.pausedDrawn = false; const bw = Math.min(W * 0.98, H * 1.25, 860), P = 0.9;
   L = { W, H, cx: W / 2, bw, lw: bw / 4, strikeY: H * 0.8, horizonY: H * 0.08, P, sFar: 1 / (1 + P) }; L.span = L.strikeY - L.horizonY; G.spr = null; return true; }
 // fold/unfold, rotation or a big resize mid-song: pause (resume gets a 3-2-1) and pre-build the new size's sprites now, not on the next game frame
@@ -638,7 +608,7 @@ const HWX = () => Math.max(0, Math.floor(L.cx - L.bw * 0.62)); const highway = (
   const s1 = 1, s0 = L.sFar, y0 = L.horizonY, y1 = L.H, sB = 1 / (1 + L.P * -0.12);
   const pts = [[laneX(-0.5, s0), y0], [laneX(3.5, s0), y0], [L.cx + 2 * L.lw * sB, y1], [L.cx - 2 * L.lw * sB, y1]];
   const g = h.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, 'rgba(40,0,40,.05)'); g.addColorStop(0.6, 'rgba(60,0,50,.32)'); g.addColorStop(1, 'rgba(60,0,50,.45)');
-  const surf = { neon: ['rgba(5,0,30,.25)', 'rgba(10,0,40,.75)'], ice: ['rgba(200,235,255,.2)', 'rgba(180,225,255,.65)'], lava: ['rgba(40,5,5,.3)', 'rgba(50,10,5,.8)'], reef: ['rgba(0,60,90,.2)', 'rgba(0,80,110,.55)'], candy: ['rgba(255,190,225,.25)', 'rgba(255,170,215,.65)'], stone: ['rgba(60,70,50,.3)', 'rgba(70,80,55,.75)'], cloud: ['rgba(255,255,255,.25)', 'rgba(255,255,255,.7)'], pearl: ['rgba(255,235,246,.3)', 'rgba(255,200,228,.75)'] }[HS];
+  const surf = { neon: ['rgba(5,0,30,.25)', 'rgba(10,0,40,.75)'], ice: ['rgba(200,235,255,.2)', 'rgba(180,225,255,.65)'], lava: ['rgba(40,5,5,.3)', 'rgba(50,10,5,.8)'], reef: ['rgba(0,60,90,.2)', 'rgba(0,80,110,.55)'], candy: ['rgba(255,190,225,.25)', 'rgba(255,170,215,.65)'], stone: ['rgba(60,70,50,.3)', 'rgba(70,80,55,.75)'], cloud: ['rgba(255,255,255,.25)', 'rgba(255,255,255,.7)'] }[HS];
   if (surf) { g.addColorStop(0, surf[0]); g.addColorStop(1, surf[1]); }
   h.fillStyle = g; h.beginPath(); pts.forEach(([x, y], i) => i ? h.lineTo(x, y) : h.moveTo(x, y)); h.fill();
   if (HS === 'rainbow') ['#ff4d6d', '#ff9f1c', '#ffe14d', '#4ade80', '#38bdf8', '#a78bfa'].forEach((col, i) => { const a0 = -0.5 + i * 4 / 6, a1 = a0 + 4 / 6; h.fillStyle = col; h.globalAlpha = 0.55; h.beginPath(); h.moveTo(laneX(a0, s0), y0); h.lineTo(laneX(a1, s0), y0); h.lineTo(L.cx + (a1 - 1.5) * L.lw * sB, y1); h.lineTo(L.cx + (a0 - 1.5) * L.lw * sB, y1); h.fill(); h.globalAlpha = 1; });
@@ -752,11 +722,6 @@ const obsImg = k => Art.spr('ob|' + k, 128, 128, (o) => { const g = o.createRadi
   if (k === 'snowball') { o.fillStyle = '#ffffff'; o.beginPath(); o.arc(64, 66, 34, 0, 7); o.fill(); o.strokeStyle = '#9ccfff'; o.stroke(); o.fillStyle = '#2b0a1e'; o.beginPath(); o.arc(54, 60, 4, 0, 7); o.arc(74, 60, 4, 0, 7); o.fill(); o.fillStyle = '#ff8a2a'; o.beginPath(); o.moveTo(64, 66); o.lineTo(84, 70); o.lineTo(64, 72); o.fill(); }
   if (k === 'lava') { o.fillStyle = '#ff5a00'; o.beginPath(); o.moveTo(30, 96); o.quadraticCurveTo(28, 40, 64, 30); o.quadraticCurveTo(100, 40, 98, 96); o.closePath(); o.fill(); o.fillStyle = '#ffd23f'; o.beginPath(); o.arc(52, 70, 9, 0, 7); o.arc(78, 58, 6, 0, 7); o.fill(); o.fillStyle = '#2b0a1e'; o.beginPath(); o.arc(56, 56, 4, 0, 7); o.arc(74, 56, 4, 0, 7); o.fill(); }
   if (k === 'crab') { o.fillStyle = '#ff4d4d'; o.beginPath(); o.ellipse(64, 72, 34, 22, 0, 0, 7); o.fill(); o.stroke(); [[26, 50], [102, 50]].forEach(([x, y]) => { o.beginPath(); o.arc(x, y, 12, 0.3, 5.9); o.lineTo(x, y); o.fill(); o.stroke(); }); o.fillStyle = '#fff'; o.beginPath(); o.arc(54, 50, 7, 0, 7); o.arc(74, 50, 7, 0, 7); o.fill(); o.fillStyle = '#000'; o.beginPath(); o.arc(54, 50, 3, 0, 7); o.arc(74, 50, 3, 0, 7); o.fill(); }
-  if (k === 'rose') { o.strokeStyle = '#1f6b34'; o.lineWidth = 6; o.beginPath(); o.moveTo(64, 120); o.quadraticCurveTo(52, 92, 64, 70); o.stroke(); o.fillStyle = '#2e9a4c'; o.beginPath(); o.ellipse(44, 98, 14, 7, -0.5, 0, 7); o.ellipse(84, 90, 14, 7, 0.5, 0, 7); o.fill();
-    o.fillStyle = '#9a1f4a'; [[56, 106, -1], [74, 100, 1], [58, 84, -1]].forEach(([x, y, d]) => { o.beginPath(); o.moveTo(x, y - 6); o.lineTo(x + d * 14, y); o.lineTo(x, y + 6); o.fill(); });
-    o.lineWidth = 4; o.strokeStyle = '#2b0a1e'; o.fillStyle = '#e0285a'; o.beginPath(); o.arc(64, 50, 30, 0, 7); o.fill(); o.stroke(); o.fillStyle = '#b3123f'; for (let i = 0; i < 5; i++) { const a = i / 5 * 6.283; o.beginPath(); o.arc(64 + Math.cos(a) * 15, 50 + Math.sin(a) * 15, 13, 0, 7); o.fill(); } o.fillStyle = '#ff6f9a'; o.beginPath(); o.arc(64, 50, 11, 0, 7); o.fill();
-    o.fillStyle = '#fff'; o.beginPath(); o.arc(54, 46, 6, 0, 7); o.arc(74, 46, 6, 0, 7); o.fill(); o.fillStyle = '#000'; o.beginPath(); o.arc(55, 48, 3, 0, 7); o.arc(75, 48, 3, 0, 7); o.fill(); o.strokeStyle = '#000'; o.lineWidth = 3; o.beginPath(); o.moveTo(47, 37); o.lineTo(60, 42); o.moveTo(81, 37); o.lineTo(68, 42); o.stroke();
-    o.fillStyle = '#fff'; for (let i = 0; i < 6; i++) { const a = -2.6 + i * 0.42; o.beginPath(); o.moveTo(64 + Math.cos(a) * 30, 50 + Math.sin(a) * 30); o.lineTo(64 + Math.cos(a + 0.1) * 40, 50 + Math.sin(a + 0.1) * 40); o.lineTo(64 + Math.cos(a + 0.2) * 30, 50 + Math.sin(a + 0.2) * 30); o.fill(); } }
   if (k === 'cloud') { o.fillStyle = '#6b7280'; o.beginPath(); o.arc(64, 60, 26, 0, 7); o.arc(40, 70, 20, 0, 7); o.arc(88, 70, 20, 0, 7); o.fill(); o.fillStyle = '#ffe14d'; o.beginPath(); o.moveTo(62, 84); o.lineTo(52, 108); o.lineTo(64, 104); o.lineTo(58, 124); o.lineTo(78, 96); o.lineTo(66, 98); o.lineTo(72, 84); o.fill(); o.fillStyle = '#fff'; o.beginPath(); o.arc(54, 62, 5, 0, 7); o.arc(74, 62, 5, 0, 7); o.fill(); o.strokeStyle = '#111'; o.beginPath(); o.moveTo(46, 52); o.lineTo(58, 57); o.moveTo(82, 52); o.lineTo(70, 57); o.stroke(); } });
 let OB_SET = OBS; const PU_HI = { magnet: 'चुंबक', shield: 'ढाल', slowmo: 'धीमी चाल', double: 'दुगने अंक', rainbow: 'इंद्रधनुष धमाका', heart: 'दिल' };
 const puName = k => S.set.lang === 'hi' ? PU_HI[k] : PU[k].name;
@@ -793,7 +758,7 @@ function collect(it) {
 function hitObstacle(it) {
   A.fx('poof'); it.state = 2; G.poofs.push({ x: laneX(it.lane, 1), y: L.strikeY - L.lw * 0.4, a: 1 }); G.shake = 0.7;
   if (G.shield > 0) { G.shield--; pop(L.cx, L.H * 0.4, tx('blocked'), '#3aa0d8', 1.2, false); return; }
-  fzBuzz([40, 30, 60]); G.combo = 0; cssFx('fxFlash'); G.mood = 'oops'; G.moodT = performance.now() + 900; pop(laneX(it.lane, 1), L.strikeY - L.lw, tx('poof'), '#6b7280', 1.3, false);
+  G.combo = 0; cssFx('fxFlash'); G.mood = 'oops'; G.moodT = performance.now() + 900; pop(laneX(it.lane, 1), L.strikeY - L.lw, tx('poof'), '#6b7280', 1.3, false);
   if (G.hearts !== Infinity && !(G.diff === 'easy' && G.hearts <= 1)) { G.hearts--; G.hudDirty = true; if (G.hearts <= 0) outOfHearts(); } // Easy: an obstacle never takes the last heart
 }
 function updItems(jnow) {
@@ -829,22 +794,22 @@ const lights = (theme, W, H) => Art.spr(`lights|${theme}|${W}|${H}`, W * 1.5, H 
   for (let yy = h - bh + 8; yy < h - 6; yy += 12) for (let xx = x + 5; xx < x + bw - 5; xx += 9) if (((xx * 7 + yy * 3) | 0) % 5 < 2) { k.fillStyle = ['#ffe066', '#ff7ce0', '#7dfcff'][(xx + yy) % 3]; k.fillRect(xx, yy, 4, 5); } x += bw + 4; i++; } });
 const rays = () => Art.spr('rays', 512, 512, r => { r.translate(256, 256); for (let i = 0; i < 16; i++) { r.rotate(Math.PI / 8); r.fillStyle = i % 2 ? 'rgba(255,215,106,.35)' : 'rgba(255,255,255,.18)'; r.beginPath(); r.moveTo(0, 0); r.lineTo(-30, -256); r.lineTo(30, -256); r.fill(); } });
 const FW = Array.from({ length: 60 }, () => ({ on: false, x: 0, y: 0, vx: 0, vy: 0, age: 0, im: null }));
-function firework(n) { if ((G.qual || 0) >= 3 || CALM()) return; let j = 0; for (let k = 0; k < n; k++) { const cx = L.W * (0.15 + Math.random() * 0.7), cy = L.H * (0.12 + Math.random() * 0.25), im = Art.sparkleImg(['#ff4fa3', '#ffd76a', '#7dfcff', '#b98cff', '#9ff0c8'][k % 5]);
+function firework(n) { if ((G.qual || 0) >= 3 || S.set.calm) return; let j = 0; for (let k = 0; k < n; k++) { const cx = L.W * (0.15 + Math.random() * 0.7), cy = L.H * (0.12 + Math.random() * 0.25), im = Art.sparkleImg(['#ff4fa3', '#ffd76a', '#7dfcff', '#b98cff', '#9ff0c8'][k % 5]);
   for (let i = 0; i < 12; i++) { while (j < FW.length && FW[j].on) j++; if (j >= FW.length) return; const p = FW[j], a = i / 12 * Math.PI * 2; p.on = true; p.x = cx; p.y = cy; p.vx = Math.cos(a) * 140; p.vy = Math.sin(a) * 140; p.age = 0; p.im = im; } } }
 // background-layer extras (drawn at the time-based background rate): city skyline with beat lights, star-power rays, fireworks
 function drawImmersive(T, beat, energy, spOn, c, bdt) { const pulse = Math.pow(1 - (beat % 1 + 1) % 1, 3);
   const city = G.theme === 'disco' || (G.theme === 'neon' && !Art.parallax); if (city) { const sk = skyline(G.theme, L.W, L.H), off = -((T * 12) % (L.W * 0.5)), y = L.H * 0.68 - pulse * 3; c.globalAlpha = 0.55; c.drawImage(sk, off, y); c.globalAlpha = 0.25 + 0.6 * pulse * (0.5 + energy); c.drawImage(lights(G.theme, L.W, L.H), off, y); c.globalAlpha = 1; }
-  if (spOn) { c.save(); c.translate(L.cx, L.H * 0.3); c.rotate(CALM() ? 0 : T * 0.4); const R = Math.max(L.W, L.H); c.globalAlpha = CALM() ? 0.5 : 1; c.drawImage(rays(), -R, -R, R * 2, R * 2); c.restore(); }
+  if (spOn) { c.save(); c.translate(L.cx, L.H * 0.3); c.rotate(S.set.calm ? 0 : T * 0.4); const R = Math.max(L.W, L.H); c.globalAlpha = S.set.calm ? 0.5 : 1; c.drawImage(rays(), -R, -R, R * 2, R * 2); c.restore(); }
   for (const p of FW) { if (!p.on) continue; p.age += bdt; if (p.age > 1.1) { p.on = false; continue; } p.vy += 60 * bdt; p.x += p.vx * bdt; p.y += p.vy * bdt; const a = 1 - p.age / 1.1, s = 4; c.globalAlpha = a; c.drawImage(p.im, p.x - s * 1.33, p.y - s * 1.33, s * 2.67, s * 2.67); }
   c.globalAlpha = 1; }
 // full-screen effects live in CSS layers (#fxEdge / #fxFlash / #fxRainbow): the compositor animates opacity, the canvas never fills the whole screen
 const FX = { edge: $('#fxEdge') };
 function edgeUpdate(pulse, energy, spOn, q) { const col = spOn ? '#ffd76a' : G.pu.double > G.nowS ? '#ffd76a' : G.shield > 0 ? '#5ad1ff' : (Art.THEMES[G.theme] || {}).ui || '#ff4fa3';
   if (col !== G.edgeCol) { G.edgeCol = col; FX.edge.style.setProperty('--ec', col); }
-  const a = q >= 3 ? 0 : Math.round(Math.min(0.9, (CALM() ? 0.16 : 0.18 + 0.35 * pulse * (0.4 + energy)) + (spOn ? 0.25 : 0)) * 40) / 40; if (a !== G.edgeA) { G.edgeA = a; FX.edge.style.opacity = a; } }
-const cssFx = id => { const el = document.getElementById(id); if (!el || !el.animate) return; const rb = id === 'fxRainbow', calm = CALM();
+  const a = q >= 3 ? 0 : Math.round(Math.min(0.9, (S.set.calm ? 0.16 : 0.18 + 0.35 * pulse * (0.4 + energy)) + (spOn ? 0.25 : 0)) * 40) / 40; if (a !== G.edgeA) { G.edgeA = a; FX.edge.style.opacity = a; } }
+const cssFx = id => { const el = document.getElementById(id); if (!el || !el.animate) return; const rb = id === 'fxRainbow', calm = S.set.calm;
   el.animate([{ opacity: rb ? (calm ? 0.12 : 0.45) : (calm ? 0.05 : 0.16) }, { opacity: 0 }], { duration: rb ? 900 : 450, easing: 'ease-out' }); };
-const wipe = () => { const w = $('#wipe'); if (CALM() || !w || !w.animate) return; w.animate([{ transform: 'translateX(-110%)', opacity: 1 }, { transform: 'translateX(110%)', opacity: 1 }], { duration: 700, easing: 'ease-in-out' }); };
+const wipe = () => { const w = $('#wipe'); if (S.set.calm || !w || !w.animate) return; w.animate([{ transform: 'translateX(-110%)', opacity: 1 }, { transform: 'translateX(110%)', opacity: 1 }], { duration: 700, easing: 'ease-in-out' }); };
 
 // ---------- frame ----------
 let FONT = '', F18; const DOWN = [0, 0, 0, 0], markDown = l => { DOWN[l] = 1; }, SPEEDK = { slow: 1, normal: 0.82, fast: 0.66 }, NOSKIP = {}, RESUME = 2100, TAU = Math.PI * 2;
@@ -854,7 +819,7 @@ function startLoop() { const id = ++LOOP; LOOPS++; const step = ts => { if (id !
 // v6: a level that just proved too slow is not retried for 90 s (across songs too): stepping up and straight back down was itself a hitch
 const QMEM = { bad: -1, t: -1e9 };
 function autoQuality(dtMs) { // adaptive quality: drop on sustained long frames, recover after a calm stretch. Ring buffer, percentile ~1x/s (no per-frame sort/alloc)
-  const Q = G.Q || (G.Q = { base: 16.7, ema: 16.7, bad: 0, good: 0, ring: new Float32Array(120), srt: new Float32Array(120), n: 0, lastP: 0 }); if (G.paused || dtMs > 250) return;
+  const Q = G.Q || (G.Q = { base: 16.7, ema: 16.7, bad: 0, good: 0, ring: new Float32Array(120), srt: new Float32Array(120), n: 0, lastP: 0 }); if (G.paused || dtMs > 250) return; const pn = performance.now(); if (G.nowS < -1 || pn < (G.qGrace || 0)) return; /* v6e: ignore the first second (sprite warm-up) and resume frames, and keep tier drops >= 2 s apart: each tier change re-allocates both canvases (a 100-170 ms freeze) */
   Q.ring[Q.n % 120] = dtMs; Q.n++; if (Q.n >= 30 && (Q.n === 30 || Q.n - Q.lastP >= 60)) { Q.lastP = Q.n; const m = Math.min(Q.n, 120); Q.srt.set(Q.ring.subarray(0, m)); const v = Q.srt.subarray(0, m).sort(); Q.base = Math.max(6, v[Math.floor(m * 0.1)]);
     // v6: an average that looks fine can hide every 10th frame being dropped (a steady 16/33 ms stutter): >10% long frames counts as slow too
     const lim = Q.base * (G.cap60 ? 2 : 1) * 1.45; let nl = 0; for (let i = 0; i < m; i++) if (Q.ring[i] > lim) nl++; Q.lf = Q.n >= 120 && nl > m * 0.1; }
@@ -862,8 +827,8 @@ function autoQuality(dtMs) { // adaptive quality: drop on sustained long frames,
   if (Q.bad > 700 || Q.lf) { Q.bad = 0; Q.lf = false; Q.n = 0; Q.lastP = 0; Q.ema = base; // (ring restarts: judge the new level on its own frames)
     Q.hold = Math.min(60000, (Q.hold || 5000) * 2); // first step on a 120 Hz panel: even 60 fps pacing before lowering resolution
     if (!G.cap60 && Q.base < 12 && (G.qual || 0) === (G.qMin || 0)) { G.cap60 = true; G.qLog.push(['cap60', G.qual || 0, Math.round(G.nowS)]); }
-    else if ((G.qual || 0) < 3) { QMEM.bad = G.qual || 0; QMEM.t = performance.now(); G.qual = (G.qual || 0) + 1; G.bgDirty = true; G.spr = null; G.qLog.push(['down', G.qual, Math.round(G.nowS)]); } }
-  if (Q.good > (Q.hold || 5000)) { Q.good = 0; if ((G.qual || 0) > (G.qMin || 0) && !(G.qual - 1 <= QMEM.bad && performance.now() - QMEM.t < 90000)) { G.qual--; G.bgDirty = true; G.spr = null; G.qLog.push(['up', G.qual, Math.round(G.nowS)]); } else if (G.cap60) { G.cap60 = false; G.qLog.push(['uncap', G.qual || 0, Math.round(G.nowS)]); } } }
+    else if ((G.qual || 0) < 3) { QMEM.bad = G.qual || 0; QMEM.t = performance.now(); G.qual = (G.qual || 0) + 1; G.bgDirty = true; G.spr = null; G.qGrace = pn + 2000; G.qLog.push(['down', G.qual, Math.round(G.nowS)]); } }
+  if (Q.good > (Q.hold || 5000)) { Q.good = 0; if ((G.qual || 0) > (G.qMin || 0) && !(G.qual - 1 <= QMEM.bad && performance.now() - QMEM.t < 90000)) { if (!G.qUp) { G.qUp = true; G.qLog.push(['up-next', G.qual - 1, Math.round(G.nowS)]); } } /* v6e: a better tier is applied at the NEXT song start (no mid-song sprite rebuild) */ else if (G.cap60) { G.cap60 = false; G.qLog.push(['uncap', G.qual || 0, Math.round(G.nowS)]); } } }
 function finishTail(now) { if (G.pendingTap) { G.ivl.push(performance.now() - G.pendingTap.perf); G.pendingTap = null; } }
 // sprite references resolved once per layout / quality change (no template-string keys + Map lookups per tile per frame)
 const SPR = {};
@@ -895,8 +860,8 @@ function frame(ts) {
   // draw time = rAF vsync timestamp + smoothed callback delay: same average sync as before, without main-thread jitter. Positions still come from the audio clock.
   const lag = f0 - ts; if (lag >= 0 && lag < 50) G.dly += (lag - G.dly) * 0.05; const tv = lag >= -2 && lag < 100 ? ts + G.dly : f0;
   if (!G.paused) updateClock();
-  const calm = CALM(), q = G.qual || 0, T = ts / 1000, now = G.paused ? G.pauseAt : songAt(tv), jnow = now - S.set.offset / 1000, vnow = jnow + (S.set.vis || 0) / 1000, lead0 = G.D.lead * (SPEEDK[S.set.speed || 'slow'] || 1);
-  G.nowS = now; if (G.chest) chestTick(now); G.slow += ((G.pu.slowmo > now ? 1.5 : 1) - G.slow) * (1 - Math.pow(0.94, DT * 60)); const lead = lead0 * G.slow; G.lead = lead; G.win = G.D.win * (G.pu.slowmo > now ? 1.4 : 1);
+  const calm = !!S.set.calm, q = G.qual || 0, T = ts / 1000, now = G.paused ? G.pauseAt : songAt(tv), jnow = now - S.set.offset / 1000, vnow = jnow + (S.set.vis || 0) / 1000, lead0 = G.D.lead * (SPEEDK[S.set.speed || 'slow'] || 1);
+  G.nowS = now; G.slow += ((G.pu.slowmo > now ? 1.5 : 1) - G.slow) * (1 - Math.pow(0.94, DT * 60)); const lead = lead0 * G.slow; G.lead = lead; G.win = G.D.win * (G.pu.slowmo > now ? 1.4 : 1);
   if (!G.paused && G.tut && !G.tut.done) tutCheck(jnow);
   if (!G.paused) {
     while (G.first < G.tiles.length && G.tiles[G.first].state && G.tiles[G.first].state !== 3 && G.tiles[G.first].t < jnow - 1) G.first++;
@@ -922,13 +887,10 @@ function frame(ts) {
   if (G.bgSp !== spOn) { G.bgSp = spOn; G.bgDirty = true; }
   // v6: the still scenery (sky + decor) is drawn ONCE into #bgcv when the size/theme/quality changes; only the moving parts (parallax, the
   // bending track, sparkles, fireworks) are redrawn into the transparent #dyncv, on a time budget (~30 fps, lower at low quality)
-  if (!SK.nobg && G.bgDirty) { bc.setTransform(BDPR, 0, 0, BDPR, 0, 0); bc.drawImage(SPR.scene, 0, 0, L.W, L.H); G.dynDirty = true; G.bgDirty = false; }
-  const dynMs = BGMS[q];
-  if (!SK.nobg && (G.dynDirty || ts - G.bgLast >= dynMs - 4)) { const bdt = Math.min(0.1, G.bgLast ? (ts - G.bgLast) / 1000 : DT); G.bgLast = ts; G.dynDirty = false; Art.intensity = { low: 0.4, med: 0.75, high: 1.2 }[calm ? 'low' : S.set.intensity || 'med'] * [1, 0.7, 0.5, 0.3][q];
-    dc.setTransform(1, 0, 0, 1, 0, 0); dc.clearRect(0, 0, dcv.width, dcv.height); dc.setTransform(BDPR, 0, 0, BDPR, 0, 0);
-    if (Art.parallax && q < 2) Art.parallax(dc, G.theme, L.W, L.H, T, calm ? 0 : beat, q === 0 ? 2 : 1); drawHighway(dc);
-    if (!SK.bg && q < 3) Art.bg(dc, G.theme, L.W, L.H, T, beat, energy, true); if (q < 3) drawImmersive(T, beat, energy, spOn, dc, bdt); edgeUpdate(pulse, energy, spOn, q);
-    if (spOn) { dc.globalAlpha = 0.35 + 0.25 * Math.sin(T * 8); dc.drawImage(SPR.glowGold, L.cx - L.bw * 0.6, L.strikeY - L.span * 0.5, L.bw * 1.2, L.span * 0.7); dc.globalAlpha = 1; } }
+  if (!SK.nobg && (G.bgDirty || ts - G.bgLast >= BGMS[q] - 4)) { const bdt = Math.min(0.1, G.bgLast ? (ts - G.bgLast) / 1000 : DT); G.bgLast = ts; G.bgDirty = false; Art.intensity = { low: 0.4, med: 0.75, high: 1.2 }[calm ? 'low' : S.set.intensity || 'med'] * [1, 0.7, 0.5, 0.3][q];
+    bc.setTransform(BDPR, 0, 0, BDPR, 0, 0); bc.drawImage(SPR.scene, 0, 0, L.W, L.H); if (Art.parallax && q < 2) Art.parallax(bc, G.theme, L.W, L.H, T, calm ? 0 : beat, q === 0 ? 2 : 1); drawHighway(bc);
+    if (!SK.bg && q < 3) Art.bg(bc, G.theme, L.W, L.H, T, beat, energy, true); if (q < 3) drawImmersive(T, beat, energy, spOn, bc, bdt); edgeUpdate(pulse, energy, spOn, q);
+    if (spOn) { bc.globalAlpha = 0.35 + 0.25 * Math.sin(T * 8); bc.drawImage(SPR.glowGold, L.cx - L.bw * 0.6, L.strikeY - L.span * 0.5, L.bw * 1.2, L.span * 0.7); bc.globalAlpha = 1; } }
   // gameplay layer
   c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); if (SK.all) return; const ox = shOn ? sx * GDPR : 0, oy = shOn ? sy * GDPR : 0; c.setTransform(GDPR, 0, 0, GDPR, ox, oy); window.__gc = c;
   if (SK.part1) { finishTail(now); return; }
@@ -1016,7 +978,7 @@ function frame(ts) {
   if (G.pendingTap) { G.ivl.push(performance.now() - G.pendingTap.perf); G.pendingTap = null; if (G.ivl.length > 600) G.ivl.splice(0, 300); }
   G.syncTv = tv; G.ft[G.fN & 4095] = performance.now() - f0; G.fN++; G.pausedDrawn = G.paused;
 }
-function outOfHearts() { fzBuzz([60, 40, 90]); pauseGame(true); $('#mOut').classList.add('on'); const mc = $('#mascotOut').getContext('2d'); mc.clearRect(0, 0, 160, 130); Art.mascot(mc, 80, 75, 100, 'oops', S.eq.outfit, 0); }
+function outOfHearts() { pauseGame(true); $('#mOut').classList.add('on'); const mc = $('#mascotOut').getContext('2d'); mc.clearRect(0, 0, 160, 130); Art.mascot(mc, 80, 75, 100, 'oops', S.eq.outfit, 0); }
 // pause shows a legend: what to tap and what to leave alone
 function renderLegend() { const el = $('#legend'); if (!el || !G.on) return; const obs = [...new Set(G.items.filter(i => i.kind === 'obs').map(i => i.ob))], pus = [...new Set(G.items.filter(i => i.kind === 'pu').map(i => i.pu))];
   el.innerHTML = (pus.length ? `<div class="lg"><b>${ic('hand', 'c-pink')}${tx('legendTap')}</b> ${pus.map(k => `<span title="${esc(puName(k))}">${PU[k].e}</span>`).join(' ')}</div>` : '') + (obs.length ? `<div class="lg"><b>${ic('close', 'c-pink')}${tx('legendDont')}</b> ${obs.map(k => `<canvas data-ob="${k}" width="96" height="96"></canvas>`).join('')}</div>` : '');
@@ -1024,14 +986,14 @@ function renderLegend() { const el = $('#legend'); if (!el || !G.on) return; con
 function pauseGame(noModal) {
   if (!G.on || G.ended) return; // the song is over: the results card is on its way
   if (G.paused) { if (noModal) return; if (G.resuming) G.resuming = 0; renderLegend(); $('#mPause').classList.add('on'); return; } // pausing again during the 3-2-1 (or a tutorial wait) shows the menu again
-  fzWake(false); G.paused = true; G.pauseN = (G.pauseN || 0) + 1; G.resuming = 0; G.pauseAt = songTime(); A.ctx().suspend(); if (!noModal) { renderLegend(); $('#mPause').classList.add('on'); } }
+  G.paused = true; G.pauseN = (G.pauseN || 0) + 1; G.resuming = 0; G.pauseAt = songTime(); A.ctx().suspend(); if (!noModal) { renderLegend(); $('#mPause').classList.add('on'); } }
 // resume = a 3-2-1 gem countdown with the song still paused, then the audio continues (no lost heart right after resuming)
 function resumeGame() { $('#mPause').classList.remove('on'); $('#mOut').classList.remove('on'); if (!G.on || !G.paused || G.resuming || (G.tut && G.tut.wait)) return; G.resuming = performance.now() + RESUME; G.pausedDrawn = false; }
-function doResume() { const n = G.pauseN; G.resuming = 0; const go2 = () => { if (!G.on || G.pauseN !== n || !G.paused) return; clock.off = null; updateClock(); G.lastFrame = 0; G.paused = false; G.bgDirty = true; fzWake(true); }; A.ctx().resume().then(go2, go2); }
+function doResume() { const n = G.pauseN; G.resuming = 0; const go2 = () => { if (!G.on || G.pauseN !== n || !G.paused) return; clock.off = null; updateClock(); G.lastFrame = 0; G.paused = false; G.bgDirty = true; G.qGrace = performance.now() + 2000; G.Q = null; }; A.ctx().resume().then(go2, go2); }
 $('#pauseBtn').addEventListener('click', () => pauseGame());
 $('#resumeBtn').addEventListener('click', resumeGame);
 $('#contBtn').addEventListener('click', () => { G.hearts = Infinity; G.practice = true; G.usedPractice = true; G.hudDirty = true; resumeGame(); });
-const stopAudio = () => { chestHide(); (G.srcs || []).forEach(s => { try { s.stop(); s.disconnect(); } catch (e) { } }); G.srcs = []; if (G.duck) try { G.duck.disconnect(); } catch (e) { } if (G.muffle) try { G.muffle.disconnect(); } catch (e) { } A.ctx().resume(); A.inGame = false; };
+const stopAudio = () => { (G.srcs || []).forEach(s => { try { s.stop(); s.disconnect(); } catch (e) { } }); G.srcs = []; if (G.duck) try { G.duck.disconnect(); } catch (e) { } if (G.muffle) try { G.muffle.disconnect(); } catch (e) { } A.ctx().resume(); A.inGame = false; };
 const restart = () => { $('#mPause').classList.remove('on'); $('#mOut').classList.remove('on'); stopAudio(); G.on = false; $('#game').classList.remove('on'); startGame(G.song, G.diff); };
 $('#restartBtn').addEventListener('click', restart); $('#outRetry').addEventListener('click', restart);
 $('#quitBtn').addEventListener('click', () => { $('#mPause').classList.remove('on'); finishGame({ quit: true }); }); // stopping a song shows the results card (nothing saved)
@@ -1047,7 +1009,7 @@ function tutCheck(jnow) { const tu = G.tut; if (tu.wait) return;
 function tutWait(w) { G.tut.wait = w; G.tut.hand = performance.now(); G.paused = true; G.pauseN = (G.pauseN || 0) + 1; G.pauseAt = w.at + S.set.offset / 1000; A.ctx().suspend(); } // the song waits for her tap
 function tutTap(lane, pid) { const w = G.tut.wait; if (lane !== w.lane) { if (lane >= 0 && lane <= 3) G.laneFlash[lane] = 0.6; G.tut.wrong = performance.now(); return; }
   if (w.tile) { G.press.set(pid, lane); G.tapPerf = performance.now(); hitTile(w.tile, 0, pid); G.tut.step++; } else { collect(w.it); G.tut.step = 4; } tutResume(); }
-function tutResume() { G.tut.wait = null; const n = G.pauseN; const go2 = () => { if (!G.on || G.pauseN !== n) return; clock.off = null; updateClock(); G.lastFrame = 0; G.paused = false; }; A.ctx().resume().then(go2, go2); }
+function tutResume() { G.tut.wait = null; const n = G.pauseN; const go2 = () => { if (!G.on || G.pauseN !== n) return; clock.off = null; updateClock(); G.lastFrame = 0; G.paused = false; G.qGrace = performance.now() + 2000; G.Q = null; }; A.ctx().resume().then(go2, go2); }
 function tutFinish(skipped) { if (!G.tut || G.tut.done) return; G.tut.done = true; S.tut = 1; save(); $('#skipTut').classList.add('hidden'); if (!skipped) { pop(L.cx, L.H * 0.33, tx('tutDone'), '#ff4fa3', 2.2, true); firework(3); } }
 function drawTutorial(T, lead, vnow) { const tu = G.tut, w = tu.wait; let lane = w ? w.lane : -1;
   if (!w && tu.step < 3) for (let i = G.first; i < G.tiles.length; i++) { const t = G.tiles[i]; if ((t.t - vnow) / lead > 0.55) break; if (!t.state && !t.pair && !t.dur) { lane = t.lane; break; } }
@@ -1068,7 +1030,7 @@ const RES = { raf: 0 };
 // the card and the action bar is pinned to its bottom, toasts move to the top while it is open.
 function finishGame(opts) {
   if (!G.on) return; const quitRun = !!(opts && opts.quit);
-  G.ended = true; G.resuming = 0; fzWake(false); ['mPause', 'mOut', 'mLoad'].forEach(id => $('#' + id).classList.remove('on')); // never leave a game modal stacked under (or over) the results
+  G.ended = true; G.resuming = 0; ['mPause', 'mOut', 'mLoad'].forEach(id => $('#' + id).classList.remove('on')); // never leave a game modal stacked under (or over) the results
   if (quitRun && G.tut && !G.tut.done) tutFinish(true);
   stopAudio(); if (!quitRun) G.tiles.forEach(t => { if (t.state === 0) { t.state = 2; G.j.miss++; } }); window.__lastItems = G.items.map(i => ({ kind: i.kind, k: i.pu || i.ob, state: i.state, t: i.t, lane: i.lane }));
   const j = G.j, n = quitRun ? j.perfect + j.great + j.good + j.miss : G.tiles.length, acc = n ? (j.perfect + j.great * 0.85 + j.good * 0.6) / n : 0;
@@ -1100,22 +1062,20 @@ function finishGame(opts) {
       <button class="btn silver" id="resSongs">${ic(lab ? 'flask' : 'list')}<span>${lab ? tx('labBack') : tx('songList')}</span></button><button class="btn silver" id="resHome">${ic('home')}<span>${tx('homeBtn')}</span></button>
       ${S.packs && !noSave ? `<button class="btn gold" id="resPack">${ic('cards')}<span>${tx('openPackBtn')} (${S.packs})</span></button>` : ''}</div>`;
   $('#mRes').classList.add('on'); $('#mRes').scrollTop = 0; document.body.classList.add('res-open');
-  if (!quitRun && stars >= 1) setTimeout(() => { if ($('#mRes').classList.contains('on') && !G.on) fzBuzz(stars >= 3 ? [40, 50, 40, 50, 80] : [40, 50, 60]); }, 500); // star moment
-  if (!quitRun && stars >= 2) setTimeout(() => { try { if (FZ && $('#mRes').classList.contains('on') && !G.on) FZ.say(FZ.praise('gt'), { dir: 'audio/', muted: !S.set.sound }); } catch (e) { } }, 900); // her praise line, once
   if (!noSave && n > 0) { // v4b: records; a beaten best gets the NEW RECORD party once the results card has popped in
     const rr = REC.record({ c: id + '|' + G.diff, n: G.song.title + ' · ' + DIFN(G.diff), g: DIFN(G.diff), s: G.score, st: stars, x: { d: G.diff, acc: Math.round(acc * 100), cb: G.maxCombo, fc } });
-    if (G.score > 0 && (rr.isNew || (newBest && hadScore))) setTimeout(() => { if ($('#mRes').classList.contains('on') && !G.on) fzBuzz([60, 40, 60, 40, 120]); REC.celebrate({ title: tx('newRecord'), score: NF.format(G.score), name: G.song.title + ' · ' + DIFN(G.diff) }); }, 1700); }
+    if (G.score > 0 && (rr.isNew || (newBest && hadScore))) setTimeout(() => { if ($('#mRes').classList.contains('on') && !G.on) REC.celebrate({ title: tx('newRecord'), score: NF.format(G.score), name: G.song.title + ' · ' + DIFN(G.diff) }); }, 1700); }
   // v4: each won star bursts with gold glitter and a twinkle as it pops in; a full combo or new best gets one more shower
   $$('#resCard .big-stars span.won').forEach((el, i) => setTimeout(() => { if (!$('#mRes').classList.contains('on')) return; SPK.at(el, 22, 260, GOLD); A.sfx('sparkle'); }, (450 + i * 300)));
   if (fc || (newBest && !noSave && G.score > 0)) setTimeout(() => { if ($('#mRes').classList.contains('on')) { SPK.burst(innerWidth / 2, innerHeight * 0.3, 40, 420); A.sfx('star'); } }, 1500);
   const rm = $('#resMascot').getContext('2d'), sEl = $('#resScore'), fx = $('#resFx'), fc2 = fx.getContext('2d'), t0 = performance.now(), final = G.score, mood = quitRun ? 'happy' : stars >= 2 ? 'wow' : 'happy';
   const [fw, fh] = [innerWidth, innerHeight], fd = Math.min(DPR, 1.5); fx.width = Math.round(fw * fd); fx.height = Math.round(fh * fd); let shown = -1;
-  const nGems = CALM() ? 8 : 10 + stars * 10, gems = Array.from({ length: nGems }, (_, i) => ({ x: Math.random() * fw, y: -Math.random() * fh, v: 60 + Math.random() * 120, r: Math.random() * 6, s: 14 + Math.random() * 18, im: i % 3 ? Art.gemImg(Art.MIX[i % 6], '#ffffff', ['#ff5fae', '#ffd76a', '#b98cff', '#5ad1ff'][i % 4], 32) : Art.sparkleImg(['#ffd76a', '#ffffff', '#ff8ccf'][i % 3]) }));
+  const nGems = S.set.calm ? 8 : 10 + stars * 10, gems = Array.from({ length: nGems }, (_, i) => ({ x: Math.random() * fw, y: -Math.random() * fh, v: 60 + Math.random() * 120, r: Math.random() * 6, s: 14 + Math.random() * 18, im: i % 3 ? Art.gemImg(Art.MIX[i % 6], '#ffffff', ['#ff5fae', '#ffd76a', '#b98cff', '#5ad1ff'][i % 4], 32) : Art.sparkleImg(['#ffd76a', '#ffffff', '#ff8ccf'][i % 3]) }));
   cancelAnimationFrame(RES.raf); let lt = t0;
   (function anim() { if (!$('#mRes').classList.contains('on')) { fc2.clearRect(0, 0, fx.width, fx.height); document.body.classList.remove('res-open'); return; } const now = performance.now(), dt = Math.min(0.05, (now - lt) / 1000); lt = now;
     const k = Math.min(1, (now - t0) / 1000), v = Math.round(final * (1 - Math.pow(1 - k, 3))); if (v !== shown) { shown = v; sEl.textContent = NF.format(v); } // score counts up over ~1 s
     rm.setTransform(1, 0, 0, 1, 0, 0); rm.clearRect(0, 0, rm.canvas.width, rm.canvas.height); Art.mascotFast(rm, 60 * DPR, 56 * DPR, 76 * DPR, mood, S.eq.outfit, (now - t0) / 1000);
-    fc2.setTransform(fd, 0, 0, fd, 0, 0); fc2.clearRect(0, 0, fw, fh); for (const g of gems) { g.y += g.v * dt * (CALM() ? 0.5 : 1); if (g.y > fh + 20) { g.y = -20; g.x = Math.random() * fw; } g.r += dt; fc2.save(); fc2.translate(g.x + Math.sin(g.r * 2) * 10, g.y); fc2.rotate(g.r); fc2.drawImage(g.im, -g.s / 2, -g.s / 2, g.s, g.s); fc2.restore(); }
+    fc2.setTransform(fd, 0, 0, fd, 0, 0); fc2.clearRect(0, 0, fw, fh); for (const g of gems) { g.y += g.v * dt * (S.set.calm ? 0.5 : 1); if (g.y > fh + 20) { g.y = -20; g.x = Math.random() * fw; } g.r += dt; fc2.save(); fc2.translate(g.x + Math.sin(g.r * 2) * 10, g.y); fc2.rotate(g.r); fc2.drawImage(g.im, -g.s / 2, -g.s / 2, g.s, g.s); fc2.restore(); }
     RES.raf = requestAnimationFrame(anim); })();
   G.on = false; LOOP++; $('#game').classList.remove('on'); $$('.screen').forEach(s => s.classList.remove('on')); window.__lastResult = { stars, score: G.score, j: { ...j }, n, fc, maxCombo: G.maxCombo, dodged: G.stats.dodged, powerups: G.stats.pu, items: G.items.length, lab, quit: quitRun };
 }
@@ -1138,11 +1098,10 @@ window.__tiles = { REC, S: () => S, G: () => G, loops: () => LOOPS, stopAll: () 
   toEnd: hit => { if (G.on) window.__tiles.ff(G.b.end - songTime() - 0.4, hit); }, laneX, strikeX, laneAt, proj, save, openPack, CAL, arrange, rendered, clock, updateClock, prepare, reanalyze };
 // ask the browser to keep this site's saves and custom songs even when storage runs low (v5; no prompt on Android Chrome)
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then(p => p || navigator.storage.persist()).catch(() => { }); } catch (e) { }
-const applyFZ = () => { document.body.classList.toggle('calm', CALM()); applyVol(); if (G) G.bgDirty = true; };
-try { if (FZ) FZ.onChange(applyFZ); } catch (e) { }
-applyLang(); applyFZ(); loadCustoms().then(async () => { go('home');
+applyLang(); document.body.classList.toggle('calm', !!S.set.calm); loadCustoms().then(async () => { go('home');
   const old = customs.filter(c => (c.anv || 1) < AN.VERSION); if (!old.length) return; toast(esc(tx('updating', old.length)), 2500);
-  for (const c of old) { try { const full = await DB.get(c.id); if (full) await reanalyze(full); } catch (e) { console.warn('re-chart failed', e); } }
+  const idle = async () => { while (G.on || STARTING) await new Promise(r => setTimeout(r, 1500)); }; // v6e: never re-chart (decode + IndexedDB write of the whole song) while a song is playing
+  for (const c of old) { await idle(); try { const full = await DB.get(c.id); if (full) await reanalyze(full); } catch (e) { console.warn('re-chart failed', e); } }
   await loadCustoms(); if (cur === 'songs') renderSongs(); });
 requestAnimationFrame(menuLoop);
 window.addEventListener('resize', () => { DPR = Math.min(2, window.devicePixelRatio || 1); });
