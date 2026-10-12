@@ -1,5 +1,5 @@
 // Gem Tiles service worker. Scope: this tiles/ folder only. Touches only its own 'tiles-*' caches.
-const CACHE = 'tiles-v8';
+const CACHE = 'tiles-v9';
 const SHELL = ['./', './index.html', './app.js', './art.js', './audio.js', './analyze.js', './analyze-worker.js', './songs.js', './icons.js', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png',
   './records.js', './learn.js', './funzone.js', './audio/manifest.json', './audio/548beca9.ogg', './audio/cb07e4ed.ogg', './audio/21f15e94.ogg', './audio/7e56e9f5.ogg', './audio/2587fe25.ogg', './audio/d34e3a57.ogg']; // records + NEW RECORD cheers (v4b), learning record (v5)
 const SCOPE = new URL('./', self.location).pathname;
