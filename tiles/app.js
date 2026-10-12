@@ -590,9 +590,12 @@ let chestT = 0;
 function chestHide() { clearTimeout(chestT); const el = $('#chest'); if (el) { el.classList.remove('on'); el.innerHTML = ''; } }
 function chestShow() { const d = G.diff, R = n => 1 + Math.floor(Math.random() * n); let a, b, op, ans; const ri = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
   if (d === 'easy') { a = R(5); b = R(5); op = '+'; } else if (d === 'normal') { if (Math.random() < 0.5) { a = ri(3, 9); b = ri(2, 9); op = '+'; } else { a = ri(2, 3); b = ri(2, 5); op = '×'; } } else if (d === 'hard') { a = ri(2, 6); b = ri(2, 9); op = '×'; } else { a = ri(3, 9); b = ri(3, 9); op = '×'; }
-  ans = op === '+' ? a + b : a * b; const opts = new Set([ans]); const cand = [1, -1, 2, -2, 10, -10, 3, 4]; for (const x of cand.sort(() => Math.random() - 0.5)) { if (opts.size >= (d === 'easy' ? 2 : 3)) break; if (ans + x > 0) opts.add(ans + x); }
+  ans = op === '+' ? a + b : a * b;
+  let fw = null; try { fw = (window.FunZone && FunZone.fact && Math.random() < 0.6) ? FunZone.fact() : null; } catch (e) { fw = null; } // Fact of the Week (read-only): her tricky fact
+  if (fw && fw.ans >= 1) { a = fw.a; b = fw.b; op = { mul: '×', add: '+', sub: '−', div: '÷' }[fw.op]; ans = fw.ans; } else fw = null;
+  const opts = new Set([ans]); const cand = [1, -1, 2, -2, 10, -10, 3, 4]; for (const x of cand.sort(() => Math.random() - 0.5)) { if (opts.size >= (d === 'easy' ? 2 : 3)) break; if (ans + x > 0) opts.add(ans + x); }
   const arr = [...opts].sort(() => Math.random() - 0.5); let el = $('#chest'); if (!el) { el = document.createElement('div'); el.id = 'chest'; $('#game').appendChild(el); }
-  el.innerHTML = `<div class="chBox"><div class="chIc">${CHEST_SVG}</div><div class="chQ">${a} ${op} ${b} = ?</div><div class="chA">${arr.map(v => `<button type="button" class="chBtn" data-v="${v}">${v}</button>`).join('')}</div><div class="chWin" id="chWin"></div></div>`;
+  el.innerHTML = `<div class="chBox"><div class="chIc">${CHEST_SVG}</div><div class="chQ">${a} ${op} ${b} = ?${fw ? ' ⭐' : ''}</div><div class="chA">${arr.map(v => `<button type="button" class="chBtn" data-v="${v}">${v}</button>`).join('')}</div><div class="chWin" id="chWin"></div></div>`;
   el.dataset.ans = ans; el.dataset.done = ''; el.classList.add('on'); S.chest.n = (S.chest.n || 0) + 1; save(); }
 document.addEventListener('click', e => { const bt = e.target.closest && e.target.closest('#chest .chBtn'); if (!bt) return; const el = $('#chest'); if (!el || el.dataset.done || !G.on) return; el.dataset.done = '1';
   const ok = +bt.dataset.v === +el.dataset.ans; $$('#chest .chBtn').forEach(b => { if (+b.dataset.v === +el.dataset.ans) b.classList.add('good'); else if (b === bt) b.classList.add('soft'); });
@@ -1129,7 +1132,7 @@ document.addEventListener('click', e => {
 });
 
 // ---------- boot ----------
-window.__tiles = { REC, S: () => S, G: () => G, loops: () => LOOPS, stopAll: () => { stopAudio(); G.on = false; LOOP++; $('#game').classList.remove('on'); }, go, startGame, setLab: l => { LAB = l; }, allSongs, loadCustoms, DB, songTime, judgeAt, finishGame, layout: () => L, outOfHearts, nextSongOf,
+window.__tiles = { REC, chestShow, S: () => S, G: () => G, loops: () => LOOPS, stopAll: () => { stopAudio(); G.on = false; LOOP++; $('#game').classList.remove('on'); }, go, startGame, setLab: l => { LAB = l; }, allSongs, loadCustoms, DB, songTime, judgeAt, finishGame, layout: () => L, outOfHearts, nextSongOf,
   // test hooks: jump the game clock forward (optionally scoring the skipped tiles as Perfect) to reach the natural end of a song quickly
   ff: (sec, hit) => { if (!G.on) return; const to = songTime() + sec; if (hit) for (const t of G.tiles) if (!t.state && t.t < to + 0.05) { t.state = 1; G.j.perfect++; G.combo++; G.maxCombo = Math.max(G.maxCombo, G.combo); G.score += 100; } G.startAt -= sec; },
   toEnd: hit => { if (G.on) window.__tiles.ff(G.b.end - songTime() - 0.4, hit); }, laneX, strikeX, laneAt, proj, save, openPack, CAL, arrange, rendered, clock, updateClock, prepare, reanalyze };

@@ -20,6 +20,8 @@ canvas{position:fixed;left:0;top:0;display:block;touch-action:none;outline:none}
 #safe{position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;
   padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 #nojs{font:bold 24px sans-serif;color:#fff;text-align:center;padding-top:40vh}
+/* Batch 02-1: the grown-ups' Calm mode (hub) also rests every CSS animation/transition here, like the phone's reduced-motion setting */
+html.fz-calm :not(.speed>i),html.fz-calm ::before,html.fz-calm ::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0s!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 </style>
 </head>
 <body>
@@ -272,14 +274,14 @@ window.FunLearn = (function () {
 // Source: dev/fx/funzone.js. python3 dev/fx/sync.py copies it into Sky Glider (index.html + SkyGlider.html) and Crystal Cave
 // (<script id="funzone">), and into tiles/funzone.js and home/funzone.js. Never edit a copy by hand.
 // Own NEW keys only (no game save is touched):
-//   funzone.parent.v1 = {v:1, minutes, vol, calm, big, lefty, shapes, vibe}   written only by the hub's grown-ups panel
+//   funzone.parent.v1 = {v:1, minutes, vol, calm, big, lefty, shapes, vibe, relax}   written only by the hub's grown-ups panel
 //   funzone.me.v1     = {v:1, nick}                                           her chosen sparkle name (hub picker)
 //   funzone.play.v1   = {v:1, day, ms, plus}                                  today's play time (all apps) and grown-up extra minutes
 // Every read survives missing/corrupt data (defaults; an unreadable value is copied to <key>.bad once and never overwritten).
 (function () {
   if (window.FunZone) return;
   const PKEY = 'funzone.parent.v1', MKEY = 'funzone.me.v1', TKEY = 'funzone.play.v1';
-  const PDEF = { v: 1, minutes: 0, vol: 100, calm: false, big: false, lefty: false, shapes: false, vibe: true };
+  const PDEF = { v: 1, minutes: 0, vol: 100, calm: false, big: false, lefty: false, shapes: false, vibe: true, relax: false };
   const MINS = [0, 15, 20, 30, 45, 60, 90];
   const isO = o => !!o && typeof o === 'object' && !Array.isArray(o);
   const ls = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } } };
@@ -293,7 +295,7 @@ window.FunLearn = (function () {
     const d = readJ(PKEY) || {}, o = Object.assign({}, PDEF);
     if (MINS.indexOf(d.minutes) >= 0) o.minutes = d.minutes;
     if (typeof d.vol === 'number' && isFinite(d.vol)) o.vol = Math.max(0, Math.min(100, Math.round(d.vol)));
-    for (const k of ['calm', 'big', 'lefty', 'shapes', 'vibe']) if (typeof d[k] === 'boolean') o[k] = d[k];
+    for (const k of ['calm', 'big', 'lefty', 'shapes', 'vibe', 'relax']) if (typeof d[k] === 'boolean') o[k] = d[k];
     return o;
   }
   // only the hub's grown-ups panel calls this; unknown fields already in the key are kept
@@ -303,7 +305,7 @@ window.FunLearn = (function () {
   const vol = () => parent().vol / 100;
   function apply() {
     const p = parent(), c = document.documentElement.classList;
-    c.toggle('fz-big', p.big); c.toggle('fz-lefty', p.lefty); c.toggle('fz-shapes', p.shapes); c.toggle('fz-calm', p.calm);
+    c.toggle('fz-big', p.big); c.toggle('fz-lefty', p.lefty); c.toggle('fz-shapes', p.shapes); c.toggle('fz-calm', p.calm); c.toggle('fz-relax', p.relax);
   }
   const subs = [];
   const fire = () => { const p = parent(); subs.forEach(f => { try { f(p); } catch (e) { } }); };
@@ -371,6 +373,23 @@ window.FunLearn = (function () {
   const playMin = () => Math.floor(play().ms / 60000);
   const timeUp = () => { const m = parent().minutes; if (!m) return false; const p = play(); return p.ms >= (m + p.plus) * 60000; };
   function addMinutes(n) { count(); const p = play(); p.plus += n; ls.set(TKEY, JSON.stringify(p)); }
+  // ---------- Fact of the Week (read-only): one of her tricky facts from the shared learning record, steady for the whole week ----------
+  // fact() -> {key:'mul:7x8', op:'mul'|'add'|'sub'|'div', a, b, ans, text:'7 × 8'} or null. facts() lists every tricky fact of those kinds. Writes nothing.
+  const FACT_RE = /^(?:(mul):(\d+)x(\d+)|(add):(\d+)\+(\d+)|(sub):(\d+)-(\d+)|(div):(\d+)÷(\d+))$/;
+  function parseFact(key) {
+    const m = FACT_RE.exec(key); if (!m) return null; let op, a, b, ans, text;
+    if (m[1]) { op = 'mul'; a = +m[2]; b = +m[3]; ans = a * b; text = a + ' × ' + b; }
+    else if (m[4]) { op = 'add'; a = +m[5]; b = +m[6]; ans = a + b; text = a + ' + ' + b; }
+    else if (m[7]) { op = 'sub'; a = +m[8]; b = +m[9]; ans = a - b; text = a + ' − ' + b; }
+    else { op = 'div'; a = +m[11]; b = +m[12]; if (!a || !b) return null; ans = a / b; text = a + ' ÷ ' + b; }
+    if (!(ans >= 0) || ans !== Math.floor(ans) || ans > 200 || a > 200 || b > 200) return null;
+    return { key, op, a, b, ans, text };
+  }
+  function facts() {
+    try { if (!window.FunLearn) return []; return FunLearn.summary('').tricky.map(parseFact).filter(Boolean).sort((x, y) => x.key < y.key ? -1 : 1); } catch (e) { return []; }
+  }
+  const weekNo = () => { const d = new Date(); return Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5 + 3) / 7); };   // weeks start on Monday
+  function fact() { const L = facts(); return L.length ? L[weekNo() % L.length] : null; }
   // ---------- grown-up lock (shared by the hub panel and the break card): hold the gear 3 s, then ONE short WRITTEN-WORD question.
   // An adult reads it and taps a word. No speech, no audio, no math, no pictures. First option of each row is the right one (shuffled when shown). ----------
   const GATEQ = [
@@ -448,7 +467,7 @@ window.FunLearn = (function () {
   addEventListener('pagehide', count);
   tick0 = Date.now(); setInterval(count, 15000);
   window.FunZone = { PKEY, MKEY, TKEY, PDEF, MINS, NICKS, PRAISE, parent, setParent, calm, vol, onChange, me, setNick, nick, spokenName, praise, withName,
-    ttsKey, say, stopSay, buzz, wake, play, playMin, timeUp, addMinutes, breakCheck, breakOpen, holdButton, gate, GATEQ };
+    ttsKey, say, stopSay, buzz, wake, play, playMin, timeUp, addMinutes, breakCheck, breakOpen, holdButton, gate, GATEQ, fact, facts, parseFact };
 })();
 // ===== /Fun Zone shared =====
 </script>

@@ -62,7 +62,7 @@ h1,h2,h3{margin:0}
 /* welcome */
 #welcome .wTop{display:flex;justify-content:flex-end;gap:12px;flex:none}
 .wMain{flex:1;display:flex;align-items:center;justify-content:center;gap:4vmin;min-height:0}
-.wLantern{width:min(34vmin,230px);flex:none;animation:bob 3s ease-in-out infinite;filter:drop-shadow(0 0 28px #ffd84a) drop-shadow(0 0 60px rgba(255,200,80,.6))}
+.wLantern{width:min(34vmin,230px);flex:none;animation:bob 3s ease-in-out infinite;filter:drop-shadow(0 0 28px var(--lg,#ffd84a)) drop-shadow(0 0 60px var(--lg2,rgba(255,200,80,.6)))}
 .wLantern svg{width:100%;height:auto;display:block}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-12px) rotate(3deg)}}
 .wText{display:flex;flex-direction:column;align-items:center;gap:14px;max-width:520px}
@@ -568,6 +568,11 @@ h1,h2,h3{margin:0}
 .dBtn{width:68px;height:68px;min-width:68px;padding:0;border-radius:50%;--c1:#6a5a9a;--c2:#3e2f72;--sh:#241a4a;opacity:.6;filter:grayscale(.85)}
 .dBtn svg{width:44px;height:44px;pointer-events:none}
 .dBtn.on{--c1:#ffe0f4;--c2:#ff7ac8;--sh:#a3226b;opacity:1;filter:none;box-shadow:0 6px 0 var(--sh),0 0 0 4px #fff,0 0 18px 4px rgba(255,216,74,.85)}
+.lkRow{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center;position:relative;z-index:3}
+.lkRow .lkIc{width:54px;height:54px;flex:none}.lkRow .lkIc svg{width:100%;height:100%;display:block}
+.lkBtn{width:56px;height:56px;min-width:56px;border-radius:50%;padding:0;border:4px solid #fff;cursor:pointer;box-shadow:0 4px 0 rgba(40,10,80,.55);position:relative;touch-action:manipulation}
+.lkBtn.on{box-shadow:0 4px 0 rgba(40,10,80,.55),0 0 0 4px #ffd84a,0 0 16px 4px rgba(255,216,74,.9)}
+.lkBtn.on::after{content:"✔";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:26px;font-weight:900;text-shadow:0 1px 3px rgba(0,0,0,.6)}
 .dBtn:not(.on)::after{content:"";position:absolute;left:14%;right:14%;top:50%;height:5px;border-radius:3px;background:#fff;opacity:.85;transform:rotate(-45deg)}
 .door.moon .tag{background:linear-gradient(90deg,#7d8bd6,#b9a7ff)}
 .card.goldC.champ h2{text-shadow:0 2px 0 rgba(0,0,0,.3)}
@@ -642,6 +647,8 @@ h1,h2,h3{margin:0}
 .pvCmp span.hi{background:#ffe873;box-shadow:0 0 0 3px #ffd84a}
 .fz-big .stPic .pvNum{font-size:1.7em}
 .fz-calm .pRect .pFill{transition:none}
+/* Batch 02-1: the grown-ups' Calm mode (hub) also rests every CSS animation/transition here, like the phone's reduced-motion setting */
+html.fz-calm :not(.speed>i),html.fz-calm ::before,html.fz-calm ::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0s!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 </style>
 </head>
 <body>
@@ -983,14 +990,14 @@ window.FunLearn = (function () {
 // Source: dev/fx/funzone.js. python3 dev/fx/sync.py copies it into Sky Glider (index.html + SkyGlider.html) and Crystal Cave
 // (<script id="funzone">), and into tiles/funzone.js and home/funzone.js. Never edit a copy by hand.
 // Own NEW keys only (no game save is touched):
-//   funzone.parent.v1 = {v:1, minutes, vol, calm, big, lefty, shapes, vibe}   written only by the hub's grown-ups panel
+//   funzone.parent.v1 = {v:1, minutes, vol, calm, big, lefty, shapes, vibe, relax}   written only by the hub's grown-ups panel
 //   funzone.me.v1     = {v:1, nick}                                           her chosen sparkle name (hub picker)
 //   funzone.play.v1   = {v:1, day, ms, plus}                                  today's play time (all apps) and grown-up extra minutes
 // Every read survives missing/corrupt data (defaults; an unreadable value is copied to <key>.bad once and never overwritten).
 (function () {
   if (window.FunZone) return;
   const PKEY = 'funzone.parent.v1', MKEY = 'funzone.me.v1', TKEY = 'funzone.play.v1';
-  const PDEF = { v: 1, minutes: 0, vol: 100, calm: false, big: false, lefty: false, shapes: false, vibe: true };
+  const PDEF = { v: 1, minutes: 0, vol: 100, calm: false, big: false, lefty: false, shapes: false, vibe: true, relax: false };
   const MINS = [0, 15, 20, 30, 45, 60, 90];
   const isO = o => !!o && typeof o === 'object' && !Array.isArray(o);
   const ls = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } } };
@@ -1004,7 +1011,7 @@ window.FunLearn = (function () {
     const d = readJ(PKEY) || {}, o = Object.assign({}, PDEF);
     if (MINS.indexOf(d.minutes) >= 0) o.minutes = d.minutes;
     if (typeof d.vol === 'number' && isFinite(d.vol)) o.vol = Math.max(0, Math.min(100, Math.round(d.vol)));
-    for (const k of ['calm', 'big', 'lefty', 'shapes', 'vibe']) if (typeof d[k] === 'boolean') o[k] = d[k];
+    for (const k of ['calm', 'big', 'lefty', 'shapes', 'vibe', 'relax']) if (typeof d[k] === 'boolean') o[k] = d[k];
     return o;
   }
   // only the hub's grown-ups panel calls this; unknown fields already in the key are kept
@@ -1014,7 +1021,7 @@ window.FunLearn = (function () {
   const vol = () => parent().vol / 100;
   function apply() {
     const p = parent(), c = document.documentElement.classList;
-    c.toggle('fz-big', p.big); c.toggle('fz-lefty', p.lefty); c.toggle('fz-shapes', p.shapes); c.toggle('fz-calm', p.calm);
+    c.toggle('fz-big', p.big); c.toggle('fz-lefty', p.lefty); c.toggle('fz-shapes', p.shapes); c.toggle('fz-calm', p.calm); c.toggle('fz-relax', p.relax);
   }
   const subs = [];
   const fire = () => { const p = parent(); subs.forEach(f => { try { f(p); } catch (e) { } }); };
@@ -1082,6 +1089,23 @@ window.FunLearn = (function () {
   const playMin = () => Math.floor(play().ms / 60000);
   const timeUp = () => { const m = parent().minutes; if (!m) return false; const p = play(); return p.ms >= (m + p.plus) * 60000; };
   function addMinutes(n) { count(); const p = play(); p.plus += n; ls.set(TKEY, JSON.stringify(p)); }
+  // ---------- Fact of the Week (read-only): one of her tricky facts from the shared learning record, steady for the whole week ----------
+  // fact() -> {key:'mul:7x8', op:'mul'|'add'|'sub'|'div', a, b, ans, text:'7 × 8'} or null. facts() lists every tricky fact of those kinds. Writes nothing.
+  const FACT_RE = /^(?:(mul):(\d+)x(\d+)|(add):(\d+)\+(\d+)|(sub):(\d+)-(\d+)|(div):(\d+)÷(\d+))$/;
+  function parseFact(key) {
+    const m = FACT_RE.exec(key); if (!m) return null; let op, a, b, ans, text;
+    if (m[1]) { op = 'mul'; a = +m[2]; b = +m[3]; ans = a * b; text = a + ' × ' + b; }
+    else if (m[4]) { op = 'add'; a = +m[5]; b = +m[6]; ans = a + b; text = a + ' + ' + b; }
+    else if (m[7]) { op = 'sub'; a = +m[8]; b = +m[9]; ans = a - b; text = a + ' − ' + b; }
+    else { op = 'div'; a = +m[11]; b = +m[12]; if (!a || !b) return null; ans = a / b; text = a + ' ÷ ' + b; }
+    if (!(ans >= 0) || ans !== Math.floor(ans) || ans > 200 || a > 200 || b > 200) return null;
+    return { key, op, a, b, ans, text };
+  }
+  function facts() {
+    try { if (!window.FunLearn) return []; return FunLearn.summary('').tricky.map(parseFact).filter(Boolean).sort((x, y) => x.key < y.key ? -1 : 1); } catch (e) { return []; }
+  }
+  const weekNo = () => { const d = new Date(); return Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5 + 3) / 7); };   // weeks start on Monday
+  function fact() { const L = facts(); return L.length ? L[weekNo() % L.length] : null; }
   // ---------- grown-up lock (shared by the hub panel and the break card): hold the gear 3 s, then ONE short WRITTEN-WORD question.
   // An adult reads it and taps a word. No speech, no audio, no math, no pictures. First option of each row is the right one (shuffled when shown). ----------
   const GATEQ = [
@@ -1159,7 +1183,7 @@ window.FunLearn = (function () {
   addEventListener('pagehide', count);
   tick0 = Date.now(); setInterval(count, 15000);
   window.FunZone = { PKEY, MKEY, TKEY, PDEF, MINS, NICKS, PRAISE, parent, setParent, calm, vol, onChange, me, setNick, nick, spokenName, praise, withName,
-    ttsKey, say, stopSay, buzz, wake, play, playMin, timeUp, addMinutes, breakCheck, breakOpen, holdButton, gate, GATEQ };
+    ttsKey, say, stopSay, buzz, wake, play, playMin, timeUp, addMinutes, breakCheck, breakOpen, holdButton, gate, GATEQ, fact, facts, parseFact };
 })();
 // ===== /Fun Zone shared =====
 </script>
@@ -2369,8 +2393,18 @@ function goldenSVG(size){const id='u'+(++uid);
   prism(-24,44,24,62,-22)+prism(26,44,24,58,22)+prism(0,48,34,100,0)+'<path d="M-6,-40 l3,-9 l3,9 l9,3 l-9,3 l-3,9 l-3,-9 l-9,-3z" fill="#fff"/></svg>';}
 function starSVG(on){const pts=[];for(let i=0;i<10;i++){const a=i*Math.PI/5-Math.PI/2,r=i%2?4.8:11;pts.push([r*Math.cos(a),r*Math.sin(a)+0.8]);}
  return '<svg viewBox="-12 -12 24 24" aria-hidden="true"><polygon points="'+P(pts)+'" fill="'+(on?'#ffd84a':'rgba(255,255,255,.3)')+'" stroke="'+(on?'#c47f00':'rgba(255,255,255,.6)')+'" stroke-width="1.6" stroke-linejoin="round"/></svg>';}
-function lanternSVG(){const id='u'+(++uid);
- return '<svg viewBox="0 0 100 130" aria-hidden="true"><defs><radialGradient id="'+id+'" cx="50%" cy="55%" r="60%"><stop offset="0" stop-color="#fffde0"/><stop offset=".55" stop-color="#ffd84a"/><stop offset="1" stop-color="#ff9d2e"/></radialGradient></defs>'+
+// Sparkle & lantern colour (her pick): own key crystalcave.look.v1 = {v:1,spark,lantern}; '' = the classic look. Nothing else is saved.
+const LKEY='crystalcave.look.v1';
+const SPARKS={rainbow:['Rainbow',null,'#ff9ee6'],pink:['Pink',['#ffffff','#ffd1ec','#ff9ee6','#ff5fb4','#ff8fd0'],'#ff5fb4'],gold:['Gold',['#ffffff','#fff27a','#ffd84a','#ffcf3a','#ffe9a0'],'#ffd84a'],aqua:['Aqua',['#ffffff','#c8fbff','#7ff3ff','#36d6e8','#9ae8ff'],'#36d6e8'],violet:['Violet',['#ffffff','#e6d6ff','#c79bff','#9a62f0','#b98cff'],'#9a62f0'],green:['Green',['#ffffff','#d4ffd0','#8cf27f','#42d062','#a8f5a0'],'#42d062']};
+const LANTS={gold:['Gold',['#fffde0','#ffd84a','#ff9d2e'],'#ffd84a','rgba(255,200,80,.6)'],pink:['Pink',['#fff0fa','#ff9ee6','#e0359b'],'#ff7ac8','rgba(255,110,200,.6)'],aqua:['Aqua',['#f0ffff','#7ff3ff','#2aa6d8'],'#5ee8f5','rgba(80,220,255,.6)'],violet:['Violet',['#f6f0ff','#c79bff','#7a3fd6'],'#b98cff','rgba(160,110,255,.6)'],green:['Green',['#f2fff0','#8cf27f','#2fae5a'],'#7ff08a','rgba(100,230,120,.6)'],blue:['Blue',['#f0f6ff','#8fb8ff','#3a6ae0'],'#7aa8ff','rgba(100,150,255,.6)']};
+let LOOK={spark:'',lantern:''};
+try{const r=localStorage.getItem(LKEY);if(r!=null){try{const d=JSON.parse(r);if(d&&typeof d==='object'&&!Array.isArray(d)){if(SPARKS[d.spark])LOOK.spark=d.spark;if(LANTS[d.lantern])LOOK.lantern=d.lantern;}else throw 0;}catch(e){if(localStorage.getItem(LKEY+'.bad')==null)localStorage.setItem(LKEY+'.bad',r);}}}catch(e){}
+function saveLook(){try{localStorage.setItem(LKEY,JSON.stringify({v:1,spark:LOOK.spark,lantern:LOOK.lantern}));}catch(e){}applyLook();}
+function applyLook(){const L=LANTS[LOOK.lantern]||LANTS.gold,st=document.documentElement.style;st.setProperty('--lg',L[2]);st.setProperty('--lg2',L[3]);}
+const sparkCols=()=>{const d=SPARKS[LOOK.spark];return d&&d[1]?d[1]:null;};
+applyLook();
+function lanternSVG(){const id='u'+(++uid),LC=(LANTS[LOOK.lantern]||LANTS.gold)[1];
+ return '<svg viewBox="0 0 100 130" aria-hidden="true"><defs><radialGradient id="'+id+'" cx="50%" cy="55%" r="60%"><stop offset="0" stop-color="'+LC[0]+'"/><stop offset=".55" stop-color="'+LC[1]+'"/><stop offset="1" stop-color="'+LC[2]+'"/></radialGradient></defs>'+
  '<path d="M30 24 Q50 -4 70 24" fill="none" stroke="#7a4bd6" stroke-width="6" stroke-linecap="round"/>'+
  '<rect x="25" y="20" width="50" height="14" rx="6" fill="#a77bff" stroke="#4b2a99" stroke-width="3"/>'+
  '<rect x="19" y="32" width="62" height="74" rx="22" fill="url(#'+id+')" stroke="#4b2a99" stroke-width="4"/>'+
@@ -2602,7 +2636,7 @@ resizeFx();
 const parts=[],motes=[];const SPK=['#ffffff','#fff27a','#ff9ee6','#7ff3ff','#c79bff'];
 let RM=FZ.calm(); // calm (reduced motion or the grown-ups' Calm mode): a quarter of the sparkles
 FZ.onChange(()=>{RM=FZ.calm();if(Snd.m)Snd.m.gain.value=FZ.vol();});
-function burst(x,y,n,cols,spd){cols=cols||SPK;spd=spd||240;if(RM)n=Math.ceil(n/4);for(let i=0;i<n&&parts.length<300;i++){const a=rand(0,Math.PI*2),s=rand(spd*0.3,spd);
+function burst(x,y,n,cols,spd){cols=cols||sparkCols()||SPK;spd=spd||240;if(RM)n=Math.ceil(n/4);for(let i=0;i<n&&parts.length<300;i++){const a=rand(0,Math.PI*2),s=rand(spd*0.3,spd);
  parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-60,life:rand(0.5,1),max:1,size:rand(4,10),col:pick(cols),rot:rand(0,6),vr:rand(-6,6),g:220});}}
 // v4 glitter: tiny slow twinkles that drift and fade (a softer layer under the bursts)
 function glitter(x,y,n,cols){if(RM)n=Math.ceil(n/4);cols=cols||['#fff','#fff27a','#ffc4ec','#e9edf6'];for(let i=0;i<n&&parts.length<300;i++){const a=rand(0,Math.PI*2),s=rand(20,110);
@@ -2908,7 +2942,8 @@ function leavePlay(){closeModal();Voice.stop();
  if(S&&S.mode==='tunnel'&&S.ret){S=S.ret;S.doorDirty=true;setupPlay();const r=tunnelResolve;tunnelResolve=null;if(r)r();return;}
  S=null;show('map');}
 // difficulty = chosen setting (Easy/Normal/Tricky) + natural ramp from the level (Learn/Practice/Challenge)
-function cfgFor(lv){const d=save.diff;if(d===3)return {lv,n:4,close:4,hintBtn:false,autoHint:false,vh:1,forcePad:lv>=1,speed:lv===2?4:0}; // Very Hard: hints only after a miss and only when she taps Glimmer
+function cfgFor(lv){const c=cfgBase(lv);if(c.speed&&FZ.parent().relax)c.speed*=2;return c;} // grown-ups' Relaxed timers: twice as long for the speedy bonus
+function cfgBase(lv){const d=save.diff;if(d===3)return {lv,n:4,close:4,hintBtn:false,autoHint:false,vh:1,forcePad:lv>=1,speed:lv===2?4:0}; // Very Hard: hints only after a miss and only when she taps Glimmer
  return {lv,n:d===0?3:4,close:Math.min(4,lv+d),hintBtn:d===0||(d===1&&lv===0),autoHint:d<2,forcePad:d===2&&lv===2,speed:lv===2?[9,7,5][d]:0};}
 function startLevel(si,k){const st=ALL[si];save.run++;persist();mapSec=st.sec;
  const c=cfgFor(st.kind==='queen'?2:k);if(st.moon&&c.speed)c.speed*=3;
@@ -3008,6 +3043,7 @@ function buildQueue(si,k){const st=STAGES[si],F=factsFor(si,k);let qs;
  const own=new Set(F.map(qKey));
  const rev=shuffle(Object.keys(save.facts).filter(key=>{const r=save.facts[key];return !own.has(key)&&r.w>0&&r.box<=1&&r.due<=save.run;})).slice(0,2);
  rev.forEach((key,i)=>{const ab=key.split('x').map(Number),q={a:ab[0],b:ab[1],review:true};if(inOrder)qs.push(q);else qs.splice(Math.min(qs.length,2+i*3),0,q);});
+ if(!inOrder){const fw=fotwQ('mul',own);if(fw)qs.splice(Math.min(qs.length,5),0,fw);}
  return qs;}
 function buildBoss(){const st=S.st,F=factsFor(S.si,S.k),used=new Set(),out=[],n=S.locks;
  const add=q=>{if(used.has(qKey(q))||out.length>=n)return;used.add(qKey(q));const o={a:q.a,b:q.b,swap:q.a!==q.b&&(S.k>0||st.kind!=='table')&&Math.random()<0.5};out.push(o);};
@@ -3042,6 +3078,7 @@ function buildQueueG(si,k){const st=ALL[si],F=factsFor(si,k),inOrder=st.sec==='d
  const rev=shuffle(Object.keys(save.ofacts).filter(key=>{const r=save.ofacts[key],f=parseKey(key);
   return f&&f.op===op&&isObj(r)&&!own.has(key)&&r.w>0&&r.box<=1&&r.due<=save.run&&opMax(f)<=lim&&(op!=='div'||save.parent.divT!=='easy'||[2,5,10].indexOf(f.a)>=0);})).slice(0,2);
  rev.forEach((key,i)=>{const q=parseKey(key);q.review=true;if(op==='div')q.grp=Math.random()<0.5;if(inOrder)qs.push(q);else qs.splice(Math.min(qs.length,2+i*3),0,q);});
+ if(!inOrder&&!st.story){const fw=fotwQ(op,own,lim);if(fw){if(op==='div')fw.grp=Math.random()<0.5;qs.splice(Math.min(qs.length,5),0,fw);}}
  if(st.story)qs.forEach(q=>{q.miss=0;q.story=mkStory(q);});
  return qs;}
 // Moon Princess's Throne: facts mixed from the hard + (ha1–ha5) and hard − (hs1–hs5) stages, at the hardest level
@@ -3197,7 +3234,7 @@ function eSpeak(force){const q=S.q;if(!force&&save.muted)return;
  else if(q.e==='m')readInto(el,[toks(q.s)]);
  else{const c=S.choices||[];readInto(el,[toks(q.q),['Is','it']].concat(c.map((x,i)=>(i&&i===c.length-1?['or']:[]).concat(toks(x)))));}}
 function updTagE(){const stg=box$('.stTag');if(!stg||!S||!S.q)return;const q=S.q,page=q.read&&!q.readDone;
- stg.textContent=S.mode==='tunnel'?'Golden Door':S.boss?(page?'Boss Door! Read the story':'Boss Door! Lock '+Math.min(S.locks,S.bossIdx+1)+' of '+S.locks):q.review?'Remember this one?':page?'Story time!':ETAG[q.e];}
+ stg.textContent=S.mode==='tunnel'?'Golden Door':S.boss?(page?'Boss Door! Read the story':'Boss Door! Lock '+Math.min(S.locks,S.bossIdx+1)+' of '+S.locks):q.fotw?'⭐ Fact of the week':q.review?'Remember this one?':page?'Story time!':ETAG[q.e];}
 function renderAnswersE(){const a=$('#answers'),q=S.q,hb=$('#hintB');hb.style.display='';
  if(q.read&&!q.readDone){hb.style.display='none';a.innerHTML='<div class="eGo"><button class="btn gold big" id="eDone">I read it! ✓</button></div>';
   on('#eDone',()=>{if(!S||S.q!==q||S.busy)return;tapSnd();Voice.stop();q.readDone=true;renderDoorE();renderAnswersE();});return;}
@@ -3286,7 +3323,7 @@ function renderDoor(){if(S.q.e)return renderDoorE();const kind=S.mode==='tunnel'
    '<div class="stRow"><button class="btn ibtn blue stSay" aria-label="Read it to me">'+IC.sndOn+'</button><div class="q"></div></div></div>';
   box.querySelector('.stSay').addEventListener('click',()=>sayQ(true));
   sayQ();
-  updateQ();startSpeed();return;}const tag=S.q.review?'<span class="tag">Remember this one?</span>':S.boss?'<span class="tag"></span>':'';
+  updateQ();startSpeed();return;}const tag=S.q.review?'<span class="tag">'+(S.q.fotw?'⭐ Fact of the week':'Remember this one?')+'</span>':S.boss?'<span class="tag"></span>':'';
  box.innerHTML='<div class="door enter '+(kind==='queen'?'boss queen':kind==='moon'?'boss queen moon':kind)+'">'+doorSVG(kind,S.locks)+tag+'<div class="q"></div><div class="speed" hidden><span>'+IC.bolt+'</span><i></i></div><button class="btn ibtn blue qSay" aria-label="Read it to me">'+IC.sndOn+'</button></div>';
  box.querySelector('.qSay').addEventListener('click',e=>{e.stopPropagation();sayQ(true);});
  if(S.boss)box.querySelectorAll('.lockGem').forEach((g,i)=>{if(i<S.bossIdx)g.classList.add('pop');});
@@ -3304,7 +3341,7 @@ function startSpeed(){const sp=box$('.speed');if(!sp)return;S.qStart=performance
  if(spHeld()){i.style.animationPlayState='paused';}else{S.qRun=performance.now();const q=S.q;startSpeed.t=setTimeout(()=>spGone(q),S.cfg.speed*1000);}}
 function updateQ(){if(S&&S.q&&S.q.e)return updTagE();const q=box$('.q');if(!q||!S||!S.q)return;q.innerHTML=qHTML(S.q,S.pad?S.typed:'');q.classList.toggle('missQ',!!S.q.miss);
  const tg=box$('.door.boss .tag, .door.queen .tag');if(tg)tg.textContent=(S.st&&S.st.moon?'Moon Princess! Lock ':S.st&&S.st.kind==='queen'?'Crystal Queen! Lock ':'Boss Door! Lock ')+Math.min(S.locks,S.bossIdx+1)+' of '+S.locks;
- const stg=box$('.stTag');if(stg)stg.textContent=S.boss?(S.q.p?(S.st.final?'Final Boss! Lock ':'Boss Door! Lock '):'Story Lock! Lock ')+Math.min(S.locks,S.bossIdx+1)+' of '+S.locks:S.q.review?'Remember this one?':'Story Door';}
+ const stg=box$('.stTag');if(stg)stg.textContent=S.boss?(S.q.p?(S.st.final?'Final Boss! Lock ':'Boss Door! Lock '):'Story Lock! Lock ')+Math.min(S.locks,S.bossIdx+1)+' of '+S.locks:S.q.fotw?'⭐ Fact of the week':q.review?'Remember this one?':'Story Door';}
 function renderAnswers(){const a=$('#answers');$('#padT').textContent=S.pad?'ABC':'123';$('#padT').setAttribute('aria-label',S.pad?'Show answer buttons':'Show number pad');
  const hb=$('#hintB');hb.hidden=!(S.cfg.hintBtn||S.wrong);
  $('#padT').style.display=S.q&&S.q.e?'none':'';hb.style.display='';if(S.q&&S.q.e)return renderAnswersE();
@@ -3332,6 +3369,9 @@ async function startBoss(){const s=S;s.boss=true;s.bossIdx=0;s.bossQs=s.st.moon?
  if(s.st.moon){banner("The Moon Princess's Throne!",'Five moon locks to open.',1900);autoSay("The Moon Princess's Throne! Five moon locks to open.",{cheer:true});}else if(s.st.kind==='queen'){banner('The Crystal Queen!','Break all 5 gem locks!',1700);autoSay('The Crystal Queen! Break all 5 gem locks!',{cheer:true});}else if(s.st.final){banner('Final Boss Door!','Break all 5 gem locks!',1700);autoSay('Final boss door! Break all 5 gem locks!',{cheer:true});}else{banner('Boss Door!','Break all 3 gem locks!',1500);autoSay('Boss Door! Break all 3 gem locks!',{cheer:true});}
  FZ.buzz([40,50,60]);Snd.streak();await wait(s.st.kind==='queen'?900:700);if(S!==s)return;s.busy=false;nextQ();}
 // shared learning record (v5, its own key funzone.learn.v1; the cave's saves are untouched): one entry per question
+// Fact of the Week (read-only, from the shared learning record): her trickiest fact this week comes back once as a "review" question
+function fotwQ(op,own,lim){try{const f=window.FunZone&&FunZone.fact&&FunZone.fact();if(!f||f.op!==op)return null;const key=f.key.slice(4),q=parseKey(key);if(!q||own.has(key))return null;
+ if(lim&&opMax(q)>lim)return null;q.review=true;q.fotw=true;return q;}catch(e){return null;}}
 const learnKey=q=>{if(q.e)return 'eng:'+q.key;if(q.p)return q.p+':'+q.t;if(q.w||q.story)return 'word:'+(q.op||'mul');if(q.op==='two'||q.c!=null)return 'mix:'+q.op;
  return (q.op==='add'?'add:':q.op==='sub'?'sub:':q.op==='div'?'div:':'mul:')+qKey(q).replace('*','x');};
 function record(q,ok,helped){try{if(window.FunLearn)FunLearn.add('cc',learnKey(q),ok&&!helped);}catch(e){}
@@ -3391,7 +3431,7 @@ function shatter(gold){const door=box$('.door');if(!door)return;const r=door.get
    let gone=false;const rm=()=>{if(!gone){gone=true;el.remove();}};
    try{el.animate([{transform:'translate('+sx+'px,'+sy+'px) rotate(0deg)',opacity:1},{transform:'translate('+(sx+dx)+'px,'+(sy+dy+140)+'px) rotate('+rot+'deg) scale(.6)',opacity:0}],{duration:800*SPEED,easing:'cubic-bezier(.2,.7,.4,1)',fill:'forwards'}).onfinish=rm;}catch(e){}
    setTimeout(rm,900*SPEED+50);});}
- const c=centerOf(door);burst(c[0],c[1],46,gold?['#fff','#fff27a','#ffcf3a']:SPK,420);Snd.shatter();}
+ const c=centerOf(door);burst(c[0],c[1],46,gold?['#fff','#fff27a','#ffcf3a']:(sparkCols()||SPK),420);Snd.shatter();}
 async function onCorrect(btn){const s=S;s.busy=true;const q=s.q,first=!s.wrong&&!s.helped,full=!s.wrong,gk=gemKey(s,q);
  const fast=first&&s.cfg.speed&&s.mode==='sec'&&!q.story&&spMs(s)/1000<=s.cfg.speed;
  if(!s.wrong)record(q,true,s.helped);
@@ -3681,6 +3721,13 @@ const DRESSIC={bow:'<path d="M20 20 L6 11 L6 29Z M20 20 L34 11 L34 29Z" fill="#f
  tiara:'<path d="M5 30 L8 12 L15 21 L20 8 L25 21 L32 12 L35 30Z" fill="#e8e8f5" stroke="#9a9ab0" stroke-width="2.4" stroke-linejoin="round"/><circle cx="20" cy="20" r="3.2" fill="#7ad8ff"/>',
  crown:'<path d="M4 31 L6 8 L15 19 L20 4 L25 19 L34 8 L36 31Z" fill="#ffd84a" stroke="#a35f00" stroke-width="2.6" stroke-linejoin="round"/><circle cx="20" cy="22" r="3.6" fill="#ff2d55" stroke="#fff" stroke-width="1.5"/>',
  glow:'<path d="M4 32 A16 16 0 0 1 36 32" stroke="#ff7ab8" stroke-width="4" fill="none"/><path d="M9 32 A11 11 0 0 1 31 32" stroke="#ffe873" stroke-width="4" fill="none"/><path d="M14 32 A6 6 0 0 1 26 32" stroke="#7fe7ff" stroke-width="4" fill="none"/>'};
+function lookHTML(){
+ const sw=(kind,id,name,col,on)=>'<button class="lkBtn'+(on?' on':'')+'" data-lk="'+kind+'" data-id="'+id+'" aria-pressed="'+on+'" aria-label="'+name+'" style="background:'+col+'"></button>';
+ const sc=id=>id==='rainbow'?'conic-gradient(#ff5fb4,#ffd84a,#8cf27f,#7ff3ff,#c79bff,#ff5fb4)':SPARKS[id][2];
+ return '<div class="secH">Sparkles and Lantern</div><div class="case dress"><div class="lkRow"><span class="lkIc" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 3 l4 11 l11 4 l-11 4 l-4 11 l-4 -11 l-11 -4 l11 -4z" fill="#ffd84a" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="31" cy="31" r="4" fill="#ff9ee6"/></svg></span>'+
+  Object.keys(SPARKS).map(id=>sw('spark',id,SPARKS[id][0]+' sparkles',sc(id),(LOOK.spark||'rainbow')===id)).join('')+'</div>'+
+  '<div class="lkRow"><span class="lkIc" id="lkLan" aria-hidden="true">'+lanternSVG()+'</span>'+
+  Object.keys(LANTS).map(id=>sw('lantern',id,LANTS[id][0]+' lantern',LANTS[id][2],(LOOK.lantern||'gold')===id)).join('')+'</div></div>';}
 function dressHTML(){const lv=glimLv();if(lv<1)return '';
  return '<div class="secH">Dress Glimmer</div><div class="case dress"><div class="dPrev" id="dPrev">'+wormSVG()+'</div><div class="dRow">'+DRESS.filter(d=>lv>=d[1]).map(d=>{const on=glimOn(d[0]);
   return '<button class="btn dBtn'+(on?' on':'')+'" data-k="'+d[0]+'" aria-pressed="'+on+'" aria-label="'+d[2]+(on?' (on)':' (off)')+'"><svg viewBox="0 0 40 40" aria-hidden="true">'+DRESSIC[d[0]]+'</svg></button>';}).join('')+'</div></div>';}
@@ -3689,6 +3736,10 @@ $('#bagBody').addEventListener('click',e=>{const b=e.target.closest&&e.target.cl
  const on=!glimOn(k);save.glimWear[k]=on;persist();Snd.init();on?Snd.sparkle(3):Snd.soft();
  b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));b.setAttribute('aria-label',(DRESS.find(d=>d[0]===k)[2])+(on?' (on)':' (off)'));
  const pv=$('#dPrev');if(pv){pv.innerHTML=wormSVG();sparkEl(pv,on?16:6);}$('#hintB').innerHTML=wormSVG();});
+$('#bagBody').addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.lkBtn');if(!b)return;const k=b.dataset.lk,id=b.dataset.id;
+ if(k==='spark'&&SPARKS[id])LOOK.spark=id==='rainbow'?'':id;else if(k==='lantern'&&LANTS[id])LOOK.lantern=id==='gold'?'':id;else return;
+ saveLook();Snd.init();Snd.sparkle(3);b.parentNode.querySelectorAll('.lkBtn').forEach(x=>{const on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-pressed',String(on));});
+ const li=$('#lkLan');if(li)li.innerHTML=lanternSVG();const w=$('#wLantern');if(w)w.innerHTML=lanternSVG();const pl=$('#pLantern');if(pl)pl.innerHTML=lanternSVG();sparkEl(b,k==='spark'?24:10);});
 $('#bBack').innerHTML=IC.back;$('#sBack').innerHTML=IC.back;
 function inspectBag(o){if(!o)return;Snd.init();if(o.has){Snd.sparkle(4);Snd.tone(1568,0.5,'triangle',0.06,0.15,2093);}else Snd.tap();
  const c=modal('<div class="insp" data-r="'+o.r+'"><div class="art">'+(o.has?'<div class="rays"></div>':'')+o.art(180,!o.has)+(o.has?'<i class="tw a"></i><i class="tw b"></i>':'')+'</div></div>'+
@@ -3708,7 +3759,7 @@ const stageOf=t=>{for(let i=0;i<ALL.length;i++)if(ALL[i].gem===t)return ALL[i];r
 function caveGemItem(t){const g=gemRec(t),has=(g.b+g.s)>0,st=stageOf(t),where=st?(st.kind==='table'?'the ×'+st.t+' tunnel':st.name):'the caves';
  return {r:'cave',rn:'Cave Gem',has,name:GEMS[t].name,art:(z,l)=>gemSVG(GEMS[t],z,{sil:l}),cnt:g.b+(g.s?' <small>+'+g.s+' little</small>':''),
   how:'Won by breaking doors in '+where+'. '+(g.b?g.b+' big gem'+(g.b>1?'s':''):'')+(g.b&&g.s?' and ':'')+(g.s?g.s+' little one'+(g.s>1?'s':'')+' (with Glimmer\'s help)':'')+'.',hint:'Win it in '+where};}
-function renderBag(){BAG=[];let h='<div class="summary"><div class="s">'+gemSVG(GEMS[2],38)+totalGems()+' gems</div><div class="s">'+goldenSVG(38)+(save.golden|0)+' golden</div><div class="s">'+IC.flame+'Best streak '+save.best+'</div>'+(save.champ?'<div class="s">'+IC.crown+'Champion ×'+save.champ+'</div>':'')+(save.champ2?'<div class="s">'+MOONIC+'Champion ×'+save.champ2+'</div>':'')+'</div>'+dressHTML();
+function renderBag(){BAG=[];let h='<div class="summary"><div class="s">'+gemSVG(GEMS[2],38)+totalGems()+' gems</div><div class="s">'+goldenSVG(38)+(save.golden|0)+' golden</div><div class="s">'+IC.flame+'Best streak '+save.best+'</div>'+(save.champ?'<div class="s">'+IC.crown+'Champion ×'+save.champ+'</div>':'')+(save.champ2?'<div class="s">'+MOONIC+'Champion ×'+save.champ2+'</div>':'')+'</div>'+lookHTML()+dressHTML();
  h+='<div class="secH">Cave Gems</div><div class="case"><div class="tiles">';
  GEM_ORDER.forEach(t=>{h+=bagItem(caveGemItem(t));});
  secStages('mul').filter(i=>ALL[i].hard).forEach(i=>{h+=bagItem(caveGemItem(ALL[i].gem));});

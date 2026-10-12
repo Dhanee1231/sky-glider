@@ -91,7 +91,12 @@ box-shadow:0 4px 0 rgba(80,0,70,.4),inset 0 -6px 10px rgba(200,140,0,.25);positi
 html.fz-calm a.card,html.fz-calm a.card::after,html.fz-calm h1,html.fz-calm #fs.ask,html.fz-calm .plq::after{animation:none}
 html.fz-big .btn{width:58px;height:58px;font-size:26px}html.fz-big #gear{width:54px;height:54px}
 html.fz-big #shelf{height:clamp(58px,9.5vh,84px)}html.fz-big .name{font-size:clamp(19px,2.8vmin + 8px,34px)}html.fz-big #greet{font-size:clamp(17px,2.4vmin + 8px,30px)}
+a.card .off{position:absolute;top:8px;right:8px;z-index:2;width:clamp(30px,5.2vmin,40px);aspect-ratio:1;border-radius:50%;display:none;place-items:center;font-size:clamp(16px,2.8vmin,22px);font-weight:900;color:#fff;
+background:radial-gradient(circle at 35% 30%,#fff3a8,#f5c542 60%,#c98a00);border:3px solid #fff;box-shadow:0 2px 0 rgba(80,40,0,.5)}
+a.card .off.on{display:grid}
 @media (prefers-reduced-motion:reduce){a.card,a.card::after,h1,#fs.ask,.plq::after{animation:none}}
+/* Batch 02-1: the grown-ups' Calm mode (hub) also rests every CSS animation/transition here, like the phone's reduced-motion setting */
+html.fz-calm :not(.speed>i),html.fz-calm ::before,html.fz-calm ::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0s!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 </style></head><body>
 <canvas id="sky"></canvas>
 <header><div class="title"><h1>Our Fun Zone</h1><div id="greet" role="button" tabindex="0">Hi, <b id="nm">Superstar</b><span>! 💖</span><span style="font-size:.8em">✏️</span></div></div>
@@ -104,21 +109,21 @@ html.fz-big #shelf{height:clamp(58px,9.5vh,84px)}html.fz-big .name{font-size:cla
 <button id="gear" aria-label="Grown-ups (hold)">⚙️<i></i></button>
 </section>
 <main>
-<a class="card" href="../tiles/" style="--bg:linear-gradient(160deg,#ff8acb,#e0359b);--d:0s">
+<a class="card" data-cp="tiles-" href="../tiles/" style="--bg:linear-gradient(160deg,#ff8acb,#e0359b);--d:0s"><span class="off" aria-label="Ready offline" role="img">✔</span>
 <div class="icon"><svg viewBox="0 0 120 120"><defs><linearGradient id="t1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#e3e3ef"/></linearGradient><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9ed6"/><stop offset="1" stop-color="#e0006e"/></linearGradient></defs>
 <rect x="20" y="12" width="26" height="96" rx="6" fill="url(#t1)" stroke="#f5c542" stroke-width="3"/><rect x="74" y="12" width="26" height="96" rx="6" fill="url(#t1)" stroke="#f5c542" stroke-width="3"/><rect x="44" y="20" width="32" height="70" rx="7" fill="#3a1040" stroke="#f5c542" stroke-width="3"/>
 <path d="M60 84 L40 60 Q34 44 48 40 Q56 38 60 48 Q64 38 72 40 Q86 44 80 60Z" fill="url(#hg)" stroke="#fff3a8" stroke-width="3" stroke-linejoin="round"/><path d="M60 48V84M40 56H80M48 40L60 62L72 40" stroke="#fff" stroke-width="1.5" opacity=".6" fill="none"/><circle cx="50" cy="50" r="3" fill="#fff"/></svg></div>
 <div class="name">Gem Tiles</div><div class="desc">Tap sparkly tiles to the music!</div></a>
-<a class="card" href="../" style="--bg:linear-gradient(160deg,#8fd3ff,#6a6cf0);--d:.4s">
+<a class="card" data-cp="sky-glider" href="../" style="--bg:linear-gradient(160deg,#8fd3ff,#6a6cf0);--d:.4s"><span class="off" aria-label="Ready offline" role="img">✔</span>
 <div class="icon"><svg viewBox="0 0 120 120"><path d="M8 92 Q40 70 60 80 T112 70" stroke="#fff" stroke-width="3" stroke-dasharray="4 7" fill="none" opacity=".8"/><circle cx="96" cy="26" r="11" fill="#fff3a8"/>
 <path d="M14 60 L110 28 L62 98 L54 70Z" fill="#fff" stroke="#c0c0d0" stroke-width="2.5" stroke-linejoin="round"/><path d="M54 70 L110 28 L44 76Z" fill="#ffb6dd" stroke="#e05aa8" stroke-width="2" stroke-linejoin="round"/><path d="M54 70 L58 88 L62 98" fill="none" stroke="#c0c0d0" stroke-width="2"/></svg></div>
 <div class="name">Sky Glider</div><div class="desc">Fly your paper plane through the clouds!</div></a>
-<a class="card" href="../crystal-cave/" style="--bg:linear-gradient(160deg,#c49bff,#7a2fd6);--d:.8s">
+<a class="card" data-cp="crystal-cave-" href="../crystal-cave/" style="--bg:linear-gradient(160deg,#c49bff,#7a2fd6);--d:.8s"><span class="off" aria-label="Ready offline" role="img">✔</span>
 <div class="icon"><svg viewBox="0 0 120 120"><defs><linearGradient id="cr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e9fbff"/><stop offset=".5" stop-color="#8fe3ff"/><stop offset="1" stop-color="#5b7cff"/></linearGradient></defs>
 <path d="M60 6 L88 34 L74 112 L46 112 L32 34Z" fill="url(#cr)" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M32 34 L60 46 L88 34 M60 46 V112" stroke="#fff" stroke-width="2" opacity=".7" fill="none"/><path d="M20 70 L30 58 L38 76 L28 104 Z" fill="#ff8fd0" stroke="#fff" stroke-width="2"/><path d="M100 70 L90 58 L82 76 L92 104 Z" fill="#ffd36b" stroke="#fff" stroke-width="2"/>
 <circle cx="60" cy="74" r="17" fill="#fff" stroke="#f5c542" stroke-width="3"/><path d="M52 66 L68 82 M68 66 L52 82" stroke="#d6339f" stroke-width="5" stroke-linecap="round"/></svg></div>
 <div class="name">Crystal Cave</div><div class="desc">Solve times tables, win gems!</div></a>
-<a class="card" href="../yoga/" style="--bg:linear-gradient(160deg,#ffd36b,#ff8a3d);--d:1.2s">
+<a class="card" data-cp="yoga-coach" href="../yoga/" style="--bg:linear-gradient(160deg,#ffd36b,#ff8a3d);--d:1.2s"><span class="off" aria-label="Ready offline" role="img">✔</span>
 <div class="icon"><svg viewBox="0 0 120 120"><g stroke="#fff3a8" stroke-width="4" stroke-linecap="round"><path d="M60 4V14M60 106V116M4 60H14M106 60H116M20 20L27 27M93 93L100 100M100 20L93 27M20 100L27 93"/></g>
 <circle cx="60" cy="54" r="28" fill="#ffe14d" stroke="#fff" stroke-width="3"/><circle cx="50" cy="50" r="3.5" fill="#5a2a00"/><circle cx="70" cy="50" r="3.5" fill="#5a2a00"/><path d="M48 60 Q60 72 72 60" stroke="#5a2a00" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="43" cy="60" r="4" fill="#ff8fb0" opacity=".7"/><circle cx="77" cy="60" r="4" fill="#ff8fb0" opacity=".7"/>
 <path d="M38 36 Q46 10 56 18 M82 36 Q74 10 64 18" stroke="#ffe14d" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M56 80 L50 108 M64 80 L80 92 L66 98" stroke="#ffe14d" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -239,6 +244,7 @@ const TOG=[['calm','🌙','Calm mode','Less motion: sparkles and wobbles rest in
  ['big','🔍','Big buttons','Bigger answer gems, wider Gem Tiles lanes, bigger Sky Glider buttons.'],
  ['lefty','🤚','Left-handed','Moves the one-hand controls to the left side in the games.'],
  ['shapes','🔷','Colour-blind shapes','Adds a shape mark wherever a colour carries meaning.'],
+ ['relax','⏳','Relaxed timers','Speedy-bonus timers last twice as long (it is only ever a bonus).'],
  ['vibe','📳','Vibration','A little buzz on bumps and big moments (never on taps).']];
 function settingsHtml(){const P=FZ.parent();
  return '<div class="sec"><h3>🎛️ Play settings</h3>'+
@@ -329,4 +335,11 @@ if('serviceWorker' in navigator&&location.protocol!=='file:'){const sw=navigator
  sw.addEventListener('controllerchange',()=>{if(!had)return;let t=0;try{t=+sessionStorage.getItem('fz.swr')||0;}catch(e){}if(Date.now()-t<30000)return;try{sessionStorage.setItem('fz.swr',String(Date.now()));}catch(e){}location.reload();});
  addEventListener('load',()=>sw.register('sw.js',{scope:'./'}).catch(()=>{}));}
 })();
+// "Ready offline" gold tick: a card gets it when that app's own cache already holds its start page. Read-only (caches.keys/match; nothing is written or fetched).
+(function(){if(!window.caches||!caches.keys)return;
+ const cards=[].slice.call(document.querySelectorAll('a.card[data-cp]'));
+ const check=()=>caches.keys().then(ks=>Promise.all(cards.map(a=>{const pre=a.dataset.cp,u=new URL(a.getAttribute('href'),location.href).href;
+  return Promise.all(ks.filter(k=>k.indexOf(pre)===0).map(k=>caches.open(k).then(c=>Promise.all([c.match(u,{ignoreSearch:true}),c.match(u+'index.html',{ignoreSearch:true})]).then(r=>!!(r[0]||r[1]))).catch(()=>false)))
+   .then(r=>{const t=r.some(Boolean),b=a.querySelector('.off');if(b)b.classList.toggle('on',t);});}))).catch(()=>{});
+ check();addEventListener('pageshow',check);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check();});})();
 </script></body></html>

@@ -346,6 +346,8 @@ html.fz-big .seg button{min-width:72px;font-size:18px}
 html.fz-big .modal .btn{min-height:64px}
 html.fz-big .res-actions .btn{min-height:64px}
 html.fz-lefty #hud{flex-direction:row-reverse}
+/* Batch 02-1: the grown-ups' Calm mode (hub) also rests every CSS animation/transition here, like the phone's reduced-motion setting */
+html.fz-calm :not(.speed>i),html.fz-calm ::before,html.fz-calm ::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0s!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 </style>
 </head>
 <body>
