@@ -463,7 +463,10 @@ function updateClock() { // off = (audio time being HEARD) - (performance time)
   const nowP = performance.now() / 1000;
   if (ctx.getOutputTimestamp) { const ts = ctx.getOutputTimestamp(); if (ts && ts.contextTime > 0 && ts.performanceTime > 0) { const e = ts.contextTime - ts.performanceTime / 1000, ahead = ctx.currentTime - (e + nowP); if (ahead > -0.01 && ahead < 0.5) est = e; } }
   if (est == null) est = ctx.currentTime - (ctx.outputLatency || ctx.baseLatency || 0) - nowP;
-  if (clock.off == null || Math.abs(est - clock.off) > 0.04) clock.off = est; else clock.off += (est - clock.off) * 0.08;
+  // v6e: no more 40 ms snaps mid-song. Android's output timestamp moves in audio-buffer steps (worst on long decoded custom tracks), and every
+  // snap/0.08 jump moved the whole highway: a visible micro-hitch. Now: snap only on (re)start or a real discontinuity (>150 ms); otherwise
+  // slew toward the estimate at most 1.5 ms per frame (invisible), so the average sync is exactly the same as before.
+  if (clock.off == null || Math.abs(est - clock.off) > 0.15) clock.off = est; else { const d = (est - clock.off) * 0.08; clock.off += d > 0.0015 ? 0.0015 : d < -0.0015 ? -0.0015 : d; }
 }
 const perfOf = e => { const t = e && e.timeStamp, n = performance.now(); return t > 0 && t <= n + 5 && n - t < 1000 ? t : n; };
 const songAt = perfMs => perfMs / 1000 + clock.off - G.startAt; // audio-track position heard at that moment
@@ -547,10 +550,11 @@ async function startGame0(song, diff) {
   let theme = (LAB && LAB.world) || S.songTheme[song.id] || b.theme || song.theme || 'pinkgold';
   if (!LAB && !tut && Art.THEMES[theme] && S.lastWorld !== theme) { S.lastWorld = theme; save(); } // menus show the last-played world (additive key)
   const practice = S.set.practice || tut;
+  if (G.qUp && (G.qual || 0) > (G.qMin || 0)) G.qual--; // v6e: the tier earned last song is applied here, while the loading card is up
   Object.assign(G, { on: true, song, diff, D: DIFF[diff], b, tiles, theme, score: 0, combo: 0, maxCombo: 0, hearts: practice ? Infinity : DIFF[diff].hearts, practice, usedPractice: practice,
     j: { perfect: 0, great: 0, good: 0, miss: 0 }, holds: new Map(), press: new Map(), mood: 'idle', moodT: 0, paused: false, ended: false, sp: 0, spUntil: -1, laneFlash: [0, 0, 0, 0], laneHit: [0, 0, 0, 0],
     flares: [0, 0, 0, 0], flareJ: [0, 0, 0, 0], streak: [0, 0, 0, 0], missFx: [0, 0, 0, 0], pu: {}, shield: 0, poofs: [], shake: 0, slow: 1, nowS: 0, win: DIFF[diff].win, lead: DIFF[diff].lead, stats: { pu: {}, dodged: 0, rainbow: false }, items: [], lab: LAB, _bi: 0, qLog: [],
-    bgDirty: true, bgLast: 0, Q: null, first: 0, hudDirty: true, hudT: 0, lastProg: -1, pops: [], ft: new Float32Array(4096), fi: new Float32Array(4096), fN: 0, lastFrame: 0, ivl: [], pendingTap: null, nodesAtStart: 0,
+    bgDirty: true, bgLast: 0, Q: null, qUp: false, qGrace: 0, first: 0, hudDirty: true, hudT: 0, lastProg: -1, pops: [], ft: new Float32Array(4096), fi: new Float32Array(4096), fN: 0, lastFrame: 0, ivl: [], pendingTap: null, nodesAtStart: 0,
     resuming: 0, pausedDrawn: false, missRun: 0, medal: 0, medalT: -9, holdEmitT: 0, dly: 4, cap60: false, skipTog: false, tut: tut ? { step: 0, wait: null, hand: 0, done: false } : null, seenObs: G.seenObs || new Set(), edgeA: -1, edgeCol: '' });
   // build the playback graph ONCE (no nodes are created after this until the song ends)
   const master = A.master(); G.nodes = [];
@@ -563,7 +567,7 @@ async function startGame0(song, diff) {
   A.setFx(S.set.fxOn !== false, S.set.fxVol == null ? 0.5 : S.set.fxVol); G.items = buildItems(b, diff); layout(); warmSprites(); setTimeout(() => A.fx('intro'), 300); updHud(); startLoop();
   if (document.hidden) pauseGame(); // she switched apps while the song was loading: start paused (resume gets a 3-2-1)
 }
-function warmSprites() { try { resolveSprites(); for (const it of G.items) it.kind === 'pu' ? puImg(it.pu) : obsImg(it.ob); cloudPuff(); greyPuff(); for (const k of ['3', '2', '1', 'go']) countImg(k); } catch (e) { console.warn(e); } } // v6: dropped a call to a missing edgeGlow() (it threw before the countdown sprites were warmed) and an unused full-screen 'hw' scene
+function warmSprites() { try { resolveSprites(); for (const it of G.items) it.kind === 'pu' ? puImg(it.pu) : obsImg(it.ob); cloudPuff(); greyPuff(); for (const k of ['3', '2', '1', 'go']) countImg(k); for (const j in JCOL) popMake(tx(j), JCOL[j], false); popMake(tx('miss'), '#7a8396', false); popMake(tx('heartPlus'), '#ff4fa3', false); for (const m of MILES) popMake(tx('combo', m), '#ff4fa3', true); popMake(tx('starPower'), '#d4a017', true); } catch (e) { console.warn(e); } } // v6: dropped a call to a missing edgeGlow() (it threw before the countdown sprites were warmed) and an unused full-screen 'hw' scene
 // HUD: gem hearts (crack on a miss) + score. Only touched when the shown value changes, at most ~10x/s (no per-frame DOM writes during holds)
 const NF = window.Intl ? new Intl.NumberFormat() : { format: n => String(n) }, HUD = { s: '', h: -2, n: 0 };
 function buildHearts() { const el = $('#hHearts'); HUD.h = -2; if (G.hearts === Infinity) { el.innerHTML = '<span class="gh"></span> ∞'; HUD.n = 0; return; }
@@ -815,7 +819,7 @@ function startLoop() { const id = ++LOOP; LOOPS++; const step = ts => { if (id !
 // v6: a level that just proved too slow is not retried for 90 s (across songs too): stepping up and straight back down was itself a hitch
 const QMEM = { bad: -1, t: -1e9 };
 function autoQuality(dtMs) { // adaptive quality: drop on sustained long frames, recover after a calm stretch. Ring buffer, percentile ~1x/s (no per-frame sort/alloc)
-  const Q = G.Q || (G.Q = { base: 16.7, ema: 16.7, bad: 0, good: 0, ring: new Float32Array(120), srt: new Float32Array(120), n: 0, lastP: 0 }); if (G.paused || dtMs > 250) return;
+  const Q = G.Q || (G.Q = { base: 16.7, ema: 16.7, bad: 0, good: 0, ring: new Float32Array(120), srt: new Float32Array(120), n: 0, lastP: 0 }); if (G.paused || dtMs > 250) return; const pn = performance.now(); if (G.nowS < -1 || pn < (G.qGrace || 0)) return; /* v6e: ignore the first second (sprite warm-up) and resume frames, and keep tier drops >= 2 s apart: each tier change re-allocates both canvases (a 100-170 ms freeze) */
   Q.ring[Q.n % 120] = dtMs; Q.n++; if (Q.n >= 30 && (Q.n === 30 || Q.n - Q.lastP >= 60)) { Q.lastP = Q.n; const m = Math.min(Q.n, 120); Q.srt.set(Q.ring.subarray(0, m)); const v = Q.srt.subarray(0, m).sort(); Q.base = Math.max(6, v[Math.floor(m * 0.1)]);
     // v6: an average that looks fine can hide every 10th frame being dropped (a steady 16/33 ms stutter): >10% long frames counts as slow too
     const lim = Q.base * (G.cap60 ? 2 : 1) * 1.45; let nl = 0; for (let i = 0; i < m; i++) if (Q.ring[i] > lim) nl++; Q.lf = Q.n >= 120 && nl > m * 0.1; }
@@ -823,8 +827,8 @@ function autoQuality(dtMs) { // adaptive quality: drop on sustained long frames,
   if (Q.bad > 700 || Q.lf) { Q.bad = 0; Q.lf = false; Q.n = 0; Q.lastP = 0; Q.ema = base; // (ring restarts: judge the new level on its own frames)
     Q.hold = Math.min(60000, (Q.hold || 5000) * 2); // first step on a 120 Hz panel: even 60 fps pacing before lowering resolution
     if (!G.cap60 && Q.base < 12 && (G.qual || 0) === (G.qMin || 0)) { G.cap60 = true; G.qLog.push(['cap60', G.qual || 0, Math.round(G.nowS)]); }
-    else if ((G.qual || 0) < 3) { QMEM.bad = G.qual || 0; QMEM.t = performance.now(); G.qual = (G.qual || 0) + 1; G.bgDirty = true; G.spr = null; G.qLog.push(['down', G.qual, Math.round(G.nowS)]); } }
-  if (Q.good > (Q.hold || 5000)) { Q.good = 0; if ((G.qual || 0) > (G.qMin || 0) && !(G.qual - 1 <= QMEM.bad && performance.now() - QMEM.t < 90000)) { G.qual--; G.bgDirty = true; G.spr = null; G.qLog.push(['up', G.qual, Math.round(G.nowS)]); } else if (G.cap60) { G.cap60 = false; G.qLog.push(['uncap', G.qual || 0, Math.round(G.nowS)]); } } }
+    else if ((G.qual || 0) < 3) { QMEM.bad = G.qual || 0; QMEM.t = performance.now(); G.qual = (G.qual || 0) + 1; G.bgDirty = true; G.spr = null; G.qGrace = pn + 2000; G.qLog.push(['down', G.qual, Math.round(G.nowS)]); } }
+  if (Q.good > (Q.hold || 5000)) { Q.good = 0; if ((G.qual || 0) > (G.qMin || 0) && !(G.qual - 1 <= QMEM.bad && performance.now() - QMEM.t < 90000)) { if (!G.qUp) { G.qUp = true; G.qLog.push(['up-next', G.qual - 1, Math.round(G.nowS)]); } } /* v6e: a better tier is applied at the NEXT song start (no mid-song sprite rebuild) */ else if (G.cap60) { G.cap60 = false; G.qLog.push(['uncap', G.qual || 0, Math.round(G.nowS)]); } } }
 function finishTail(now) { if (G.pendingTap) { G.ivl.push(performance.now() - G.pendingTap.perf); G.pendingTap = null; } }
 // sprite references resolved once per layout / quality change (no template-string keys + Map lookups per tile per frame)
 const SPR = {};
@@ -985,7 +989,7 @@ function pauseGame(noModal) {
   G.paused = true; G.pauseN = (G.pauseN || 0) + 1; G.resuming = 0; G.pauseAt = songTime(); A.ctx().suspend(); if (!noModal) { renderLegend(); $('#mPause').classList.add('on'); } }
 // resume = a 3-2-1 gem countdown with the song still paused, then the audio continues (no lost heart right after resuming)
 function resumeGame() { $('#mPause').classList.remove('on'); $('#mOut').classList.remove('on'); if (!G.on || !G.paused || G.resuming || (G.tut && G.tut.wait)) return; G.resuming = performance.now() + RESUME; G.pausedDrawn = false; }
-function doResume() { const n = G.pauseN; G.resuming = 0; const go2 = () => { if (!G.on || G.pauseN !== n || !G.paused) return; clock.off = null; updateClock(); G.lastFrame = 0; G.paused = false; G.bgDirty = true; }; A.ctx().resume().then(go2, go2); }
+function doResume() { const n = G.pauseN; G.resuming = 0; const go2 = () => { if (!G.on || G.pauseN !== n || !G.paused) return; clock.off = null; updateClock(); G.lastFrame = 0; G.paused = false; G.bgDirty = true; G.qGrace = performance.now() + 2000; G.Q = null; }; A.ctx().resume().then(go2, go2); }
 $('#pauseBtn').addEventListener('click', () => pauseGame());
 $('#resumeBtn').addEventListener('click', resumeGame);
 $('#contBtn').addEventListener('click', () => { G.hearts = Infinity; G.practice = true; G.usedPractice = true; G.hudDirty = true; resumeGame(); });
@@ -1005,7 +1009,7 @@ function tutCheck(jnow) { const tu = G.tut; if (tu.wait) return;
 function tutWait(w) { G.tut.wait = w; G.tut.hand = performance.now(); G.paused = true; G.pauseN = (G.pauseN || 0) + 1; G.pauseAt = w.at + S.set.offset / 1000; A.ctx().suspend(); } // the song waits for her tap
 function tutTap(lane, pid) { const w = G.tut.wait; if (lane !== w.lane) { if (lane >= 0 && lane <= 3) G.laneFlash[lane] = 0.6; G.tut.wrong = performance.now(); return; }
   if (w.tile) { G.press.set(pid, lane); G.tapPerf = performance.now(); hitTile(w.tile, 0, pid); G.tut.step++; } else { collect(w.it); G.tut.step = 4; } tutResume(); }
-function tutResume() { G.tut.wait = null; const n = G.pauseN; const go2 = () => { if (!G.on || G.pauseN !== n) return; clock.off = null; updateClock(); G.lastFrame = 0; G.paused = false; }; A.ctx().resume().then(go2, go2); }
+function tutResume() { G.tut.wait = null; const n = G.pauseN; const go2 = () => { if (!G.on || G.pauseN !== n) return; clock.off = null; updateClock(); G.lastFrame = 0; G.paused = false; G.qGrace = performance.now() + 2000; G.Q = null; }; A.ctx().resume().then(go2, go2); }
 function tutFinish(skipped) { if (!G.tut || G.tut.done) return; G.tut.done = true; S.tut = 1; save(); $('#skipTut').classList.add('hidden'); if (!skipped) { pop(L.cx, L.H * 0.33, tx('tutDone'), '#ff4fa3', 2.2, true); firework(3); } }
 function drawTutorial(T, lead, vnow) { const tu = G.tut, w = tu.wait; let lane = w ? w.lane : -1;
   if (!w && tu.step < 3) for (let i = G.first; i < G.tiles.length; i++) { const t = G.tiles[i]; if ((t.t - vnow) / lead > 0.55) break; if (!t.state && !t.pair && !t.dur) { lane = t.lane; break; } }
@@ -1096,7 +1100,8 @@ window.__tiles = { REC, S: () => S, G: () => G, loops: () => LOOPS, stopAll: () 
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then(p => p || navigator.storage.persist()).catch(() => { }); } catch (e) { }
 applyLang(); document.body.classList.toggle('calm', !!S.set.calm); loadCustoms().then(async () => { go('home');
   const old = customs.filter(c => (c.anv || 1) < AN.VERSION); if (!old.length) return; toast(esc(tx('updating', old.length)), 2500);
-  for (const c of old) { try { const full = await DB.get(c.id); if (full) await reanalyze(full); } catch (e) { console.warn('re-chart failed', e); } }
+  const idle = async () => { while (G.on || STARTING) await new Promise(r => setTimeout(r, 1500)); }; // v6e: never re-chart (decode + IndexedDB write of the whole song) while a song is playing
+  for (const c of old) { await idle(); try { const full = await DB.get(c.id); if (full) await reanalyze(full); } catch (e) { console.warn('re-chart failed', e); } }
   await loadCustoms(); if (cur === 'songs') renderSongs(); });
 requestAnimationFrame(menuLoop);
 window.addEventListener('resize', () => { DPR = Math.min(2, window.devicePixelRatio || 1); });
