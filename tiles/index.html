@@ -77,6 +77,32 @@ h2{margin:0;font-size:24px;font-weight:900;letter-spacing:-.01em;line-height:1.1
 .song.locked{opacity:.62;filter:grayscale(.45)}
 .song .edit{margin-left:auto;width:52px;height:52px;min-height:52px}
 .song .edit .ic{width:24px;height:24px}
+.song .favbtn{width:44px;height:44px;min-height:44px;flex:none;padding:0;margin-left:0}
+.song .favbtn .ic{width:24px;height:24px}
+.song .favbtn:not(.on) .ic{opacity:.55}
+.song .edit+.favbtn,.song .favbtn:first-of-type{margin-left:0}
+.song .info+.favbtn{margin-left:auto}
+.favhead{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:800;font-size:20px;color:#c0307a;min-height:34px}
+.favhead .ic{width:22px;height:22px}
+.favhead.sub2{min-height:20px;opacity:.7}
+#chest{position:absolute;left:0;right:0;top:max(64px,12%);display:none;justify-content:center;z-index:9;pointer-events:none;padding:0 12px}
+#chest.on{display:flex}
+#chest .chBox{pointer-events:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;max-width:94vw;padding:10px 16px;border-radius:24px;background:linear-gradient(180deg,#fff9e0,#ffe3f1);border:3px solid #ffd76a;box-shadow:0 0 0 3px #fff,0 8px 28px rgba(255,79,163,.45),0 0 36px rgba(255,215,106,.7);animation:chPop .45s cubic-bezier(.2,1.5,.4,1) backwards}
+#chest .chIc{width:84px;height:68px;filter:drop-shadow(0 0 8px #ffd76a);animation:chShake 1.1s ease-in-out infinite}
+#chest .chIc svg{width:100%;height:100%}
+#chest .chQ{font-weight:900;font-size:34px;color:#7a1450;white-space:nowrap}
+#chest .chA{display:flex;gap:10px}
+#chest .chBtn{min-width:64px;height:56px;border-radius:18px;border:3px solid #fff;background:linear-gradient(180deg,#ff8cc3,#ff4fa3);color:#fff;font-weight:900;font-size:28px;box-shadow:0 4px 0 #b3236d;cursor:pointer;touch-action:manipulation}
+#chest .chBtn.good{background:linear-gradient(180deg,#8be8a8,#2fb36a);box-shadow:0 4px 0 #1b7a45}
+#chest .chBtn.soft{opacity:.55}
+#chest .chWin{width:100%;text-align:center;font-weight:900;font-size:22px;color:#b07500;min-height:0}
+@keyframes chPop{from{transform:scale(.6);opacity:0}}
+@keyframes chShake{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg) scale(1.06)}}
+body.calm #chest .chIc,body.calm #chest .chBox{animation:none}
+@media (prefers-reduced-motion:reduce){#chest .chIc,#chest .chBox{animation:none}}
+@media (max-height:480px){#chest{top:52px}#chest .chIc{width:60px;height:48px}#chest .chQ{font-size:28px}}
+html.fz-big #chest .chBtn{min-width:76px;height:68px;font-size:32px}
+html.fz-big .song .favbtn{width:64px;height:64px;min-height:64px}
 .song .dots{display:flex;gap:6px;font-size:11px;font-weight:800;color:var(--ink2)}
 .song .dd i{font-style:normal;letter-spacing:-1px;color:#e0a000;margin-left:2px}
 .song .dd.cur{background:#ffe1f1;border-radius:8px;padding:0 5px}
@@ -190,7 +216,7 @@ input[type=range]{width:100%;accent-color:var(--pink);height:32px}
 /* game */
 #game{position:fixed;inset:0;z-index:5;display:none;touch-action:none}
 #game.on{display:block}
-#cv,#bgcv,#dyncv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+#cv,#bgcv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 #hud{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:var(--s2);padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) 0 max(10px,env(safe-area-inset-left));pointer-events:none;font-weight:800}
 #hud .pill,#hud button{pointer-events:auto}
 #hud .sp{flex:1}
@@ -309,6 +335,17 @@ body.calm .big-stars span.won{animation:pop .3s backwards}
 @media (orientation:landscape) and (max-height:560px) and (max-width:700px){.menu{grid-template-columns:1fr 1fr}.menu .btn.wide2{grid-column:auto}}
 /* very small heights: drop the mascot on the results card */
 @media (max-height:440px){#resMascot{display:none}}
+/* Fun Zone (Batch 01): grown-up settings from the hub */
+html.fz-big{--tap:64px}
+html.fz-big .btn,html.fz-big .hudbtn,html.fz-big .seg button,html.fz-big .tabs .btn{min-height:64px}
+html.fz-big .btn.small{min-height:56px;font-size:18px}
+html.fz-big .btn.icon,html.fz-big .song .edit{width:64px;height:64px;min-height:64px}
+html.fz-big .hudbtn{min-width:64px}
+html.fz-big .song{min-height:112px}
+html.fz-big .seg button{min-width:72px;font-size:18px}
+html.fz-big .modal .btn{min-height:64px}
+html.fz-big .res-actions .btn{min-height:64px}
+html.fz-lefty #hud{flex-direction:row-reverse}
 </style>
 </head>
 <body>
@@ -421,7 +458,7 @@ body.calm .big-stars span.won{animation:pop .3s backwards}
   </div>
 </section>
 
-<div id="game"><canvas id="bgcv"></canvas><canvas id="dyncv" hidden></canvas><div class="fxl" id="fxEdge"></div><canvas id="cv"></canvas><div class="fxl" id="fxFlash"></div><div class="fxl" id="fxRainbow"></div><div id="progRail"></div><div id="prog"></div><div id="progGem"></div>
+<div id="game"><canvas id="bgcv"></canvas><div class="fxl" id="fxEdge"></div><canvas id="cv"></canvas><div class="fxl" id="fxFlash"></div><div class="fxl" id="fxRainbow"></div><div id="progRail"></div><div id="prog"></div><div id="progGem"></div>
   <div id="hud"><button class="hudbtn" id="pauseBtn" aria-label="Pause"><i data-ic="pause"></i></button><span class="pill" id="hHearts"></span><button class="hudbtn hidden" id="skipTut"><i data-ic="skip"></i><span data-t="skip">Skip</span></button><span class="sp"></span><span class="pill" id="hScore">0</span></div></div>
 
 <div class="modal" id="mPause"><div class="card"><h2 data-t="paused">Paused</h2><div id="legend"></div>
@@ -441,5 +478,6 @@ body.calm .big-stars span.won{animation:pop .3s backwards}
 <script src="./art.js"></script>
 <script src="./records.js"></script>
 <script src="./learn.js"></script>
+<script src="./funzone.js"></script>
 <script src="./app.js"></script>
 </body></html>
