@@ -1,6 +1,6 @@
 // Our Fun Zone service worker: only handles requests under /home/, only touches its own caches.
-const CACHE='home-v3';
-const FILES=['./','./index.html','./learn.js','./manifest.json','./icon.svg','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
+const CACHE='home-v4';
+const FILES=['./','./index.html','./learn.js','./funzone.js','./audio/manifest.json','./manifest.json','./icon.svg','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
 const SCOPE=new URL('./',self.location).pathname;
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES.map(f=>new Request(f,{cache:'reload'})))).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith('home-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});

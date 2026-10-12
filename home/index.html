@@ -67,6 +67,30 @@ box-shadow:0 4px 0 rgba(80,0,70,.4),inset 0 -6px 10px rgba(200,140,0,.25);positi
 #gdlg button{white-space:normal;line-height:1.15}
 #gdlg .lst{font-size:14px;color:#6a1a5a;word-break:break-word}
 #gdlg .foot{position:sticky;bottom:-18px;margin:10px -18px -18px;padding:8px 0 10px;background:linear-gradient(rgba(255,255,255,.85),#fff);box-shadow:0 -4px 8px rgba(138,18,112,.12)}
+#gdlg{max-height:92vh;max-height:92dvh}
+.sec{background:#fff;border:2px solid #ffd1ec;border-radius:18px;padding:10px;margin:10px 0}
+.sec h3{font-size:18px;text-align:center;margin-bottom:4px}
+.set{margin:8px 0;padding-top:8px;border-top:2px dashed #ffd1ec}.set:first-of-type{border-top:none;padding-top:0}
+.set .hd{display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px}.set .hd .sv{margin-left:auto;font-size:13px;color:#2a9a52;opacity:0;transition:opacity .3s}.set .hd .sv.on{opacity:1}
+.set small{display:block;font-size:13px;color:#6a1a5a;line-height:1.25;margin-top:2px}
+.seg{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+#gdlg .seg button{flex:1 0 44px;min-height:44px;padding:4px 6px;margin:0;font-size:16px;background:#e9d5f5;color:#6a1a5a}
+#gdlg .seg button.on{background:linear-gradient(#ff7ac8,#d6339f);color:#fff;box-shadow:0 0 0 3px #f5c542}
+#gdlg button.tg{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;margin:6px 0;padding:6px 12px;border-radius:18px;text-align:left;background:#fff0f8;color:#6a1a5a;border:2px solid #ffd1ec}
+.tg .ic{font-size:26px;flex:none}.tg .tx{flex:1;min-width:0;font-weight:800;font-size:16px}.tg .tx small{font-weight:400;font-size:13px;color:#6a1a5a;margin:0}
+.tg .sw{flex:none;width:52px;height:30px;border-radius:99px;background:#c8bcd2;position:relative;transition:background .2s}
+.tg .sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .2s}
+.tg[aria-checked=true] .sw{background:#2fae5a}.tg[aria-checked=true] .sw::after{left:25px}
+.tg .sv{flex:none;font-size:13px;color:#2a9a52;opacity:0;transition:opacity .3s}.tg .sv.on{opacity:1}
+#gdlg input[type=range]{width:100%;margin:6px 0;padding:0;border:none;height:44px;accent-color:#d6339f;background:none}
+#ndlg{width:min(94vw,460px);max-height:92vh;max-height:92dvh;overflow-y:auto}
+#ndlg h2{font-size:22px;margin-bottom:8px}
+#ngrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+#ndlg button.nk{display:flex;flex-direction:column;align-items:center;gap:0;margin:0;padding:6px 2px;border-radius:18px;font-size:15px;font-weight:800;color:#6a1a5a;background:#fff;border:3px solid #ffd1ec;min-height:84px;line-height:1.1}
+#ndlg button.nk b{font-size:38px;line-height:1.1}#ndlg button.nk.on{border-color:#f5c542;background:#fff3a8}
+html.fz-calm a.card,html.fz-calm a.card::after,html.fz-calm h1,html.fz-calm #fs.ask,html.fz-calm .plq::after{animation:none}
+html.fz-big .btn{width:58px;height:58px;font-size:26px}html.fz-big #gear{width:54px;height:54px}
+html.fz-big #shelf{height:clamp(58px,9.5vh,84px)}html.fz-big .name{font-size:clamp(19px,2.8vmin + 8px,34px)}html.fz-big #greet{font-size:clamp(17px,2.4vmin + 8px,30px)}
 @media (prefers-reduced-motion:reduce){a.card,a.card::after,h1,#fs.ask,.plq::after{animation:none}}
 </style></head><body>
 <canvas id="sky"></canvas>
@@ -103,22 +127,33 @@ box-shadow:0 4px 0 rgba(80,0,70,.4),inset 0 -6px 10px rgba(200,140,0,.25);positi
 <dialog id="dlg"><div style="font-size:22px;font-weight:800">What's your name? 💎</div><input id="nmIn" maxlength="16" autocomplete="off"><div><button id="ok">Save</button><button id="cancel" style="background:#c0c0d0">Cancel</button></div></dialog>
 <dialog id="tdlg"><h2>🏆 My Treasures 🏆</h2><div id="tlist"></div><div style="text-align:center;margin-top:8px"><button id="tok">OK 💖</button></div></dialog>
 <dialog id="gdlg"><h2>Grown-ups</h2><div id="gbody"></div></dialog>
+<dialog id="ndlg"><h2>Pick your sparkle name! 💖</h2><div id="ngrid"></div><div style="margin-top:10px"><button id="ntype" style="background:#c0c0d0;min-height:44px">✏️ type a name</button> <button id="nclose" style="background:#c0c0d0;min-height:44px">✖</button></div></dialog>
 <input type="file" id="rfile" accept="application/json,.json" hidden>
 <script src="learn.js"></script>
+<script src="funzone.js"></script>
 <script>
 (()=>{
 const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
 const nm=document.getElementById('nm'),dlg=document.getElementById('dlg'),inp=document.getElementById('nmIn'),mute=document.getElementById('mute');
-let name=LS.get('funzone-name','Superstar');nm.textContent=name;
+let name=LS.get('funzone-name','Superstar');
+const FZ=window.FunZone,AD={dir:'audio/'};
+const nickObj=()=>{try{const id=FZ.me().nick;return FZ.NICKS.find(n=>n.id===id)||null}catch(e){return null}};
+const showName=()=>{const n=nickObj();nm.textContent=n?n.label:name;};showName();
 let muted=LS.get('funzone-muted','0')==='1';const setM=()=>mute.textContent=muted?'🔇':'🔊';setM();
 let ac=null;
 function chime(){if(muted)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const t=ac.currentTime;
 [880,1320,1760].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t+i*.06);g.gain.linearRampToValueAtTime(.12,t+i*.06+.01);g.gain.exponentialRampToValueAtTime(.0005,t+i*.06+.35);o.connect(g).connect(ac.destination);o.start(t+i*.06);o.stop(t+i*.06+.4);});}catch(e){}}
 mute.onclick=()=>{muted=!muted;LS.set('funzone-muted',muted?'1':'0');setM();chime();};
-const open=()=>{inp.value=name==='Superstar'?'':name;if(dlg.showModal)dlg.showModal();else dlg.setAttribute('open','');setTimeout(()=>inp.focus(),50)};
+const open=()=>{try{hide(ndlg)}catch(e){}inp.value=name==='Superstar'?'':name;if(dlg.showModal)dlg.showModal();else dlg.setAttribute('open','');setTimeout(()=>inp.focus(),50)};
 const close=()=>{dlg.close?dlg.close():dlg.removeAttribute('open')};
-document.getElementById('greet').onclick=open;document.getElementById('greet').onkeydown=e=>{if(e.key==='Enter')open()};
-document.getElementById('ok').onclick=()=>{name=inp.value.trim()||'Superstar';LS.set('funzone-name',name);nm.textContent=name;close();chime()};
+const ndlg=document.getElementById('ndlg'),ngrid=document.getElementById('ngrid');
+function openPick(){const cur=nickObj();ngrid.innerHTML=FZ.NICKS.map(n=>'<button class="nk'+(cur&&cur.id===n.id?' on':'')+'" data-id="'+n.id+'"><b>'+n.icon+'</b>'+esc(n.label)+'</button>').join('');
+ show(ndlg);FZ.say('Pick your sparkle name!',{dir:'audio/',muted});}
+ngrid.onclick=e=>{const b=e.target.closest('button.nk');if(!b)return;const n=FZ.NICKS.find(x=>x.id===b.dataset.id);if(!n)return;
+ FZ.setNick(n.id);showName();hide(ndlg);chime();FZ.say(n.label+'!',{dir:'audio/',muted});};
+document.getElementById('nclose').onclick=()=>hide(ndlg);document.getElementById('ntype').onclick=open;
+document.getElementById('greet').onclick=openPick;document.getElementById('greet').onkeydown=e=>{if(e.key==='Enter')openPick()};
+document.getElementById('ok').onclick=()=>{name=inp.value.trim()||'Superstar';LS.set('funzone-name',name);try{FZ.setNick('')}catch(e){}showName();close();chime()};
 document.getElementById('cancel').onclick=close;inp.onkeydown=e=>{if(e.key==='Enter')document.getElementById('ok').click()};
 // full screen: the choice is remembered (funzone-fs). Browsers leave full screen whenever a page changes, so every app
 // brings it back on its first tap, and so does this page (except a tap on a card, which is leaving anyway)
@@ -145,7 +180,9 @@ for(let i=0;i<40;i++)P.push({x:Math.random(),y:Math.random(),s:2+Math.random()*4
 function burst(px,py){for(let i=0;i<18;i++){const a=Math.random()*6.28,s=120+Math.random()*240;B.push({x:px,y:py,vx:Math.cos(a)*s,vy:Math.sin(a)*s-120,l:1,c:cols[i%5],h:i%3===0})}if(!raf)kick();}
 function star(X,Y,r){x.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,R=i%2?r*.35:r;x.lineTo(X+Math.cos(a)*R,Y+Math.sin(a)*R)}x.fill()}
 function heart(X,Y,r){x.beginPath();x.moveTo(X,Y+r*.9);x.bezierCurveTo(X-r*1.4,Y-r*.2,X-r*.6,Y-r*1.2,X,Y-r*.4);x.bezierCurveTo(X+r*.6,Y-r*1.2,X+r*1.4,Y-r*.2,X,Y+r*.9);x.fill()}
-const red=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let red=matchMedia('(prefers-reduced-motion: reduce)').matches||!!(FZ.calm&&FZ.calm());
+const calmSync=()=>{red=matchMedia('(prefers-reduced-motion: reduce)').matches||!!(FZ.calm&&FZ.calm());if(red)draw(0);else kick();};
+try{FZ.onChange(calmSync)}catch(e){}
 function draw(T,dt){x.clearRect(0,0,W,H);
 for(const p of P){const a=red?.7:.25+.75*Math.abs(Math.sin(T*p.v*2+p.p));x.globalAlpha=a;x.fillStyle=p.h?'#ff9ed6':p.c;const y=red?p.y*H:((p.y*H-T*8*p.v)%H+H)%H;p.h?heart(p.x*W,y,p.s*1.3):star(p.x*W,y,p.s*(.6+a*.6))}
 if(dt){B=B.filter(b=>b.l>0);for(const b of B){b.x+=b.vx*dt;b.y+=b.vy*dt;b.vy+=540*dt;b.l-=1.8*dt;x.globalAlpha=Math.max(b.l,0);x.fillStyle=b.h?'#ff5fb4':b.c;b.h?heart(b.x,b.y,6):star(b.x,b.y,6)}}
@@ -158,6 +195,14 @@ function kick(){if(!raf&&!document.hidden){last=0;raf=requestAnimationFrame(f);}
 rs();addEventListener('resize',rs);
 document.addEventListener('visibilitychange',()=>{if(document.hidden){if(raf)cancelAnimationFrame(raf);raf=0;}else kick();});
 if(red)draw(0);else kick();
+// greeting voice: once per session on the first tap (audio needs a gesture), never on a game card
+document.addEventListener('pointerup',e=>{let d=0;try{d=sessionStorage.getItem('fz.hi')}catch(_){}if(d||muted)return;
+ if(e.target.closest('a.card,#greet,#mute,#fs,#gear,dialog'))return;
+ try{sessionStorage.setItem('fz.hi','1')}catch(_){}
+ const L=FZ.PRAISE.hub;FZ.say(FZ.withName(L[Math.floor(Math.random()*L.length)]),{dir:'audio/',muted});},true);
+// play-time break
+const brk=()=>{if(!document.hidden)try{FZ.breakCheck({dir:'audio/',muted})}catch(e){}};
+brk();addEventListener('pageshow',brk);setInterval(brk,60000);
 // ask the browser to keep this site's saves (all apps share it) even when storage runs low (v3)
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persisted().then(p=>p||navigator.storage.persist()).catch(()=>{});}catch(e){}
 // ---------- treasure shelf: READ-ONLY view of each game's records store (never written here) ----------
@@ -183,20 +228,35 @@ function openShelf(){let h='';for(const g of GAMES){const i=recInfo(g),ic=docume
  document.getElementById('tlist').innerHTML=h;show(tdlg);chime();}
 document.querySelectorAll('.plq').forEach(b=>b.addEventListener('click',e=>{burst(e.clientX,e.clientY);openShelf();}));
 document.getElementById('tok').onclick=()=>hide(tdlg);
-// ---------- grown-ups: hold the gear 3 s, then a 2-digit × 2-digit question ----------
+// ---------- grown-ups: hold the gear 3 s, then a short written-word question (shared FZ.gate; no speech, no math) ----------
 const gear=document.getElementById('gear'),gdlg=document.getElementById('gdlg'),gb=document.getElementById('gbody');let hT=0;
 const hEnd=()=>{clearTimeout(hT);gear.classList.remove('hold');};
 gear.addEventListener('pointerdown',e=>{e.preventDefault();gear.classList.add('hold');hT=setTimeout(()=>{hEnd();gate();},3000);});
 ['pointerup','pointercancel','pointerleave'].forEach(n=>gear.addEventListener(n,hEnd));
 gear.addEventListener('contextmenu',e=>e.preventDefault());
-function gate(){const a=12+Math.floor(Math.random()*17),b=12+Math.floor(Math.random()*17);
- gb.innerHTML='<p style="text-align:center">For grown-ups: what is '+a+' × '+b+'?</p><input id="gans" inputmode="numeric" maxlength="4" autocomplete="off"><div class="row"><button id="gok">OK</button><button id="gno" style="background:#c0c0d0">Cancel</button></div>';
- show(gdlg);const inp=document.getElementById('gans');setTimeout(()=>inp.focus(),50);
- const ok=()=>{if(+inp.value===a*b)grown();else hide(gdlg);};document.getElementById('gok').onclick=ok;inp.onkeydown=e=>{if(e.key==='Enter')ok()};document.getElementById('gno').onclick=()=>hide(gdlg);}
+function gate(){gb.innerHTML='';show(gdlg);FZ.gate(gb,grown,()=>hide(gdlg));}
+const TOG=[['calm','🌙','Calm mode','Less motion: sparkles and wobbles rest in every game.'],
+ ['big','🔍','Big buttons','Bigger answer gems, wider Gem Tiles lanes, bigger Sky Glider buttons.'],
+ ['lefty','🤚','Left-handed','Moves the one-hand controls to the left side in the games.'],
+ ['shapes','🔷','Colour-blind shapes','Adds a shape mark wherever a colour carries meaning.'],
+ ['vibe','📳','Vibration','A little buzz on bumps and big moments (never on taps).']];
+function settingsHtml(){const P=FZ.parent();
+ return '<div class="sec"><h3>🎛️ Play settings</h3>'+
+ '<div class="set"><div class="hd"><span>⏰ Play time per day</span><span class="sv"></span></div><div class="seg" id="sMin">'+FZ.MINS.map(m=>'<button data-m="'+m+'" class="'+(P.minutes===m?'on':'')+'">'+(m?m:'Off')+'</button>').join('')+'</div><small>Today: <b id="sToday">'+FZ.playMin()+'</b> min played. Minutes shown (Off = no limit).</small></div>'+
+ '<div class="set"><div class="hd"><span>🔊 Volume <b id="sVv">'+P.vol+'</b></span><span class="sv"></span></div><input type="range" id="sVol" min="0" max="100" step="5" value="'+P.vol+'" aria-label="Volume"><small>Loudness of all the games.</small></div>'+
+ TOG.map(t=>'<button class="tg" data-k="'+t[0]+'" role="switch" aria-checked="'+(!!P[t[0]])+'"><span class="ic">'+t[1]+'</span><span class="tx">'+t[2]+'<small>'+t[3]+'</small></span><span class="sv">Saved ✔</span><span class="sw"></span></button>').join('')+'</div>';}
+function flash(el){if(!el)return;el.textContent='Saved ✔';el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),1500);}
+function wireSettings(){
+ document.getElementById('sMin').onclick=e=>{const b=e.target.closest('button');if(!b)return;FZ.setParent({minutes:+b.dataset.m});
+  document.querySelectorAll('#sMin button').forEach(x=>x.classList.toggle('on',x===b));flash(b.closest('.set').querySelector('.sv'));};
+ const r=document.getElementById('sVol'),v=document.getElementById('sVv');
+ r.oninput=()=>{v.textContent=r.value};r.onchange=()=>{FZ.setParent({vol:+r.value});flash(r.closest('.set').querySelector('.sv'));};
+ document.querySelectorAll('button.tg').forEach(b=>b.onclick=()=>{const k=b.dataset.k,on=b.getAttribute('aria-checked')!=='true';
+  FZ.setParent({[k]:on});b.setAttribute('aria-checked',on);flash(b.querySelector('.sv'));});}
 function lname(k){const m=/^(mul|add|sub|div):(.*)$/.exec(k);if(!m)return k.replace(':',' ');return m[2].replace('x','×').replace('/','÷');}
 async function grown(msg){let per='unknown';try{if(navigator.storage&&navigator.storage.persisted)per=(await navigator.storage.persisted())?'yes':'not yet (the browser decides; it usually agrees once the app is used often or installed)';}catch(e){}
  const L=learnInfo();
- gb.innerHTML=(msg?'<p style="text-align:center;font-weight:800">'+msg+'</p>':'')+
+ gb.innerHTML=(msg?'<p style="text-align:center;font-weight:800">'+msg+'</p>':'')+settingsHtml()+
  '<p><b>Family backup</b>: one file with every game save on this phone (Sky Glider, Crystal Cave, Gem Tiles with custom songs, the hub, records and the learning record). Keep it somewhere safe.</p>'+
  '<div class="row"><button id="bExp">💾 Save backup file</button><button id="bImp">📂 Restore from file</button></div>'+
  '<p style="font-size:13px">Restoring only <b>adds</b>: anything missing comes back, counts keep the larger number, and nothing on this phone is deleted. Each changed save is first copied to <code>&lt;key&gt;.pre-restore</code>.</p>'+
@@ -204,7 +264,7 @@ async function grown(msg){let per='unknown';try{if(navigator.storage&&navigator.
  (L?'<p><b>Learning record</b>: '+L.practised+' things practised on '+L.days+' days.</p><p class="lst">✔ Mastered ('+L.mastered.length+'): '+esc(L.mastered.slice(0,60).map(lname).join(', ')||'none yet')+'</p><p class="lst">💭 Still tricky ('+L.tricky.length+'): '+esc(L.tricky.slice(0,60).map(lname).join(', ')||'none')+'</p>':'')+
  '<div class="row foot"><button id="bClose" style="background:#c0c0d0">Close</button></div>';
  if(!gdlg.open)show(gdlg);
- document.getElementById('bClose').onclick=()=>hide(gdlg);
+ document.getElementById('bClose').onclick=()=>hide(gdlg);wireSettings();
  document.getElementById('bExp').onclick=()=>exportAll().then(n=>grown('Backup saved ✔ ('+n+')')).catch(e=>grown('Backup failed: '+esc(e&&e.message||e)));
  document.getElementById('bImp').onclick=()=>{const f=document.getElementById('rfile');f.value='';f.click();};}
 document.getElementById('rfile').onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;
@@ -237,7 +297,7 @@ async function exportAll(){const ls={};for(let i=0;i<localStorage.length;i++){co
  const ns=Object.keys(ls).length;return ns+(ns===1?' save, ':' saves, ')+songs.length+(songs.length===1?' custom song':' custom songs');}
 // additive merge of one save: missing fields are added, numbers keep the larger value, true wins, lists gain missing entries;
 // choices (settings, difficulty, name, outfit…) always stay as they are on this phone
-const KEEP=new Set(['v','set','settings','diff','muted','tilt','pad','name','lang','theme','active','eq','color','shape','pattern','trail','hat','decal','lastWorld','tut','sound','calm','fs','swr','parent','world','level']);
+const KEEP=new Set(['v','set','settings','diff','muted','tilt','pad','name','lang','theme','active','eq','color','shape','pattern','trail','hat','decal','lastWorld','tut','sound','calm','fs','swr','parent','world','level','minutes','vol','big','lefty','shapes','vibe','nick']);
 function mergeVal(a,b,k){if(a===undefined)return b;if(KEEP.has(k))return a;
  if(typeof a==='number'&&typeof b==='number')return Math.max(a,b);
  if(typeof a==='boolean'&&typeof b==='boolean')return a||b;
@@ -251,6 +311,7 @@ function mergeRec(a,b){const o=Object.assign({},b,a);const seen=new Set((a.runs|
 async function importAll(d){if(!isO(d)||d.app!=='funzone-backup'||!isO(d.ls))throw new Error('this is not a Fun Zone backup file');
  let added=0,merged=0,same=0,songs=0;
  for(const k in d.ls){const bv=d.ls[k];if(typeof bv!=='string')continue;if(/\.(pre-restore|bad\d*)$/.test(k)&&localStorage.getItem(k)!=null)continue;
+  if(k==='funzone.play.v1')continue;
   const av=localStorage.getItem(k);
   if(av===null){try{localStorage.setItem(k,bv);added++;}catch(e){}continue;}
   if(av===bv||/^yogaCoach/.test(k)){same++;continue;}  // Coach Sunny's saves are only ever added back when missing, never merged
