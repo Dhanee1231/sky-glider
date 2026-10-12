@@ -62,7 +62,7 @@ const HI = { title: 'जेम टाइल्स', tag: 'संगीत के
   songSync: 'गाना सिंक', save: 'सेव', regen: 'नई टाइलें', del: 'हटाओ', paused: 'रुका हुआ', resume: 'खेलते रहो', restart: 'फिर से', quit: 'गाना रोको', outHearts: 'दिल ख़त्म!', outMsg: 'तुम बहुत अच्छा कर रही हो। जारी रखें?', cont: 'जारी रखो (अभ्यास)', finish: 'खत्म',
   addHow: 'इस फ़ोन से गाने की फ़ाइल चुनो। गाना फ़ोन से बाहर नहीं जाता।', calibHow: 'आवाज़ टेस्ट: हर क्लिक पर बड़े हीरे को टैप करो। स्क्रीन टेस्ट: जब गिरता दिल लाइन पर पहुँचे, तब टैप करो।', syncNote: 'अगर टाइलें जल्दी या देर से लगें तो टैप टेस्ट करो।',
   worlds: 'दुनिया', records: 'रिकॉर्ड', openPack: 'जादुई पैक खोलो', buyPack: '40 → 1 पैक', speedL: 'रफ़्तार', slow: 'धीमी', normalSp: 'सामान्य', fast: 'तेज़', obsL: 'रुकावटें', obsPL: 'अभ्यास में रुकावटें', puL: 'पावर-अप', shakeL: 'स्क्रीन हिलना',
-  intL: 'पीछे की चमक', low: 'कम', med: 'मध्यम', high: 'ज़्यादा', fxL: 'इफ़ेक्ट आवाज़ें (टाइल टैप पर कभी नहीं)', fxVolL: 'इफ़ेक्ट की आवाज़', labBtn: 'टेस्ट लैब', on: 'चालू', off: 'बंद', visL: 'स्क्रीन ऑफ़सेट', calmL: 'शांत मोड (कम चमक-दमक)', tunL: 'सुरंग वाला रास्ता', howTo: 'कैसे खेलें',
+  intL: 'पीछे की चमक', low: 'कम', med: 'मध्यम', high: 'ज़्यादा', fxL: 'इफ़ेक्ट आवाज़ें (टाइल टैप पर कभी नहीं)', fxVolL: 'इफ़ेक्ट की आवाज़', labBtn: 'टेस्ट लैब', on: 'चालू', off: 'बंद', visL: 'स्क्रीन ऑफ़सेट', calmL: 'शांत मोड (कम चमक-दमक)', howTo: 'कैसे खेलें',
   privacy: 'जेम टाइल्स में कोई विज्ञापन, लिंक या ख़रीदारी नहीं है। तुम्हारे गाने इसी फ़ोन पर रहते हैं।', calStart: 'आवाज़ टेस्ट', calVis: 'स्क्रीन टेस्ट', getReady: 'तैयार हो जाओ!', lab: 'टेस्ट लैब', legendTap: 'इन्हें टैप करो', legendDont: 'इन्हें मत छूना', skip: 'छोड़ो' };
 const EN = {}; $$('[data-t]').forEach(e => { e.dataset.en = e.textContent; if (!(e.dataset.t in EN)) EN[e.dataset.t] = e.textContent; });
 const tr = k => (S.set.lang === 'hi' && HI[k]) || EN[k] || k;
@@ -333,9 +333,9 @@ function renderBadges() { $('#badgeGrid').innerHTML = BADGES.map(([id, e, n], i)
 // ---------- settings + calibration ----------
 function renderSettings() {
   const segOn = (sel, v) => $$(sel + ' button').forEach(b => b.classList.toggle('on', b.dataset.v === String(v)));
-  segOn('#soundSeg', S.set.sound ? 1 : 0); segOn('#speedSeg', S.set.speed || 'slow'); segOn('#obsSeg', S.set.obstacles !== false ? 1 : 0); segOn('#obsPSeg', S.set.obsPractice ? 1 : 0); segOn('#puSeg', S.set.powerups !== false ? 1 : 0); segOn('#shakeSeg', S.set.shake !== false ? 1 : 0); segOn('#fxSeg', S.set.fxOn !== false ? 1 : 0); segOn('#intSeg', S.set.intensity || 'med'); $('#fxVol').value = Math.round((S.set.fxVol == null ? 0.5 : S.set.fxVol) * 100); segOn('#beatSeg', S.set.missFx !== false ? 1 : 0); $('#visVal').textContent = S.set.vis || 0; segOn('#langSeg', S.set.lang); $('#offRange').value = S.set.offset; $('#offVal').textContent = S.set.offset; segOn('#calmSeg', S.set.calm ? 1 : 0); segOn('#tunSeg', S.set.tunnel === true ? 1 : 0); document.body.classList.toggle('calm', !!S.set.calm);
+  segOn('#soundSeg', S.set.sound ? 1 : 0); segOn('#speedSeg', S.set.speed || 'slow'); segOn('#obsSeg', S.set.obstacles !== false ? 1 : 0); segOn('#obsPSeg', S.set.obsPractice ? 1 : 0); segOn('#puSeg', S.set.powerups !== false ? 1 : 0); segOn('#shakeSeg', S.set.shake !== false ? 1 : 0); segOn('#fxSeg', S.set.fxOn !== false ? 1 : 0); segOn('#intSeg', S.set.intensity || 'med'); $('#fxVol').value = Math.round((S.set.fxVol == null ? 0.5 : S.set.fxVol) * 100); segOn('#beatSeg', S.set.missFx !== false ? 1 : 0); $('#visVal').textContent = S.set.vis || 0; segOn('#langSeg', S.set.lang); $('#offRange').value = S.set.offset; $('#offVal').textContent = S.set.offset; segOn('#calmSeg', S.set.calm ? 1 : 0); document.body.classList.toggle('calm', !!S.set.calm);
 }
-[['obsSeg', 'obstacles'], ['obsPSeg', 'obsPractice'], ['puSeg', 'powerups'], ['shakeSeg', 'shake'], ['fxSeg', 'fxOn'], ['calmSeg', 'calm'], ['tunSeg', 'tunnel']].forEach(([id, k]) => $('#' + id).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.set[k] = b.dataset.v === '1'; save(); renderSettings(); }));
+[['obsSeg', 'obstacles'], ['obsPSeg', 'obsPractice'], ['puSeg', 'powerups'], ['shakeSeg', 'shake'], ['fxSeg', 'fxOn'], ['calmSeg', 'calm']].forEach(([id, k]) => $('#' + id).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.set[k] = b.dataset.v === '1'; save(); renderSettings(); }));
 $('#intSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.set.intensity = b.dataset.v; save(); renderSettings(); });
 $('#fxVol').addEventListener('input', e => { S.set.fxVol = +e.target.value / 100; save(); A.init(); A.setFx(S.set.fxOn !== false, S.set.fxVol); });
 $('#fxVol').addEventListener('change', () => A.fx('powerup'));
@@ -550,7 +550,6 @@ async function startGame0(song, diff) {
     flares: [0, 0, 0, 0], flareJ: [0, 0, 0, 0], streak: [0, 0, 0, 0], missFx: [0, 0, 0, 0], pu: {}, shield: 0, poofs: [], shake: 0, slow: 1, nowS: 0, win: DIFF[diff].win, lead: DIFF[diff].lead, stats: { pu: {}, dodged: 0, rainbow: false }, items: [], lab: LAB, _bi: 0, qLog: [],
     bgDirty: true, bgLast: 0, Q: null, first: 0, hudDirty: true, hudT: 0, lastProg: -1, pops: [], ft: new Float32Array(4096), fi: new Float32Array(4096), fN: 0, lastFrame: 0, ivl: [], pendingTap: null, nodesAtStart: 0,
     resuming: 0, pausedDrawn: false, missRun: 0, medal: 0, medalT: -9, holdEmitT: 0, dly: 4, cap60: false, skipTog: false, tut: tut ? { step: 0, wait: null, hand: 0, done: false } : null, seenObs: G.seenObs || new Set(), edgeA: -1, edgeCol: '' });
-  TUN.on = S.set.tunnel === true; TUN.c = 0; // v6b tunnel vision: OFF by default (restores the classic straight track); she can switch it on in Settings
   // build the playback graph ONCE (no nodes are created after this until the song ends)
   const master = A.master(); G.nodes = [];
   if (b.stems.full) { const src = ctx.createBufferSource(), lp = ctx.createBiquadFilter(); src.buffer = b.stems.full; lp.type = 'lowpass'; lp.frequency.value = 20000; lp.Q.value = 0.5; src.connect(lp); lp.connect(master); G.srcs = [src]; G.muffle = lp; G.duck = null; }
@@ -595,20 +594,9 @@ let PS = 1, PY = 0; // projection scratch (no per-call array allocation)
 const projS = u => { PS = 1 / (1 + L.P * Math.max(-0.12, u)); PY = L.strikeY - L.span * (1 - PS) / (1 - L.sFar); };
 const proj = u => { projS(u); return [PS, PY]; }; // (allocating form kept for tests/tools)
 const laneX = (l, s) => L.cx + (l - 1.5) * L.lw * s;
-// ---------- v6: tunnel vision ----------
-// The track bends left/right like a winding road seen down a tunnel. The bend is a pure function of the SONG clock (it pauses with the music
-// and never touches timing): a point at depth u (0 = strike line, 1 = far end) is shifted sideways by bend * u^2. The strike line itself never
-// moves (shift 0 at u = 0), so the lane buttons and the tap zones stay exactly where they are, and a tile is always dead centre in its lane
-// when it is judged. Taps above the strike line are mapped back through the same shift (laneV), so tap zones follow what she sees.
-const TUN = { on: false, c: 0 };
-const cdx = u => u > 0 ? TUN.c * u * u : 0;
-function tunnelBend(t) { if (!TUN.on) return 0; t = Math.max(0, t);
-  const amp = L.lw * (G.diff === 'easy' ? 0.4 : G.diff === 'normal' ? 0.62 : 0.78) * (S.set.calm ? 0.6 : 1), ease = Math.min(1, t / 4); // straight for the countdown, eases in
-  return amp * ease * (0.65 * Math.sin(t * 0.6756) + 0.35 * Math.sin(t * 1.3368 + 1.3)); } // ~9.3 s and ~4.7 s waves: slow, never twitchy
-const uOfY = y => { const ps = 1 - (L.strikeY - y) * (1 - L.sFar) / L.span; return ps >= 1 ? 0 : ps > L.sFar * 0.9 ? (1 / ps - 1) / L.P : 1.1; };
 const strikeX = l => laneX(l, 1); // lane centres at the hit line (the bend is 0 there)
 function laneV(x, y) { const fr = Math.max(0, Math.min(1, (L.strikeY - L.lw * 0.9 - y) / L.span)), s = 1 - fr * (1 - L.sFar); // generous: full-width lanes near the strike line
-  return (x - L.cx - cdx(uOfY(y))) / (L.lw * s) + 2; }
+  return (x - L.cx) / (L.lw * s) + 2; }
 function laneAt(x, y) { const v = laneV(x, y); return v >= -0.5 && v < 0 ? 0 : v >= 4 && v < 4.5 ? 3 : Math.floor(v); }
 const HWX = () => Math.max(0, Math.floor(L.cx - L.bw * 0.62)); const highway = (sc = 1) => Art.spr(`hw|${L.W}|${L.H}|${Art.highwayStyle(G.theme)}|${sc.toFixed(3)}`, Math.ceil(L.bw * 1.24 * sc), Math.ceil(L.H * sc), (h) => { h.scale(sc, sc); h.translate(-HWX(), 0); const HS = Art.highwayStyle(G.theme);
   const s1 = 1, s0 = L.sFar, y0 = L.horizonY, y1 = L.H, sB = 1 / (1 + L.P * -0.12);
@@ -624,15 +612,8 @@ const HWX = () => Math.max(0, Math.floor(L.cx - L.bw * 0.62)); const highway = (
   const rail = h.createLinearGradient(0, y0, 0, y1); rail.addColorStop(0, 'rgba(255,241,176,.2)'); rail.addColorStop(1, '#ffd76a'); h.strokeStyle = rail; h.lineWidth = 5;
   [[-0.5, -2], [3.5, 2]].forEach(([a, b]) => { h.beginPath(); h.moveTo(laneX(a, s0), y0); h.lineTo(L.cx + b * L.lw * sB, y1); h.stroke(); });
   const sl = h.createLinearGradient(L.cx - L.bw / 2, 0, L.cx + L.bw / 2, 0); sl.addColorStop(0, '#fff1b0'); sl.addColorStop(0.5, '#fff'); sl.addColorStop(1, '#f0b84a'); h.fillStyle = sl; h.fillRect(L.cx - L.bw / 2, L.strikeY - 3, L.bw, 6); });
-// v6: the highway sprite is pre-rendered at the background layer's own resolution (BDPR), so it is copied 1:1 with no scaling. With tunnel
-// vision it is copied in thin horizontal strips (4 device px), each shifted by the tunnel bend at its depth and clipped to the road's width:
-// plain unscaled copies are the cheapest thing a canvas can do, and 1 px steps over 4 px rows read as a smooth curve.
-function drawHighway(g) { const im = SPR.hw, d = BDPR, x0 = Math.round(HWX() * d); g.setTransform(1, 0, 0, 1, 0, 0);
-  if (!TUN.c) { g.drawImage(im, x0, 0); g.setTransform(d, 0, 0, d, 0, 0); return; }
-  projS(1); const yTop = Math.max(0, Math.floor((PY - 4) * d)), yS = Math.round(L.strikeY * d), cxs = (L.cx - HWX()) * d, H = im.height, W = im.width;
-  for (let y = yTop; y < yS; y += 4) { const hh = Math.min(4, yS - y), u = uOfY((y + hh / 2) / d), s = 1 / (1 + L.P * Math.min(1, u)), hw = (2.1 * L.lw * s + 10) * d,
-      a = Math.max(0, Math.floor(cxs - hw)), b = Math.min(W, Math.ceil(cxs + hw)); if (b > a) g.drawImage(im, a, y, b - a, hh, x0 + a + Math.round(cdx(u) * d), y, b - a, hh); }
-  g.drawImage(im, 0, yS, W, H - yS, x0, yS, W, H - yS); g.setTransform(d, 0, 0, d, 0, 0); }
+// v6: the highway sprite is pre-rendered at the background layer's own resolution (BDPR), so it is copied 1:1 with no scaling (straight v5 track).
+function drawHighway(g) { const d = BDPR; g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(SPR.hw, Math.round(HWX() * d), 0); g.setTransform(d, 0, 0, d, 0, 0); }
 const LANECOL = ['#ff5fae', '#b98cff', '#5ad1ff', '#ffc94d'];
 const flareImg = l => Art.spr('flare|' + l, 128, 128, f => { f.strokeStyle = LANECOL[l]; f.lineWidth = 10; f.beginPath(); f.arc(64, 64, 52, 0, Math.PI * 2); f.stroke(); f.strokeStyle = '#fff'; f.lineWidth = 4; f.beginPath(); f.arc(64, 64, 52, 0, Math.PI * 2); f.stroke();
   for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; Art.sparkle(f, 64 + Math.cos(a) * 52, 64 + Math.sin(a) * 52, 9, '#fff'); } });
@@ -783,7 +764,7 @@ function updItems(jnow) {
 const badgeImg = () => popMake('🚫 ' + tx('dontTap'), '#e0285a', false), fingerImg = () => Art.spr('finger', 64, 64, g => { g.font = '44px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('👆', 32, 36); });
 function drawItems(vnow, lead, T) {
   for (const it of G.items) { const u = (it.t - vnow) / lead; if (u > 1.02) break; if (it.state === 1 || it.state === 2 || u < -0.15) continue;
-    projS(u); const s = PS, y = PY, sz = L.lw * 0.8 * s, x = laneX(it.lane, s) + cdx(u) + (it.ob === 'car' ? Math.sin(T * 30) * 2 : 0), bob = it.kind === 'pu' ? Math.sin(T * 6) * 4 * s : 0;
+    projS(u); const s = PS, y = PY, sz = L.lw * 0.8 * s, x = laneX(it.lane, s) + (it.ob === 'car' ? Math.sin(T * 30) * 2 : 0), bob = it.kind === 'pu' ? Math.sin(T * 6) * 4 * s : 0;
     c.drawImage(it.kind === 'pu' ? puImg(it.pu) : obsImg(it.ob), x - sz / 2, y - sz / 2 + bob, sz, sz);
     if (it.ob === 'bomb') spark(SPR.sparkGold, x + sz * 0.17, y - sz * 0.62, 6 * s * (1 + 0.5 * Math.sin(T * 25)), 1); // fuse spark
     if (it.ob === 'car') { c.globalAlpha = 0.5; c.fillStyle = '#fff'; c.fillRect(x - sz * 0.05, y - sz * 0.95, sz * 0.1, sz * 0.25 * s); c.globalAlpha = 1; }
@@ -874,7 +855,7 @@ function frame(ts) {
   const lag = f0 - ts; if (lag >= 0 && lag < 50) G.dly += (lag - G.dly) * 0.05; const tv = lag >= -2 && lag < 100 ? ts + G.dly : f0;
   if (!G.paused) updateClock();
   const calm = !!S.set.calm, q = G.qual || 0, T = ts / 1000, now = G.paused ? G.pauseAt : songAt(tv), jnow = now - S.set.offset / 1000, vnow = jnow + (S.set.vis || 0) / 1000, lead0 = G.D.lead * (SPEEDK[S.set.speed || 'slow'] || 1);
-  TUN.c = tunnelBend(vnow); G.nowS = now; G.slow += ((G.pu.slowmo > now ? 1.5 : 1) - G.slow) * (1 - Math.pow(0.94, DT * 60)); const lead = lead0 * G.slow; G.lead = lead; G.win = G.D.win * (G.pu.slowmo > now ? 1.4 : 1);
+  G.nowS = now; G.slow += ((G.pu.slowmo > now ? 1.5 : 1) - G.slow) * (1 - Math.pow(0.94, DT * 60)); const lead = lead0 * G.slow; G.lead = lead; G.win = G.D.win * (G.pu.slowmo > now ? 1.4 : 1);
   if (!G.paused && G.tut && !G.tut.done) tutCheck(jnow);
   if (!G.paused) {
     while (G.first < G.tiles.length && G.tiles[G.first].state && G.tiles[G.first].state !== 3 && G.tiles[G.first].t < jnow - 1) G.first++;
@@ -901,7 +882,7 @@ function frame(ts) {
   // v6: the still scenery (sky + decor) is drawn ONCE into #bgcv when the size/theme/quality changes; only the moving parts (parallax, the
   // bending track, sparkles, fireworks) are redrawn into the transparent #dyncv, on a time budget (~30 fps, lower at low quality)
   if (!SK.nobg && G.bgDirty) { bc.setTransform(BDPR, 0, 0, BDPR, 0, 0); bc.drawImage(SPR.scene, 0, 0, L.W, L.H); G.dynDirty = true; G.bgDirty = false; }
-  const dynMs = TUN.on ? Math.min(BGMS[q], 50) : BGMS[q];
+  const dynMs = BGMS[q];
   if (!SK.nobg && (G.dynDirty || ts - G.bgLast >= dynMs - 4)) { const bdt = Math.min(0.1, G.bgLast ? (ts - G.bgLast) / 1000 : DT); G.bgLast = ts; G.dynDirty = false; Art.intensity = { low: 0.4, med: 0.75, high: 1.2 }[calm ? 'low' : S.set.intensity || 'med'] * [1, 0.7, 0.5, 0.3][q];
     dc.setTransform(1, 0, 0, 1, 0, 0); dc.clearRect(0, 0, dcv.width, dcv.height); dc.setTransform(BDPR, 0, 0, BDPR, 0, 0);
     if (Art.parallax && q < 2) Art.parallax(dc, G.theme, L.W, L.H, T, calm ? 0 : beat, q === 0 ? 2 : 1); drawHighway(dc);
@@ -913,11 +894,7 @@ function frame(ts) {
   // strike line breathes on the beat; beat lines brighten as they reach it
   c.globalAlpha = 0.25 + 0.45 * pulse; c.drawImage(SPR.bar, L.cx - L.bw * 0.56, L.strikeY - L.lw * 0.14, L.bw * 1.12, L.lw * 0.28);
   c.strokeStyle = '#fff'; c.lineWidth = 2;
-  if (bt) for (let i = Math.max(0, (G._bi || 0) - 1); i < bt.length; i++) { const u = (bt[i][0] - vnow) / lead; if (u > 1) break; if (u < -0.1) continue; projS(u); const k = 1 - Math.max(0, u), bx = L.cx + cdx(u); c.globalAlpha = 0.1 + 0.5 * k * k; c.beginPath(); c.moveTo(bx - 2 * L.lw * PS, PY); c.lineTo(bx + 2 * L.lw * PS, PY); c.stroke(); }
-  // v6 tunnel vision: glowing arches on the beat lines (strokes only, cheap), faint near the strike line so the tiles stay easy to read
-  if (TUN.on && bt && q < 3) { c.strokeStyle = (Art.THEMES[G.theme] || {}).ui || '#ff4fa3'; const amax = calm ? 0.22 : 0.4;
-    for (let i = Math.max(0, (G._bi || 0) - 1); i < bt.length; i++) { const u = (bt[i][0] - vnow) / lead; if (u > 1) break; if (u < 0.12 || (bt[i][1] & 1)) continue; projS(u); const r = 2.15 * L.lw * PS, a = amax * Math.sin(Math.PI * (u - 0.12) / 0.88);
-      c.globalAlpha = a; c.lineWidth = 2 + 4 * PS; c.beginPath(); c.ellipse(L.cx + cdx(u), PY, r, r * 0.8, 0, Math.PI, TAU); c.stroke(); } c.strokeStyle = '#fff'; c.lineWidth = 2; }
+  if (bt) for (let i = Math.max(0, (G._bi || 0) - 1); i < bt.length; i++) { const u = (bt[i][0] - vnow) / lead; if (u > 1) break; if (u < -0.1) continue; projS(u); const k = 1 - Math.max(0, u), bx = L.cx; c.globalAlpha = 0.1 + 0.5 * k * k; c.beginPath(); c.moveTo(bx - 2 * L.lw * PS, PY); c.lineTo(bx + 2 * L.lw * PS, PY); c.stroke(); }
   c.globalAlpha = 1;
   if (SK.p1b) { finishTail(now); return; }
   // lane flashes + in-lane miss stripe
@@ -936,20 +913,19 @@ function frame(ts) {
     if (SYNC) { if (t._pu > 0 && u <= 0 && G.syncTv) SYNC.push([t.t, G.syncTv + (tv - G.syncTv) * t._pu / (t._pu - u), t.lane]); t._pu = u; } // test hook: moment the tile centre crosses the strike line
     if (t.dur > 0 && t.state !== 2 && !(t.state === 1 && t.holdP >= 1)) { // glossy hold ribbon, drawn slice by slice in perspective, with gem beads
       // v6: a longer, brighter neon string: it reaches down into the socket while held, has a neon glow, and every slice is sheared so the
-      // string follows the tunnel bend smoothly (no steps)
-      const u1 = Math.min(1.02, (t.t + t.dur - vnow) / lead); if (u1 > -0.1) { const held = t.state === 3, ua = held ? -0.035 : Math.max(-0.1, u), x = laneX(t.lane, 1), N = q < 2 ? (TUN.c ? 12 : 9) : 5, neon = q < 2 ? (spOn ? SPR.neonGold : SPR.neon) : null;
-        projS(ua); let pS = PS, pY = PY, px = laneX(t.lane, PS) + cdx(ua);
-        for (let k = 1; k <= N; k++) { const uk = ua + (u1 - ua) * k / N; projS(uk); const xk = laneX(t.lane, PS) + cdx(uk), sm = (pS + PS) / 2, hh = pY - PY + 1, sh = hh > 1 ? (px - xk) / (pY - PY) : 0;
+      const u1 = Math.min(1.02, (t.t + t.dur - vnow) / lead); if (u1 > -0.1) { const held = t.state === 3, ua = held ? -0.035 : Math.max(-0.1, u), x = laneX(t.lane, 1), N = q < 2 ? 9 : 5, neon = q < 2 ? (spOn ? SPR.neonGold : SPR.neon) : null;
+        projS(ua); let pS = PS, pY = PY, px = laneX(t.lane, PS);
+        for (let k = 1; k <= N; k++) { const uk = ua + (u1 - ua) * k / N; projS(uk); const xk = laneX(t.lane, PS), sm = (pS + PS) / 2, hh = pY - PY + 1, sh = hh > 1 ? (px - xk) / (pY - PY) : 0;
           c.setTransform(GDPR, 0, GDPR * sh, GDPR, ox + GDPR * (xk - sh * PY), oy);
           if (neon) { const gw = L.lw * 0.8 * sm; c.globalAlpha = held ? 0.85 : 0.6; c.drawImage(neon, -gw / 2, PY, gw, hh); }
           const w = L.lw * 0.4 * sm; c.globalAlpha = held ? 1 : 0.9; c.drawImage(rib, 0, ((k * 24 + T * 90) % 192) | 0, 64, 64, -w / 2, PY, w, hh); pS = PS; pY = PY; px = xk; }
         c.setTransform(GDPR, 0, 0, GDPR, ox, oy);
-        if (u1 < 1.02) { projS(u1); const cs = L.lw * 0.3 * PS; c.globalAlpha = 1; c.drawImage(bead, laneX(t.lane, PS) + cdx(u1) - cs, PY - cs, cs * 2, cs * 2); } // gem cap marks where the string ends
+        if (u1 < 1.02) { projS(u1); const cs = L.lw * 0.3 * PS; c.globalAlpha = 1; c.drawImage(bead, laneX(t.lane, PS) - cs, PY - cs, cs * 2, cs * 2); } // gem cap marks where the string ends
         c.globalAlpha = 1; const nb = Math.floor(t.dur / 0.3);
-        for (let b = t.bead + 1; b <= nb; b++) { const ub = (t.t + b * 0.3 - vnow) / lead; if (ub > 1.02) break; if (ub < -0.05) continue; projS(ub); const bs = L.lw * 0.24 * PS; c.drawImage(bead, laneX(t.lane, PS) + cdx(ub) - bs * 0.8, PY - bs * 0.8, bs * 1.6, bs * 1.6); }
+        for (let b = t.bead + 1; b <= nb; b++) { const ub = (t.t + b * 0.3 - vnow) / lead; if (ub > 1.02) break; if (ub < -0.05) continue; projS(ub); const bs = L.lw * 0.24 * PS; c.drawImage(bead, laneX(t.lane, PS) - bs * 0.8, PY - bs * 0.8, bs * 1.6, bs * 1.6); }
         if (held) { c.globalAlpha = calm ? 0.7 : 0.6 + 0.3 * Math.sin(T * 20); c.drawImage(SPR.glow[t.lane], x - L.lw * 0.5, L.strikeY - L.lw * 0.5, L.lw, L.lw); c.globalAlpha = 1; } } }
     if (t.state === 3 || (t.state === 1 && t.dur > 0)) continue;
-    if (u > 1.02) continue; projS(u); const s = PS, y = PY, w = tw * s, h = th * s, fi = Math.floor(T * 6 + t.id) % 3, lx = laneX(t.lane, s) + cdx(u);
+    if (u > 1.02) continue; projS(u); const s = PS, y = PY, w = tw * s, h = th * s, fi = Math.floor(T * 6 + t.id) % 3, lx = laneX(t.lane, s);
     let im = tileSet ? tileSet[t.shapeI % 6][fi] : SPR.star[fi]; const k = w / tw, x0 = lx - (tw / 2 + 12) * k, y0 = y - (th / 2 + 12) * k; // tile CENTRE sits on the strike line at its hit time
     if (q < 2 && u < 0.4 && u > -0.1 && t.state === 0) { c.globalAlpha = 0.55 * (1 - Math.max(0, u) / 0.4); c.drawImage(SPR.shadow, lx - w * 0.6, y + h * 0.36, w * 1.2, h * 0.4); c.globalAlpha = 1; } // soft shadow near the strike line
     if (t.state === 2) { im = greyTile(im); c.globalAlpha = Math.max(0, 0.75 * (1 - (vnow - t.t) / 0.35)); } // missed: grey, cracked, fades
@@ -1116,7 +1092,7 @@ document.addEventListener('click', e => {
 window.__tiles = { REC, S: () => S, G: () => G, loops: () => LOOPS, stopAll: () => { stopAudio(); G.on = false; LOOP++; $('#game').classList.remove('on'); }, go, startGame, setLab: l => { LAB = l; }, allSongs, loadCustoms, DB, songTime, judgeAt, finishGame, layout: () => L, outOfHearts, nextSongOf,
   // test hooks: jump the game clock forward (optionally scoring the skipped tiles as Perfect) to reach the natural end of a song quickly
   ff: (sec, hit) => { if (!G.on) return; const to = songTime() + sec; if (hit) for (const t of G.tiles) if (!t.state && t.t < to + 0.05) { t.state = 1; G.j.perfect++; G.combo++; G.maxCombo = Math.max(G.maxCombo, G.combo); G.score += 100; } G.startAt -= sec; },
-  toEnd: hit => { if (G.on) window.__tiles.ff(G.b.end - songTime() - 0.4, hit); }, laneX, strikeX, laneAt, TUN, setTunnel: on => { if (on !== undefined) { S.set.tunnel = !!on; TUN.on = !!on; G.dynDirty = true; } }, proj, save, openPack, CAL, arrange, rendered, clock, updateClock, prepare, reanalyze };
+  toEnd: hit => { if (G.on) window.__tiles.ff(G.b.end - songTime() - 0.4, hit); }, laneX, strikeX, laneAt, proj, save, openPack, CAL, arrange, rendered, clock, updateClock, prepare, reanalyze };
 // ask the browser to keep this site's saves and custom songs even when storage runs low (v5; no prompt on Android Chrome)
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then(p => p || navigator.storage.persist()).catch(() => { }); } catch (e) { }
 applyLang(); document.body.classList.toggle('calm', !!S.set.calm); loadCustoms().then(async () => { go('home');
