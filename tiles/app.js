@@ -440,8 +440,10 @@ document.addEventListener('click', async e => { if (e.target.closest('#delYes'))
 // judgement comes from the audio clock (getOutputTimestamp), never from accumulated frame deltas.
 // v6: both game layers are low-latency (desynchronized) canvases: drawing is handed straight to the display path instead of being copied through
 // the page compositor every frame (much less main-thread work per frame, and a little less tap-to-screen latency). Browsers without it ignore the hint.
-const cv = $('#cv'), c = cv.getContext('2d', { desynchronized: true }), bcv = $('#bgcv'), bc = bcv.getContext('2d', { alpha: false, desynchronized: true }),
-  dcv = $('#dyncv'), dc = dcv.getContext('2d', { desynchronized: true }); // v6: bgcv = still scenery (redrawn only on resize/theme/quality); dyncv = moving background + the track
+// v6d: back to normal (composited) canvases. The v6 'desynchronized' low-latency hint + a scenery layer painted only once left the in-game
+// background BLACK on Android Chrome (front-buffer canvases lose a layer that is not redrawn). Scenery + moving layers are again redrawn together into #bgcv.
+const cv = $('#cv'), c = cv.getContext('2d'), bcv = $('#bgcv'), bc = bcv.getContext('2d', { alpha: false }),
+  dcv = $('#dyncv'), dc = bc; // v6: bgcv = still scenery (redrawn only on resize/theme/quality); dyncv = moving background + the track
 // v3: browser gestures in the game area are blocked by CSS (touch-action:none, overscroll-behavior, user-select, touch-callout), so there are
 // no blocking touch listeners for the compositor to wait on; only the long-press menu / iOS pinch need a handler (not on the tap path)
 $('#game').addEventListener('contextmenu', e => e.preventDefault()); document.addEventListener('gesturestart', e => e.preventDefault());
@@ -581,7 +583,7 @@ function fitGame() { if (!VIEW.w) measureGame(); const w = VIEW.w || innerWidth,
   BDPR = Math.max(0.5, Math.min(GDPR, [1.25, 1, 0.8, 0.6][q]));
   const cw = Math.round(w * GDPR), ch = Math.round(h * GDPR); if (cv.width !== cw || cv.height !== ch) { cv.width = cw; cv.height = ch; G.bgDirty = true; G.pausedDrawn = false; }
   const bw = Math.round(w * BDPR), bh = Math.round(h * BDPR); if (bcv.width !== bw || bcv.height !== bh) { bcv.width = bw; bcv.height = bh; G.bgDirty = true; }
-  if (dcv.width !== bw || dcv.height !== bh) { dcv.width = bw; dcv.height = bh; G.bgDirty = true; } return [w, h]; }
+  return [w, h]; }
 function layout() { const [W, H] = fitGame(); if (L.W === W && L.H === H) return false; G.bgDirty = true; G.pausedDrawn = false; const bw = Math.min(W * 0.98, H * 1.25, 860), P = 0.9;
   L = { W, H, cx: W / 2, bw, lw: bw / 4, strikeY: H * 0.8, horizonY: H * 0.08, P, sFar: 1 / (1 + P) }; L.span = L.strikeY - L.horizonY; G.spr = null; return true; }
 // fold/unfold, rotation or a big resize mid-song: pause (resume gets a 3-2-1) and pre-build the new size's sprites now, not on the next game frame
@@ -881,13 +883,10 @@ function frame(ts) {
   if (G.bgSp !== spOn) { G.bgSp = spOn; G.bgDirty = true; }
   // v6: the still scenery (sky + decor) is drawn ONCE into #bgcv when the size/theme/quality changes; only the moving parts (parallax, the
   // bending track, sparkles, fireworks) are redrawn into the transparent #dyncv, on a time budget (~30 fps, lower at low quality)
-  if (!SK.nobg && G.bgDirty) { bc.setTransform(BDPR, 0, 0, BDPR, 0, 0); bc.drawImage(SPR.scene, 0, 0, L.W, L.H); G.dynDirty = true; G.bgDirty = false; }
-  const dynMs = BGMS[q];
-  if (!SK.nobg && (G.dynDirty || ts - G.bgLast >= dynMs - 4)) { const bdt = Math.min(0.1, G.bgLast ? (ts - G.bgLast) / 1000 : DT); G.bgLast = ts; G.dynDirty = false; Art.intensity = { low: 0.4, med: 0.75, high: 1.2 }[calm ? 'low' : S.set.intensity || 'med'] * [1, 0.7, 0.5, 0.3][q];
-    dc.setTransform(1, 0, 0, 1, 0, 0); dc.clearRect(0, 0, dcv.width, dcv.height); dc.setTransform(BDPR, 0, 0, BDPR, 0, 0);
-    if (Art.parallax && q < 2) Art.parallax(dc, G.theme, L.W, L.H, T, calm ? 0 : beat, q === 0 ? 2 : 1); drawHighway(dc);
-    if (!SK.bg && q < 3) Art.bg(dc, G.theme, L.W, L.H, T, beat, energy, true); if (q < 3) drawImmersive(T, beat, energy, spOn, dc, bdt); edgeUpdate(pulse, energy, spOn, q);
-    if (spOn) { dc.globalAlpha = 0.35 + 0.25 * Math.sin(T * 8); dc.drawImage(SPR.glowGold, L.cx - L.bw * 0.6, L.strikeY - L.span * 0.5, L.bw * 1.2, L.span * 0.7); dc.globalAlpha = 1; } }
+  if (!SK.nobg && (G.bgDirty || ts - G.bgLast >= BGMS[q] - 4)) { const bdt = Math.min(0.1, G.bgLast ? (ts - G.bgLast) / 1000 : DT); G.bgLast = ts; G.bgDirty = false; Art.intensity = { low: 0.4, med: 0.75, high: 1.2 }[calm ? 'low' : S.set.intensity || 'med'] * [1, 0.7, 0.5, 0.3][q];
+    bc.setTransform(BDPR, 0, 0, BDPR, 0, 0); bc.drawImage(SPR.scene, 0, 0, L.W, L.H); if (Art.parallax && q < 2) Art.parallax(bc, G.theme, L.W, L.H, T, calm ? 0 : beat, q === 0 ? 2 : 1); drawHighway(bc);
+    if (!SK.bg && q < 3) Art.bg(bc, G.theme, L.W, L.H, T, beat, energy, true); if (q < 3) drawImmersive(T, beat, energy, spOn, bc, bdt); edgeUpdate(pulse, energy, spOn, q);
+    if (spOn) { bc.globalAlpha = 0.35 + 0.25 * Math.sin(T * 8); bc.drawImage(SPR.glowGold, L.cx - L.bw * 0.6, L.strikeY - L.span * 0.5, L.bw * 1.2, L.span * 0.7); bc.globalAlpha = 1; } }
   // gameplay layer
   c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); if (SK.all) return; const ox = shOn ? sx * GDPR : 0, oy = shOn ? sy * GDPR : 0; c.setTransform(GDPR, 0, 0, GDPR, ox, oy); window.__gc = c;
   if (SK.part1) { finishTail(now); return; }
