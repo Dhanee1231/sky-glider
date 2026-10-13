@@ -7,7 +7,10 @@
   const PENTA = [0, 2, 4, 7, 9];
   const freq = (n) => 261.63 * Math.pow(2, n / 12);
   const note = (i) => PENTA[((i % 5) + 5) % 5] + 12 * Math.floor(i / 5);
-  function vol() { try { return window.FunZone ? FunZone.vol() : 1; } catch (e) { return 1; } }
+  // v4 Settings panel (SKSave.settings): her volume x the grown-ups' volume; music and voice can be switched off separately
+  function set() { try { return (window.SKSave && SKSave.settings()) || {}; } catch (e) { return {}; } }
+  function myVol() { const v = set().vol; return typeof v === 'number' ? Math.max(0, Math.min(100, v)) / 100 : 1; }
+  function vol() { let p = 1; try { p = window.FunZone ? FunZone.vol() : 1; } catch (e) { } return p * myVol(); }
   function init() {
     if (ctx) { if (ctx.state === 'suspended') ctx.resume().catch(() => { }); return; }
     try {
@@ -18,7 +21,7 @@
       setGain();
     } catch (e) { ctx = null; }
   }
-  function setGain() { if (master) master.gain.value = muted ? 0 : 0.5 * vol(); }
+  function setGain() { if (master) master.gain.value = muted ? 0 : 0.5 * vol(); if (musBus) musBus.gain.value = set().mus === false ? 0 : 0.32; }
   function tone(f, t0, dur, g, type, bus) {
     if (!ctx || muted) return; const t = ctx.currentTime + t0;
     const o = ctx.createOscillator(), o2 = ctx.createOscillator(), a = ctx.createGain(), a2 = ctx.createGain();
@@ -95,7 +98,7 @@
     tap() { tone(freq(note(12)), 0, 0.18, 0.12); },
     bossLaugh() { [0, 1, 2].forEach(i => glide(freq(2 - i), freq(-3 - i), i * 0.12, 0.1, 0.18, 'triangle')); },
     say(line, o) {
-      if (!line) return; try { if (window.FunZone) FunZone.say(line, Object.assign({ dir: 'audio/', muted }, o || {})); } catch (e) { }
+      if (!line || set().voice === false) return; try { if (window.FunZone) FunZone.say(line, Object.assign({ dir: 'audio/', muted, gain: myVol() }, o || {})); } catch (e) { }
     },
     stopSay() { try { if (window.FunZone) FunZone.stopSay(); } catch (e) { } }
   };

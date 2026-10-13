@@ -127,7 +127,7 @@
     shake = 0; flash = 0; fade = 0.8; finished = false; finT = 0; forceStars = 0; ready = 0; boss = null; pL.fill(0); popL.fill(0); fgT.fill(0);
     progEnd = def.boss ? Math.max(1, arenaCam) : (ents.find(e => e.k === 'E') || { x: lvl.cols * TILE }).x;
     resetPlayer(); theme(def.theme); Au.fast(1);
-    $('map').hidden = true; $('hud').hidden = false; $('pauseM').hidden = true; $('resM').hidden = true;
+    $('map').hidden = true; $('hud').hidden = false; $('pauseM').hidden = true; $('resM').hidden = true; $('setM').hidden = true;
     hudGlow = hudGems = hudCr = -1; setHearts(); setGems(); setCrowns(); setProg(0); state = 'play'; look = S.glim(); G = A.glimmer(look);
     pushGuard(); try { FZ && FZ.wake(true); } catch (e) { }
     Au.init(); Au.start(); Au.music(def.theme);
@@ -436,7 +436,7 @@
     const st = $('resStars').children; for (let i = 0; i < 3; i++) { st[i].classList.toggle('on', i < finStars); st[i].style.animationDelay = (i * 0.25) + 's'; }
     $('resGems').textContent = runGems; const m = S.crowns(def.id); const rc = $('resCrowns').children; for (let i = 0; i < 3; i++) rc[i].innerHTML = (m >> i & 1) ? A.SVG.crown : A.SVG.crownOff;
     const stk = $('resStk'); stk.hidden = !r.newSticker; stk.classList.toggle('gold', m === 7); if (r.newSticker) stk.innerHTML = A.SVG.sticker[r.newSticker];
-    const next = def.id < S.LEVELS; $('bNext').hidden = !next; $('resM').hidden = false; $('hud').hidden = true; $('hint').hidden = true;
+    const next = def.id < S.LEVELS; $('bNext').hidden = !next; $('rGo').innerHTML = (next ? A.SVG.play : A.SVG.map) + '<span>' + (next ? 'Next' : 'Map') + '</span>'; $('rGo').setAttribute('aria-label', next ? 'Next level' : 'Map'); $('rGo').dataset.next = next ? 1 : ''; $('resM').hidden = false; $('hud').hidden = true; $('hint').hidden = true;
     speak(finStars === 3 ? LINES.three : finStars === 2 ? LINES.two : LINES.one, true);
     setTimeout(() => { if (state === 'result') speak(sayName(PRAISE[Math.random() * PRAISE.length | 0]), true); }, 1800);
     if (r.newSticker) setTimeout(() => { if (state === 'result') speak(LINES.sticker, true); }, 3600);
@@ -647,7 +647,7 @@
     if (state !== 'play' || finished) return; state = 'pause'; hold = false; ptrs.clear(); $('pauseM').hidden = false; $('hint').hidden = true; Au.stopSay(); Au.stopMusic(); try { FZ && FZ.wake(false); } catch (e) { }
     if (lvl && scn) drawGame();
   }
-  function resume() { if (state !== 'pause') return; $('pauseM').hidden = true; state = 'play'; hold = false; ptrs.clear(); Au.music(inBonus ? 'treasure' : def.theme); try { FZ && FZ.wake(true); } catch (e) { } startLoop(); }
+  function resume() { if (state !== 'pause') return; $('pauseM').hidden = true; $('setM').hidden = true; state = 'play'; hold = false; ptrs.clear(); Au.music(inBonus ? 'treasure' : def.theme); try { FZ && FZ.wake(true); } catch (e) { } startLoop(); }
   let guarded = false;
   function pushGuard() { if (!guarded) { try { history.pushState({ sk: 1 }, ''); guarded = true; } catch (e) { } } }
   addEventListener('popstate', () => {
@@ -704,7 +704,7 @@
     $('bMute').innerHTML = save.muted ? A.SVG.mute : A.SVG.sound;
   }
   function toMap(first) {
-    runId++; state = 'map'; $('map').hidden = false; $('hud').hidden = true; $('pauseM').hidden = true; $('resM').hidden = true; $('hint').hidden = true; $('banner').hidden = true;
+    runId++; state = 'map'; $('map').hidden = false; $('hud').hidden = true; $('pauseM').hidden = true; $('resM').hidden = true; $('setM').hidden = true; $('hint').hidden = true; $('banner').hidden = true;
     hold = false; ptrs.clear(); finished = false; boss = null; main = null; inBonus = false; Au.stopSay(); try { FZ && FZ.wake(false); } catch (e) { }
     buildMap(); Au.music('map'); startLoop();
     if (first && !S.seen('welcome')) { S.markSeen('welcome'); setTimeout(() => speak(sayName(LINES.welcome), true), 400); }
@@ -725,6 +725,23 @@
   $('bNext').innerHTML = A.SVG.play; $('bAgain').innerHTML = A.SVG.redo; $('bMap2').innerHTML = A.SVG.map; $('resStars').innerHTML = [0, 1, 2].map(() => '<i>' + A.SVG.star + '</i>').join('');
   $('hearts').innerHTML = [0, 1, 2].map(() => '<i>' + A.SVG.heart + '</i>').join(''); $('crowns').innerHTML = '<i></i><i></i><i></i>'; $('resCrowns').innerHTML = '<i></i><i></i><i></i>';
   $('gemIc').innerHTML = A.SVG.gem; $('gemIc2').innerHTML = A.SVG.gem; $('gemIc3').innerHTML = A.SVG.gem; $('skIc').innerHTML = A.SVG.plane; $('hintTap').innerHTML = A.SVG.tap;
+  // ---------- v4: Home / Next-or-Map / Settings on the pause + result screens, Settings panel (volume, music, voice) ----------
+  const lab = (svg, w) => svg + '<span>' + w + '</span>';
+  ['pHome', 'rHome'].forEach(id => { $(id).innerHTML = lab(A.SVG.home, 'Home'); $(id).addEventListener('click', e => { e.preventDefault(); if (frozen) return; Au.stopSay(); location.href = $(id).getAttribute('href'); }); });
+  $('rGo').addEventListener('click', go(() => { if ($('rGo').dataset.next) wipe(() => startLevel(def.id + 1)); else wipe(() => toMap(false)); }));
+  const GEAR = '<svg viewBox="0 0 100 100" aria-hidden="true"><path fill="currentColor" d="M43 8h14l3 12 9 4 11-6 10 10-6 11 4 9 12 3v14l-12 3-4 9 6 11-10 10-11-6-9 4-3 12H43l-3-12-9-4-11 6-10-10 6-11-4-9-12-3V43l12-3 4-9-6-11 10-10 11 6 9-4z"/><circle cx="50" cy="50" r="15" fill="#fff"/></svg>';
+  $('bSet').innerHTML = GEAR; $('bSet').style.color = '#a0207a'; ['pSet', 'rSet'].forEach(id => $(id).innerHTML = lab(GEAR, 'Settings'));
+  $('sVolIc').innerHTML = A.SVG.sound; $('sDone').innerHTML = lab(A.SVG.play, 'Done');
+  function drawSet() { const t = S.settings(), n = Math.round(t.vol / 25); [...$('volBar').children].forEach((e, i) => e.classList.toggle('on', i < n));
+    $('sMus').classList.toggle('on', t.mus); $('sMus').textContent = t.mus ? 'On' : 'Off'; $('sVoice').classList.toggle('on', t.voice); $('sVoice').textContent = t.voice ? 'On' : 'Off'; }
+  function openSet() { if (frozen) return; Au.init(); drawSet(); $('setM').hidden = false; }
+  function setS(o) { S.setSettings(o); Au.refresh(); drawSet(); }
+  ['bSet', 'pSet', 'rSet'].forEach(id => $(id).addEventListener('click', openSet));
+  $('sUp').addEventListener('click', () => { setS({ vol: Math.min(100, S.settings().vol + 25) }); Au.tap(); });
+  $('sDown').addEventListener('click', () => { setS({ vol: Math.max(0, S.settings().vol - 25) }); Au.tap(); });
+  $('sMus').addEventListener('click', () => setS({ mus: !S.settings().mus }));
+  $('sVoice').addEventListener('click', () => { setS({ voice: !S.settings().voice }); if (!S.settings().voice) Au.stopSay(); });
+  $('sDone').addEventListener('click', () => { $('setM').hidden = true; });
   fit(); Au.setMuted(save.muted); toMap(true);
   // test hooks for the QA scripts (no effect on play)
   window.SKTest = {

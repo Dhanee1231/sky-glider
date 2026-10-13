@@ -4,6 +4,7 @@
 // v3 adds two OPTIONAL top-level fields (old v1/v2 copies keep unknown top-level fields untouched, so they survive a round trip):
 //   cr  = {"1": 0-7}  sparkle crowns found per level (bit mask of the level's 3 crowns; all 3 = golden sticker frame)
 //   sec = {"1": 1}    secret rooms found per level
+// v4 adds one more OPTIONAL top-level field: set = {vol:0-100, mus:bool, voice:bool} (Settings panel; defaults 100/true/true)
 // Peeks (READ ONLY, never written): crystalcave.v2 (Glimmer's look) and skyglider.v3 (sticker count). Both survive missing/corrupt data.
 (function () {
   const KEY = 'sparkle-kingdom.v1';
@@ -11,7 +12,7 @@
   const num = (v, lo, hi, d) => (typeof v === 'number' && isFinite(v)) ? Math.max(lo, Math.min(hi, Math.round(v))) : d;
   const ls = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } } };
   const LEVELS = 5, STICKERS = ['heart', 'flower', 'rainbow', 'gem', 'crown'];
-  const def = () => ({ v: 1, gems: 0, lv: {}, stk: {}, muted: false, seen: {}, cr: {}, sec: {} });
+  const def = () => ({ v: 1, gems: 0, lv: {}, stk: {}, muted: false, seen: {}, cr: {}, sec: {}, set: { vol: 100, mus: true, voice: true } });
   const BAD = k => k === '__proto__' || k === 'constructor' || k === 'prototype';
   const lvIdx = k => { const i = +k; return Number.isInteger(i) && i >= 1 && i <= LEVELS ? i : 0; };
   function load() {
@@ -27,6 +28,8 @@
     // v3: crowns + secret rooms (optional; known levels sanitized, unknown entries kept as they are)
     for (const f of ['cr', 'sec']) if (isO(d[f])) for (const k of Object.keys(d[f])) { if (BAD(k)) continue; const i = lvIdx(k);
       if (i) { const v = num(d[f][k], 0, f === 'cr' ? 7 : 1, 0); if (v) s[f][i] = v; } else s[f][k] = d[f][k]; }
+    // v4: settings (optional; anything missing or odd falls back to the default)
+    if (isO(d.set)) { s.set.vol = num(d.set.vol, 0, 100, 100); s.set.mus = d.set.mus !== false; s.set.voice = d.set.voice !== false; }
     // keep unknown future fields untouched so an older copy of the page never drops them
     for (const k in d) if (!(k in s) && !BAD(k)) s[k] = d[k];
     return s;
@@ -77,6 +80,7 @@
     secret: i => save.sec[i] === 1, markSecret(i) { if (save.sec[i] !== 1) { save.sec[i] = 1; later(); } },
     addGems(n) { save.gems = Math.min(1e6, save.gems + n); later(); },
     setMuted(m) { save.muted = !!m; persist(); },
+    settings: () => save.set, setSettings(o) { const t = save.set; if (o && 'vol' in o) t.vol = num(o.vol, 0, 100, t.vol); if (o && 'mus' in o) t.mus = !!o.mus; if (o && 'voice' in o) t.voice = !!o.voice; persist(); },
     seen: k => !!save.seen[k], markSeen(k) { save.seen[k] = true; later(); }
   };
 })();
