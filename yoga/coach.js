@@ -4,7 +4,9 @@ import * as V from './voice.js';
 let capEl = null, capTimer = 0;
 export function setCaptionEl(el) { capEl = el; }
 export function caption(text, ms = 0) { if (!capEl) return; capEl.textContent = text; capEl.classList.toggle('show', !!text); clearTimeout(capTimer); if (ms) capTimer = setTimeout(() => capEl.classList.remove('show'), ms); }
-export function voiceSettings() { V.configure({ voice: S.settings.voiceName || 'af_heart', rate: S.settings.rate || 1 }); }
+let kidOverride = false;   // family session on a grown-up profile also counts as kid mode
+export function setKidVoice(on) { kidOverride = !!on; voiceSettings(); }
+export function voiceSettings() { V.configure({ voice: S.settings.voiceName || 'af_heart', rate: S.settings.rate || 1, kid: !!(S.profiles[S.active] && S.profiles[S.active].kid) || kidOverride }); }
 V.setHooks({
   start: () => duck(true),
   end: () => { duck(false); if (capEl) { clearTimeout(capTimer); capTimer = setTimeout(() => capEl.classList.remove('show'), 1800); } },
@@ -50,13 +52,19 @@ export function music(on) {
   musicTimer = setInterval(() => { tone(notes[i % notes.length], notes[i % notes.length], 0.18, 'triangle', 0.1); if (i % 2 === 0) tone(130, 120, 0.12, 'sine', 0.15); i++; }, 220);
 }
 // ---- confetti ----
+let starSpr = null;   // ⭐ drawn once, then blitted (fillText per particle per frame was the confetti cost)
+function starSprite() { if (!starSpr) { starSpr = document.createElement('canvas'); starSpr.width = starSpr.height = 48; const g = starSpr.getContext('2d'); g.font = '36px sans-serif'; g.textBaseline = 'middle'; g.textAlign = 'center'; g.fillText('⭐', 24, 26); } return starSpr; }
+let confettiLive = 0;   // particles alive across all bursts, kept <= CONFETTI_MAX
+const CONFETTI_MAX = 120;
 export function confetti(n = 140) {
+  n = Math.min(n, CONFETTI_MAX - confettiLive); if (n <= 0) return; confettiLive += n;
   const c = document.createElement('canvas'); c.className = 'confetti'; document.body.appendChild(c);
-  const dpr = Math.min(2, devicePixelRatio || 1); c.width = innerWidth * dpr; c.height = innerHeight * dpr; const x = c.getContext('2d'); x.scale(dpr, dpr);
+  const dpr = 1;   // soft moving shapes: 1x keeps the full-screen layer cheap on the Fold inner screen
+  c.width = innerWidth * dpr; c.height = innerHeight * dpr; const x = c.getContext('2d'); x.scale(dpr, dpr);
   const cols = ['#ff7aa8', '#ffd84d', '#5ad1c4', '#7aa8ff', '#b77aff', '#7ee07e'];
   const P = Array.from({ length: n }, () => ({ x: innerWidth / 2 + (Math.random() - .5) * 120, y: innerHeight * 0.35, vx: (Math.random() - .5) * 14, vy: -Math.random() * 14 - 4, r: Math.random() * 6 + 4, c: cols[Math.floor(Math.random() * cols.length)], a: Math.random() * 6, s: Math.random() < .25 }));
   let t0 = performance.now();
   (function f(t) { const dt = Math.min(40, t - t0) / 16; t0 = t; x.clearRect(0, 0, innerWidth, innerHeight); let alive = 0;
-    for (const p of P) { p.vy += 0.35 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.99; p.a += 0.2 * dt; if (p.y < innerHeight + 20) alive++; x.save(); x.translate(p.x, p.y); x.rotate(p.a); x.fillStyle = p.c; if (p.s) { x.font = p.r * 3 + 'px sans-serif'; x.fillText('⭐', 0, 0); } else x.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); x.restore(); }
-    if (alive) requestAnimationFrame(f); else c.remove(); })(t0);
+    for (const p of P) { p.vy += 0.35 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.99; p.a += 0.2 * dt; if (p.y < innerHeight + 20) alive++; x.save(); x.translate(p.x, p.y); x.rotate(p.a); x.fillStyle = p.c; if (p.s) { const z = p.r * 3; x.drawImage(starSprite(), -z / 2, -z / 2, z, z); } else x.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); x.restore(); }
+    if (alive && !document.hidden) requestAnimationFrame(f); else { confettiLive -= n; c.remove(); } })(t0);
 }

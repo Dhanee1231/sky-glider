@@ -257,3 +257,60 @@ export const ROUTINES = [
 ];
 
 export const ADVENTURE_INTRO = "Once upon a time, two explorers set off on an animal adventure. Every animal they met taught them a new shape!";
+
+// ---- kid sessions (Phase B) ----
+// Kid holds are 10-20 s (balance and sided poses 15 s), whole session 5-8 min, at most 8 poses.
+export const KID_BALANCE = ['tree', 'warrior2', 'chair'];
+export const KID_WARM = 20, KID_COOL = 20;   // always on in kid mode
+export const KID_BREATH = 5;   // one kid breath = 5 s (in 2 s, out 3 s)
+export const KID_MIN_SEC = 300, KID_MAX_SEC = 480, KID_MAX_POSES = 8;
+const KID_OVERHEAD = 8 + 2.6 + 4;   // intro + outro + rest
+const kidCap = id => KID_BALANCE.includes(id) || POSE[id].side || id === 'downdog' ? 15 : 20;   // easy Down Dog max 15 s
+export const kidHold = (id, hold) => Math.min(kidCap(id), Math.max(10, Math.round(hold * 0.5 / KID_BREATH) * KID_BREATH));   // whole breaths: 10, 15 or 20 s
+export const kidEst = (steps, warm = true) => steps.reduce((a, s) => a + (s.hold + KID_OVERHEAD) * (POSE[s.id].side ? 2 : 1), 0) + (warm ? KID_WARM + KID_COOL + 2 * KID_OVERHEAD : 0);
+// Returns steps with final kid holds, trimmed to the limits and padded up to 5 min when short.
+export function kidSteps(steps, warm = true) {
+  let out = steps.map(s => ({ id: s.id, hold: kidHold(s.id, s.hold) }));
+  const keep = new Set([0, out.length - 1]);
+  const bal = out.findIndex(s => KID_BALANCE.includes(s.id)); if (bal >= 0) keep.add(bal);
+  let tagged = out.map((s, k) => ({ ...s, keep: keep.has(k) }));
+  while ((tagged.length > KID_MAX_POSES || kidEst(tagged, warm) > KID_MAX_SEC) && tagged.some(s => !s.keep)) {
+    const seen = new Set(); let pick = -1, best = -1;
+    tagged.forEach((s, k) => { const dup = seen.has(s.id); seen.add(s.id); if (s.keep) return; const w = (dup ? 1000 : 0) + s.hold * (POSE[s.id].side ? 2 : 1); if (w > best) { best = w; pick = k; } });
+    tagged.splice(pick, 1);
+  }
+  out = tagged.map(({ id, hold }) => ({ id, hold }));
+  for (let grew = true; grew && kidEst(out, warm) < KID_MIN_SEC;) { grew = false; for (const s of out) if (s.hold < kidCap(s.id) && kidEst(out, warm) < KID_MIN_SEC) { s.hold += KID_BREATH; grew = true; } }
+  // still under 5 min with every hold maxed: add gentle sided/easy poses before the last one
+  for (const id of ['sidebend', 'shoulder', 'butterfly', 'kneeschest', 'star']) {
+    if (kidEst(out, warm) >= KID_MIN_SEC || out.length >= KID_MAX_POSES) break;
+    if (out.some(s => s.id === id)) continue;
+    out.splice(out.length - 1, 0, { id, hold: kidCap(id) });
+    while (kidEst(out, warm) - KID_BREATH * (POSE[out[out.length - 2].id].side ? 2 : 1) >= KID_MIN_SEC && out[out.length - 2].hold > 10) out[out.length - 2].hold -= KID_BREATH;
+  }
+  return out;
+}
+
+// Kid Journey: 4 weeks x 4 days, 5-7 poses each, Down Dog only from week 3.
+export const KID_JOURNEY = [
+  { week: 1, title: 'Week 1 · Wake Up Your Animal', days: [
+    { name: 'Calm Koala', steps: [S('easyseat', 40), S('shoulder', 30), S('catcow', 40), S('butterfly', 40), S('sidebend', 30), S('child', 40)] },
+    { name: 'Tall Giraffe', steps: [S('mountain', 30), S('sidebend', 30), S('star', 25), S('catcow', 40), S('shoulder', 30), S('child', 40)] },
+    { name: 'Sleepy Mouse', steps: [S('easyseat', 30), S('shoulder', 30), S('kneeschest', 40), S('butterfly', 40), S('sidebend', 30), S('child', 40)] },
+    { name: 'Happy Starfish', steps: [S('mountain', 30), S('star', 25), S('sidebend', 30), S('neck', 30), S('shoulder', 30), S('child', 40)] }] },
+  { week: 2, title: 'Week 2 · Wobble & Stretch', days: [
+    { name: 'Flamingo Day', steps: [S('mountain', 30), S('tree', 25), S('star', 25), S('cobra', 25), S('sidebend', 30), S('child', 40)] },
+    { name: 'Snake Day', steps: [S('easyseat', 30), S('catcow', 40), S('cobra', 25), S('child', 40), S('lunge', 30), S('shoulder', 30), S('kneeschest', 40)] },
+    { name: 'Frog Hops', steps: [S('mountain', 30), S('lunge', 30), S('sidebend', 30), S('tree', 30), S('seatedfold', 40), S('easyseat', 40)] },
+    { name: 'Animal Parade', steps: [S('easyseat', 30), S('cobra', 25), S('child', 40), S('tree', 30), S('forwardfold', 30), S('seatedfold', 40), S('butterfly', 40)] }] },
+  { week: 3, title: 'Week 3 · Strong Animals', days: [
+    { name: 'Brave Lion', steps: [S('mountain', 30), S('warrior2', 25), S('sidebend', 30), S('catcow', 40), S('bridge', 25), S('child', 40)] },
+    { name: 'Stretchy Puppy', steps: [S('catcow', 40), S('downdog', 20), S('child', 40), S('cobra', 25), S('lunge', 30), S('sidebend', 30), S('kneeschest', 40)] },
+    { name: 'Bear Chair', steps: [S('mountain', 30), S('chair', 20), S('forwardfold', 30), S('warrior2', 30), S('tree', 30), S('butterfly', 40), S('easyseat', 40)] },
+    { name: 'Jungle Flow', steps: [S('easyseat', 30), S('catcow', 40), S('downdog', 25), S('lunge', 30), S('warrior2', 30), S('seatedfold', 40), S('child', 40)] }] },
+  { week: 4, title: 'Week 4 · Super Yogi', days: [
+    { name: 'Zoo Flow', steps: [S('easyseat', 30), S('catcow', 40), S('downdog', 30), S('lunge', 30), S('chair', 25), S('tree', 30), S('child', 40)] },
+    { name: 'Balance Day', steps: [S('mountain', 30), S('tree', 35), S('warrior2', 30), S('sidebend', 30), S('forwardfold', 30), S('kneeschest', 40), S('easyseat', 40)] },
+    { name: 'Big Stretch', steps: [S('easyseat', 30), S('catcow', 40), S('cobra', 30), S('downdog', 30), S('lunge', 30), S('butterfly', 40), S('kneeschest', 40)] },
+    { name: 'Super Yogi Graduation', steps: [S('mountain', 30), S('star', 30), S('chair', 25), S('warrior2', 30), S('tree', 30), S('downdog', 30), S('child', 40)] }] }
+];

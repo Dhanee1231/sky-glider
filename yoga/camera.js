@@ -35,21 +35,28 @@ export class PoseCam {
   constructor(video, canvas, opts = {}) { this.v = video; this.c = canvas; this.x = canvas.getContext('2d'); this.opts = opts; this.poseId = opts.poseId || null; this.numPoses = opts.numPoses || 1; this.facing = opts.facing || 'user'; this.running = false; this.smooth = []; this.lastT = -1; this.stream = null; this.fps = 0; }
   async start(onStatus = () => { }) {
     if (!navigator.mediaDevices?.getUserMedia) throw new Error('Camera is not available in this browser.');
-    await this.openStream();
-    onStatus('Loading the pose coach…');
-    await loadModel(this.numPoses, onStatus);
+    this.closed = false;
+    try {
+      await this.openStream();
+      onStatus('Loading the pose coach…');
+      await loadModel(this.numPoses, onStatus);
+    } catch (e) { this.stop(); throw e; }   // an error turns the camera off
+    if (this.closed) return;               // stopped while starting: stay off
     this.running = true; this.loop(); onStatus('');
   }
   async openStream() {
     this.stopStream();
-    this.stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: this.facing, width: { ideal: 640 }, height: { ideal: 480 } } });
+    const s = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: this.facing, width: { ideal: 640 }, height: { ideal: 480 } } });
+    if (this.closed) { s.getTracks().forEach(t => t.stop()); return; }   // stop() ran while the permission prompt was open
+    this.stream = s;
     this.v.srcObject = this.stream; this.v.muted = true; this.v.playsInline = true; await this.v.play().catch(() => { });
     this.mirror = this.facing === 'user'; this.v.parentElement?.classList.toggle('mirror', this.mirror);
   }
   async flip() { this.facing = this.facing === 'user' ? 'environment' : 'user'; await this.openStream(); return this.facing; }
   async setPeople(n) { this.numPoses = n; this.smooth = []; if (landmarker) await loadModel(n); }
   stopStream() { if (this.stream) { this.stream.getTracks().forEach(t => t.stop()); this.stream = null; } this.v.srcObject = null; }
-  stop() { this.running = false; cancelAnimationFrame(this.raf); this.stopStream(); this.x.clearRect(0, 0, this.c.width, this.c.height); }
+  // Camera off: stop every track, clear the video, stop the pose loop and drop pose data (memory only, never saved).
+  stop() { this.closed = true; this.running = false; cancelAnimationFrame(this.raf); this.stopStream(); this.x.clearRect(0, 0, this.c.width, this.c.height); this.smooth = []; this.prevPeople = null; }
   loop() {
     if (!this.running) return;
     this.raf = requestAnimationFrame(() => this.loop());

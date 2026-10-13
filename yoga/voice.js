@@ -4,7 +4,7 @@ import { sentences, clipId } from './speechtext.js';
 export const VOICES = [{ id: 'af_heart', label: 'Sunny (warm female voice)' }, { id: 'am_michael', label: 'Sam (calm male voice)' }];
 const BASE = new URL('./media/voice/', import.meta.url).href;
 const manifests = {}, blobs = new Map();
-let cfg = { voice: 'af_heart', rate: 1, enabled: true }, gen = 0, audio = null, hooks = { start() { }, end() { }, caption() { } };
+let cfg = { voice: 'af_heart', rate: 1, enabled: true, kid: false }, gen = 0, audio = null, hooks = { start() { }, end() { }, caption() { } };
 export function configure(c) { Object.assign(cfg, c); loadManifest(cfg.voice); }
 export function setHooks(h) { Object.assign(hooks, h); }
 async function loadManifest(v) {
@@ -66,7 +66,8 @@ export async function speak(text, opts = {}) {
       lastSpoken.push({ s: it.s, clip: !!it.url, t: Date.now() }); if (lastSpoken.length > 50) lastSpoken.shift();
       let ok = false;
       if (it.url) { try { ok = await playUrl(await it.url, my); } catch (e) { ok = false; } }
-      if (!ok && my === gen) { if (it.url) lastSpoken[lastSpoken.length - 1].clip = false; await sysSay(it.s, my); }
+      if (!ok && my === gen && cfg.kid) { if (it.url) lastSpoken[lastSpoken.length - 1].clip = false; await new Promise(r => setTimeout(r, 600 + it.s.length * 40)); }   // kid mode: caption only, never the robot voice
+      else if (!ok && my === gen) { if (it.url) lastSpoken[lastSpoken.length - 1].clip = false; await sysSay(it.s, my); }
     }
   } finally { if (my === gen) hooks.end(); }
 }

@@ -75,6 +75,15 @@ body.theme-kids .stage{background:linear-gradient(#fff2c8,#fff)}
 .breath{width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,#bdf0e9,var(--acc));margin:4px auto;transition:transform 4s ease-in-out;opacity:.85}
 body.theme-kids .breath{background:radial-gradient(circle,#ffe0f0,var(--acc))}
 .breath.in{transform:scale(1.35)}
+.breath.kid{width:84px;height:100px;border-radius:50% 50% 46% 46%;background:radial-gradient(circle at 35% 30%,#fff3,#ff7aa8 45%,#e0457f);transform:scale(.7);transform-origin:50% 100%;transition:transform 3s ease-in-out;opacity:.95;position:relative;margin:4px auto 10px}
+.breath.kid::after{content:"";position:absolute;left:50%;bottom:-9px;margin-left:-6px;border:6px solid transparent;border-top:0;border-bottom:10px solid #e0457f}
+body.theme-kids .breath.kid{background:radial-gradient(circle at 35% 30%,#fff3,#ff7aa8 45%,#e0457f)}
+.breath.kid.in{transform:scale(1.25);transition-duration:2s}
+body.dark .breath.kid,body.dark.theme-kids .breath.kid{background:radial-gradient(circle at 35% 30%,#fff3,#c2487f 45%,#8f2a5a)}
+.ring.dots .num{font-size:22px;letter-spacing:2px;line-height:1.1}
+.easy{margin:0 0 8px;padding:8px 12px;border-radius:14px;background:#e6f7ea;color:#14532d;font-weight:700;font-size:15px;text-align:center}
+body.dark .easy{background:#173a24;color:#c7f0d4}
+@media (prefers-reduced-motion:reduce){.breath.kid,.breath.kid.in{transition-duration:.01s}}
 .pctl{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .pctl .btn{min-width:64px}
 /* camera */
@@ -126,8 +135,8 @@ a.btn{text-decoration:none}
 /* polish round: compact player on small / short screens */
 body.fullplay #caption{top:calc(var(--toph) + 10px + env(safe-area-inset-top));bottom:auto;transform:translateX(-50%) translateY(-10px)}
 body.fullplay #caption.show{transform:translateX(-50%)}
-@media (orientation:portrait) and (max-width:560px){.player .stage{aspect-ratio:1.5}.ring{width:118px;height:118px}.ring .num{font-size:32px}.breath{width:70px;height:70px}.player .card{padding:12px}}
-@media (orientation:landscape) and (max-height:560px){.player .stage{aspect-ratio:auto;height:calc(100vh - var(--toph) - 36px)}.ring{width:104px;height:104px}.ring .num{font-size:28px}.breath{width:64px;height:64px}#pname{font-size:20px!important}.player #pcue{font-size:15px}.cam{max-height:calc(100vh - var(--toph) - 36px)}}
+@media (orientation:portrait) and (max-width:560px){.player .stage{aspect-ratio:1.5}.ring{width:118px;height:118px}.ring .num{font-size:32px}.breath{width:70px;height:70px}.breath.kid{width:60px;height:72px}.ring.dots .num{font-size:20px}.player .card{padding:12px}}
+@media (orientation:landscape) and (max-height:560px){.player .stage{aspect-ratio:auto;height:calc(100vh - var(--toph) - 36px)}.ring{width:104px;height:104px}.ring .num{font-size:28px}.breath{width:64px;height:64px}.breath.kid{width:48px;height:58px}#pname{font-size:20px!important}.player #pcue{font-size:15px}.cam{max-height:calc(100vh - var(--toph) - 36px)}}
 /* ===== v2: accessible accent tokens, light / dark appearance ===== */
 :root{--accbtn:#23786f;--onacc:#fff;--acctext:#1d6f66;--bluebtn:#2f66c8;--onblue:#fff;--stageBg:linear-gradient(#eaf8f6,#fff);--shadow:rgba(30,80,75,.08)}
 body.theme-kids{--accbtn:#c8246f;--acctext:#b0175f;--bluebtn:#1f6fc0;--stageBg:linear-gradient(#fff2c8,#fff)}
@@ -187,3 +196,33 @@ body.dark.theme-kids .breath{background:radial-gradient(circle,#7a2f55,var(--acc
 .vpick button.on{border-color:var(--acctext);color:var(--acctext)}
 /* landscape player: keep captions over the demo column so they never cover the step title or buttons */
 @media (min-width:760px) and (orientation:landscape){body.fullplay #caption{top:auto;bottom:calc(18px + env(safe-area-inset-bottom));left:27%;max-width:48vw;transform:translateX(-50%) translateY(10px)}body.fullplay #caption.show{transform:translateX(-50%)}}
+/* save safety: storage-failure banner and reset undo bar */
+#saveBanner{position:fixed;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));background:#fff3cd;color:#5a4300;border:2px solid #f0a800;border-radius:16px;padding:12px 16px;font-weight:700;text-align:center;z-index:70}
+#undoBar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom));display:flex;gap:12px;align-items:center;background:#1d2b29;color:#fff;border-radius:18px;padding:8px 8px 8px 16px;font-weight:700;z-index:70;max-width:94vw}
+#undoBar .btn{min-height:48px;min-width:96px}
+.big.mega{font-size:clamp(28px,7.5vw,56px);overflow-wrap:anywhere;animation:pop .6s}
+.book{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:8px}
+.book .slot{aspect-ratio:1;min-height:48px;display:flex;align-items:center;justify-content:center;border-radius:18px;background:var(--card);border:2px dashed var(--line);font-size:clamp(26px,7vw,48px);font-weight:900;color:var(--soft)}
+.book .slot.got{border:2px solid var(--acc2);background:var(--card);color:inherit}
+.book .slot.fresh{animation:pop .7s;box-shadow:0 0 0 4px var(--acc2)}
+@media (orientation:landscape) and (min-width:700px){.book{grid-template-columns:repeat(8,1fr)}}
+@media (orientation:landscape) and (max-height:500px){.book{grid-template-columns:repeat(12,1fr);gap:6px}.book .slot{min-height:40px;font-size:28px;border-radius:12px}}
+/* Phase F: kid taps >= 48 px, caption lane, short-landscape fit */
+body.kidmode .pill{height:48px;min-width:48px}
+body.kidmode .iconbtn{min-width:48px;height:48px}
+body.kidmode .seg button{min-height:48px}
+body.kidmode .stage .mode button{min-height:48px;min-width:48px}
+body.kidmode .stage .credit{align-items:center;flex-wrap:wrap}
+body.kidmode .stage.real .credit{display:flex}
+body.kidmode .stage .credit button{min-height:48px;min-width:48px;padding:0 8px}
+#celebrate .row{gap:8px}
+#celebrate .row .btn{flex:1 1 auto;white-space:normal;line-height:1.1;min-width:0}
+body.fullplay #caption{font-size:15px;line-height:1.3;padding:8px 14px}
+@media (orientation:portrait),(max-width:759px){body.fullplay #main{padding-top:calc(14px + 80px)}}   /* caption lane above the stage: the caption never covers the tag, step line or Real/Animated toggle */
+@media (orientation:landscape) and (max-height:560px){
+:root{--toph:52px;--tabh:58px}
+.player .stage{height:calc(100vh - var(--toph) - 36px - 62px)}.cam{max-height:calc(100vh - var(--toph) - 36px - 62px)}
+#main .wrap:has(.book){padding-top:0}#main .wrap:has(.book) h2{margin:0 0 4px;font-size:18px}#main .wrap:has(.book) .face{width:44px;height:44px}#main .wrap:has(.book) .bubble{padding:6px 12px}#main .wrap:has(.book) p{margin:2px 0}#main .wrap:has(.book) .row{margin-top:6px!important}.book{margin-top:4px}.book .slot{min-height:36px;font-size:24px}
+body:not(.fullplay) #caption{bottom:calc(var(--tabh) + 82px + env(safe-area-inset-bottom))}
+.stickyrow{position:sticky;bottom:-30px;z-index:5;background:var(--bg);padding:6px 0 34px;margin-top:0!important}
+}
