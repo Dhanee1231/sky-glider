@@ -17,7 +17,7 @@
     wind: 'Hold to ride the wind!', gate: 'Jump and flap to grab the big star!', oops: 'Whoops! Bubble rescue!', check: 'Checkpoint!',
     heartstar: 'You got a heart star!', rainbow: 'Rainbow trail!', magnet: 'Gem magnet!', shield: 'Bubble shield!', giant: 'Giant Glimmer!',
     crown: 'You found a sparkle crown!', allcrowns: 'All three crowns! Golden sticker!', secret: 'You found a secret room!',
-    combo3: 'Combo!', combo5: 'Super combo!', combo8: 'Mega combo!', sticker: 'You found a new sticker!', three: 'Wow, three stars!', two: 'Two stars!', one: 'One star!',
+    combo3: 'Combo!', combo5: 'Super combo!', combo8: 'Mega combo!', shiny: 'Ooh, a shiny sticker!', page: 'You filled a whole page!', sticker: 'You found a new sticker!', three: 'Wow, three stars!', two: 'Two stars!', one: 'One star!',
     boss: 'Here comes the Silver Puffball. Jump on its head three times!', boss2: 'Two more!', boss1: 'One more time!',
     win: 'You beat the Silver Puffball! You are the hero of Sparkle Kingdom!', rotate: 'Turn your phone sideways for more room!'
   };
@@ -25,6 +25,10 @@
   const sayName = line => { try { return FZ ? FZ.withName(line) : line + '!'; } catch (e) { return line + '!'; } };
   const calm = () => { try { return FZ && FZ.calm(); } catch (e) { return false; } };
   const save = S.get();
+  // v5 fun layer (fun.js / book.js / art-wardrobe.js / art-fx.js): game.js only calls hooks and stamps the outfit sprites
+  const HK = window.SKHooks || { emit() { }, on() { } }, FN = window.SKFun, WD = window.SKWardrobe, FX = window.SKFx;
+  let wear = {}; const lookNow = () => { try { wear = FN ? FN.look() : {}; } catch (e) { wear = {}; } };
+  let fwI = 0, finFun = null, celebSkip = false;
   // voice: one line at a time; teaching lines (pri) may cut in, the rest wait their turn or are skipped
   let vBusy = 0;
   function speak(line, pri) { const now = performance.now(); if (!pri && now < vBusy) return false; vBusy = now + 700 + line.length * 60; Au.say(line); return true; }
@@ -128,7 +132,7 @@
     progEnd = def.boss ? Math.max(1, arenaCam) : (ents.find(e => e.k === 'E') || { x: lvl.cols * TILE }).x;
     resetPlayer(); theme(def.theme); Au.fast(1);
     $('map').hidden = true; $('hud').hidden = false; $('pauseM').hidden = true; $('resM').hidden = true; $('setM').hidden = true;
-    hudGlow = hudGems = hudCr = -1; setHearts(); setGems(); setCrowns(); setProg(0); state = 'play'; look = S.glim(); G = A.glimmer(look);
+    hudGlow = hudGems = hudCr = -1; setHearts(); setGems(); setCrowns(); setProg(0); state = 'play'; look = S.glim(); G = A.glimmer(look); lookNow(); fwI = 0; finFun = null; celebSkip = false;
     pushGuard(); try { FZ && FZ.wake(true); } catch (e) { }
     Au.init(); Au.start(); Au.music(def.theme);
     banner(def); qGrace = 1.2;
@@ -189,7 +193,7 @@
     if (glow <= 0) rescue();
   }
   function rescue() {
-    bubbleT = 1.4; vy = 0; Au.bubble(); speak(LINES.oops);
+    bubbleT = 1.4; vy = 0; Au.bubble(); speak(LINES.oops); HK.emit('onRescue');
   }
   // ---------- one physics step ----------
   function step(dt) {
@@ -203,7 +207,11 @@
     if (giantT > 0) giantT -= dt; gs += ((giantT > 0 ? 1.6 : 1) - gs) * Math.min(1, dt * 6);
     // squash & stretch spring
     sqV += (-260 * sqS - 16 * sqV) * dt; sqS += sqV * dt;
-    if (finished) { finT += dt; stepParticles(dt); speed *= 0.99; camX += speed * dt; if (!onG) { vy += GRAV * 0.6 * dt; fy += vy * dt; const g = groundAt(camX + px); if (fy >= g) land(g, vy); } stepPops(dt); return; }
+    if (finished) { finT += dt; stepParticles(dt);
+      // celebration: pooled firework bursts, then Glimmer's happy dance (little hops); one tap on the results skips it
+      if (FX && !celebSkip) while (fwI < FX.FIREWORKS.length && finT >= FX.FIREWORKS[fwI][0]) { const f = FX.FIREWORKS[fwI++], n = calm() ? 5 : 10, x = camX + viewW * f[1];
+        Au.ring(); for (let i = 0; i < n; i++) { const a = i / n * TAU, v = 110 + (i & 1) * 40; emit(x, f[2], Math.cos(a) * v, Math.sin(a) * v, 1.1, T_CONF + ((i + f[3]) % 6), 1, 90); } emit(x, f[2], 0, 0, 0.5, T_RING, 2.4, 0); spark(x, f[2], calm() ? 2 : 6, T_GOLD, 60, .9); }
+      if (onG && finT > 0.5 && finT < 4 && !calm() && state === 'play') { vy = -250; onG = false; sqS = 0.25; faceK = 'joy'; faceT = 0.5; } speed *= 0.99; camX += speed * dt; if (!onG) { vy += GRAV * 0.6 * dt; fy += vy * dt; const g = groundAt(camX + px); if (fy >= g) land(g, vy); } stepPops(dt); return; }
     // scroll: eases in at the start, holds still in the boss arena
     ready += dt; const target = lvl.speed * (rbT > 0 ? 1.12 : 1);
     if (ready < 0.6) speed = 0; else speed += (target - speed) * Math.min(1, dt * 2.5);
@@ -259,7 +267,7 @@
       const e = ents[i]; if (e.x > view) break; if (!e.on) continue;
       const k = e.k; let dx = e.x - wx;
       if (k === 'g' || k === 'G') {
-        if (magT > 0 || e.home) { const dy = e.y - cy, d2 = dx * dx + dy * dy; if (d2 < 19600 && d2 > 1) { const d = Math.sqrt(d2), s = (e.home ? 260 : 380) * dt; e.x -= dx / d * s; e.y -= dy / d * s; } }
+        if (magT > 0 || e.home || (wear.pet && dx > -70 && dx < 50 && Math.abs(e.y - cy) < 70)) { const dy = e.y - cy, d2 = dx * dx + dy * dy; if (d2 < 19600 && d2 > 1) { const d = Math.sqrt(d2), s = (e.home ? 260 : 380) * dt; e.x -= dx / d * s; e.y -= dy / d * s; } }
         else if (e.vy) { e.vy += 700 * dt; e.y += e.vy * dt; e.x += e.vx * dt; e.t += dt; if (e.t > 0.35) e.home = true; }
         const ddx = e.x - wx, ddy = e.y - cy, r2 = e.r + rr + 4;
         if (ddx * ddx + ddy * ddy < r2 * r2) collectGem(e);
@@ -330,7 +338,7 @@
     else if (e.k === 'p') { e.x -= e.vx * dt; const g = groundAt(e.x); e.y = (g === PIT ? GY0 : g) - Math.abs(Math.sin(wt * 6 + e.ph)) * 6; if (e.x < camX - 60) e.on = false; }
   }
   function stomp(e, bounce) {
-    e.st = 1; e.t = 0; e.fx = 'dizzy'; combo++; const n = Math.min(combo, 5); runGems += n; setGems();
+    e.st = 1; e.t = 0; e.fx = 'dizzy'; combo++; HK.emit('onStomp'); const n = Math.min(combo, 5); runGems += n; setGems();
     Au.pop(combo); Au.squeak(); spark(e.x, enemyCy(e), 8, T_STAR, 100, .6); popup(e.x, enemyCy(e) - 26, combo >= 2 ? 'x' + Math.min(combo, 9) : '+' + n); flyGem(e.x, enemyCy(e), 1);
     if (bounce) { vy = hold ? -600 : -470; onG = false; flaps = 1; jumpT = 0; sqS = 0.25; sqV = 0; }
     if (combo >= 2) Au.combo(combo);
@@ -429,17 +437,32 @@
     finStars = forceStars || (1 + (gateStar ? 1 : 0) + (runGems >= total * 0.6 ? 1 : 0));
     confetti(70); Au.fanfare(); Au.stopMusic(); setTimeout(() => Au.star(0), 300); if (finStars > 1) setTimeout(() => Au.star(1), 520); if (finStars > 2) setTimeout(() => Au.star(2), 740);
     const r = S.finish(def.id, finStars, runGems); try { FZ && FZ.wake(false); } catch (e) { }
+    finFun = HK.emit('onLevelEnd', def.id, finStars, runGems, S.crowns(def.id)) || null; fwI = 0;
     setTimeout(() => showResult(r), 1700);
   }
+  let rollRaf = 0;
+  function rollGems(n) { cancelAnimationFrame(rollRaf); const t0 = performance.now(), el = $('resGems'); if (calm() || celebSkip) { el.textContent = n; return; }
+    let shown = -1; const f = t => { const k = Math.min(1, (t - t0) / 900), e = 1 - (1 - k) * (1 - k), v = Math.round(n * e); if (v !== shown && (k >= 1 || t - lastRoll > 60)) { shown = v; lastRoll = t; el.textContent = v; } if (k < 1 || shown !== n) rollRaf = requestAnimationFrame(f); }; let lastRoll = 0; el.textContent = 0; rollRaf = requestAnimationFrame(f); }
+  function showNew() {
+    const box = $('resNew'), f = finFun || { stickers: [], shiny: '' }; let h = '';
+    // stickers as <img> (decoded once, cheaper to show than inline SVG while the celebration is still running)
+    const img = id => '<img alt="" src="data:image/svg+xml,' + encodeURIComponent(FX.sticker(id, FN.PAGES[FN.STK[id].page].c)) + '">';
+    if (FN && FX) { f.stickers.slice(0, 4).forEach(g => { h += '<i>' + img(g.id) + '</i>'; }); if (f.shiny) h += '<i class="shiny">' + img(f.shiny) + '</i>'; }
+    box.innerHTML = h; box.hidden = !h;
+    let t = 5200; const later = (line) => { const id = runId; setTimeout(() => { if (state === 'result' && id === runId) speak(line, true); }, t); t += 1900; };
+    if (f.stickers.length) later(LINES.sticker); if (f.shiny) later(LINES.shiny); if (f.stickers.some(g => g.page >= 0)) later(LINES.page);
+  }
+  function skipCeleb() { if (celebSkip) return; celebSkip = true; fwI = 99; cancelAnimationFrame(rollRaf); $('resGems').textContent = runGems; $('resM').classList.add('skip'); }
   function showResult(r) {
     if (state !== 'play') return; state = 'result';
     const st = $('resStars').children; for (let i = 0; i < 3; i++) { st[i].classList.toggle('on', i < finStars); st[i].style.animationDelay = (i * 0.25) + 's'; }
-    $('resGems').textContent = runGems; const m = S.crowns(def.id); const rc = $('resCrowns').children; for (let i = 0; i < 3; i++) rc[i].innerHTML = (m >> i & 1) ? A.SVG.crown : A.SVG.crownOff;
+    rollGems(runGems); showNew(); const m = S.crowns(def.id); const rc = $('resCrowns').children; for (let i = 0; i < 3; i++) rc[i].innerHTML = (m >> i & 1) ? A.SVG.crown : A.SVG.crownOff;
     const stk = $('resStk'); stk.hidden = !r.newSticker; stk.classList.toggle('gold', m === 7); if (r.newSticker) stk.innerHTML = A.SVG.sticker[r.newSticker];
     const next = def.id < S.LEVELS; $('bNext').hidden = !next; $('rGo').innerHTML = (next ? A.SVG.play : A.SVG.map) + '<span>' + (next ? 'Next' : 'Map') + '</span>'; $('rGo').setAttribute('aria-label', next ? 'Next level' : 'Map'); $('rGo').dataset.next = next ? 1 : ''; $('resM').hidden = false; $('hud').hidden = true; $('hint').hidden = true;
     speak(finStars === 3 ? LINES.three : finStars === 2 ? LINES.two : LINES.one, true);
     setTimeout(() => { if (state === 'result') speak(sayName(PRAISE[Math.random() * PRAISE.length | 0]), true); }, 1800);
     if (r.newSticker) setTimeout(() => { if (state === 'result') speak(LINES.sticker, true); }, 3600);
+    $('resM').classList.remove('skip');
     Au.music('map');
   }
 
@@ -568,22 +591,28 @@
     // shadow on whatever is under her
     const fl = floorAt(wx, fy, 6); if (fl < PIT) { const hgt = Math.max(0, fl - fy); stamp(A.shadow, wx, fl + 1, gs * Math.max(0.4, 1 - hgt / 220), Math.max(0.2, 1 - hgt / 180)); }
     if (rbT > 0) { ctx.lineWidth = 3.2; ctx.globalAlpha = Math.min(1, rbT) * 0.85; for (let c = 0; c < 6; c++) { ctx.strokeStyle = A.RBOW[c]; ctx.beginPath(); for (let i = 0; i < 16; i++) { const h = yHist[(yh - i * 5) & 255], X = wx - 8 - i * speed * 5 / 120, Y = h + (c - 2.5) * 3; if (i) ctx.lineTo(X, Y); else ctx.moveTo(X, Y); } ctx.stroke(); } ctx.globalAlpha = 1; }
+    if (wear.pet && WD) { const ps = WD.PET[wear.pet], py = yHist[(yh - 40) & 255] - 22 * gs + Math.sin(wt * 3.2) * 4; if (ps) ctx.drawImage(ps, wx - 44 * gs - 13, py - 13, 26, 26); }
     if (blink) ctx.globalAlpha = 0.45;
+    const FOOT = (wear.shoes && WD && WD.SHOE[wear.shoes]) || G.foot, WING = (wear.wings && WD && WD.WING[wear.wings]) || G.wing;
     const sy = 1 + sqS, sxx = 1 - sqS * 0.55;
     ctx.save(); ctx.translate(wx, fy); ctx.scale(sxx * gs, sy * gs);
     const lag = Math.max(1, Math.round(10.5 / Math.max(70, speed || 70) * 120));
     for (let i = 4; i >= 1; i--) {
       const hy = (yHist[(yh - lag * i) & 255] - fy) / gs + PR, bob = onG ? -Math.abs(Math.sin(runPh - i * 0.9)) * 2.2 : 0, x = -i * 10.5, y = hy - 10 + bob;
-      if (onG && hy > -3) { const fp = Math.sin(runPh * 2 - i * 1.3) * 2.2; ctx.drawImage(G.foot, x - 4 + fp, -3.5, 8, 6); ctx.drawImage(G.foot, x - 4 - fp, -2.5, 8, 6); }
+      if (onG && hy > -3) { const fp = Math.sin(runPh * 2 - i * 1.3) * 2.2; ctx.drawImage(FOOT, x - 4 + fp, -3.5, 8, 6); ctx.drawImage(FOOT, x - 4 - fp, -2.5, 8, 6); }
+      if (i === 1 && wear.cape && WD) { const c = WD.CAPE[wear.cape]; if (c) ctx.drawImage(c, x - 14, y - 15 - Math.sin(wt * 10) * 0.8, 40, 30); }
       ctx.drawImage(i % 2 ? G.segA : G.segB, x - 14, y - 14, 28, 28);
     }
     // wings
     const flapA = wingT > 0 ? Math.sin((0.3 - wingT) / 0.3 * TAU) * 0.9 : (!onG && hold && vy > 0) ? Math.sin(wt * 32) * 0.55 : onG ? Math.sin(wt * 9) * 0.12 : Math.sin(wt * 18) * 0.35;
-    ctx.save(); ctx.translate(-5, -24); ctx.rotate(-0.35 + flapA * 0.6); ctx.scale(1, 0.75 + Math.abs(flapA) * 0.4); ctx.drawImage(G.wing, -22, -20, 44, 40); ctx.restore();
+    ctx.save(); ctx.translate(-5, -24); ctx.rotate(-0.35 + flapA * 0.6); ctx.scale(1, 0.75 + Math.abs(flapA) * 0.4); ctx.drawImage(WING, -22, -20, 44, 40); ctx.restore();
     // head (tilts with her speed up/down)
     ctx.save(); ctx.translate(2, -15); ctx.rotate(Math.max(-0.25, Math.min(0.25, vy / 1800)));
     const head = faceK === 'oops' ? G.oops : faceK === 'joy' ? G.joy : (blinkT < 0 ? G.blink : (!onG && vy < -150 ? G.joy : G.head));
-    ctx.drawImage(head, -32, -32, 64, 64); ctx.restore();
+    ctx.drawImage(head, -32, -32, 64, 64);
+    if (head === G.joy && WD) { ctx.drawImage(WD.blush, -15, 1, 10, 6); ctx.drawImage(WD.blush, 9, 1, 10, 6); }
+    if (wear.hat && WD) { const h = WD.HAT[wear.hat], a = WD.HAT_AT[wear.hat]; if (h) ctx.drawImage(h, a[0] - h.w * a[2] / 2, a[1] - h.h * a[2] / 2, h.w * a[2], h.h * a[2]); }
+    ctx.restore();
     ctx.restore(); ctx.globalAlpha = 1;
     if (shield || bubbleT > 0) { const k = (bubbleT > 0 ? 1.15 : 0.95) * gs * (1 + Math.sin(wt * 5) * 0.04); stamp(A.bubble, wx - 4, fy - r - 6 * gs, k, 0.95); }
     if (magT > 0 && magT < 2 && ((magT * 6) | 0) % 2) stamp(A.glow, wx, fy - r, 1.4, 0.5);
@@ -683,12 +712,16 @@
   function heroPortrait() {
     const c = document.createElement('canvas'); c.width = 380; c.height = 250; const g = c.getContext('2d');
     g.translate(205, 150); g.scale(2.6, 2.6);
-    for (let i = 4; i >= 1; i--) { const x = -i * 11, y = Math.sin(i * 1.3) * 3 - 8; g.drawImage(G.foot, x - 6, y + 8, 8, 6); g.drawImage(G.foot, x - 1, y + 9, 8, 6); g.drawImage(i % 2 ? G.segA : G.segB, x - 14, y - 14, 28, 28); }
-    g.save(); g.translate(-5, -27); g.rotate(-0.5); g.drawImage(G.wing, -22, -20, 44, 40); g.restore(); g.drawImage(G.joy, -30, -50, 64, 64);
+    const FOOT = (wear.shoes && WD && WD.SHOE[wear.shoes]) || G.foot, WING = (wear.wings && WD && WD.WING[wear.wings]) || G.wing;
+    if (wear.pet && WD && WD.PET[wear.pet]) g.drawImage(WD.PET[wear.pet], -72, -44, 26, 26);
+    for (let i = 4; i >= 1; i--) { const x = -i * 11, y = Math.sin(i * 1.3) * 3 - 8; g.drawImage(FOOT, x - 6, y + 8, 8, 6); g.drawImage(FOOT, x - 1, y + 9, 8, 6);
+      if (i === 1 && wear.cape && WD && WD.CAPE[wear.cape]) g.drawImage(WD.CAPE[wear.cape], x - 14, y - 15, 40, 30); g.drawImage(i % 2 ? G.segA : G.segB, x - 14, y - 14, 28, 28); }
+    g.save(); g.translate(-5, -27); g.rotate(-0.5); g.drawImage(WING, -22, -20, 44, 40); g.restore(); g.drawImage(G.joy, -30, -50, 64, 64);
+    if (WD) { g.drawImage(WD.blush, -15, -16, 10, 6); g.drawImage(WD.blush, 9, -16, 10, 6); if (wear.hat && WD.HAT[wear.hat]) { const h = WD.HAT[wear.hat], a = WD.HAT_AT[wear.hat]; g.drawImage(h, 2 + a[0] - h.w * a[2] / 2, -18 + a[1] - h.h * a[2] / 2, h.w * a[2], h.h * a[2]); } }
     return c.toDataURL();
   }
   function buildMap() {
-    look = S.glim(); G = A.glimmer(look); const pic = heroPortrait(); $('hero').src = pic;
+    look = S.glim(); G = A.glimmer(look); lookNow(); const pic = heroPortrait(); $('hero').src = pic;
     const nodes = $('nodes'); nodes.innerHTML = ''; let cur = 0;
     for (let i = 1; i <= S.LEVELS; i++) {
       const unlocked = S.unlocked(i), e = S.level(i), b = document.createElement('button'); b.className = 'node' + (unlocked ? '' : ' lock') + (i === S.LEVELS ? ' boss' : '');
@@ -706,7 +739,7 @@
   function toMap(first) {
     runId++; state = 'map'; $('map').hidden = false; $('hud').hidden = true; $('pauseM').hidden = true; $('resM').hidden = true; $('setM').hidden = true; $('hint').hidden = true; $('banner').hidden = true;
     hold = false; ptrs.clear(); finished = false; boss = null; main = null; inBonus = false; Au.stopSay(); try { FZ && FZ.wake(false); } catch (e) { }
-    buildMap(); Au.music('map'); startLoop();
+    buildMap(); Au.music('map'); startLoop(); HK.emit('onMapOpen', !!first);
     if (first && !S.seen('welcome')) { S.markSeen('welcome'); setTimeout(() => speak(sayName(LINES.welcome), true), 400); }
     else if (!first) { try { FZ && FZ.breakCheck({ dir: 'audio/', muted: save.muted }); } catch (e) { } }
   }
@@ -742,6 +775,9 @@
   $('sMus').addEventListener('click', () => setS({ mus: !S.settings().mus }));
   $('sVoice').addEventListener('click', () => { setS({ voice: !S.settings().voice }); if (!S.settings().voice) Au.stopSay(); });
   $('sDone').addEventListener('click', () => { $('setM').hidden = true; });
+  HK.on('portrait', () => { if (!G) return ''; lookNow(); return heroPortrait(); });
+  HK.on('lookChanged', () => { if (state !== 'map') return; lookNow(); const pic = heroPortrait(); $('hero').src = pic; const m = document.querySelector('#nodes .me'); if (m) m.src = pic; });
+  $('resM').addEventListener('pointerdown', e => { if (!e.target.closest('button,a')) skipCeleb(); });
   fit(); Au.setMuted(save.muted); toMap(true);
   // test hooks for the QA scripts (no effect on play)
   window.SKTest = {
@@ -752,6 +788,6 @@
     finishNow(n) { forceStars = n || 3; gateStar = true; finish(); }, get stars() { return finStars; }, get ents() { return ents; }, setPy(y) { fy = y + R(); vy = 0; },
     get q() { return q; }, get dpr() { return dpr; }, get inBonus() { return inBonus; }, get crowns() { return crownsRun; }, get gs() { return gs; },
     enterBonus() { const e = ents.find(x => x.k === 'O' && x.on); if (e) enterBonus(e); return !!e; }, exitBonus, give(k) { const e = mkEnt(k, camX + px, fy - R()); takePower(e); },
-    hurt() { hurt(null); }, set skip(v) { debug.skip = v; }, get bubble() { return bubbleT > 0; }, lockQ(v) { q = v; slowT = -1e9; }
+    hurt() { hurt(null); }, get wear() { return wear; }, skipCeleb, get celebSkip() { return celebSkip; }, set skip(v) { debug.skip = v; }, get bubble() { return bubbleT > 0; }, lockQ(v) { q = v; slowT = -1e9; }
   };
 })();

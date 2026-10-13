@@ -103,7 +103,7 @@ html.fz-calm #resStars i.on{animation:none;transform:none}@media (prefers-reduce
 .tg{min-width:96px;min-height:52px;border-radius:99px;background:#9a8fb0;font-weight:900;font-size:18px}.tg.on{background:#2fbf6b}
 .sb{width:52px;height:52px;border-radius:50%;background:linear-gradient(145deg,#fff,#d8d8e8);color:#a0207a;font-weight:900;font-size:30px;line-height:1}
 @media (max-height:520px){.lb{min-height:56px;min-width:72px}.srow{font-size:18px}}
-</style></head><body>
+</style><link rel="stylesheet" href="fun.css"></head><body>
 <div id="app">
 <canvas id="cv"></canvas>
 <div id="hud" hidden>
@@ -118,15 +118,19 @@ html.fz-calm #resStars i.on{animation:none;transform:none}@media (prefers-reduce
  <div class="bot"><div class="plate" aria-label="Gems"><span class="ic" id="gemIc2"></span><span id="gemTotal">0</span></div><div id="stkBar" aria-label="My stickers"></div><div class="plate" aria-label="Sky Glider stickers"><span class="ic pl" id="skIc"></span><span id="skN">0</span></div></div>
 </section>
 <section class="ov" id="pauseM" hidden><div class="panel"><div class="btns"><button class="rb" id="bResume" aria-label="Keep playing"></button><button class="rb si" id="bRestart" aria-label="Start again"></button><button class="rb si" id="bMap" aria-label="Map"></button></div><div class="nav"><a class="lb si" id="pHome" href="../home/" aria-label="Home"></a><button class="lb si" id="pSet" aria-label="Settings"></button></div></div></section>
-<section class="ov" id="resM" hidden><div class="panel"><div id="resStars"></div><div class="resRow"><div class="plate"><span class="ic" id="gemIc3"></span><span id="resGems">0</span></div><div class="plate" id="resCrowns" aria-label="Crowns"></div><div id="resStk" hidden></div></div><div class="btns"><button class="rb" id="bNext" aria-label="Next level"></button><button class="rb si" id="bAgain" aria-label="Play again"></button><button class="rb si" id="bMap2" aria-label="Map"></button></div><div class="nav"><a class="lb si" id="rHome" href="../home/" aria-label="Home"></a><button class="lb" id="rGo" aria-label="Next level"></button><button class="lb si" id="rSet" aria-label="Settings"></button></div></div></section>
+<section class="ov" id="resM" hidden><div class="panel"><div id="resStars"></div><div class="resRow"><div class="plate"><span class="ic" id="gemIc3"></span><span id="resGems">0</span></div><div class="plate" id="resCrowns" aria-label="Crowns"></div><div id="resStk" hidden></div></div><div id="resNew"></div><div class="btns"><button class="rb" id="bNext" aria-label="Next level"></button><button class="rb si" id="bAgain" aria-label="Play again"></button><button class="rb si" id="bMap2" aria-label="Map"></button></div><div class="nav"><a class="lb si" id="rHome" href="../home/" aria-label="Home"></a><button class="lb" id="rGo" aria-label="Next level"></button><button class="lb si" id="rSet" aria-label="Settings"></button></div></div></section>
 <section class="ov" id="setM" hidden><div class="panel" role="dialog" aria-label="Settings"><div class="srow"><span class="ic" id="sVolIc"></span><button class="sb" id="sDown" aria-label="Quieter">&minus;</button><div id="volBar"><i></i><i></i><i></i><i></i></div><button class="sb" id="sUp" aria-label="Louder">+</button></div><div class="srow"><span>Music</span><button class="tg" id="sMus" aria-label="Music"></button></div><div class="srow"><span>Voice</span><button class="tg" id="sVoice" aria-label="Voice"></button></div><button class="lb" id="sDone" aria-label="Done"></button></div></section>
 <div id="wipe" hidden><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 88 C10 58 12 22 34 20 C44 19 50 28 50 34 C50 28 56 19 66 20 C88 22 90 58 50 88Z" fill="#ff8fd0" stroke="#fff" stroke-width="3"/></svg></div>
 </div>
 <script src="funzone.js"></script>
 <script src="save.js"></script>
 <script src="art.js"></script>
+<script src="art-fx.js"></script>
+<script src="art-wardrobe.js"></script>
 <script src="levels.js"></script>
 <script src="audio.js"></script>
+<script src="fun.js"></script>
+<script src="book.js"></script>
 <script src="game.js"></script>
 <script>
 if('serviceWorker' in navigator){addEventListener('load',()=>{

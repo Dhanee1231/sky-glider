@@ -5,6 +5,11 @@
 //   cr  = {"1": 0-7}  sparkle crowns found per level (bit mask of the level's 3 crowns; all 3 = golden sticker frame)
 //   sec = {"1": 1}    secret rooms found per level
 // v4 adds one more OPTIONAL top-level field: set = {vol:0-100, mus:bool, voice:bool} (Settings panel; defaults 100/true/true)
+// v5 (fun Phase 1) adds three more OPTIONAL top-level fields (all sanitized here; unknown ids/entries are kept untouched):
+//   day   = {last:"YYYY-MM-DD", beads:0-999, opened:"YYYY-MM-DD"}  local-date daily surprise (beads = Phase 2 streak moon)
+//   wd    = {own:{id:1}, on:{hat,cape,wings,shoes,pet}, pn:"name", silly:"YYYY-MM-DD"}  wardrobe + pets bought with gems
+//   shiny = {"stickerId":1}  shiny sticker variants (from 3-crown runs)
+//   stk keeps the 5 level stickers and gains the sticker-book ids in SKFun.STK (validated in fun.js; everything else kept as before)
 // Peeks (READ ONLY, never written): crystalcave.v2 (Glimmer's look) and skyglider.v3 (sticker count). Both survive missing/corrupt data.
 (function () {
   const KEY = 'sparkle-kingdom.v1';
@@ -12,7 +17,7 @@
   const num = (v, lo, hi, d) => (typeof v === 'number' && isFinite(v)) ? Math.max(lo, Math.min(hi, Math.round(v))) : d;
   const ls = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } } };
   const LEVELS = 5, STICKERS = ['heart', 'flower', 'rainbow', 'gem', 'crown'];
-  const def = () => ({ v: 1, gems: 0, lv: {}, stk: {}, muted: false, seen: {}, cr: {}, sec: {}, set: { vol: 100, mus: true, voice: true } });
+  const def = () => ({ v: 1, gems: 0, lv: {}, stk: {}, muted: false, seen: {}, cr: {}, sec: {}, set: { vol: 100, mus: true, voice: true }, day: { last: '', beads: 0, opened: '' }, wd: { own: {}, on: {} }, shiny: {} });
   const BAD = k => k === '__proto__' || k === 'constructor' || k === 'prototype';
   const lvIdx = k => { const i = +k; return Number.isInteger(i) && i >= 1 && i <= LEVELS ? i : 0; };
   function load() {
@@ -30,6 +35,14 @@
       if (i) { const v = num(d[f][k], 0, f === 'cr' ? 7 : 1, 0); if (v) s[f][i] = v; } else s[f][k] = d[f][k]; }
     // v4: settings (optional; anything missing or odd falls back to the default)
     if (isO(d.set)) { s.set.vol = num(d.set.vol, 0, 100, 100); s.set.mus = d.set.mus !== false; s.set.voice = d.set.voice !== false; }
+    // v5: daily surprise, wardrobe, shiny stickers (optional; odd values fall back to defaults, unknown keys kept)
+    const DATE = v => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : '';
+    if (isO(d.day)) { for (const k in d.day) if (!BAD(k)) s.day[k] = d.day[k]; s.day.last = DATE(d.day.last); s.day.opened = DATE(d.day.opened); s.day.beads = num(d.day.beads, 0, 999, 0); }
+    if (isO(d.wd)) { for (const k in d.wd) if (!BAD(k) && k !== 'own' && k !== 'on') s.wd[k] = d.wd[k];
+      if (isO(d.wd.own)) for (const k in d.wd.own) if (!BAD(k)) s.wd.own[k] = d.wd.own[k];
+      if (isO(d.wd.on)) for (const k in d.wd.on) if (!BAD(k) && (typeof d.wd.on[k] === 'string' || d.wd.on[k] == null)) s.wd.on[k] = d.wd.on[k];
+      if (typeof s.wd.pn !== 'string' || s.wd.pn.length > 16) delete s.wd.pn; if (s.wd.silly != null && !DATE(s.wd.silly)) delete s.wd.silly; }
+    if (isO(d.shiny)) for (const k in d.shiny) if (!BAD(k)) s.shiny[k] = d.shiny[k];
     // keep unknown future fields untouched so an older copy of the page never drops them
     for (const k in d) if (!(k in s) && !BAD(k)) s[k] = d[k];
     return s;
