@@ -1,6 +1,9 @@
 // Sparkle Kingdom save + read-only peeks.
-// Own key: sparkle-kingdom.v1 = {v:1, gems, lv:{"1":{s,g}}, stk:{id:1}, muted, seen}. A value that cannot be read is copied to
+// Own key: sparkle-kingdom.v1 = {v:1, gems, lv:{"1":{s,g}}, stk:{id:1}, muted, seen, cr?, sec?}. A value that cannot be read is copied to
 // sparkle-kingdom.v1.bad once and never overwritten; every field is sanitized on load; new fields must be optional with defaults.
+// v3 adds two OPTIONAL top-level fields (old v1/v2 copies keep unknown top-level fields untouched, so they survive a round trip):
+//   cr  = {"1": 0-7}  sparkle crowns found per level (bit mask of the level's 3 crowns; all 3 = golden sticker frame)
+//   sec = {"1": 1}    secret rooms found per level
 // Peeks (READ ONLY, never written): crystalcave.v2 (Glimmer's look) and skyglider.v3 (sticker count). Both survive missing/corrupt data.
 (function () {
   const KEY = 'sparkle-kingdom.v1';
@@ -8,20 +11,24 @@
   const num = (v, lo, hi, d) => (typeof v === 'number' && isFinite(v)) ? Math.max(lo, Math.min(hi, Math.round(v))) : d;
   const ls = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } } };
   const LEVELS = 5, STICKERS = ['heart', 'flower', 'rainbow', 'gem', 'crown'];
-  const def = () => ({ v: 1, gems: 0, lv: {}, stk: {}, muted: false, seen: {} });
+  const def = () => ({ v: 1, gems: 0, lv: {}, stk: {}, muted: false, seen: {}, cr: {}, sec: {} });
+  const BAD = k => k === '__proto__' || k === 'constructor' || k === 'prototype';
+  const lvIdx = k => { const i = +k; return Number.isInteger(i) && i >= 1 && i <= LEVELS ? i : 0; };
   function load() {
     const raw = ls.get(KEY), s = def(); if (raw == null) return s;
     let d = null; try { d = JSON.parse(raw); } catch (e) { }
     if (!isO(d)) { if (ls.get(KEY + '.bad') == null) ls.set(KEY + '.bad', raw); return s; }
     s.gems = num(d.gems, 0, 1e6, 0); s.muted = d.muted === true;
-    const BAD = k => k === '__proto__' || k === 'constructor' || k === 'prototype';
-    if (isO(d.lv)) for (const k of Object.keys(d.lv)) { const e = d.lv[k]; if (BAD(k)) continue; const i = +k;
-      if (Number.isInteger(i) && i >= 1 && i <= LEVELS) { if (isO(e)) s.lv[i] = { s: num(e.s, 0, 3, 0), g: num(e.g, 0, 9999, 0) }; }
-      else s.lv[k] = e; } // follow-up: level entries this version doesn't know (a newer copy's levels) are kept untouched
+    if (isO(d.lv)) for (const k of Object.keys(d.lv)) { const e = d.lv[k]; if (BAD(k)) continue; const i = lvIdx(k);
+      if (i) { if (isO(e)) s.lv[i] = { s: num(e.s, 0, 3, 0), g: num(e.g, 0, 9999, 0) }; }
+      else s.lv[k] = e; } // level entries this version doesn't know (a newer copy's levels) are kept untouched
     if (isO(d.stk)) for (const k of Object.keys(d.stk)) { if (BAD(k)) continue; if (STICKERS.includes(k)) { if (d.stk[k]) s.stk[k] = 1; } else s.stk[k] = d.stk[k]; } // unknown stickers kept too
     if (isO(d.seen)) for (const k in d.seen) if (d.seen[k] === true && /^[a-z]{1,12}$/.test(k)) s.seen[k] = true;
+    // v3: crowns + secret rooms (optional; known levels sanitized, unknown entries kept as they are)
+    for (const f of ['cr', 'sec']) if (isO(d[f])) for (const k of Object.keys(d[f])) { if (BAD(k)) continue; const i = lvIdx(k);
+      if (i) { const v = num(d[f][k], 0, f === 'cr' ? 7 : 1, 0); if (v) s[f][i] = v; } else s[f][k] = d[f][k]; }
     // keep unknown future fields untouched so an older copy of the page never drops them
-    for (const k in d) if (!(k in s)) s[k] = d[k];
+    for (const k in d) if (!(k in s) && !BAD(k)) s[k] = d[k];
     return s;
   }
   let save = load(), timer = 0;
@@ -51,6 +58,7 @@
       return Math.min(n, 999);
     } catch (e) { return 0; }
   }
+  const bits = m => (m & 1) + (m >> 1 & 1) + (m >> 2 & 1);
   window.SKSave = {
     KEY, LEVELS, STICKERS, get: () => save, persist, later,
     glim, skyStickers,
@@ -63,6 +71,10 @@
       save.gems = Math.min(1e6, save.gems + num(gems, 0, 9999, 0));
       const id = STICKERS[i - 1], fresh = !save.stk[id]; save.stk[id] = 1; persist(); return { newSticker: fresh ? id : '' };
     },
+    // crowns are kept the moment she finds them (even if she leaves the level); returns true if all 3 just became found
+    crowns: i => num(save.cr[i], 0, 7, 0), crownCount: i => bits(num(save.cr[i], 0, 7, 0)),
+    addCrown(i, b) { const was = num(save.cr[i], 0, 7, 0), now = was | (1 << b); if (now === was) return false; save.cr[i] = now; persist(); return now === 7; },
+    secret: i => save.sec[i] === 1, markSecret(i) { if (save.sec[i] !== 1) { save.sec[i] = 1; later(); } },
     addGems(n) { save.gems = Math.min(1e6, save.gems + n); later(); },
     setMuted(m) { save.muted = !!m; persist(); },
     seen: k => !!save.seen[k], markSeen(k) { save.seen[k] = true; later(); }
