@@ -5,6 +5,7 @@
 //   = cloud platform (land on it from above)   F bounce flower   W wind column (hold to ride it up)
 //   b dust bunny (walks)   j jelly (hops)   n snowball (bounces)   y flutter puff (flies)   -> jump on them and they go "poof"
 //   P heart-star   R rainbow power   U gem magnet   S bubble shield   Z giant Glimmer
+//   A hidden friend (v7, one per level: find it for a sticker)
 //   O secret swirl (goes to the level's secret room)   X way out of the secret room   K checkpoint   E rainbow gate   B boss arena
 // Ground things (b j n F K) sit on the ground whatever row they are drawn in. Reach: run = row 10, jump = rows 6-9,
 // jump + flap = rows 4-5, bounce flower = rows 1-3. Platforms: from the ground row 8; from row 8 up to row 5.
@@ -59,18 +60,36 @@
     m_power: { g: F0, a: { 6: '.....U..............', 7: '...........M........', 10: '..........gggggggg..' } },
     f_crown: { g: F0, a: { 1: '..........C.........', 3: '........g...g.......', 10: '..gg..F.............' } },
     f_secret: { g: '00000000___000000000', a: { 2: '.........O..........', 4: '.......g...g........', 10: '..gg..F.............' } },
-    f_shield: { g: F0, a: { 6: '....S...............', 10: '.........j....j.....' } },
+    f_shield: { g: F0, a: { 5: '............A.......', 6: '....S...............', 10: '.........j....j.....' } },
     r_crown: { g: '0000________00000000', a: { 4: '.......C............', 6: '....===....===......', 8: '..==..........==....' } },
     r_secret: { g: F0, a: { 1: '..............O.....', 2: '.............===....', 4: '.........=====......', 6: '....=====...........', 8: '.===................' } },
-    r_rainbow: { g: F0, a: { 6: '...R................', 10: '.......b...b...b..b.' } },
+    r_rainbow: { g: F0, a: { 5: '..............A.....', 6: '...R................', 10: '.......b...b...b..b.' } },
     d_crown: { g: F0, a: { 0: '.......C............', 2: '.......g............', 4: '.......g............', 8: '.......W............', 10: '..gg................' } },
     d_secret: { g: F0, a: { 1: '..........O.........', 3: '..........g.........', 8: '..........W.........', 10: '.....n..............' } },
-    d_giant: { g: F0, a: { 6: '..Z.................', 10: '......b..j..b..n..b.' } },
-    s_power: { g: F0, a: { 3: '..............C.....', 4: '.............g.g....', 6: '.....S.....P........', 8: '............=====...', 10: '..ggg...............' } },
-    m_crown2: { g: '0000000___0000000000', a: { 4: '........C...........', 6: '.......g.g..........', 10: 'ggg...........ggg...' } },
+    d_giant: { g: F0, a: { 5: '.......A............', 6: '..Z.................', 10: '......b..j..b..n..b.' } },
+    s_power: { g: F0, a: { 3: '..............C.....', 4: '..A..........g.g....', 6: '.....S.....P........', 8: '............=====...', 10: '..ggg...............' } },
+    m_crown2: { g: '0000000___0000000000', a: { 4: '........C...........', 5: '...............A....', 6: '.......g.g..........', 10: 'ggg...........ggg...' } },
     f_crown2: { g: F0, a: { 5: '..........C.........', 7: '.........g.g........', 10: '..gg.....j..........' } },
     r_crown2: { g: F0, a: { 3: '.............C......', 5: '.....y...y..........', 8: '..g.g.g.g.g.........' } },
     d_crown2: { g: F0, a: { 4: '.........C..........', 6: '........g.g.........', 10: '..gg....n...........' } },
+    // ---------- v7: Candy Clouds ----------
+    c_lolli: { g: F0, a: { 6: '..ggg..ggg..ggg.....', 10: '....b.....b.....b...' } },
+    c_crown: { g: F0, a: { 2: '.........C..........', 3: '........g.g.........', 10: '..gg..F.............' } },
+    c_crown2: { g: '000000___00000000000', a: { 4: '.......C............', 6: '......g.g...........', 10: 'gg..........ggg.....' } },
+    c_friend: { g: F0, a: { 4: '............A.......', 5: '...........g.g......', 8: '..........=====.....', 10: '..gg..j.............' } },
+    c_secret: { g: F0, a: { 2: '..........O.........', 3: '.........===........', 4: '......g.............', 10: '..gg.F..............' } },
+    // ---------- v7: Moonlight Bridge (long cloud bridges over the bouncy gaps) ----------
+    mb_bridge: { g: '000______________000', a: { 7: '....g..g..g..g..g...', 8: '...==============...', 10: 'gg................gg' } },
+    mb_crown: { g: '0000__________000000', a: { 3: '........C...........', 4: '.......g.g..........', 6: '.....=======........' } },
+    mb_crown2: { g: F0, a: { 1: '.........C..........', 3: '.......g...g........', 7: '.............y......', 10: '..gg.F..............' } },
+    mb_friend: { g: '00000000____00000000', a: { 4: '.........A..........', 6: '........g.g.........', 10: '.ggg..........n.....' } },
+    mb_secret: { g: F0, a: { 2: '.........O..........', 3: '........===.........', 5: '.....=====..........', 8: '..=====.............' } },
+    // ---------- v7: Bubble Lagoon (swim-float: soft gravity, every tap is a swim stroke) ----------
+    bl_float: { g: F0, a: { 3: '...ggg.....ggg......', 5: '......ggg.....ggg...', 10: 'gg..................' } },
+    bl_crown: { g: '0000____________0000', a: { 2: '.........C..........', 4: '.......g...g........', 6: '.....g.......g......' } },
+    bl_crown2: { g: '000000_______0000000', a: { 3: '.........C..........', 5: '........g.g.........', 8: '......y.....y.......' } },
+    bl_friend: { g: F0, a: { 2: '.............A......', 4: '...........g.g......', 7: '.....y..............', 10: '..gg................' } },
+    bl_secret: { g: F0, a: { 1: '..........O.........', 2: '.........===........', 4: '......g.............', 10: '..gg..j.............' } },
     // ---------- secret rooms (golden treasure clouds) ----------
     t_in: { g: F0, a: { 6: '..g.g.g.g.g.g.g.g.g.', 8: '.g.g.g.g.g.g.g.g.g.g', 10: 'gggggggggggggggggggg' } },
     t_gifts: { g: F0, a: { 4: '....ggg....ggg......', 7: '...M....M....M......', 10: 'gg..gg..gg..gg..gg..' } },
@@ -92,9 +111,21 @@
       segs: ['start', 'snow', 'wind', 'blocks2', 'd_giant', 'valley', 'check', 'd_crown', 'gap2', 'flyers2', 'wind2', 'd_crown2', 'heal', 'd_secret', 'snow', 'm_power', 'trio', 'big', 'rings2', 'gate'],
       bonus: ['t_in', 't_rings', 't_crown', 't_out'] },
     { id: 5, name: 'Silver Puffball', icon: 'boss', speed: 122, theme: 'silver', boss: true,
-      segs: ['start', 'hop', 's_power', 'm_crownHi', 'check', 'blocks', 'arc', 'arena'] }
+      segs: ['start', 'hop', 's_power', 'm_crownHi', 'check', 'blocks', 'arc', 'arena'] },
+    // v7: three new levels after the boss (added AFTER the old ones, so saved progress indexes never shift) + the rematch
+    { id: 6, name: 'Candy Clouds', icon: 'candy', speed: 140, theme: 'candy',
+      segs: ['start', 'c_lolli', 'hop', 'spring', 'blocks', 'gap', 'c_crown', 'trio', 'check', 'cloudhop', 'c_friend', 'rings', 'c_crown2', 'heal', 'c_secret', 'steps', 'hop2', 'big', 'spring2', 'gate'],
+      bonus: ['t_in', 't_gifts', 't_crown', 't_out'] },
+    { id: 7, name: 'Moonlight Bridge', icon: 'moon', speed: 144, theme: 'moon',
+      segs: ['start', 'hop', 'mb_bridge', 'flyers', 'blocks2', 'mb_crown', 'wind2', 'check', 'mb_friend', 'snow', 'mb_bridge', 'mb_crown2', 'heal', 'mb_secret', 'rings2', 'hillbun', 'trio', 'big', 'gate'],
+      bonus: ['t_in', 't_rings', 't_crown', 't_out'] },
+    { id: 8, name: 'Bubble Lagoon', icon: 'bubble', speed: 128, theme: 'lagoon', swim: true,
+      segs: ['start', 'bl_float', 'jelly', 'bl_crown', 'flyers', 'gap2', 'bl_float', 'check', 'bl_friend', 'rings', 'flyers2', 'bl_crown2', 'heal', 'bl_secret', 'gapcloud', 'bl_float', 'trio', 'big', 'gate'],
+      bonus: ['t_in', 't_gifts', 't_crown', 't_out'] },
+    { id: 9, name: 'Puffball Party', icon: 'party', speed: 128, theme: 'candy', boss: true, party: true,
+      segs: ['start', 'hop', 's_power', 'm_crownHi', 'check', 'c_lolli', 'blocks', 'arc', 'arena'] }
   ];
-  const CHARS = '.gGQCHM=FWbjnyPRUSZOXKEB';
+  const CHARS = '.gGQCHM=FWbjnyPRUSZOXKEBA';
   function cells(seg) {   // [[ch, col, row], ...]
     const o = []; for (const r in seg.a) { const s = seg.a[r]; for (let c = 0; c < s.length && c < W; c++) if (s[c] !== '.') o.push([s[c], c, +r]); } return o;
   }
@@ -106,7 +137,7 @@
       for (let c = 0; c < W; c++) { const ch = s.g[c] || '0'; ground.push(ch === '_' ? -1 : +ch); }
       cells(s).forEach(it => { const c = si * W + it[1], r = it[2]; if (r >= 0 && r < ROWS && c < cols && rows[r][c] === '.') rows[r][c] = it[0]; });
     });
-    return { id: def.id, name: def.name, icon: def.icon, speed: def.speed, theme: list ? 'treasure' : def.theme, boss: !list && !!def.boss, cols, ground, rows: rows.map(r => r.join('')) };
+    return { id: def.id, name: def.name, icon: def.icon, speed: def.speed, swim: !list && !!def.swim, party: !list && !!def.party, theme: list ? 'treasure' : def.theme, boss: !list && !!def.boss, cols, ground, rows: rows.map(r => r.join('')) };
   }
   window.SKLevels = { W, ROWS, TILE: 25, CHARS, SEG, DEFS: LV, build };
 })();

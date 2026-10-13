@@ -10,14 +10,19 @@
 //   wd    = {own:{id:1}, on:{hat,cape,wings,shoes,pet}, pn:"name", silly:"YYYY-MM-DD"}  wardrobe + pets bought with gems
 //   shiny = {"stickerId":1}  shiny sticker variants (from 3-crown runs)
 //   stk keeps the 5 level stickers and gains the sticker-book ids in SKFun.STK (validated in fun.js; everything else kept as before)
+// v6 (fun Phase 2) adds four more OPTIONAL top-level fields:
+//   castle = {"slot":"itemId"} decorations placed; cinv = {"itemId":1} decorations she owns; mg = {"gemcatch":best 0-999,...}
+//   (a key in mg = that mini-game was found, so it can be replayed from the map); ck = {i:level, x:checkpoint x} resume point.
+//   v7: fr = {"1":1} hidden friend found per level (levels 6-9 are new and appended, so v1-v6 level numbers never move).
+//   day.beads now fills the Sparkle Days moon; day.bg = bonus gifts opened (one per 3 beads).
 // Peeks (READ ONLY, never written): crystalcave.v2 (Glimmer's look) and skyglider.v3 (sticker count). Both survive missing/corrupt data.
 (function () {
   const KEY = 'sparkle-kingdom.v1';
   const isO = o => !!o && typeof o === 'object' && !Array.isArray(o);
   const num = (v, lo, hi, d) => (typeof v === 'number' && isFinite(v)) ? Math.max(lo, Math.min(hi, Math.round(v))) : d;
   const ls = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } } };
-  const LEVELS = 5, STICKERS = ['heart', 'flower', 'rainbow', 'gem', 'crown'];
-  const def = () => ({ v: 1, gems: 0, lv: {}, stk: {}, muted: false, seen: {}, cr: {}, sec: {}, set: { vol: 100, mus: true, voice: true }, day: { last: '', beads: 0, opened: '' }, wd: { own: {}, on: {} }, shiny: {} });
+  const LEVELS = 9, STICKERS = ['heart', 'flower', 'rainbow', 'gem', 'crown', 'candy', 'moonstar', 'shell', 'party'];   // v7: levels 6-8 + the Puffball Party rematch
+  const def = () => ({ v: 1, gems: 0, lv: {}, stk: {}, muted: false, seen: {}, cr: {}, sec: {}, set: { vol: 100, mus: true, voice: true }, day: { last: '', beads: 0, opened: '' }, wd: { own: {}, on: {} }, shiny: {}, castle: {}, cinv: {}, mg: {}, fr: {} });
   const BAD = k => k === '__proto__' || k === 'constructor' || k === 'prototype';
   const lvIdx = k => { const i = +k; return Number.isInteger(i) && i >= 1 && i <= LEVELS ? i : 0; };
   function load() {
@@ -43,8 +48,15 @@
       if (isO(d.wd.on)) for (const k in d.wd.on) if (!BAD(k) && (typeof d.wd.on[k] === 'string' || d.wd.on[k] == null)) s.wd.on[k] = d.wd.on[k];
       if (typeof s.wd.pn !== 'string' || s.wd.pn.length > 16) delete s.wd.pn; if (s.wd.silly != null && !DATE(s.wd.silly)) delete s.wd.silly; }
     if (isO(d.shiny)) for (const k in d.shiny) if (!BAD(k)) s.shiny[k] = d.shiny[k];
+    // v6: castle, castle inventory, mini-game bests, checkpoint resume (optional; unknown keys kept)
+    for (const f of ['castle', 'cinv']) if (isO(d[f])) for (const k in d[f]) if (!BAD(k)) s[f][k] = d[f][k];
+    if (isO(d.mg)) for (const k in d.mg) if (!BAD(k)) s.mg[k] = typeof d.mg[k] === 'number' ? num(d.mg[k], 0, 999, 0) : d.mg[k];
+    if (isO(d.ck)) { const i = lvIdx(d.ck.i); if (i) s.ck = { i, x: num(d.ck.x, 0, 1e6, 0) }; }
+    // v7: hidden friends found, fr = {levelId: 1}
+    if (isO(d.fr)) for (const k in d.fr) { if (BAD(k)) continue; if (lvIdx(k)) { if (d.fr[k]) s.fr[k] = 1; } else s.fr[k] = d.fr[k]; }
+    if (s.day && 'bg' in s.day) s.day.bg = num(s.day.bg, 0, 999, 0);
     // keep unknown future fields untouched so an older copy of the page never drops them
-    for (const k in d) if (!(k in s) && !BAD(k)) s[k] = d[k];
+    for (const k in d) if (!(k in s) && !BAD(k) && k !== 'ck') s[k] = d[k];
     return s;
   }
   let save = load(), timer = 0;
@@ -94,6 +106,7 @@
     addGems(n) { save.gems = Math.min(1e6, save.gems + n); later(); },
     setMuted(m) { save.muted = !!m; persist(); },
     settings: () => save.set, setSettings(o) { const t = save.set; if (o && 'vol' in o) t.vol = num(o.vol, 0, 100, t.vol); if (o && 'mus' in o) t.mus = !!o.mus; if (o && 'voice' in o) t.voice = !!o.voice; persist(); },
+    friend: i => save.fr[i] === 1, addFriend(i) { if (!lvIdx(i) || save.fr[i] === 1) return false; save.fr[i] = 1; persist(); return true; },
     seen: k => !!save.seen[k], markSeen(k) { save.seen[k] = true; later(); }
   };
 })();

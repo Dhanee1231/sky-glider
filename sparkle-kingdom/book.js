@@ -6,7 +6,7 @@
   const V = {
     gift: 'A surprise gift for you!', sticker: 'You got a new sticker!', shiny: 'Ooh, a shiny sticker!', page: 'You filled a whole page!',
     outfit: 'A new outfit for Glimmer!', gems: 'Gem shower!', silly: 'Silly hat day!', wear: 'Looking fabulous!', pet: 'Your new friend is here!',
-    more: 'Collect more gems for this one!', tomorrow: 'See you tomorrow for another surprise!', book: 'Look at all your stickers!'
+    more: 'Collect more gems for this one!', tomorrow: 'See you tomorrow for another surprise!', book: 'Look at all your stickers!', decor: 'A new decoration for your castle!'
   };
   let vBusy = 0;
   const say = (t, pri) => { const n = performance.now(); if (!pri && n < vBusy) return; vBusy = n + 900 + t.length * 55; try { Au.say(t); } catch (e) { } };
@@ -36,8 +36,8 @@
     $('bkDots').innerHTML = F.PAGES.map((q, i) => '<i class="' + (i === page ? 'cur' : '') + (F.pageDone(i) ? ' full' : '') + '" style="--pc:' + q.c + '"></i>').join('');
     $('bkCnt').innerHTML = F.count() + ' / ' + F.total;
   }
-  $('bkPrev').addEventListener('click', () => { tick(); page = (page + 6) % 7; drawBook(); });
-  $('bkNext').addEventListener('click', () => { tick(); page = (page + 1) % 7; drawBook(); });
+  $('bkPrev').addEventListener('click', () => { tick(); page = (page + F.PAGES.length - 1) % F.PAGES.length; drawBook(); });
+  $('bkNext').addEventListener('click', () => { tick(); page = (page + 1) % F.PAGES.length; drawBook(); });
   function openBook(pg, shineIt) { if (pg != null && pg >= 0) page = pg; if (shineIt) flash = page; drawBook(); $('bookM').hidden = false; if (!S.seen('book')) { S.markSeen('book'); say(V.book, true); } }
   bBook.addEventListener('click', () => { tick(); openBook(); });
   // Wardrobe + pet shop
@@ -73,20 +73,21 @@
   const pg = ov('giftM', 'Surprise'); pg.classList.add('fz-giftp');
   pg.innerHTML = '<div class="fz-box" id="gBox">' + X.gift + '</div><div class="fz-prize" id="gPrize" hidden></div><div class="fz-gt" id="gText"></div><button class="lb" id="gOk" aria-label="Yay"></button>';
   $('gOk').innerHTML = window.SKArt.SVG.play + '<span>Yay!</span>';
-  function openGift() {
-    if (!F.surpriseReady()) return; const r = F.openSurprise(); if (!r) return; tick(); bGift.hidden = true;
+  function reveal(r) {
     $('gBox').hidden = false; $('gBox').className = 'fz-box open'; $('gPrize').hidden = true; $('gText').textContent = ''; $('giftM').hidden = false;
     setTimeout(() => { $('gBox').hidden = true; const P = $('gPrize'); P.hidden = false;
       if (r.kind === 'sticker') { const st = F.STK[r.id]; P.innerHTML = X.sticker(r.id, F.PAGES[st.page].c); $('gText').textContent = 'New sticker!'; say(V.sticker, true); if (r.page >= 0) setTimeout(() => say(V.page, true), 2200); }
       else if (r.kind === 'outfit') { const it = F.ITEM[r.id]; P.innerHTML = '<img alt="" src="' + WD.icon(it.slot, it.art) + '">'; $('gText').textContent = it.name + '!'; say(V.outfit, true); }
+      else if (r.kind === 'castle') { const d = X.DECOR[r.id]; P.innerHTML = '<svg viewBox="' + (d.x - 50) + ' ' + (d.y - 50) + ' 100 100">' + d.svg + '</svg>'; $('gText').textContent = d.name + '!'; say(V.decor, true); }
       else if (r.kind === 'gems') { P.innerHTML = '<span class="gs">' + GEM + GEM + GEM + '</span>'; $('gText').textContent = '+' + r.n; say(V.gems, true); }
       else { P.innerHTML = '<img alt="" src="' + WD.icon('hat', 'teapot') + '">'; $('gText').textContent = 'Silly hat day!'; say(V.silly, true); H.emit('lookChanged'); }
-      try { Au.crown(); } catch (x) { } refresh(); }, 900);
+      try { Au.crown(); } catch (x) { } refresh(); H.emit('mapRefresh'); }, 900);
   }
+  function openGift() { if (!F.surpriseReady()) return; const r = F.openSurprise(); if (!r) return; tick(); bGift.hidden = true; reveal(r); }
   bGift.addEventListener('click', openGift);
   $('gOk').addEventListener('click', () => { tick(); $('giftM').hidden = true; if (!S.seen('tmrw')) { S.markSeen('tmrw'); say(V.tomorrow); } });
   // ---------- map refresh (called by game.js through the onMapOpen hook) ----------
   function refresh() { $('bookN').textContent = F.count(); bGift.hidden = !F.surpriseReady(); }
   H.on('onMapOpen', first => { H.emit('onDayStart'); refresh(); ['bookM', 'shopM', 'giftM'].forEach(id => $(id).hidden = true); if (F.surpriseReady()) setTimeout(() => { if (!bGift.hidden && !$('map').hidden) say(V.gift); }, first ? 3200 : 900); });
-  window.SKBook = { openBook, openGift, refresh, V, close() { ['bookM', 'shopM', 'giftM'].forEach(id => $(id).hidden = true); }, get open() { return ['bookM', 'shopM', 'giftM'].some(id => !$(id).hidden); } };
+  window.SKBook = { openBook, openGift, reveal, refresh, V, say, close() { ['bookM', 'shopM', 'giftM'].forEach(id => $(id).hidden = true); }, get open() { return ['bookM', 'shopM', 'giftM'].some(id => !$(id).hidden); } };
 })();

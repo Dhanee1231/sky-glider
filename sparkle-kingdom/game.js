@@ -17,11 +17,15 @@
     wind: 'Hold to ride the wind!', gate: 'Jump and flap to grab the big star!', oops: 'Whoops! Bubble rescue!', check: 'Checkpoint!',
     heartstar: 'You got a heart star!', rainbow: 'Rainbow trail!', magnet: 'Gem magnet!', shield: 'Bubble shield!', giant: 'Giant Glimmer!',
     crown: 'You found a sparkle crown!', allcrowns: 'All three crowns! Golden sticker!', secret: 'You found a secret room!',
-    combo3: 'Combo!', combo5: 'Super combo!', combo8: 'Mega combo!', shiny: 'Ooh, a shiny sticker!', page: 'You filled a whole page!', sticker: 'You found a new sticker!', three: 'Wow, three stars!', two: 'Two stars!', one: 'One star!',
+    combo3: 'Combo!', combo5: 'Super combo!', combo8: 'Mega combo!', burp: 'Excuse me!', whee: 'Wheee! Cartwheel!', stache: 'Mustache day!', resume: 'Welcome back! Starting from the checkpoint!', shiny: 'Ooh, a shiny sticker!', page: 'You filled a whole page!', sticker: 'You found a new sticker!', three: 'Wow, three stars!', two: 'Two stars!', one: 'One star!',
     boss: 'Here comes the Silver Puffball. Jump on its head three times!', boss2: 'Two more!', boss1: 'One more time!',
-    win: 'You beat the Silver Puffball! You are the hero of Sparkle Kingdom!', rotate: 'Turn your phone sideways for more room!'
+    win: 'You beat the Silver Puffball! You are the hero of Sparkle Kingdom!',
+    friend: 'You found a hidden friend!', friendAgain: 'Hello again, little friend!', swim: 'Tap to swim up! Hold to float.',
+    party: 'Puffball Party! The Silver Puffball wants to play again. Bounce on its head three times!',
+    partyWin: 'Hooray! The Silver Puffball is dancing! Party time in Sparkle Kingdom!', rotate: 'Turn your phone sideways for more room!'
   };
-  const LEVEL_SAY = { 1: 'Cloud Meadow!', 2: 'Flower Hills!', 3: 'Rainbow Slides!', 4: 'Gem Garden!' };
+  const LEVEL_SAY = { 1: 'Cloud Meadow!', 2: 'Flower Hills!', 3: 'Rainbow Slides!', 4: 'Gem Garden!', 6: 'Candy Clouds!', 7: 'Moonlight Bridge!', 8: 'Bubble Lagoon!' };
+  const FRIEND_PET = ['bunny', 'kitten', 'puppy', 'bird'];   // v7: who hides in each level's bubble
   const sayName = line => { try { return FZ ? FZ.withName(line) : line + '!'; } catch (e) { return line + '!'; } };
   const calm = () => { try { return FZ && FZ.calm(); } catch (e) { return false; } };
   const save = S.get();
@@ -29,6 +33,9 @@
   const HK = window.SKHooks || { emit() { }, on() { } }, FN = window.SKFun, WD = window.SKWardrobe, FX = window.SKFx;
   let wear = {}; const lookNow = () => { try { wear = FN ? FN.look() : {}; } catch (e) { wear = {}; } };
   let fwI = 0, finFun = null, celebSkip = false;
+  // v6 silly moments + short sessions
+  let airT = 0, cartT = 0, sneezeT = 6, stacheLv = 0, teapots = false, burped = false, wheeSaid = false;
+  const dayNo = () => { try { const t = FN.today().split('-').map(Number); return Math.floor(Date.UTC(t[0], t[1] - 1, t[2]) / 864e5); } catch (e) { return 0; } };
   // voice: one line at a time; teaching lines (pri) may cut in, the rest wait their turn or are skipped
   let vBusy = 0;
   function speak(line, pri) { const now = performance.now(); if (!pri && now < vBusy) return false; vBusy = now + 700 + line.length * 60; Au.say(line); return true; }
@@ -56,7 +63,7 @@
   let state = 'map', lvl = null, def = null, ents = [], ecount = 0, lo = 0, plats = [], plo = 0, winds = [], camX = 0, speed = 0, wt = 0, tAcc = 0, last = 0, raf = 0;
   let fy = GY0, vy = 0, onG = true, coy = 0, buf = 0, fresh = 0, pend = 0, flaps = 1, jumpT = 1, hold = false, sqS = 0, sqV = 0, runPh = 0, wingT = 0;
   let glow = 2, inv = 0, shield = false, magT = 0, rbT = 0, giantT = 0, gs = 1, bubbleT = 0, faceK = 'head', faceT = 0, blinkT = 2;
-  let chain = 0, chainT = 0, combo = 0, runGems = 0, total = 1, crownsRun = 0, gateStar = false, jumps = 0, frozen = false;
+  let chain = 0, chainT = 0, combo = 0, runGems = 0, total = 1, crownsRun = 0, runFriend = false, gateStar = false, jumps = 0, frozen = false;
   let shake = 0, flash = 0, fade = 0, ready = 0, finished = false, finT = 0, finStars = 0, forceStars = 0;
   let boss = null, arenaCam = -1, progEnd = 1, main = null, inBonus = false;
   let look = S.glim(), G = A.glimmer(look), mapT = 0, slowT = 0, fastT = 0;
@@ -67,6 +74,7 @@
   // ---------- particles (fixed pool) ----------
   const NP = 240, pX = new Float32Array(NP), pY = new Float32Array(NP), pVX = new Float32Array(NP), pVY = new Float32Array(NP), pL = new Float32Array(NP), pM = new Float32Array(NP), pT = new Uint8Array(NP), pS = new Float32Array(NP), pG = new Float32Array(NP);
   const PSPR = [A.P.starW, A.P.starG, A.P.heart, A.P.dot, A.P.dotP, A.P.cloud, A.P.sh[0], A.P.sh[1], A.P.sh[2], A.P.sh[3], A.P.conf[0], A.P.conf[1], A.P.conf[2], A.P.conf[3], A.P.conf[4], A.P.conf[5], A.P.ring, A.P.zzz, A.P.note];
+  PSPR.push(FX ? FX.burp : A.P.cloud); const T_BURP = PSPR.length - 1;
   const T_STAR = 0, T_GOLD = 1, T_HEART = 2, T_DOT = 3, T_DOTP = 4, T_CLOUD = 5, T_SH = 6, T_CONF = 10, T_RING = 16, T_ZZZ = 17, T_NOTE = 18;
   let pi = 0;
   function emit(x, y, vx, vy, life, type, sc, grav) { pi = (pi + 1) % NP; pX[pi] = x; pY[pi] = y; pVX[pi] = vx; pVY[pi] = vy; pL[pi] = pM[pi] = life; pT[pi] = type; pS[pi] = sc; pG[pi] = grav; }
@@ -111,6 +119,7 @@
       if (GROUNDED[ch]) { e.y = e.y0 = groundAt(x); }
       if (ch === 'g') { e.r = 8; total += 1; } else if (ch === 'G') { e.r = 13; total += 5; } else if (ch === 'Q') { total += 5; }
       else if (ch === 'C') { e.r = 14; e.ci = ci++; if (S.crowns(levelDef.id) & (1 << e.ci)) e.had = true; }
+      else if (ch === 'A') { e.r = 16; e.had = S.friend(levelDef.id); e.pet = FRIEND_PET[(levelDef.id - 1) % 4]; }
       else if (ENEMY[ch]) { e.r = ER[ch]; e.vx = ch === 'b' ? -22 : 0; }
       else if (ITEM[ch]) e.r = 14;
       else if (ch === 'E') { e.y = 150; ents.push(Object.assign(mkEnt('T', x, 118), { r: 26 })); }
@@ -124,22 +133,27 @@
     fy = groundAt(camX + px); vy = 0; onG = true; coy = 0; buf = 0; fresh = 0; pend = 0; flaps = 1; jumpT = 1; sqS = 0; sqV = 0; hold = false; ptrs.clear();
     yHist.fill(fy - PR);
   }
-  function startLevel(i) {
+  function startLevel(i, fresh) {
     runId++; def = LV.DEFS.find(d => d.id === i); main = null; inBonus = false; load(def);
     camX = 0; speed = 0; wt = 0; glow = 2; inv = 0; shield = false; magT = 0; rbT = 0; giantT = 0; gs = 1; bubbleT = 0; faceK = 'head';
-    chain = 0; chainT = 0; combo = 0; runGems = 0; crownsRun = 0; gateStar = false; jumps = 0; frozen = false;
+    chain = 0; chainT = 0; combo = 0; runGems = 0; crownsRun = 0; runFriend = false; gateStar = false; jumps = 0; frozen = false;
     shake = 0; flash = 0; fade = 0.8; finished = false; finT = 0; forceStars = 0; ready = 0; boss = null; pL.fill(0); popL.fill(0); fgT.fill(0);
     progEnd = def.boss ? Math.max(1, arenaCam) : (ents.find(e => e.k === 'E') || { x: lvl.cols * TILE }).x;
     resetPlayer(); theme(def.theme); Au.fast(1);
     $('map').hidden = true; $('hud').hidden = false; $('pauseM').hidden = true; $('resM').hidden = true; $('setM').hidden = true;
     hudGlow = hudGems = hudCr = -1; setHearts(); setGems(); setCrowns(); setProg(0); state = 'play'; look = S.glim(); G = A.glimmer(look); lookNow(); fwI = 0; finFun = null; celebSkip = false;
+    airT = 0; cartT = 0; sneezeT = 4 + Math.random() * 3; burped = false; wheeSaid = false; teapots = wear.hat === 'teapot' && !!save.wd.silly; stacheLv = !def.boss && (dayNo() % 4) + 1 === def.id ? def.id : 0;
+    let resumed = false; if (!fresh && save.ck && save.ck.i === i && !def.boss) { const cx = save.ck.x; camX = Math.max(0, cx - px - 30); lo = 0; plo = 0; resetPlayer(); ents.forEach(e => { if (e.k === 'K' && e.x <= cx + 1) e.hit = true; }); resumed = true; }
     pushGuard(); try { FZ && FZ.wake(true); } catch (e) { }
     Au.init(); Au.start(); Au.music(def.theme);
     banner(def); qGrace = 1.2;
     const first = !S.seen('tap');
     $('hint').hidden = !first;
     if (first) { S.markSeen('tap'); speak(LINES.tap, true); if (H > W && !S.seen('rotate')) { S.markSeen('rotate'); setTimeout(() => { if (state === 'play') speak(LINES.rotate); }, 4800); } }
+    else if (resumed) speak(LINES.resume, true);
+    else if (stacheLv) speak(LINES.stache, true);
     else if (!def.boss) speak(LEVEL_SAY[def.id] || def.name, true);
+    if (def.swim && !S.seen('swim')) { S.markSeen('swim'); setTimeout(() => { if (state === 'play') speak(LINES.swim, true); }, 1800); }
     startLoop();
   }
   function banner(d) {
@@ -163,7 +177,7 @@
     if (jumps === 4 && !S.seen('flap')) { S.markSeen('flap'); speak(LINES.flap, true); }
   }
   function doFlap() {
-    vy = Math.min(vy, -FLAP); flaps--; buf = 0; fresh = 0; jumpT = 0; sqS = 0.18; wingT = 0.3;
+    vy = Math.min(vy, def.swim ? -FLAP * 0.78 : -FLAP); if (!def.swim) flaps--; buf = 0; fresh = 0; jumpT = 0; sqS = 0.18; wingT = 0.3;
     const x = camX + px - 6 * gs, y = fy - 18 * gs; for (let i = 0; i < 5; i++) emit(x, y, -40 - Math.random() * 50, 30 + Math.random() * 50, 0.45, i & 1 ? T_STAR : T_DOTP, 0.8, 40);
   }
   function floorAt(wx, prevF, rr) {
@@ -175,7 +189,8 @@
   }
   function inWind(wx) { for (let i = 0; i < winds.length; i++) { const w = winds[i]; if (wx > w.x0 && wx < w.x1) return true; } return false; }
   function land(fl, v) {
-    fy = fl; if (!onG) { if (v > 240) { sqS = -Math.min(0.32, v / 1500); sqV = 0; puffs(camX + px, fl, 5, 60); if (gs > 1.2) giantLand(); } combo = 0; flaps = 1; }
+    fy = fl; if (!onG && airT > 0.85 && cartT <= 0 && !calm() && Math.random() < 0.3) { cartT = 0.55; if (!wheeSaid) { wheeSaid = true; speak(LINES.whee); } }
+    if (!onG) { if (v > 240) { sqS = -Math.min(0.32, v / 1500); sqV = 0; puffs(camX + px, fl, 5, 60); if (gs > 1.2) giantLand(); } combo = 0; flaps = 1; }
     onG = true; vy = 0;
   }
   function giantLand() {
@@ -186,7 +201,7 @@
   function hurt(e) {
     if (inv > 0 || debug.noHurt || bubbleT > 0) return;
     if (e) { e.fx = 'giggle'; e.ft = 1.2; e.x += 6; }
-    if (shield) { shield = false; inv = 1.2; Au.shieldPop(); ringFx(camX + px, fy - R(), 1.6); vy = -300; onG = false; return; }
+    if (shield) { shield = false; inv = 1.2; Au.shieldPop(); Au.burp(); ringFx(camX + px, fy - R(), 1.6); emit(camX + px + 14, fy - R() - 8, 40, -30, 1.1, T_BURP, 1, -20); if (!burped) { burped = true; speak(LINES.burp, true); } vy = -300; onG = false; return; }
     Au.hurt(); try { FZ && FZ.buzz(30); } catch (x) { }
     spark(camX + px, fy - R(), 8, T_HEART, 70, 0.7); shake = calm() ? 0 : 0.2; inv = 1.6; faceK = 'oops'; faceT = 0.7; combo = 0;
     glow--; setHearts(); vy = -320; onG = false;
@@ -228,13 +243,14 @@
       if (onG) coy = COYOTE; else coy -= dt;
       if (buf > 0) {
         if (onG || coy > 0) doJump();
-        else if (fresh && flaps > 0 && !(vy > 0 && fy + vy * 0.12 >= floorAt(wx, fy, 6) - 2)) doFlap();
+        else if (fresh && (flaps > 0 || def.swim) && !(vy > 0 && fy + vy * 0.12 >= floorAt(wx, fy, 6) - 2)) doFlap();
         buf -= dt;
       }
       fresh = 0; jumpT += dt;
       let g = GRAV, maxF = FALLMAX;
       if (vy < 0 && !hold && jumpT > 0.1) g = GRAV * 1.7;
       if (vy > 0 && hold) { g = FLOATG; maxF = FLOATMAX; }
+      if (def.swim) { g *= vy < 0 ? 0.55 : 0.42; maxF = Math.min(maxF, 150); }   // v7 Bubble Lagoon: soft, floaty water
       if (winds.length && inWind(wx)) { if (hold) g = -1150; else { g = GRAV * 0.45; maxF = 150; } if ((yh & 3) === 0) emit(wx + (Math.random() - .5) * 20, fy + 10, 0, -120, 0.5, T_DOT, 0.7, 0); if (!S.seen('wind')) { S.markSeen('wind'); speak(LINES.wind, true); } }
       vy += g * dt; if (vy > maxF) vy = maxF; if (vy < -640) vy = -640;
       const prevF = fy; fy += vy * dt;
@@ -247,7 +263,8 @@
         vy = hold ? -780 : -730; flaps = 1; combo = 0; sqS = 0.3; Au.boing(); Au.splash(); puffs(wx, 300, 8, 90); spark(wx, 300, 6, T_HEART, 80, .6);
         if (!S.seen('pit')) { S.markSeen('pit'); speak(LINES.pit, true); }
       }
-      if (onG) runPh += dt * Math.max(speed, 60) * 0.11;
+      if (onG) { runPh += dt * Math.max(speed, 60) * 0.11; airT = 0; } else airT += dt; if (cartT > 0) cartT -= dt;
+      sneezeT -= dt; if (sneezeT <= 0) { sneezeT = 5 + Math.random() * 4; for (let i = lo; i < ecount; i++) { const e = ents[i]; if (e.x > camX + viewW - 20) break; if (ENEMY[e.k] && e.on && e.st === 0 && e.x > camX + px + 70) { e.ft = 0.6; e.snz = 0.45; Au.sneeze(); puffs(e.x - e.r, enemyCy(e), 5, 70); break; } } }
     }
     const cy = fy - R();
     yh = (yh + 1) & 255; yHist[yh] = cy;
@@ -275,6 +292,8 @@
         if (!e.hit && Math.abs(dx) < 10 + rr * 0.5 && Math.abs(e.y - cy) < 26) { e.hit = true; runGems += 5; setGems(); Au.ring(); ringFx(e.x, e.y, 1.5); spark(e.x, e.y, 10, T_GOLD, 90, .6); popup(e.x, e.y - 30, '+5'); flyGem(e.x, e.y, 2); }
       } else if (k === 'C') {
         const dy = e.y - cy; if (dx * dx + dy * dy < (e.r + rr + 6) ** 2) collectCrown(e);
+      } else if (k === 'A') {
+        const dy = e.y - cy; if (dx * dx + dy * dy < (e.r + rr + 6) ** 2) collectFriend(e);
       } else if (ENEMY[k]) {
         moveEnemy(e, dt, wx);
         if (e.st === 0) {
@@ -300,7 +319,7 @@
       } else if (k === 'X') {
         if (wx >= e.x - 6 && inBonus) exitBonus();
       } else if (k === 'K') {
-        if (!e.hit && wx >= e.x) { e.hit = true; Au.check(); spark(e.x, e.y - 40, 16, null, 100, .9); confettiAt(e.x, e.y - 60, 16); flash = 0.3; if (glow < 3) { glow++; setHearts(); } speak(LINES.check); }
+        if (!e.hit && wx >= e.x) { e.hit = true; if (!def.boss && !inBonus) { save.ck = { i: def.id, x: e.x }; S.later(); } Au.check(); spark(e.x, e.y - 40, 16, null, 100, .9); confettiAt(e.x, e.y - 60, 16); flash = 0.3; if (glow < 3) { glow++; setHearts(); } speak(LINES.check); }
       } else if (k === 'T') {
         e.t += dt; const dy = e.y - cy; if (!e.hit && dx * dx + dy * dy < (e.r + rr) ** 2) { e.hit = true; gateStar = true; Au.bigStar(); spark(e.x, e.y, 22, T_GOLD, 140, 1); ringFx(e.x, e.y, 2.4); flash = 0.4; }
         if (!e.hit && dx < 150 && dx > 60 && !S.seen('gatestar')) { S.markSeen('gatestar'); speak(LINES.gate, true); }
@@ -321,6 +340,13 @@
     flyGem(e.x, e.y, big ? 2 : ((e.x / TILE) | 0) % 4 & 3);
     if (faceT <= 0) { faceK = 'joy'; faceT = 0.25; }
   }
+  // v7: hidden friend: pop its bubble, it joins her (a sticker the first time, a hello after that)
+  function collectFriend(e) {
+    e.on = false; const fresh = S.addFriend(def.id); runFriend = true;
+    Au.crown(); spark(e.x, e.y, 18, T_HEART, 130, 1); ringFx(e.x, e.y, 2); faceK = 'joy'; faceT = 0.8; popup(e.x, e.y - 34, fresh ? '♥' : '+5');
+    if (!fresh) { runGems += 5; setGems(); }
+    speak(fresh ? LINES.friend : LINES.friendAgain, true);
+  }
   function collectCrown(e) {
     e.on = false; crownsRun |= 1 << e.ci; const all = S.addCrown(def.id, e.ci); setCrowns();
     Au.crown(); spark(e.x, e.y, 24, T_GOLD, 150, 1.1); shards(e.x, e.y, 12); ringFx(e.x, e.y, 2.2); flash = 0.45; shake = calm() ? 0 : 0.1; faceK = 'joy'; faceT = 0.8;
@@ -338,7 +364,7 @@
     else if (e.k === 'p') { e.x -= e.vx * dt; const g = groundAt(e.x); e.y = (g === PIT ? GY0 : g) - Math.abs(Math.sin(wt * 6 + e.ph)) * 6; if (e.x < camX - 60) e.on = false; }
   }
   function stomp(e, bounce) {
-    e.st = 1; e.t = 0; e.fx = 'dizzy'; combo++; HK.emit('onStomp'); const n = Math.min(combo, 5); runGems += n; setGems();
+    e.st = 1; e.t = 0; e.fx = 'dizzy'; e.spin = !bounce; combo++; HK.emit('onStomp'); const n = Math.min(combo, 5); runGems += n; setGems();
     Au.pop(combo); Au.squeak(); spark(e.x, enemyCy(e), 8, T_STAR, 100, .6); popup(e.x, enemyCy(e) - 26, combo >= 2 ? 'x' + Math.min(combo, 9) : '+' + n); flyGem(e.x, enemyCy(e), 1);
     if (bounce) { vy = hold ? -600 : -470; onG = false; flaps = 1; jumpT = 0; sqS = 0.25; sqV = 0; }
     if (combo >= 2) Au.combo(combo);
@@ -386,10 +412,11 @@
   // ---------- boss: the Silver Puffball ----------
   function startBoss() {
     boss = { hp: 3, st: 'enter', t: 0, sx: viewW + 140, by: 110, ph: 0, spd: 1, face: 'grump', puffT: 1.2, sq: 0, bonk: 0, done: false, gone: false };
-    speak(LINES.boss, true); Au.start(); Au.music('silver'); Au.fast(1.1);
+    speak(def.party ? LINES.party : LINES.boss, true); Au.start(); Au.music(def.party ? 'party' : 'silver'); Au.fast(1.1);
   }
   function stepBoss(dt, wx, cy) {
     const b = boss; b.t += dt; if (b.sq > 0) b.sq -= dt; if (b.bonk > 0) b.bonk -= dt;
+    if (b.done && def.party && b.t < 3) { b.dance = Math.sin(b.t * 9); b.sq = Math.abs(b.dance) * 0.18; if ((yh & 7) === 0) emit(camX + b.sx + (Math.random() - .5) * 80, b.by - 60, (Math.random() - .5) * 120, -120, 1.1, (yh & 8) ? T_STAR : T_HEART, 1, 60); return; }
     if (b.done) { b.by -= 30 * dt; b.sx += 20 * dt; if ((yh & 15) === 0) emit(camX + b.sx, b.by - 40, 0, -40, 1, T_HEART, 1, -10); if (b.t > 2.6) { b.gone = true; if (!b.gate) spawnGate(); } return; }
     const gy = GY0 - 44;
     if (b.st === 'enter') { b.sx += (px + 170 - b.sx) * Math.min(1, dt * 1.6); if (b.t > 2) { b.st = 'float'; b.t = 0; } }
@@ -423,7 +450,7 @@
     spark(bx, b.by - 30, 18, null, 130, .9); ringFx(bx, b.by, 2.5); flash = 0.4; shake = calm() ? 0 : 0.2; runGems += 5; setGems(); popup(bx, b.by - 60, '+5'); b.spd *= 1.18;
     if (b.hp === 2) speak(LINES.boss2, true); else if (b.hp === 1) speak(LINES.boss1, true);
     if (b.hp <= 0) {
-      b.done = true; b.t = 0; b.face = 'happy'; for (let i = 0; i < 3; i++) spark(bx, b.by, 24, i === 1 ? T_GOLD : T_HEART, 170, 1.4); confetti(60); Au.fanfare(); speak(LINES.win, true);
+      b.done = true; b.t = 0; b.face = 'happy'; for (let i = 0; i < 3; i++) spark(bx, b.by, 24, i === 1 ? T_GOLD : T_HEART, 170, 1.4); confetti(60); Au.fanfare(); speak(def.party ? LINES.partyWin : LINES.win, true);
       for (let i = lo; i < ecount; i++) if (ents[i].k === 'p') ents[i].on = false;
       const c = mkEnt('C', bx - 30, 150); c.r = 14; c.ci = 2; c.home = true; insert(c);
       for (let i = 0; i < 12; i++) { const g = mkEnt('g', bx, b.by); g.vx = (i - 6) * 18; g.vy = -280 - (i % 3) * 50; insert(g); }
@@ -437,6 +464,7 @@
     finStars = forceStars || (1 + (gateStar ? 1 : 0) + (runGems >= total * 0.6 ? 1 : 0));
     confetti(70); Au.fanfare(); Au.stopMusic(); setTimeout(() => Au.star(0), 300); if (finStars > 1) setTimeout(() => Au.star(1), 520); if (finStars > 2) setTimeout(() => Au.star(2), 740);
     const r = S.finish(def.id, finStars, runGems); try { FZ && FZ.wake(false); } catch (e) { }
+    if (save.ck && save.ck.i === def.id) delete save.ck;
     finFun = HK.emit('onLevelEnd', def.id, finStars, runGems, S.crowns(def.id)) || null; fwI = 0;
     setTimeout(() => showResult(r), 1700);
   }
@@ -530,6 +558,7 @@
       if (k === 'g') { if (e.on) { const f = (gf + ((e.x * 0.13) | 0)) % 16; ctx.drawImage(A.gems[((e.x0 / TILE) | 0) & 3][f < 6 ? f : 6], e.x - 8.5, e.y - 8.5 + Math.sin(wt * 3 + e.x0 * 0.05) * 1.5, 17, 17); } }
       else if (k === 'G') { if (e.on) { const f = (gf + 3) % 14; stamp(A.glow, e.x, e.y, 1.2, 0.6); stamp(A.gemBig[f < 6 ? f : 6], e.x, e.y + Math.sin(wt * 2.4 + e.x) * 2, 1 + Math.sin(wt * 4) * 0.04); } }
       else if (k === 'Q') stamp(e.hit ? A.ringDone : A.ring, e.x, e.y, 1 + (e.hit ? 0 : Math.sin(wt * 4 + e.x) * 0.04));
+      else if (k === 'A') { if (e.on) { const by = e.y + Math.sin(wt * 2.2 + e.ph) * 5; const ps = WD && WD.PET[e.pet]; if (ps) ctx.drawImage(ps, e.x - 15, by - 15, 30, 30); stamp(A.bubble, e.x, by, 1.05 + Math.sin(wt * 4) * 0.03, e.had ? 0.6 : 0.9); } }
       else if (k === 'C') { if (e.on) { stamp(A.glowGold, e.x, e.y, 1.6 + Math.sin(wt * 3) * 0.1, 0.8); stamp(A.crown, e.x, e.y + Math.sin(wt * 2.5) * 3, 0.9 + Math.sin(wt * 5) * 0.04, e.had ? 0.75 : 1); if ((gf & 7) === 0 && !calm()) emit(e.x + (Math.random() - .5) * 26, e.y + (Math.random() - .5) * 20, 0, -10, .5, T_STAR, .6, 0); } }
       else if (k === 'H' || k === 'M') { const bo = e.t > 0 ? -Math.sin(e.t / 0.25 * Math.PI) * 6 : 0; stamp(e.hit ? A.blockUsed : k === 'M' ? A.blockGift : A.blockHeart, e.x, e.y + bo, 1 + (e.hit ? 0 : Math.sin(wt * 3 + e.ph) * 0.03)); }
       else if (ENEMY[k]) { if (e.on) drawEnemy(e); }
@@ -573,12 +602,16 @@
   }
   function drawEnemy(e) {
     const k = e.k, set = k === 'b' ? A.bunny : k === 'j' ? A.jelly : k === 'n' ? A.snow : k === 'y' ? A.flyer : A.puff, s = set[e.fx] || set.grump;
-    if (e.st === 1) { const f = e.t / 0.22; stampFeet(s, e.x, k === 'y' ? e.y + e.r : e.y + 2, 1 + f * 0.5, Math.max(0.3, 1 - f * 0.7)); return; }
+    if (e.st === 1) { const f = e.t / 0.22, fy0 = k === 'y' ? e.y + e.r : e.y + 2;
+      if (e.spin) { const cy = enemyCy(e); ctx.save(); ctx.translate(e.x, cy); ctx.rotate(f * 7); ctx.translate(-e.x, -cy); stampFeet(s, e.x, fy0, 1 - f * 0.3, 1 - f * 0.3); ctx.restore(); }
+      else stampFeet(s, e.x, fy0, 1 + f * 0.9, Math.max(0.2, 1 - f * 0.85)); return; }   // pancake-flat
     if (k === 'b') { const hop = Math.abs(Math.sin(e.t * 9)) * 2.5; stamp(A.shadow, e.x, e.y, 0.9, 0.7); stampFeet(s, e.x, e.y + 4 - hop, 1, 1); }
     else if (k === 'j') { const sq = e.sq > 0 ? e.sq : 0, wob = Math.sin(wt * 6 + e.ph) * 0.05; stamp(A.shadow, e.x, groundAt(e.x), 0.9, 0.7); stampFeet(s, e.x, e.y + 2, 1 + sq + wob, 1 - sq - wob); }
     else if (k === 'n') { stamp(A.shadow, e.x, groundAt(e.x), 0.8, 0.6); const bot = Math.abs(Math.sin(wt * 2.4 + e.ph)) < 0.15; stampFeet(s, e.x, e.y + 4, bot ? 1.15 : 1, bot ? 0.88 : 1); }
     else if (k === 'y') { stamp(s, e.x, e.y, 1, null); }
     else stampFeet(s, e.x, e.y + 3, 1, 1);
+    if (stacheLv && FX) ctx.drawImage(FX.stache, e.x - 9, enemyCy(e) + 1, 18, 9);
+    if (teapots && WD) { const h = WD.HAT.teapot; ctx.drawImage(h, e.x - 11, enemyCy(e) - e.r - 14, 22, 18); }
   }
   function drawBoss() {
     const b = boss, bx = camX + b.sx, by = b.by, spr = A.boss[b.face] || A.boss.grump, sq = b.sq > 0 ? Math.sin(b.sq / 0.35 * Math.PI) * 0.25 : 0, k = 1 + Math.sin(wt * 3) * 0.025;
@@ -595,7 +628,7 @@
     if (blink) ctx.globalAlpha = 0.45;
     const FOOT = (wear.shoes && WD && WD.SHOE[wear.shoes]) || G.foot, WING = (wear.wings && WD && WD.WING[wear.wings]) || G.wing;
     const sy = 1 + sqS, sxx = 1 - sqS * 0.55;
-    ctx.save(); ctx.translate(wx, fy); ctx.scale(sxx * gs, sy * gs);
+    ctx.save(); ctx.translate(wx, fy); if (cartT > 0) { ctx.translate(0, -r); ctx.rotate(-(1 - cartT / 0.55) * TAU); ctx.translate(0, r); } ctx.scale(sxx * gs, sy * gs);
     const lag = Math.max(1, Math.round(10.5 / Math.max(70, speed || 70) * 120));
     for (let i = 4; i >= 1; i--) {
       const hy = (yHist[(yh - lag * i) & 255] - fy) / gs + PR, bob = onG ? -Math.abs(Math.sin(runPh - i * 0.9)) * 2.2 : 0, x = -i * 10.5, y = hy - 10 + bob;
@@ -625,6 +658,7 @@
     theme('meadow'); const keepL = lvl, keepC = camX; lvl = MAPLVL;
     const cx = calm() ? 0 : mapT * 18; camX = cx % 4000;
     drawBack(camX); ctx.setTransform(dpr * scale, 0, 0, dpr * scale, dpr * (-camX * scale), dpr * oy); drawTerrain(); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (window.SKCastle) { const hc = Math.min(H * 0.36, W * 0.45, 270), wc = hc * 4 / 3, c = SKCastle.backdrop(wc * dpr, hc * dpr); if (c) { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(c, Math.round((W - wc) / 2 * dpr), Math.round((oy + GY0 * scale - hc * 0.94) * dpr)); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); } }
     if (q < 1 && !calm()) drawAmbient();
     lvl = keepL; camX = keepC;
   }
@@ -643,7 +677,7 @@
         const e = ents[i], d = e.x - wx; if (d > 90) break; if (d < -6 || !e.on) continue;
         if (ENEMY[e.k] && e.st === 0 && d < 52 + speed * 0.12 && d > 8 && Math.abs(enemyCy(e) - (fy - PR)) < 60) want = true;
         if ((e.k === 'H' || e.k === 'M') && !e.hit && d < 34 && d > 0) want = true;
-        if ((e.k === 'g' || e.k === 'G' || e.k === 'C' || ITEM[e.k] || e.k === 'Q' || e.k === 'O') && d < 30 && e.y < fy - 34 && e.y > fy - 160) want = true;
+        if ((e.k === 'g' || e.k === 'G' || e.k === 'C' || e.k === 'A' || ITEM[e.k] || e.k === 'Q' || e.k === 'O') && d < 30 && e.y < fy - 34 && e.y > fy - 160) want = true;
         if (e.k === 'T' && d < 60) want = true;
       }
       if (groundAt(wx + 26) === PIT && onG) want = true;
@@ -658,7 +692,7 @@
 
   // ---------- main loop ----------
   function frame(ts) {
-    raf = 0; if (state === 'pause') return;
+    raf = 0; if (state === 'pause') return; if (state === 'map' && window.SKMini && SKMini.on) return;
     let dt = (ts - last) / 1000; const rawDt = dt; last = ts; if (!(dt > 0)) dt = 0.016; if (dt > 0.05) dt = 0.05;
     // auto quality: frames slow for ~1.5 s -> drop ambient/vignette/beads, then the pattern and the canvas resolution (never changes play)
     if (qGrace > 0) qGrace -= Math.min(rawDt, 0.1); else if ((state === 'play' || state === 'map') && q < 3) { if (rawDt > 0.0205 && rawDt < 0.2) { slowT += rawDt; if (slowT > 1.5) { q++; slowT = 0; if (q >= 2 && resK > 0.7) { resK = q >= 3 ? 0.62 : 0.78; fit(); theme(curTheme()); } } } else slowT = Math.max(0, slowT - rawDt * 0.5); }
@@ -724,9 +758,9 @@
     look = S.glim(); G = A.glimmer(look); lookNow(); const pic = heroPortrait(); $('hero').src = pic;
     const nodes = $('nodes'); nodes.innerHTML = ''; let cur = 0;
     for (let i = 1; i <= S.LEVELS; i++) {
-      const unlocked = S.unlocked(i), e = S.level(i), b = document.createElement('button'); b.className = 'node' + (unlocked ? '' : ' lock') + (i === S.LEVELS ? ' boss' : '');
+      const unlocked = S.unlocked(i), e = S.level(i), b = document.createElement('button'); b.className = 'node' + (unlocked ? '' : ' lock') + (LV.DEFS[i - 1].boss ? ' boss' : '');
       b.setAttribute('aria-label', 'Level ' + i); b.dataset.i = i; b.disabled = !unlocked;
-      const d = LV.DEFS[i - 1], cm = S.crowns(i);
+      const d = LV.DEFS[i - 1], cm = S.crowns(i); if (d.party) b.classList.add('party');
       b.innerHTML = '<span class="ni">' + A.SVG.level[d.icon] + '</span>' + (unlocked ? '<span class="ns">' + [0, 1, 2].map(k => '<i>' + (k < e.s ? A.SVG.star : A.SVG.starOff) + '</i>').join('') + '</span>' : '<span class="nl">' + A.SVG.lock + '</span>') +
         (unlocked && cm ? '<span class="nc">' + [0, 1, 2].map(k => '<i>' + ((cm >> k & 1) ? A.SVG.crown : A.SVG.crownOff) + '</i>').join('') + '</span>' : '');
       nodes.appendChild(b); if (unlocked && e.s === 0 && !cur) cur = i;
@@ -741,17 +775,21 @@
     hold = false; ptrs.clear(); finished = false; boss = null; main = null; inBonus = false; Au.stopSay(); try { FZ && FZ.wake(false); } catch (e) { }
     buildMap(); Au.music('map'); startLoop(); HK.emit('onMapOpen', !!first);
     if (first && !S.seen('welcome')) { S.markSeen('welcome'); setTimeout(() => speak(sayName(LINES.welcome), true), 400); }
-    else if (!first) { try { FZ && FZ.breakCheck({ dir: 'audio/', muted: save.muted }); } catch (e) { } }
+    else if (!first) { try { S.persist(); if (FZ && FZ.breakCheck({ dir: 'audio/', muted: save.muted, onClose: () => HK.emit('napEnd') })) HK.emit('napStart'); } catch (e) { } }
   }
+  // v6: after every other level a short mini-game (skippable, always a win) runs first, over a quiet map
+  const after = fn => () => { if (state !== 'result') return fn();
+    if (HK.emit('afterLevel', def.id, fn)) { runId++; state = 'map'; $('map').hidden = false; $('hud').hidden = true; $('resM').hidden = true; $('pauseM').hidden = true; finished = false; boss = null; inBonus = false; Au.stopSay(); buildMap(); Au.music('map'); startLoop(); }
+    else fn(); };
   const go = fn => () => { if (frozen) return; Au.init(); Au.tap(); fn(); };
   $('nodes').addEventListener('click', e => { const b = e.target.closest('.node'); if (!b || b.disabled || frozen) return; Au.init(); Au.tap(); const i = +b.dataset.i; wipe(() => startLevel(i)); });
   $('bPause').addEventListener('click', () => { Au.init(); pause(); });
   $('bResume').addEventListener('click', go(resume));
-  $('bRestart').addEventListener('click', go(() => { $('pauseM').hidden = true; startLevel(def.id); }));
+  $('bRestart').addEventListener('click', go(() => { $('pauseM').hidden = true; startLevel(def.id, true); }));
   $('bMap').addEventListener('click', go(() => wipe(() => toMap(false))));
-  $('bMap2').addEventListener('click', go(() => wipe(() => toMap(false))));
-  $('bAgain').addEventListener('click', go(() => startLevel(def.id)));
-  $('bNext').addEventListener('click', go(() => wipe(() => startLevel(def.id + 1))));
+  $('bMap2').addEventListener('click', go(after(() => wipe(() => toMap(false)))));
+  $('bAgain').addEventListener('click', go(() => startLevel(def.id, true)));
+  $('bNext').addEventListener('click', go(after(() => wipe(() => startLevel(def.id + 1)))));
   $('bMute').addEventListener('click', () => { Au.init(); S.setMuted(!save.muted); Au.setMuted(save.muted); $('bMute').innerHTML = save.muted ? A.SVG.mute : A.SVG.sound; if (save.muted) Au.stopSay(); else { Au.tap(); Au.music('map'); } });
   $('bHome').addEventListener('click', e => { e.preventDefault(); const h = $('bHome').getAttribute('href'); location.href = h; });
   $('bHome').innerHTML = A.SVG.home; $('bPause').innerHTML = A.SVG.pause; $('bResume').innerHTML = A.SVG.play; $('bRestart').innerHTML = A.SVG.redo; $('bMap').innerHTML = A.SVG.map;
@@ -761,7 +799,7 @@
   // ---------- v4: Home / Next-or-Map / Settings on the pause + result screens, Settings panel (volume, music, voice) ----------
   const lab = (svg, w) => svg + '<span>' + w + '</span>';
   ['pHome', 'rHome'].forEach(id => { $(id).innerHTML = lab(A.SVG.home, 'Home'); $(id).addEventListener('click', e => { e.preventDefault(); if (frozen) return; Au.stopSay(); location.href = $(id).getAttribute('href'); }); });
-  $('rGo').addEventListener('click', go(() => { if ($('rGo').dataset.next) wipe(() => startLevel(def.id + 1)); else wipe(() => toMap(false)); }));
+  $('rGo').addEventListener('click', go(after(() => { if ($('rGo').dataset.next) wipe(() => startLevel(def.id + 1)); else wipe(() => toMap(false)); })));
   const GEAR = '<svg viewBox="0 0 100 100" aria-hidden="true"><path fill="currentColor" d="M43 8h14l3 12 9 4 11-6 10 10-6 11 4 9 12 3v14l-12 3-4 9 6 11-10 10-11-6-9 4-3 12H43l-3-12-9-4-11 6-10-10 6-11-4-9-12-3V43l12-3 4-9-6-11 10-10 11 6 9-4z"/><circle cx="50" cy="50" r="15" fill="#fff"/></svg>';
   $('bSet').innerHTML = GEAR; $('bSet').style.color = '#a0207a'; ['pSet', 'rSet'].forEach(id => $(id).innerHTML = lab(GEAR, 'Settings'));
   $('sVolIc').innerHTML = A.SVG.sound; $('sDone').innerHTML = lab(A.SVG.play, 'Done');
@@ -775,19 +813,20 @@
   $('sMus').addEventListener('click', () => setS({ mus: !S.settings().mus }));
   $('sVoice').addEventListener('click', () => { setS({ voice: !S.settings().voice }); if (!S.settings().voice) Au.stopSay(); });
   $('sDone').addEventListener('click', () => { $('setM').hidden = true; });
+  HK.on('mapRefresh', () => { if (state === 'map') startLoop(); });
   HK.on('portrait', () => { if (!G) return ''; lookNow(); return heroPortrait(); });
   HK.on('lookChanged', () => { if (state !== 'map') return; lookNow(); const pic = heroPortrait(); $('hero').src = pic; const m = document.querySelector('#nodes .me'); if (m) m.src = pic; });
   $('resM').addEventListener('pointerdown', e => { if (!e.target.closest('button,a')) skipCeleb(); });
   fit(); Au.setMuted(save.muted); toMap(true);
   // test hooks for the QA scripts (no effect on play)
   window.SKTest = {
-    get state() { return state; }, start: startLevel, map: () => toMap(false), set noHurt(v) { debug.noHurt = !!v; }, set auto(v) { debug.auto = !!v; }, get auto() { return debug.auto; },
+    get state() { return state; }, start: startLevel, get lvl() { return def && { id: def.id, swim: !!def.swim, party: !!def.party, theme: def.theme }; }, get friendRun() { return runFriend; }, bossHit() { if (boss && !boss.done) hitBoss(camX + boss.sx); }, get bossDone() { return !!(boss && boss.done); }, get dance() { return boss ? boss.dance || 0 : 0; }, map: () => toMap(false), set noHurt(v) { debug.noHurt = !!v; }, set auto(v) { debug.auto = !!v; }, get auto() { return debug.auto; },
     get cam() { return camX; }, set cam(v) { camX = v; lo = 0; plo = 0; resetPlayer(); }, get py() { return fy - R(); }, get feet() { return fy; }, get vy() { return vy; }, get onGround() { return onG; },
     get glow() { return glow; }, get gems() { return runGems; }, get total() { return total; }, get boss() { return boss && { hp: boss.hp, st: boss.st, sx: boss.sx, by: boss.by }; }, get px() { return px; },
     hold(v) { hold = !!v; }, get holding() { return hold; }, tap() { pend = 1; hold = true; setTimeout(() => { if (!ptrs.size) hold = false; }, 80); }, pause, resume,
     finishNow(n) { forceStars = n || 3; gateStar = true; finish(); }, get stars() { return finStars; }, get ents() { return ents; }, setPy(y) { fy = y + R(); vy = 0; },
     get q() { return q; }, get dpr() { return dpr; }, get inBonus() { return inBonus; }, get crowns() { return crownsRun; }, get gs() { return gs; },
     enterBonus() { const e = ents.find(x => x.k === 'O' && x.on); if (e) enterBonus(e); return !!e; }, exitBonus, give(k) { const e = mkEnt(k, camX + px, fy - R()); takePower(e); },
-    hurt() { hurt(null); }, get wear() { return wear; }, skipCeleb, get celebSkip() { return celebSkip; }, set skip(v) { debug.skip = v; }, get bubble() { return bubbleT > 0; }, lockQ(v) { q = v; slowT = -1e9; }
+    hurt() { hurt(null); }, get wear() { return wear; }, get cart() { return cartT; }, get stacheLv() { return stacheLv; }, get teapots() { return teapots; }, get camX() { return camX; }, sneezeNow() { sneezeT = 0; }, airT(v) { airT = v; }, skipCeleb, get celebSkip() { return celebSkip; }, set skip(v) { debug.skip = v; }, get bubble() { return bubbleT > 0; }, lockQ(v) { q = v; slowT = -1e9; }
   };
 })();

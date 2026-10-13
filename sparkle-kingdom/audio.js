@@ -54,6 +54,10 @@
     dusk: { bpm: 96, mel: [5, -1, 7, 9, 7, -1, 5, 4, 2, -1, 4, 5, 4, -1, 2, -1], bass: [0, 1, 3, 2] },
     silver: { bpm: 126, mel: [7, 7, 9, 10, 9, 7, 5, -1, 7, 9, 10, 12, 10, 9, 7, -1], bass: [0, 3, 0, 4] },
     treasure: { bpm: 132, mel: [10, 12, 14, 12, 10, 12, 14, 15, 14, 12, 10, 9, 10, -1, 12, -1], bass: [0, 2, 0, 3] },
+    candy: { bpm: 124, mel: [9, 10, 12, 10, 9, 7, 9, -1, 10, 12, 14, 12, 10, -1, 9, -1], bass: [0, 3, 2, 4] },
+    moon: { bpm: 88, mel: [7, -1, 9, -1, 10, 9, 7, -1, 5, -1, 7, 9, 7, -1, -1, -1], bass: [0, 2, 3, 1] },
+    lagoon: { bpm: 100, mel: [5, 7, 9, 7, 5, -1, 9, 10, 9, 7, 5, -1, 4, 5, -1, -1], bass: [0, 3, 1, 3] },
+    party: { bpm: 140, mel: [10, 10, 12, 14, 12, 10, 9, 10, 12, 12, 14, 15, 14, 12, 10, -1], bass: [0, 3, 0, 4] },
     map: { bpm: 92, mel: [7, -1, 9, 7, 5, -1, 4, -1, 5, 7, 9, -1, 7, -1, -1, -1], bass: [0, 3, 1, 2] }
   };
   let song = null, step = 0, nextT = 0, musOn = false, musFast = 1;
@@ -81,6 +85,9 @@
     power() { glide(freq(0), freq(24), 0, 0.35, 0.18, 'triangle'); [0, 1, 2, 3, 4, 5, 6].forEach((s, i) => tone(freq(note(s + 6)), 0.1 + i * 0.045, 0.4, 0.15)); },
     giant() { glide(freq(-12), freq(-24), 0, 0.5, 0.35, 'triangle'); tone(freq(note(0) - 12), 0.1, 0.6, 0.2); },
     thud() { glide(freq(-18), freq(-30), 0, 0.22, 0.32); },
+    // v6 silly moments
+    sneeze() { glide(freq(17), freq(21), 0, 0.18, 0.06, 'triangle'); whoosh(0.2, 0.22, 0.22, 3000, 900); },
+    burp() { glide(freq(-5), freq(-9), 0, 0.28, 0.16, 'sawtooth'); glide(freq(2), freq(-2), 0.02, 0.24, 0.08, 'sine'); },
     shieldPop() { glide(freq(12), freq(24), 0, 0.08, 0.25); whoosh(0, 0.18, 0.2, 2000, 5000); },
     ring() { [0, 4, 7, 9].forEach((s, i) => tone(freq(note(s + 8)), i * 0.04, 0.5, 0.16)); },
     crown() { [0, 2, 4, 5, 7, 9, 10].forEach((s, i) => tone(freq(note(s + 7)), i * 0.06, 0.6, 0.2)); tone(freq(note(19)), 0.5, 1, 0.22); },

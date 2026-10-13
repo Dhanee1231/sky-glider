@@ -42,6 +42,39 @@
     wand: `<path d="M28 82 L60 44" stroke="#ff8fd0" stroke-width="7" stroke-linecap="round"/><path d="M64 14 L70 30 L86 32 L74 42 L78 58 L64 50 L50 58 L54 42 L42 32 L58 30Z" fill="#ffe15a" stroke="#a35f00" stroke-width="3" stroke-linejoin="round"/>`,
     cake: `<rect x="24" y="50" width="52" height="30" rx="6" fill="#ffe6f4" stroke="#ff5fb4" stroke-width="3"/><path d="M24 58 q8 8 13 0 q8 8 13 0 q8 8 13 0 q8 8 13 0" fill="none" stroke="#ff5fb4" stroke-width="3"/><rect x="46" y="30" width="8" height="20" rx="3" fill="#5fb8ff"/><path d="M50 18 q6 6 0 12 q-6 -6 0 -12z" fill="#ffb04a"/>`
   };
+  const RBOW = A.RBOW;
+
+  // ---------- v7: three new worlds (same scenery painter as art.js, new palettes) + level icons ----------
+  Object.assign(A.THEMES, {
+    candy: { sky: ['#ffb6e6', '#ffd9f2', '#fff3d6'], sun: 'rgba(255,250,230,.95)', far: ['#ffc4ec', '#ffe0b8'], cap: '#fff', castle: ['#fff0f8', '#ff8fd0', '#7ad8ff'], mid: ['#b8f6e0', '#7ee0c0'], midDeco: 'lolli', near: ['#ffa8d8', '#f07ac0'],
+      ground: ['#fff0f6', '#ffb0dc', '#f080c0'], edge: '#ffffff', edge2: '#7ad8ff', spr: ['#fff', '#ff5fb4', '#7ad8ff', '#ffe15a'], deco: 'lolli', amb: 'heart', cloud: 'rgba(255,255,255,.92)' },
+    moon: { sky: ['#0e1a48', '#2a3a8a', '#7a6ac8'], sun: 'rgba(255,250,220,.95)', moon: true, far: ['#2a2a70', '#4a4aa0'], cap: '#d8e0ff', castle: ['#6a7ac8', '#3a4a98', '#ffe58a'], glowWin: true, mid: ['#3a3a90', '#262670'], midDeco: 'crystal', near: ['#1e1e5a', '#141448'],
+      ground: ['#7a8ad8', '#4a5aa8', '#2a3478'], edge: '#e0e8ff', edge2: '#a8b8ff', spr: ['#fff', '#ffe15a', '#a8d8ff', '#ff9ed6'], deco: 'mushroom', amb: 'firefly', cloud: 'rgba(214,224,255,.35)' },
+    lagoon: { sky: ['#4ad0e0', '#8ae8f0', '#d8fff6'], sun: 'rgba(255,255,240,.9)', far: ['#7ac8e8', '#a8e0f0'], cap: '#fff', castle: ['#e8fbff', '#5fb8ff', '#ffd84a'], mid: ['#7ae0d0', '#4ac0b8'], midDeco: 'cloud', near: ['#3aa8c0', '#2a88a8'],
+      ground: ['#ffe8c8', '#f8c890', '#e0a060'], edge: '#fffbe8', edge2: '#5fd8e8', spr: ['#fff', '#7ad8ff', '#ff9ed6', '#b0f0e0'], deco: 'crystal', amb: 'snow', cloud: 'rgba(255,255,255,.6)' }
+  });
+  Object.assign(A.SVG.level, {
+    candy: '<svg viewBox="0 0 100 100"><path d="M50 84 V54" stroke="#fff" stroke-width="7" stroke-linecap="round"/><circle cx="50" cy="38" r="26" fill="#ff8fd0" stroke="#fff" stroke-width="4"/><path d="M50 38 m-16 0 a16 16 0 0 1 32 0 a10 10 0 0 1 -20 0 a5 5 0 0 1 10 0" fill="none" stroke="#fff" stroke-width="4"/></svg>',
+    moon: '<svg viewBox="0 0 100 100"><path d="M60 12 A36 36 0 1 0 88 66 A28 28 0 1 1 60 12Z" fill="#fff3a0" stroke="#fff" stroke-width="4"/><path d="M12 80 Q50 62 88 80" fill="none" stroke="#c9d8ff" stroke-width="7" stroke-linecap="round"/></svg>',
+    bubble: '<svg viewBox="0 0 100 100"><circle cx="44" cy="52" r="30" fill="rgba(160,230,255,.6)" stroke="#fff" stroke-width="5"/><circle cx="76" cy="26" r="12" fill="rgba(160,230,255,.6)" stroke="#fff" stroke-width="4"/><ellipse cx="34" cy="40" rx="9" ry="5" fill="#fff" transform="rotate(-30 34 40)"/></svg>',
+    party: '<svg viewBox="0 0 100 100"><g fill="#eef0f8" stroke="#a9afc8" stroke-width="3"><circle cx="50" cy="58" r="28"/><circle cx="28" cy="58" r="13"/><circle cx="72" cy="58" r="13"/></g><path d="M38 34 L50 4 L62 34Z" fill="#ff8fd0" stroke="#fff" stroke-width="3"/><circle cx="50" cy="4" r="5" fill="#ffe15a"/><circle cx="41" cy="56" r="4" fill="#3a1a6b"/><circle cx="59" cy="56" r="4" fill="#3a1a6b"/><path d="M40 66 Q50 76 60 66" stroke="#3a1a6b" stroke-width="3" fill="none"/></svg>'
+  });
+  // v7 sticker emblems (new pages: Sweet Moon, Hidden Friends, Party)
+  const fr = (body, c) => '<circle cx="50" cy="50" r="30" fill="rgba(170,225,255,.35)" stroke="#bfefff" stroke-width="3"/><g transform="translate(16 17) scale(.68)">' + body + '</g><path d="M30 84 l4 -6 4 6" fill="' + c + '"/>';
+  Object.assign(E, {
+    candy: '<path d="M20 50 l-10 -10 v20z M80 50 l10 -10 v20z" fill="#ff8fd0" stroke="#fff" stroke-width="3"/><ellipse cx="50" cy="50" rx="30" ry="18" fill="#ff5fb4" stroke="#fff" stroke-width="3"/><path d="M36 38 l10 24 M52 34 l10 28" stroke="#fff" stroke-width="4"/>',
+    lolly: '<path d="M50 86 V56" stroke="#fff" stroke-width="6" stroke-linecap="round"/><circle cx="50" cy="40" r="22" fill="#7ad8ff" stroke="#fff" stroke-width="3"/><path d="M50 40 m-12 0 a12 12 0 0 1 24 0 a8 8 0 0 1 -16 0" fill="none" stroke="#fff" stroke-width="4"/>',
+    moonstar: '<path d="M58 16 A30 30 0 1 0 82 64 A24 24 0 1 1 58 16Z" fill="#fff3a0" stroke="#f5c542" stroke-width="3"/><path d="M74 22 l3 7 7 1 -5 5 1 7 -6 -3 -6 3 1 -7 -5 -5 7 -1z" fill="#fff"/>',
+    lantern: '<rect x="34" y="30" width="32" height="44" rx="10" fill="#ffd84a" stroke="#a35f00" stroke-width="3"/><rect x="42" y="22" width="16" height="8" fill="#a35f00"/><ellipse cx="50" cy="52" rx="8" ry="12" fill="#fff6c4"/>',
+    shell: '<path d="M50 20 C20 30 16 70 26 80 H74 C84 70 80 30 50 20Z" fill="#ffd0e0" stroke="#ff8fb8" stroke-width="3"/><path d="M50 22 V80 M36 30 L32 80 M64 30 L68 80" stroke="#ff8fb8" stroke-width="3"/>',
+    fish: '<ellipse cx="46" cy="50" rx="26" ry="16" fill="#ffb04a" stroke="#fff" stroke-width="3"/><path d="M70 50 L88 36 V64Z" fill="#ff8a4a" stroke="#fff" stroke-width="3"/><circle cx="34" cy="46" r="4" fill="#3a1a6b"/>',
+    party: '<g fill="#eef0f8" stroke="#a9afc8" stroke-width="3"><circle cx="50" cy="58" r="24"/><circle cx="30" cy="60" r="11"/><circle cx="70" cy="60" r="11"/></g><path d="M40 36 L50 12 L60 36Z" fill="#ff8fd0"/><circle cx="43" cy="56" r="3" fill="#3a1a6b"/><circle cx="57" cy="56" r="3" fill="#3a1a6b"/><path d="M42 64 Q50 72 58 64" stroke="#3a1a6b" stroke-width="3" fill="none"/>',
+    disco: '<circle cx="50" cy="52" r="28" fill="#e8e8f5" stroke="#9a9ab0" stroke-width="3"/><path d="M24 44 H76 M24 60 H76 M40 26 V78 M60 26 V78" stroke="#b8b8d0" stroke-width="2"/><circle cx="40" cy="42" r="5" fill="#fff"/><path d="M50 10 V24" stroke="#9a9ab0" stroke-width="3"/>',
+    sundae: '<path d="M28 50 H72 L60 82 H40Z" fill="#fff" stroke="#c9d8ff" stroke-width="3"/><circle cx="40" cy="44" r="12" fill="#ff9ed6"/><circle cx="60" cy="44" r="12" fill="#fff3a0"/><circle cx="50" cy="34" r="12" fill="#b0f0e0"/><circle cx="50" cy="20" r="5" fill="#ff2d55"/>',
+    comet: '<path d="M20 80 Q44 62 62 40" stroke="#c9d8ff" stroke-width="10" stroke-linecap="round" opacity=".7"/><path d="M68 18 l6 13 14 2 -10 9 3 14 -13 -7 -13 7 3 -14 -10 -9 14 -2z" fill="#ffe15a" stroke="#a35f00" stroke-width="3"/>'
+  });
+  ['bunny', 'kitten', 'puppy', 'bird', 'puff', 'twinkle', 'fish', 'bee'].forEach((k, i) => { E['h' + (i + 1)] = fr(E[k], RBOW[i % 6]); });
+
   const old = A.SVG.sticker;
   const cache = {};
   function sticker(id, color) {   // full badge SVG; the 5 level stickers keep their v1-v4 art
@@ -54,4 +87,44 @@
   // celebration firework bursts: [delay s, x 0-1 of the view, y units, colour type offset]
   const FIREWORKS = [[0.05, .3, 70, 0], [0.35, .7, 60, 2], [0.65, .5, 46, 4], [0.95, .2, 84, 1], [1.2, .82, 76, 3], [1.45, .5, 64, 5]];
   window.SKFx = { sticker, E, gift, book, hanger, FIREWORKS };
+
+  // ---------- v6: Sparkle Castle (400x300 box). Base castle + 12 decoration slots, each with its own art ----------
+  const DECOR = {
+    towerL: { x: 62, y: 178, cost: 30, name: 'Left Tower', svg: '<g><rect x="44" y="120" width="36" height="110" rx="6" fill="#ffe6f4" stroke="#d6339f" stroke-width="4"/><path d="M38 124 L62 76 L86 124Z" fill="#ff7ab0" stroke="#d6339f" stroke-width="4" stroke-linejoin="round"/><rect x="55" y="150" width="14" height="20" rx="7" fill="#ffd84a"/><circle cx="62" cy="74" r="5" fill="#ffd84a"/></g>' },
+    towerR: { x: 338, y: 178, cost: 30, name: 'Right Tower', svg: '<g><rect x="320" y="120" width="36" height="110" rx="6" fill="#ffe6f4" stroke="#d6339f" stroke-width="4"/><path d="M314 124 L338 76 L362 124Z" fill="#b07aff" stroke="#7a4ae0" stroke-width="4" stroke-linejoin="round"/><rect x="331" y="150" width="14" height="20" rx="7" fill="#ffd84a"/><circle cx="338" cy="74" r="5" fill="#ffd84a"/></g>' },
+    star: { x: 200, y: 52, cost: 25, name: 'Star Top', svg: '<path d="M200 30 L207 46 L224 47 L211 58 L215 75 L200 66 L185 75 L189 58 L176 47 L193 46Z" fill="#ffe15a" stroke="#a35f00" stroke-width="3" stroke-linejoin="round"/>' },
+    flag: { x: 150, y: 86, cost: 15, name: 'Flags', svg: '<g stroke-width="3"><path d="M146 112 V70" stroke="#a35f00"/><path d="M146 70 L172 78 L146 88Z" fill="#ff5fb4" stroke="#fff"/><path d="M254 112 V70" stroke="#a35f00"/><path d="M254 70 L280 78 L254 88Z" fill="#5fb8ff" stroke="#fff"/></g>' },
+    rainbow: { x: 200, y: 118, cost: 45, name: 'Rainbow', back: 1, svg: '<g fill="none" stroke-width="9" opacity=".9"><path d="M70 170 A130 120 0 0 1 330 170" stroke="#ff5f7e"/><path d="M80 170 A120 110 0 0 1 320 170" stroke="#ffb04a"/><path d="M90 170 A110 100 0 0 1 310 170" stroke="#ffe15a"/><path d="M100 170 A100 90 0 0 1 300 170" stroke="#5fe08a"/><path d="M110 170 A90 80 0 0 1 290 170" stroke="#5fb8ff"/></g>' },
+    lights: { x: 200, y: 150, cost: 20, name: 'Window Lights', svg: '<g fill="#fff3a0" stroke="#ffd84a" stroke-width="2"><rect x="160" y="138" width="18" height="24" rx="9"/><rect x="222" y="138" width="18" height="24" rx="9"/><rect x="191" y="100" width="18" height="22" rx="9"/></g><g fill="rgba(255,240,150,.35)"><circle cx="169" cy="150" r="16"/><circle cx="231" cy="150" r="16"/><circle cx="200" cy="111" r="15"/></g>' },
+    door: { x: 200, y: 214, cost: 20, name: 'Heart Door', svg: '<path d="M200 248 C176 226 176 200 190 197 C196 196 200 201 200 206 C200 201 204 196 210 197 C224 200 224 226 200 248Z" fill="#ff5fb4" stroke="#fff" stroke-width="3"/>' },
+    banner: { x: 200, y: 182, cost: 20, name: 'Banners', svg: '<g stroke="#fff" stroke-width="2"><path d="M130 160 h22 v34 l-11 -8 l-11 8z" fill="#ffd84a"/><path d="M248 160 h22 v34 l-11 -8 l-11 8z" fill="#ffd84a"/></g><g fill="#ff5fb4"><circle cx="141" cy="172" r="4"/><circle cx="259" cy="172" r="4"/></g>' },
+    fountain: { x: 96, y: 262, cost: 35, name: 'Fountain', svg: '<g><ellipse cx="96" cy="276" rx="30" ry="9" fill="#9ae8ff" stroke="#5fb8ff" stroke-width="3"/><rect x="91" y="246" width="10" height="30" fill="#fff" stroke="#c9d8ff" stroke-width="2"/><path d="M96 246 q-18 -14 -24 18 M96 246 q18 -14 24 18" fill="none" stroke="#9ae8ff" stroke-width="4" stroke-linecap="round"/><circle cx="96" cy="240" r="6" fill="#bfefff"/></g>' },
+    garden: { x: 300, y: 266, cost: 25, name: 'Flower Garden', svg: '<g>' + [270, 288, 306, 324].map((x, i) => '<path d="M' + x + ' 282 v-14" stroke="#4caf50" stroke-width="3"/><circle cx="' + x + '" cy="264" r="7" fill="' + ['#ff5f7e', '#ffe15a', '#b07aff', '#ff9ed6'][i] + '" stroke="#fff" stroke-width="2"/>').join('') + '</g>' },
+    balloons: { x: 30, y: 96, cost: 15, name: 'Balloons', svg: '<g stroke="#fff" stroke-width="2"><path d="M30 150 q-6 -20 -8 -40 M30 150 q4 -24 10 -46" fill="none" stroke="#a35f9c"/><ellipse cx="22" cy="96" rx="13" ry="16" fill="#ff5fb4"/><ellipse cx="42" cy="88" rx="13" ry="16" fill="#5fb8ff"/></g>' },
+    trees: { x: 370, y: 236, cost: 25, name: 'Sparkle Trees', svg: '<g><rect x="366" y="240" width="8" height="40" fill="#c08a5a"/><circle cx="370" cy="232" r="22" fill="#7ed68a" stroke="#fff" stroke-width="3"/><path d="M362 222 l3 6 6 1 -5 4 1 6 -5 -3 -5 3 1 -6 -5 -4 6 -1z" fill="#ffe15a"/></g>' }
+  };
+  const SLOTS = Object.keys(DECOR);
+  // tap spots (spread so 52 px buttons never touch, even on the 412 px cover screen)
+  const HOT = { towerL: [62, 170], towerR: [338, 170], star: [200, 40], flag: [130, 80], rainbow: [270, 80], lights: [200, 130], door: [200, 232], banner: [130, 186], fountain: [70, 262], garden: [296, 262], trees: [370, 250], balloons: [30, 80] };
+  SLOTS.forEach(k => { DECOR[k].hx = HOT[k][0]; DECOR[k].hy = HOT[k][1]; });
+  const BASE = '<path d="M0 280 Q200 262 400 280 V300 H0Z" fill="#a8e6a0"/><g><rect x="120" y="150" width="160" height="134" rx="8" fill="#fff0f8" stroke="#d6339f" stroke-width="4"/><path d="M120 150 v-14 h20 v14 h20 v-14 h20 v14 h20 v-14 h40 v14 h20 v-14 h20 v14 h20 v-14 h0 v14" fill="#fff0f8" stroke="#d6339f" stroke-width="4"/>' +
+    '<rect x="172" y="88" width="56" height="70" rx="6" fill="#ffe6f4" stroke="#d6339f" stroke-width="4"/><path d="M164 92 L200 56 L236 92Z" fill="#ff8fd0" stroke="#d6339f" stroke-width="4" stroke-linejoin="round"/>' +
+    '<path d="M180 284 V232 a20 20 0 0 1 40 0 V284Z" fill="#ffb6dc" stroke="#d6339f" stroke-width="4"/><g fill="#d9c7f0"><rect x="160" y="138" width="18" height="24" rx="9"/><rect x="222" y="138" width="18" height="24" rx="9"/><rect x="191" y="100" width="18" height="22" rx="9"/></g></g>';
+  function castleSVG(placed) {
+    let back = '', front = ''; for (const k of SLOTS) if (placed[k]) { if (DECOR[k].back) back += DECOR[k].svg; else front += DECOR[k].svg; }
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">' + back + BASE + front + '</svg>';
+  }
+  // Sparkle Days bead moon (beads % 3 filled, glow when a bonus gift is ready)
+  function moonSVG(fill, ready) {
+    const b = [0, 1, 2].map(i => { const a = Math.PI * (0.75 + i * 0.25); return '<circle cx="' + (50 + Math.cos(a) * 40).toFixed(1) + '" cy="' + (50 + Math.sin(a) * 40).toFixed(1) + '" r="9" fill="' + (i < fill ? '#ff5fb4' : 'rgba(255,255,255,.5)') + '" stroke="#fff" stroke-width="3"/>'; }).join('');
+    return '<svg viewBox="0 0 100 100" aria-hidden="true">' + (ready ? '<circle cx="50" cy="50" r="46" fill="#fff6c4" opacity=".8"/>' : '') + '<path d="M62 18 A32 32 0 1 0 82 66 A26 26 0 1 1 62 18Z" fill="#fff3a0" stroke="#f5c542" stroke-width="4"/>' + b + '</svg>';
+  }
+  const games = '<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="10" y="28" width="80" height="48" rx="22" fill="#fff" stroke="#a0207a" stroke-width="6"/><path d="M30 42v20M20 52h20" stroke="#a0207a" stroke-width="7" stroke-linecap="round"/><circle cx="64" cy="46" r="6" fill="#ff5fb4"/><circle cx="76" cy="58" r="6" fill="#5fb8ff"/></svg>';
+  const castleIcon = '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M16 88 V40 h12 v-10 h10 v10 h24 v-10 h10 v10 h12 V88Z" fill="#ffe6f4" stroke="#a0207a" stroke-width="6" stroke-linejoin="round"/><path d="M40 88 V66 a10 10 0 0 1 20 0 V88" fill="#ff8fd0"/><path d="M50 12 V28 M50 12 l14 5 l-14 5" stroke="#ff5fb4" stroke-width="5" fill="#ff5fb4"/></svg>';
+  // canvas sprites for silly moments: mustache on enemies
+  const mk = (w, h, fn) => { const c = document.createElement('canvas'); c.width = w * 3; c.height = h * 3; const g = c.getContext('2d'); g.scale(3, 3); g.translate(w / 2, h / 2); fn(g); c.w = w; c.h = h; return c; };
+  const stache = mk(20, 10, g => { g.fillStyle = '#5a3a20'; g.strokeStyle = '#fff'; g.lineWidth = .8; g.beginPath(); g.moveTo(0, -1); g.bezierCurveTo(-3, -4, -8, -4, -9, 1); g.bezierCurveTo(-6, 0, -3, 1, 0, 2); g.bezierCurveTo(3, 1, 6, 0, 9, 1); g.bezierCurveTo(8, -4, 3, -4, 0, -1); g.fill(); g.stroke(); });
+  const burp = mk(30, 22, g => { g.fillStyle = 'rgba(255,170,220,.85)'; [[-7, 2, 8], [3, -2, 10], [10, 4, 7]].forEach(c => { g.beginPath(); g.arc(c[0], c[1], c[2], 0, Math.PI * 2); g.fill(); }); });
+  Object.assign(window.SKFx, { DECOR, SLOTS: SLOTS, castleSVG, moonSVG, games, castleIcon, stache, burp });
+
 })();
