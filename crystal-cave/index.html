@@ -592,6 +592,39 @@ h1,h2,h3{margin:0}
 .fz-shapes .choices .btn.nope::after{content:"\2717";position:absolute;top:2px;right:8px;font-size:.55em;color:#5a1020}
 .fz-shapes .choices .btn.reveal::after{content:"\2605";position:absolute;top:2px;right:8px;font-size:.55em;color:#a35f00}
 .fz-shapes .door .lockGem.pop{outline:3px dashed #fff;border-radius:50%}
+/* ===== 02-4: Treasure Shop coins (same colours as Sky Glider's shop) + Daddy's Door ===== */
+.c-money{--k1:#ffe08a;--k2:#f06bb5;--k3:#9c2d6e}.c-dd{--k1:#ffc9e6;--k2:#ff4fa0;--k3:#a3306f}
+.mPile{--cs:clamp(32px,8.4vmin,48px);display:inline-flex;flex-wrap:wrap;gap:5px;justify-content:center;align-items:center;max-width:100%;vertical-align:middle}
+i.mCoin{--cz:var(--cs,38px);--m1:#ffe066;--m2:#c98200;--m3:#fff3a6;display:inline-grid;place-items:center;flex:none;width:var(--cz);height:var(--cz);border-radius:50%;box-sizing:border-box;font-style:normal;font-weight:900;font-size:calc(var(--cz)*.4);line-height:1;color:var(--m2);text-shadow:0 1px 0 #fff;
+ background:radial-gradient(circle at 34% 28%,rgba(255,255,255,.95) 0 9%,transparent 10%),radial-gradient(circle,var(--m1) 0 57%,var(--m3) 59% 64%,var(--m1) 66%);border:calc(var(--cz)*.09) solid var(--m2);box-shadow:0 3px 0 rgba(60,20,40,.3)}
+i.mCoin.m1{--cz:calc(var(--cs,38px)*.84);--m1:#f6c08f;--m2:#a8571f;--m3:#ffe0c4}i.mCoin.m5{--cz:calc(var(--cs,38px)*.92);--m1:#eef1f8;--m2:#7d879c;--m3:#fff}
+i.mCoin.m50{--cz:calc(var(--cs,38px)*1.14);--m1:#ffb3e1;--m2:#c2337f;--m3:#fff6c4}
+i.mNote{display:inline-grid;place-items:center;flex:none;height:calc(var(--cs,38px)*1.05);min-width:calc(var(--cs,38px)*1.9);padding:0 6px;box-sizing:border-box;border-radius:8px;font-style:normal;font-weight:900;font-size:calc(var(--cs,38px)*.42);color:#8c1f5a;text-shadow:0 1px 0 #fff;
+ background:radial-gradient(circle at 16% 50%,#fff 0 9%,transparent 10%),radial-gradient(circle at 84% 50%,#fff 0 9%,transparent 10%),linear-gradient(135deg,#ffd6ec,#ff9ed6 55%,#ffe873);border:3px solid #d6a400;box-shadow:inset 0 0 0 2px #fff,0 3px 0 rgba(60,20,40,.3)}
+.mPile .dim{opacity:.28;filter:grayscale(.8)}
+i.mSym{display:inline-block;flex:none;width:.62em;height:.62em;border-radius:50%;margin-right:.12em;vertical-align:-.05em;background:radial-gradient(circle at 34% 30%,#fff 0 12%,transparent 14%),radial-gradient(circle,#ffe066 0 56%,#fff3a6 58% 64%,#ffe066 66%);border:.07em solid #c98200;box-sizing:border-box}
+.mAmt{display:inline-flex;align-items:center;white-space:nowrap}
+.mItem{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}.mTreat{font-size:1.5em;line-height:1}
+.mTag{display:inline-flex;align-items:center;background:linear-gradient(#fff6c4,#ffd84a);color:#7a4b00;border:3px solid #c98a00;border-radius:8px 20px 20px 8px;padding:2px 12px 2px 8px;font-weight:900;position:relative}
+.mRow{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}.mArr{font-style:normal;font-weight:900;color:#c2337f}.mPay{display:inline-flex;gap:4px}
+.stPic .mPay i.mNote,.stPic .mPay i.mCoin{--cs:clamp(30px,7vmin,42px)}
+.choices .btn .mPile{--cs:clamp(26px,6.2vmin,40px);gap:3px}.choices .btn .mAmt i.mSym{width:.6em;height:.6em}
+.xvis .mPile{--cs:clamp(34px,9vmin,52px)}.xvis .mItem{font-size:clamp(22px,5vmin,30px)}
+.ddChips{display:inline-flex;flex-wrap:wrap;gap:4px 6px;align-items:center}
+.ddChip{background:rgba(255,255,255,.9);color:#a3306f;border-radius:12px;padding:1px 8px;font-weight:900;font-size:15px;white-space:nowrap;text-shadow:none}
+.ddLbl{display:block;font-weight:900;font-size:17px;margin-bottom:3px;overflow-wrap:anywhere}
+.ddFoot .ddChip{font-size:17px;padding:3px 10px}
+.cave.ddGlow{border-color:#fff6c4}
+.cave.ddGlow:after{content:"";position:absolute;inset:-7px;border-radius:30px;box-shadow:0 0 16px 6px rgba(255,216,74,.95),0 0 30px 10px rgba(255,111,181,.6);pointer-events:none;animation:ddGlow 1.6s ease-in-out infinite alternate}
+@keyframes ddGlow{from{opacity:.35}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.cave.ddGlow:after{animation:none}}
+.fz-calm .cave.ddGlow:after{animation:none}
+#parent .ddSet{display:block}
+.ddL{font-size:15px;opacity:.9;margin:6px 2px 4px}
+.ddRow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ddRow .btn.ddc{min-width:52px;min-height:48px;padding:4px 10px;font-size:19px;border-radius:14px}
+.ddRow .btn.ddc.sel{box-shadow:0 0 0 3px #fff,0 4px 0 var(--sh)}
+.ddRow input{flex:1 1 160px;min-width:0;width:auto}
 /* ===== Batch 01 item 9: Place Value Palace, Pattern Pools, Array Gardens ===== */
 .c-pv{--k1:#ffb3e1;--k2:#e04fa8;--k3:#8c1f5a}.c-pat{--k1:#8fe8ff;--k2:#2f8fd0;--k3:#174f86}.c-arr{--k1:#b8ffcf;--k2:#2faa6a;--k3:#13633a}
 .stPic .pvB4{--u:clamp(22px,6vmin,28px);display:flex;flex-wrap:wrap;gap:8px;row-gap:8px;justify-content:center;align-items:flex-end;max-width:100%}
@@ -2083,7 +2116,7 @@ function pvNum(k,o){o=o||{};const d=dsc();let nd=o.nd||(d>=3?4:d>=1?3:(k===0?2:3
 function dx(ans,o){o=o||{};const u=o.u||1,sw=[],s=String(ans);
  if(o.swap&&s.length>1)for(let i=0;i<s.length-1;i++)if(s[i]!==s[i+1]){const a=s.split(''),t=a[i];a[i]=a[i+1];a[i+1]=t;if(a[0]!=='0')sw.push(+a.join(''));}
  return [(o.near||[]).concat(sw,[ans+u,ans-u]),(o.mid||[]).concat([ans+10*u,ans-10*u,ans+2*u,ans-2*u]),(o.far||[]).concat([ans+100*u,ans-100*u,ans+5*u,ans-5*u,ans*2])];}
-function choicesP(q){const c=S.cfg,n=c.n,ans=q.ans;
+function choicesP(q){if(q.p==='money')return choicesM(q);const c=S.cfg,n=c.n,ans=q.ans;
  if(q.all)return shuffle(q.ch.slice());
  const set=[ans],ok=v=>Number.isInteger(v)&&v>=1&&set.indexOf(v)<0;
  (q.must||[]).forEach(v=>{if(ok(v)&&set.length<n)set.push(v);});
@@ -2244,7 +2277,7 @@ const PGEN={
  arr:{areaA:k=>arrDims(k),areaL:k=>arrDims(k,1),per4:k=>arrDims(k,2),per2:k=>arrDims(k,2),
   sidem:k=>{let r=0,c=0,g=0;do{[r,c]=arrDims(k,1);}while(r*c>100&&g++<30);return [r,c];}}};
 function mkP(sec,t,pr){const q=PMK[sec][t].apply(null,pr);q.p=sec;q.t=t;q.key=sec+':'+t+':'+pr.join(',');return q;}
-function parseP(key){const m=/^(pv|pat|arr):(\w+):(-?[\d,\-]*)$/.exec(key);if(!m||!PMK[m[1]][m[2]])return null;try{return mkP(m[1],m[2],m[3]===''?[]:m[3].split(',').map(Number));}catch(e){return null;}}
+function parseP(key){const m=/^(pv|pat|arr|money):(\w+):(-?[\d,\-]*)$/.exec(key);if(!m||!PMK[m[1]][m[2]])return null;try{return mkP(m[1],m[2],m[3]===''?[]:m[3].split(',').map(Number));}catch(e){return null;}}
 const pNew=(sec,t,k)=>mkP(sec,t,PGEN[sec][t](k));
 // short readable form of a saved fact (the grown-ups "still tricky" list)
 function pLabel(key){const q=parseP(key);return q?(q.plain||q.story.txt.replace(/\?$/,'')):key;}
@@ -2261,6 +2294,133 @@ function buildBossP(){const st=S.st,F=pFacts(st,S.k),n=S.locks,out=[],used=new S
  while(out.length<n)out.push(Object.assign({},F[out.length%F.length]));
  return shuffle(out);}
 
+// ================= 02-4: Treasure Shop (money cave) + Daddy's Door =================
+// APPENDED only: the new stages (mo1, mo2, mo3, mof, dd1) come after every existing stage in ALL, so no saved index moves.
+// New save data (all optional): lv['mo1-0'…'dd1-2'], gems.mo1…mof / gems.dd, ofacts['money:…'] (only ones she missed), ops.money,
+// parent.on.money / parent.open.money (defaults through merge) and save.dd = Daddy's Door focus (sanitized by ddClean on every load).
+// STRING ANSWERS: a money question has q.sa=1 and q.ans is a string: '35' for an amount, '10+10+10+5' for a set of coins
+// (coins biggest first, joined by '+'). ansEq() compares those as strings (no floats, no rounding). Every other question keeps the
+// exact old check (v===ansOf(q)), so no existing cave changes. Learning record keys: money:count, money:make, money:change.
+PSECS.push('money');CAVES.push('money');
+SECS.money={sym:'💰',em:1,name:'Treasure Shop',kid:'Coins, prices and change',rock:['#ffe08a','#c2337f'],glow:['#fff6c4','#ffd84a','#ff9ed6']};
+SECS.dd={sym:'💖',em:1,name:"Daddy's Door",kid:'Picked by Daddy',rock:['#ffd1ea','#c2337f'],glow:['#fff6c4','#ffd84a','#ff8fd0']};
+Object.assign(GEMS,{
+ mo1:{name:'Coin Citrine',c:'#ffd23a',cut:'round',grad:['#fff6c4','#ffd23a','#e09a00']},mo2:{name:'Shopkeeper Pearl',c:'#ff9ed6',cut:'oval',grad:['#fff0f8','#ff9ed6','#d6339f']},
+ mo3:{name:'Silver Change Star',c:'#dfe4f0',cut:'hex',grad:['#ffffff','#dfe4f0','#9aa3b8']},mof:{name:'Treasure Throne Gem',c:'#ffd84a',cut:'star',grad:['#fff4b0','#ffd84a','#ff9ed6']},
+ dd:{name:"Daddy's Heart Diamond",c:'#ff6fb5',cut:'heart',grad:['#fff0f8','#ff8fd0','#ffd84a']}});
+const MSTAGES=[
+ PS('money','mo1','Coin Counter','1·5','counting coins',['Count the coins','Count more coins','Coin challenge'],[['count'],['count'],['count']],{start:1}),
+ PS('money','mo2','Pick the Coins','?','which coins make the price',['Pick the coins','Pick more coins','Coin puzzle'],[['make'],['make','count'],['make','count']]),
+ PS('money','mo3','Change Desk','↩','getting your change back',['Get your change','More change','Change challenge'],[['change'],['change','count'],['change','make']]),
+ PS('money','mof','Treasure Throne','','the final boss door, all money mixed',['Easy gate','Tricky gate','The Throne!'],[['count','make'],['make','change'],['count','make','change']],{final:1})];
+const DSTAGE={sec:'dd',id:'dd1',kind:'dd',gem:'dd',name:"Daddy's Door",short:'♥',sub:"today's focus, picked by Daddy",lvNames:['Warm up','Practice','Challenge'],start:1};
+ALL.push.apply(ALL,MSTAGES.concat([DSTAGE]));
+ZONES_BY.money=[{id:'mo1',name:'Coin Corner'},{id:'mo3',name:'Change Desk'}];
+// --- string answers (kept tiny so it is easy to test: __cc.sp.ansEq)
+const ansEq=(v,q)=>{const a=ansOf(q);return q&&q.sa?String(v)===String(a):v===a;};
+const coinKey=a=>a.slice().sort((x,y)=>y-x).join('+'); // canonical coin set: biggest first, '+' between
+const sumOf=a=>a.reduce((x,y)=>x+y,0);
+// --- coin pictures (CSS only; same colours as Sky Glider's shop coins: 1 copper, 5 silver, 10 gold, 50 pink; 100 is a pink gem note)
+const coinHTML=(v,dim)=>v>=100?'<i class="mNote'+(dim?' dim':'')+'">'+v+'</i>':'<i class="mCoin m'+v+(dim?' dim':'')+'">'+v+'</i>';
+function coinsHTML(list,lit){let h='<span class="mPile">';list.forEach((v,i)=>{h+=coinHTML(v,lit!=null&&i>=lit);});return h+'</span>';}
+const MSYM='<i class="mSym" aria-hidden="true"></i>';
+const amtHTML=n=>'<span class="mAmt">'+MSYM+n+'</span>';
+const TREATS=['👑','💍','🧸','🦄','🎀','💎','🧁','🌸','⭐','🍭'];
+const tagHTML=(n,em)=>'<span class="mItem">'+(em?'<span class="mTreat">'+em+'</span>':'')+'<span class="mTag">'+amtHTML(n)+'</span></span>';
+const mLab=(q,c)=>q.t==='make'?coinsHTML(String(c).split('+').map(Number)):amtHTML(esc(c));
+const ansLab=(q,c)=>q&&q.p==='money'?mLab(q,c):c;
+// --- question makers (numbers in, so a missed one is rebuilt exactly from its key 'money:<type>:<numbers>')
+PMK.money={};
+const MNAME={100:'Hundreds',50:'Fifties',10:'Tens',5:'Fives',1:'Ones'};
+PMK.money.count=function(){const coins=Array.prototype.slice.call(arguments),tot=sumOf(coins),srt=coins.slice().sort((x,y)=>y-x),steps=[],groups=[];let run=0;
+ srt.forEach(v=>{const g=groups[groups.length-1];if(g&&g.v===v)g.n++;else groups.push({v,n:1});});
+ let lit=0;groups.forEach(g=>{const seq=[];for(let i=0;i<g.n;i++){run+=g.v;seq.push(run);}lit+=g.n;steps.push(stp(MNAME[g.v]+': '+seq.join(', ')+'.',seq.join(', '),{lit}));});
+ steps.push(stp('The answer is '+tot+'!',srt.join(' + ')+' = '+tot,{lit}));
+ return {sa:1,ans:String(tot),plain:srt.join(' + ')+' = ?',dx:dx(tot,{near:[tot-srt[srt.length-1],tot+srt[srt.length-1],tot+1,tot-1],mid:[tot+5,tot-5,tot+10,tot-10],far:[tot+50,tot-50,tot*2]}),
+  story:{pic:coinsHTML(coins),txt:'How much money is this?'},
+  hint:{intro:'Let\'s count the coins, biggest first!',steps,plain:srt.join(' + ')+' = ?',vis:s=>coinsHTML(srt,s>=1?steps[Math.min(s,steps.length)-1].lit:0)}};};
+PMK.money.make=function(target){const combo=Array.prototype.slice.call(arguments,1).sort((x,y)=>y-x),steps=[];let run=0;
+ combo.forEach((v,i)=>{run+=v;steps.push(i?stp(v+' more makes '+run+'.','+ '+v+' = '+run):stp('Start with '+v+'.',String(v)));});
+ steps.push(stp('That makes '+target+'!',combo.join(' + ')+' = '+target));
+ return {sa:1,noPad:1,ans:coinKey(combo),combo,target,plain:'coins for '+target,
+  story:{pic:tagHTML(target,TREATS[target%TREATS.length]),txt:'Which coins make '+target+'?'},
+  hint:{intro:'Let\'s build it, biggest coins first!',steps,plain:'? = '+target,vis:s=>tagHTML(target)+' '+coinsHTML(combo,Math.min(s,combo.length))}};};
+PMK.money.change=(price,paid)=>{const ans=paid-price,t10=Math.ceil(price/10)*10,steps=[stp('Start at '+price+'.',String(price))],vals=[price],js=[];
+ if(t10>price&&t10<paid){steps.push(stp(price+' and '+(t10-price)+' more is '+t10+'.',price+' + '+(t10-price)+' = '+t10));vals.push(t10);js.push(t10-price);}
+ const from=vals[vals.length-1];steps.push(stp(from+' and '+(paid-from)+' more is '+paid+'.',from+' + '+(paid-from)+' = '+paid));vals.push(paid);js.push(paid-from);
+ steps.push(stp((js.length>1?js[0]+' and '+js[1]+' is '+ans+'. ':'')+'The change is '+ans+'!',paid+' − '+price+' = '+ans));
+ const oops=paid===100&&price%10?(10-price%10)+(10-Math.floor(price/10)%10)*10:ans+2; // the classic slip: each digit taken from 10 (100 − 63 → 47)
+ const payPic=paid>=200?coinHTML(100)+coinHTML(100):coinHTML(paid);
+ return {sa:1,ans:String(ans),plain:paid+' − '+price+' = ?',dx:dx(ans,{near:[ans+1,ans-1,ans+10,ans-10],mid:[oops,ans+5,ans-5],far:[price,paid,ans+20]}),
+  story:{pic:'<span class="mRow">'+tagHTML(price,TREATS[price%TREATS.length])+'<i class="mArr">←</i><span class="mPay">'+payPic+'</span></span>',txt:'It costs '+price+'. You pay '+paid+'. How much change?'},
+  hint:{intro:'Let\'s count up to find the change!',steps,plain:paid+' − '+price+' = ?',vis:s=>seqBoxes(vals,-1,{js,on:i=>s>=i+2})}};};
+// --- numbers for each level and difficulty: [diff][level] = {den: coins she may see, cap: biggest total, mix: coins out of order}
+const MLV=[[{den:[5,1],cap:10},{den:[10,5,1],cap:20},{den:[10,5,1],cap:30}],
+ [{den:[10,5,1],cap:40},{den:[10,5,1],cap:60},{den:[50,10,5,1],cap:99}],
+ [{den:[10,5,1],cap:60},{den:[50,10,5,1],cap:99},{den:[50,10,5,1],cap:99,mix:1}],
+ [{den:[50,10,5,1],cap:99,mix:1},{den:[100,50,10,5,1],cap:199,mix:1},{den:[100,50,10,5,1],cap:299,mix:1}]];
+const mlv=k=>MLV[dsc()][Math.max(0,Math.min(2,k))];
+function greedy(n,den){const o=[];for(const d of den)while(n>=d){o.push(d);n-=d;}return o;}
+const MCHG=[[[10,1,1],[10,1,1],[50,10,5]],[[50,10,5],[100,10,10],[100,10,5]],[[100,10,5],[100,10,1],[100,10,1]],[[100,1,1],[200,105,5],[200,101,1]]]; // [paid, lowest price, price step]
+PGEN.money={
+ count:k=>{const L=mlv(k);let coins=[];for(let g=0;g<60;g++){coins=[];const n=ri(2,L.mix?9:7);for(let i=0;i<n;i++){const d=pick(L.den);if(sumOf(coins)+d<=L.cap)coins.push(d);}
+   if(coins.length>=2&&new Set(coins).size>=Math.min(2,L.den.length))break;}
+  if(coins.length<2)coins=[L.den[L.den.length-2]||5,1];
+  return L.mix?shuffle(coins):coins.sort((x,y)=>y-x);},
+ make:k=>{const L=mlv(k),mx=[5,6,7,7][dsc()];let t=0,c=[];for(let g=0;g<80;g++){t=ri(Math.max(4,Math.floor(L.cap/4)),L.cap);c=greedy(t,L.den);if(c.length>=2&&c.length<=mx&&new Set(c).size>=2)break;} // at least two kinds of coin
+  // harder levels sometimes use the other way: a 10 as 5 + 5
+  if(dsc()>=2&&k>=1&&Math.random()<0.4){const i=c.indexOf(10);if(i>=0&&c.length<=6)c.splice(i,1,5,5);}
+  return [t].concat(c);},
+ change:k=>{const r=MCHG[dsc()][Math.max(0,Math.min(2,k))],paid=r[0],lo=r[1],st=r[2],hi=paid===200?199:paid-1;let price=lo;
+  for(let g=0;g<40;g++){price=Math.min(hi,lo+st*ri(0,Math.floor((hi-lo)/st)));if(price%10||st>=10||Math.random()<0.3)break;}
+  return [price,paid];}};
+// choices for money questions: amounts are numbers turned into strings; "which coins" gets coin sets that are one coin off
+function choicesM(q){const c=S.cfg,n=c.n;
+ if(q.t!=='make')return choicesP({ans:+q.ans,dx:q.dx}).map(String);
+ const den=[100,50,10,5,1].filter(d=>d<=Math.max(q.target,10)&&(d<100||q.target>=100)),out=new Map(),A=q.ans;
+ const put=a=>{if(!a.length||a.length>9)return;const s=sumOf(a),k=coinKey(a);if(s===q.target||s<=0||k===A||out.has(k))return;out.set(k,Math.abs(s-q.target)+Math.random()*0.5);};
+ q.combo.forEach((v,i)=>{den.forEach(d=>{if(d!==v){const a=q.combo.slice();a[i]=d;put(a);}});const a=q.combo.slice();a.splice(i,1);put(a);});
+ den.forEach(d=>put(q.combo.concat([d])));
+ let L=[...out.entries()];L=c.close>=2?L.sort((x,y)=>x[1]-y[1]):shuffle(L);
+ return shuffle([A].concat(L.slice(0,n-1).map(x=>x[0])));}
+
+// ----- Daddy's Door: a grown-up picks today's focus (chips in the grown-ups area); a glowing door makes questions from exactly that
+const DDOPS=['add','sub','mul','div'],DDSYM={add:'+',sub:'−',mul:'×',div:'÷'};
+function ddLabel(v){return String(v==null?'':v).replace(/[^\p{L}\p{N} '\-+−×÷*\/,.&!?:()]/gu,'').replace(/\s+/g,' ').trim().slice(0,30);}
+function ddClean(x){x=x&&typeof x==='object'&&!Array.isArray(x)?x:{};
+ const ints=(a,lo,hi)=>Array.isArray(a)?Array.from(new Set(a.map(Number).filter(v=>Number.isInteger(v)&&v>=lo&&v<=hi))).sort((p,q)=>p-q):[];
+ return {on:x.on===true,t:ints(x.t,2,12),ops:Array.isArray(x.ops)?DDOPS.filter(o=>x.ops.indexOf(o)>=0):[],carry:x.carry===true,dig:[1,2,3].indexOf(+x.dig)>=0?+x.dig:2,label:ddLabel(x.label)};}
+// what she actually gets: no operation picked = ×; no table picked = 2 to 10
+const ddFocus=()=>{const d=save.dd;return {ops:d.ops.length?d.ops:['mul'],t:d.t.length?d.t:[2,3,4,5,6,7,8,9,10],dig:d.dig,carry:d.carry};};
+const ddOn=()=>!!(save.dd&&save.dd.on);
+function ddChips(){const f=ddFocus(),o=[];
+ f.ops.forEach(op=>{if(op==='mul'||op==='div')o.push(DDSYM[op]+' '+f.t.join(' '));else o.push(DDSYM[op]+' '+'●'.repeat(f.dig)+(f.carry?' ↗':''));});
+ return o.map(x=>'<span class="ddChip">'+esc(x)+'</span>').join('');}
+// one + or − pair with the chosen digits; carry on = it must carry/borrow, off = it must not
+function ddAS(op,f,k){const nd=f.dig,lo=nd===1?1:Math.pow(10,nd-1),hi=Math.pow(10,nd)-1;
+ for(let g=0;g<300;g++){let a,b;
+  if(nd===1){if(op==='add'){a=ri(1,9);b=ri(1,9);if(f.carry?a+b<=10:a+b>9)continue;}else if(f.carry){a=ri(11,18);b=ri(2,9);if(a-b>=10||a-b<1)continue;}else{a=ri(2,9);b=ri(1,a-1);}return [a,b];}
+  a=ri(lo,hi);b=k===0?ri(nd===3?10:1,nd===3?99:9):ri(lo,hi);
+  if(op==='add'){if(f.carry?NC(a,b):!NC(a,b))continue;}else{if(b>=a)continue;if(f.carry?NB(a,b):!NB(a,b))continue;}
+  return [a,b];}
+ return null;}
+function ddFacts(k){const f=ddFocus(),F=[],seen=new Set(),top=isVH()?12:10;
+ const add=q=>{const key=qKey(q);if(!seen.has(key)){seen.add(key);F.push(q);}};
+ f.ops.forEach(op=>{
+  if(op==='mul')f.t.forEach(a=>range(k===0?1:2,top).forEach(b=>add({a,b})));
+  else if(op==='div')f.t.forEach(a=>range(1,top).forEach(b=>add({op:'div',a,b})));
+  else{let n=0;for(let i=0;i<160&&n<24;i++){const ab=ddAS(op,f,k);if(ab){const q={op,a:ab[0],b:ab[1]},key=qKey(q);if(!seen.has(key)){add(q);n++;}}}}});
+ if(!F.length)F.push({a:2,b:2});
+ return F;}
+function ddShape(q,k,i){if(!q.op){if(k>0&&q.a!==q.b)q.swap=Math.random()<0.5;if(k===2&&i%3===1)q.miss=flip();}
+ else if(q.op==='div'){q.grp=k>0&&Math.random()<0.5;if(k===2&&i%3===1)toFamily(q);}
+ else if(k===2&&i%3===1)q.miss=flip();return q;}
+function buildQueueD(si,k){return pickW(ddFacts(k),8).map((q,i)=>ddShape(q,k,i));}
+function buildBossD(){const F=ddFacts(S.k),out=[],used=new Set();
+ for(const q of pickW(F,F.length)){if(out.length>=S.locks)break;const key=qKey(q);if(!used.has(key)){used.add(key);out.push(q);}}
+ while(out.length<S.locks)out.push(Object.assign({},F[out.length%F.length]));
+ return shuffle(out.map((q,i)=>ddShape(q,S.k,i)));}
+
 // ----- story doors (word problems)
 const CHARS=[['Glimmer','🐛'],['Ruby the bunny','🐰'],['Pip the penguin','🐧'],['Luna the unicorn','🦄'],['Coco the kitten','🐱'],['the Crystal Queen','👑']];
 const THINGS=[['gems','💎','gem'],['shells','🐚','shell'],['stars','⭐','star'],['hearts','💖','heart'],['flowers','🌸','flower'],['cupcakes','🧁','cupcake'],['crystals','🔮','crystal']];
@@ -2272,8 +2432,9 @@ let mapSec='mul',swPending=false,swDone=false;
 const KEY='crystalcave.v2',V1KEY='crystalcave.v1';
 const DEF={v:3,name:'',muted:false,pad:false,diff:0,lv:{},facts:{},gems:{},rare:{},golden:0,keys:0,treasures:[],streak:0,best:0,run:0,correct:0,answered:0,started:false,seenV2:false,champ:0,champ2:0,glimWear:{bow:true,neck:true,cheeks:true,tiara:true,crown:true,glow:true},migrated:0,
  ofacts:{},ops:{},dv:0,seenV3d:false,seenV3:false,seenDiv:false,seen:{mul:true},
- parent:{on:{add:true,sub:true,mul:true,div:false,word:true,eng:true,pv:true,pat:true,arr:true},max:{add:10000,sub:10000},divT:'all',open:{add:false,sub:false,mul:false,div:false,word:false,eng:false,pv:false,pat:false,arr:false},stories:true,read:true,
-  eng:{spell:true,story:true,miss:true}}}; // v3c: eng (English Cave) fields are optional; older saves get these defaults through merge
+ parent:{on:{add:true,sub:true,mul:true,div:false,word:true,eng:true,pv:true,pat:true,arr:true,money:true},max:{add:10000,sub:10000},divT:'all',open:{add:false,sub:false,mul:false,div:false,word:false,eng:false,pv:false,pat:false,arr:false,money:false},stories:true,read:true,
+  eng:{spell:true,story:true,miss:true}},
+ dd:{on:false,t:[],ops:[],carry:false,dig:2,label:''}}; // v3c: eng (English Cave) fields are optional; older saves get these defaults through merge. 02-4: dd (Daddy's Door) is optional too, cleaned by ddClean
 const isObj=o=>!!o&&typeof o==='object'&&!Array.isArray(o);
 // deep merge onto the defaults: known fields must match the default's type; unknown fields are kept untouched
 function merge(def,d){const o=JSON.parse(JSON.stringify(def));if(!isObj(d))return o;
@@ -2302,6 +2463,7 @@ function load(){const ls=k=>{try{return localStorage.getItem(k);}catch(e){return
   else{s.diff=1;s.seenV3d=true;}s.dv=4;}
  const p=s.parent;['add','sub'].forEach(k=>{if([20,100,1000,10000].indexOf(p.max[k])<0)p.max[k]=10000;});if(p.divT!=='easy')p.divT='all';
  if(!CAVES.some(k=>p.on[k]))p.on.mul=true;if(!['spell','story','miss'].some(k=>p.eng[k]))p.eng.spell=p.eng.story=p.eng.miss=true;
+ s.dd=ddClean(s.dd); // 02-4: Daddy's Door focus, always sanitized (bad or missing = off)
  return s;}
 let save=load();
 // ask the browser to keep her saves even when storage runs low (v5)
@@ -2322,19 +2484,19 @@ const lvRec=(si,k)=>{const r=lvStore(ALL[si])[ALL[si].id+'-'+k];return isObj(r)?
 const caveOf=sec=>isW(sec)?'word':isE(sec)?'eng':sec;
 // which stages show in a cave (grown-ups can limit number ranges)
 const hardOn=()=>save.diff>=1;
-function stageVisible(st){const p=save.parent;if(isP(st.sec))return true;
+function stageVisible(st){const p=save.parent;if(isP(st.sec)||st.sec==='dd')return true;
  // v3d: Easy lists the original stages, Normal and Tricky list the harder ones (the × tables stay on every setting)
  if(isE(st.sec)){const t=st.tier|0;if(save.diff===3?t<2:t!==save.diff)return false;}else if(st.sec!=='mul'||st.hard){if(!!st.hard!==hardOn())return false;}
  if(st.sec==='add'||st.sec==='sub')return !st.lim||st.lim<=p.max[st.sec];
  if(st.sec==='wadd'||st.sec==='wsub')return !st.lim||st.lim<=p.max[st.op];if(st.sec==='wdiv'&&p.divT==='easy')return st.id==='wd1';if(st.sec==='div'&&st.t&&p.divT==='easy')return [2,5,10].indexOf(st.t)>=0;return true;}
 // the Sharing Stories sub-area only shows once a grown-up has switched division (the Golden Geode) on
-const secVisible=sec=>{const on=save.parent.on;return isW(sec)?!!on.word&&(sec!=='wdiv'||!!on.div):isE(sec)?!!on.eng&&!!save.parent.eng[SECS[sec].ek]:!!on[sec];};
+const secVisible=sec=>{const on=save.parent.on;if(sec==='dd')return ddOn();return isW(sec)?!!on.word&&(sec!=='wdiv'||!!on.div):isE(sec)?!!on.eng&&!!save.parent.eng[SECS[sec].ek]:!!on[sec];};
 function secStages(sec){if(sec==='word')return [].concat(...WSECS.filter(secVisible).map(secStages));if(sec==='eng')return [].concat(...ESECS.filter(secVisible).map(secStages));const o=[];ALL.forEach((st,i)=>{if(st.sec===sec&&stageVisible(st))o.push(i);});if(sec==='sub')o.sort((x,y)=>(ALL[x].moon?1:0)-(ALL[y].moon?1:0));return o;}
 function stageOpen(si){const st=ALL[si];if(save.parent.open[caveOf(st.sec)])return true;
  if(st.sec==='mul'&&!st.hard)return si===0||lvRec(si-1,0).done;
  if(st.final){const F=secStages(st.sec),jf=F.indexOf(si);return jf<=0||F.slice(0,jf).every(x=>lvRec(x,0).done);}
  if(st.start)return true;const L=secStages(st.sec),j=L.indexOf(si);return j<=0||lvRec(L[j-1],0).done;}
-const lvOpen=(si,k)=>save.parent.open[caveOf(ALL[si].sec)]||stageOpen(si)&&(k===0||lvRec(si,k-1).done);
+const lvOpen=(si,k)=>ALL[si].sec==='dd'||save.parent.open[caveOf(ALL[si].sec)]||stageOpen(si)&&(k===0||lvRec(si,k-1).done);
 const stageDone=si=>{let n=0;for(let k=0;k<nLv(ALL[si]);k++)if(lvRec(si,k).done)n++;return n;};
 const stageMastered=si=>{for(let k=0;k<nLv(ALL[si]);k++)if(lvRec(si,k).stars<3)return false;return true;};
 function secProgress(sec){let done=0,tot=0,stars=0;secStages(sec).forEach(i=>{for(let k=0;k<nLv(ALL[i]);k++){tot++;const r=lvRec(i,k);if(r.done)done++;stars+=r.stars|0;}});return {done,tot,stars,max:tot*3};}
@@ -2706,7 +2868,7 @@ on('#mHome',()=>{tapSnd();show(isW(mapSec)&&secVisible('word')?'words':isE(mapSe
 on('#mDiff',()=>{tapSnd();openDiff();});
 // ---------- mine entrance (the 4 caves) ----------
 let setFrom='mine';
-const SECGEM={add:'a1',sub:'s1',mul:6,div:'d2',word:'wa1',wadd:'wa1',wsub:'ws1',wmul:'wm1',wdiv:'wd1',eng:'es1',espell:'es1',estory:'er1',emiss:'em1',pv:'pv1',pat:'pat1',arr:'arr1'};
+const SECGEM={add:'a1',sub:'s1',mul:6,div:'d2',word:'wa1',wadd:'wa1',wsub:'ws1',wmul:'wm1',wdiv:'wd1',eng:'es1',espell:'es1',estory:'er1',emiss:'em1',pv:'pv1',pat:'pat1',arr:'arr1',money:'mo1',dd:'dd'};
 $('#eHome').innerHTML=IC.back;$('#eBag').innerHTML=IC.bag;$('#eSet').innerHTML=IC.gear;$('#pGear span').innerHTML=IC.sgear;$('#gBack').innerHTML=IC.back;
 // ----- v4b records: every finished level (per cave and level: first-try accuracy, best streak in a row, time); shared FunRecords block -----
 const fmtTime=s=>Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0');
@@ -2720,12 +2882,14 @@ $('#eRec').innerHTML=TROPHY;on('#eRec',()=>{tapSnd();REC.open();});
 on('#eHome',()=>{tapSnd();show('welcome');});on('#eBag',()=>{tapSnd();bagFrom='mine';show('bag');});on('#eSet',()=>{tapSnd();setFrom='mine';show('settings');});
 on('#gBack',()=>{tapSnd();show('mine');});
 // one big cave card (Mine Entrance and the Word Problems picker share it)
-function caveCard(sec,isNew){const C=SECS[sec],p=secProgress(sec),pct=p.tot?Math.round(p.done/p.tot*100):0;
- return '<button class="cave c-'+(C.col||sec)+'" data-s="'+sec+'" aria-label="'+C.name+': '+C.kid+'"><span class="cArt">'+caveSVG(sec)+'<span class="cSym'+(C.em?' em':C.ab?' ab':'')+'">'+C.sym+'</span></span>'+
-  '<span class="cInfo"><span class="cName">'+C.name+'</span><span class="cKid">'+C.kid+'</span><span class="cBar"><i style="width:'+pct+'%"></i></span><span class="cSt">'+starSVG(true)+p.stars+' &nbsp;'+gemSVG(GEMS[SECGEM[sec]],24)+p.done+'/'+p.tot+'</span></span>'+
+function caveCard(sec,isNew){const C=SECS[sec],p=secProgress(sec),pct=p.tot?Math.round(p.done/p.tot*100):0,dd=sec==='dd';
+ // Daddy's Door shows his label (escaped, never spoken) and the focus chips instead of a fixed line
+ const kid=dd?(save.dd.label?'<span class="ddLbl">'+esc(save.dd.label)+'</span>':'')+'<span class="ddChips">'+ddChips()+'</span>':C.kid,aria=dd?esc(save.dd.label||C.kid):C.kid;
+ return '<button class="cave c-'+(C.col||sec)+(dd?' ddGlow':'')+'" data-s="'+sec+'" aria-label="'+C.name+': '+aria+'"><span class="cArt">'+caveSVG(sec)+'<span class="cSym'+(C.em?' em':C.ab?' ab':'')+'">'+C.sym+'</span></span>'+
+  '<span class="cInfo"><span class="cName">'+C.name+'</span><span class="cKid">'+kid+'</span><span class="cBar"><i style="width:'+pct+'%"></i></span><span class="cSt">'+starSVG(true)+p.stars+' &nbsp;'+gemSVG(GEMS[SECGEM[sec]],24)+p.done+'/'+p.tot+'</span></span>'+
   (isNew?'<span class="cNew">NEW</span>':'')+'</button>';}
 function renderMine(){$('#eStats').innerHTML=gemSVG(GEMS[2],36)+'<span>'+totalGems()+'</span>';
- $('#caves').innerHTML=CAVES.filter(secVisible).map(sec=>caveCard(sec,!save.seen[sec])).join('');
+ $('#caves').innerHTML=(secVisible('dd')?caveCard('dd',false):'')+CAVES.filter(secVisible).map(sec=>caveCard(sec,!save.seen[sec])).join(''); // Daddy's Door glows first when it is on
  $$('#caves .cave').forEach(b=>b.addEventListener('click',()=>{tapSnd();openSec(b.dataset.s);}));
  if(!save.seenV3)setTimeout(whatsNew3,250);else if(!save.seenV3d)setTimeout(whatsNew3d,250);}
 // ---------- Word Problems: pick a story sub-area ----------
@@ -2763,9 +2927,11 @@ function englishIntro(){if(E.intro||curScreen!=='english'||$('#modal').classList
  if(save.parent.read&&!save.muted)Voice.say('English cave! '+txt);
  on('#eiSay',()=>{Snd.init();Voice.say('English cave! '+txt);});
  on('#eIntroOk',()=>{tapSnd();Voice.stop();E.intro=true;persist();closeModal();});}
+const DDSAY="Daddy's door! Daddy picked these just for you!",SHOPSAY='Treasure Shop! Count the coins, pick the coins, and find your change!';
 function openSec(sec){if(!secVisible(sec))return;
  if(!save.seen[caveOf(sec)]){save.seen[caveOf(sec)]=true;persist();}
  if(sec==='word'){show('words');return;}if(sec==='eng'){show('english');return;}
+ if(sec==='dd')autoSay(DDSAY);else if(sec==='money'&&!save.seen.moneyHi){save.seen.moneyHi=true;persist();autoSay(SHOPSAY);}
  mapSec=sec;show('map');if(sec==='div'&&!save.seenDiv)setTimeout(()=>{if(curScreen==='map'&&!$('#modal').classList.contains('on'))shareIntro();},300);}
 function whatsNew3(){if(save.seenV3||curScreen!=='mine'||$('#modal').classList.contains('on'))return;
  modal('<div class="art"><div class="rays"></div>'+caveSVG('add')+'</div><h2>New caves to explore!</h2>'+
@@ -2810,7 +2976,7 @@ function openGate(){const a=ri(12,19),b=ri(12,19),ans=a*b;let typed='';
   else if(typed.length<4)typed+=k;upd();}));
  on('#gNo',()=>{tapSnd();closeModal();});}
 // ---------- grown-ups area ----------
-const fmtKey=k=>k.slice(0,2)==='e:'?eLabel(k):/^(pv|pat|arr):/.test(k)?pLabel(k):/^(w:)?two:/.test(k)?'📖 two-step story':k.replace(/^w:/,'').replace('*',' × ').replace('x',' × ').replace('+',' + ').replace('-',' − ').replace('÷',' ÷ ');
+const fmtKey=k=>k.slice(0,2)==='e:'?eLabel(k):/^(pv|pat|arr|money):/.test(k)?pLabel(k):/^(w:)?two:/.test(k)?'📖 two-step story':k.replace(/^w:/,'').replace('*',' × ').replace('x',' × ').replace('+',' + ').replace('-',' − ').replace('÷',' ÷ ');
 function parseKey(k){if(k.slice(0,2)==='w:'){const q=parseKey(k.slice(2));if(q){if(!q.op)q.op='mul';q.w=1;}return q;} // Word Problems facts
  let m=/^(\d+)x(\d+)$/.exec(k);if(m)return {a:+m[1],b:+m[2]};
  m=/^two:(\w+):([\d,]+)$/.exec(k);if(m){const n=m[2].split(',').map(Number);return Object.assign({op:'two'},twoMk(m[1],n[0],n[1],n[2],n[3]));}
@@ -2838,7 +3004,7 @@ function renderParent(){const p=save.parent,b=$('#parBody'),y=b.scrollTop;
  const seg=(name,opts,cur)=>'<div class="seg">'+opts.map(o=>'<button class="btn '+(o[0]===cur?'gold sel':'gray')+'" data-seg="'+name+'" data-v="'+o[0]+'">'+o[1]+'</button>').join('')+'</div>';
  const lbl=(sec,txt)=>'<span class="lbl"><span class="pSym c-'+sec+(SECS[sec].em?' em':SECS[sec].ab?' ab':'')+'">'+SECS[sec].sym+'</span><span>'+txt+'</span></span>';
  const KID={div:' (hidden until you switch it on)',word:'. Sharing stories show once Golden Geode is on',eng:'. Pick its activities below'};
- let h='<p class="note">Choose what she can play. Everything stays on this device. Easy has the classic questions; Normal and Tricky have grade 3 questions.</p><div class="secH">Caves she can see</div>';
+ let h='<p class="note">Choose what she can play. Everything stays on this device. Easy has the classic questions; Normal and Tricky have grade 3 questions.</p>'+ddParentHTML(tog)+'<div class="secH">Caves she can see</div>';
  CAVES.forEach(s=>{h+='<div class="setRow">'+lbl(s,SECS[s].name+'<small>'+(s==='word'?'Story sums for + − × ÷':s==='eng'?'Spelling, read-along stories, missing words':SECS[s].kid)+(KID[s]||'')+'</small>')+tog('on-'+s,p.on[s])+'</div>';});
  h+='<div class="secH">English Cave activities</div>';
  ESECS.forEach(s=>{h+='<div class="setRow">'+lbl(s,SECS[s].name+'<small>'+SECS[s].kid+(p.on.eng?'':' (English Cave is off)')+'</small>')+tog('ea-'+s,p.eng[SECS[s].ek])+'</div>';});
@@ -2864,23 +3030,40 @@ function renderParent(){const p=save.parent,b=$('#parBody'),y=b.scrollTop;
   p.eng[k]=!p.eng[k];re();}));
  b.querySelectorAll('[data-seg]').forEach(bt=>bt.addEventListener('click',()=>{tapSnd();const k=bt.dataset.seg,v=bt.dataset.v;
   if(k==='max-add')p.max.add=+v;else if(k==='max-sub')p.max.sub=+v;else if(k==='divT')p.divT=v;else if(k==='diff')save.diff=+v;re();}));
+ ddParentWire(b,re);
  on('#stories',()=>{tapSnd();p.stories=!p.stories;re();});
  on('#read',()=>{tapSnd();p.read=!p.read;re();if(p.read)Voice.say('I will read the stories out loud.');});
  on('#pReset',()=>{tapSnd();modal('<h2>Start over?</h2><p>This erases all gems, stars and treasures in every cave. A backup copy is kept on this device.</p><div class="row"><button class="btn green big" id="rKeep">Keep everything</button><button class="btn red" id="rYes">Yes, erase</button></div>');
   on('#rKeep',()=>{tapSnd();closeModal();});
   on('#rYes',()=>{try{localStorage.setItem(KEY+'.reset-backup',JSON.stringify(save));localStorage.setItem(WKEY+'.reset-backup',JSON.stringify(W));localStorage.setItem(EKEY+'.reset-backup',JSON.stringify(E));}catch(e){}
    W=merge(WDEF,{intro:W.intro});E=merge(EDEF,{intro:E.intro});
-   const keep={muted:save.muted,parent:save.parent,seen:save.seen,diff:save.diff};save=merge(DEF,{});Object.assign(save,keep);save.seenV2=true;save.seenV3=true;save.seenV3d=true;save.dv=4;persist();closeModal();S=null;show('welcome');});});}
+   const keep={muted:save.muted,parent:save.parent,seen:save.seen,diff:save.diff,dd:save.dd};save=merge(DEF,{});Object.assign(save,keep);save.seenV2=true;save.seenV3=true;save.seenV3d=true;save.dv=4;persist();closeModal();S=null;show('welcome');});});}
+// ----- 02-4 Daddy's Door setup: quick chips (no typing needed), an optional label, Clear. Picking a chip switches the door on.
+function ddParentHTML(tog){const d=save.dd,f=ddFocus(),chip=(k,v,txt,on,al)=>'<button class="btn ddc '+(on?'gold sel':'gray')+'" data-dk="'+k+'" data-dv="'+v+'"'+(al?' aria-label="'+al+'"':'')+'>'+txt+'</button>';
+ return '<div class="secH">Daddy\'s Door <small style="font-size:15px;opacity:.85">today\'s focus</small></div>'+
+  '<div class="setRow"><span class="lbl"><span class="pSym c-dd em">💖</span><span>Show Daddy\'s Door<small>A glowing door first on her Mine Entrance, with only the questions you pick here</small></span></span>'+tog('dd-on',d.on)+'</div>'+
+  '<div class="setRow ddSet"><div class="ddL">Kind of sums</div><div class="ddRow">'+DDOPS.map(o=>chip('op',o,DDSYM[o],d.ops.indexOf(o)>=0,{add:'Adding',sub:'Taking away',mul:'Times',div:'Sharing'}[o])).join('')+'</div>'+
+  '<div class="ddL">Times tables for × and ÷</div><div class="ddRow">'+range(2,12).map(t=>chip('t',t,t,d.t.indexOf(t)>=0)).join('')+'</div>'+
+  '<div class="ddL">Size for + and −</div><div class="ddRow">'+[1,2,3].map(n=>chip('dig',n,n+'-digit',d.dig===n)).join('')+chip('carry',1,'Carry / borrow',d.carry)+'</div>'+
+  '<div class="ddL">Label she sees (not read aloud)</div><div class="ddRow"><input id="ddLabel" maxlength="30" value="'+esc(d.label)+'" placeholder="e.g. 7s and 8s" autocomplete="off"><button class="btn tog red" id="ddClear">Clear</button></div>'+
+  '<div class="ddL">She will get</div><div class="ddRow ddChips">'+ddChips()+(f.ops.some(o=>o==='mul'||o==='div')&&!d.t.length?' <small>(no table picked: 2 to 10)</small>':'')+'</div></div>';}
+function ddParentWire(b,re){const d=save.dd;
+ on('#dd-on',()=>{tapSnd();d.on=!d.on;re();});
+ b.querySelectorAll('[data-dk]').forEach(bt=>bt.addEventListener('click',()=>{tapSnd();const k=bt.dataset.dk,v=bt.dataset.dv,tg=(a,x)=>{const i=a.indexOf(x);if(i>=0)a.splice(i,1);else a.push(x);};
+  if(k==='op')tg(d.ops,v);else if(k==='t')tg(d.t,+v);else if(k==='dig')d.dig=+v;else if(k==='carry')d.carry=!d.carry;
+  save.dd=ddClean(Object.assign({},d,{on:true}));re();}));
+ const li=$('#ddLabel');if(li){li.addEventListener('input',()=>{save.dd.label=ddLabel(li.value);persist();});li.addEventListener('change',()=>{save.dd.label=ddLabel(li.value);re();});}
+ on('#ddClear',()=>{tapSnd();save.dd=ddClean({});re();});}
 // ---------- map (one cave at a time) ----------
 function currentIdx(sec){const L=secStages(sec||mapSec);for(const i of L)if(!lvRec(i,0).done)return stageOpen(i)?i:-1;return -1;}
 const MOONIC='<svg viewBox="0 0 24 24"><path d="M16 3 a9 9 0 1 0 5 13 a7 7 0 0 1 -5 -13z" fill="#f4f0ff" stroke="#7a68c8" stroke-width="1.4" stroke-linejoin="round"/><circle cx="19" cy="6" r="1.6" fill="#fff"/></svg>';
 function nodeLabel(st,size){if(st.final)return '<span class="crownT">'+IC.crown+'</span>';if(st.moon)return '<span class="crownT">'+MOONIC+'</span>';if(st.kind==='queen')return '<span class="crownT">'+IC.crown+'</span>';return '<span class="tbl">'+st.short+'</span>';}
 function renderMap(){const area=$('#mapArea'),inner=$('#mapInner'),sec=mapSec,L=secStages(sec);
- $('#mapTitle').textContent=sec==='mul'?'The Crystal Cave':isE(sec)?SECS[sec].name+' · '+['Easy','Medium','Hard','Expert'][save.diff]:SECS[sec].name;
+ $('#mapTitle').textContent=sec==='mul'?'The Crystal Cave':sec==='dd'?SECS.dd.name+(save.dd.label?' · '+save.dd.label:''):isE(sec)?SECS[sec].name+' · '+['Easy','Medium','Hard','Expert'][save.diff]:SECS[sec].name;
  $('#mStats').innerHTML=gemSVG(GEMS[2],36)+'<span id="mTotal">'+totalGems()+'</span>';$('#mDiff').innerHTML=diffIcon(save.diff);$('#mDiff').setAttribute('aria-label','Difficulty: '+DIFFS[save.diff].name);
  const n=L.length;
  // the Secret Tunnel / sharing buttons sit in their own strip under the map, so they never cover a node
- $('#mapFoot').innerHTML=(sec==='div'?'<button class="btn gold" id="shareBtn" aria-label="How fair sharing works">'+chestSVG()+'</button>':'')+(save.keys>0?'<button class="btn gold pulse" id="tunnelBtn">'+goldenSVG(40)+'Secret Tunnel'+(save.keys>1?' ×'+save.keys:'')+'</button>':'');
+ $('#mapFoot').innerHTML=(sec==='dd'?'<span class="ddChips ddFoot">'+ddChips()+'</span>':'')+(sec==='div'?'<button class="btn gold" id="shareBtn" aria-label="How fair sharing works">'+chestSVG()+'</button>':'')+(save.keys>0?'<button class="btn gold pulse" id="tunnelBtn">'+goldenSVG(40)+'Secret Tunnel'+(save.keys>1?' ×'+save.keys:'')+'</button>':'');
  const w=area.clientWidth,h0=area.clientHeight;if(!w||!h0||!n)return;const h=h0;
  const cols=w>=h*1.3?5:(w>=560?4:2),rows=Math.ceil(n/cols),vis=Math.max(2,Math.min(rows,w>=h*1.3?2:(w>=560?3:5)));
  const node=Math.max(76,Math.min(w/cols*0.5,(h/vis)/2.05,124)),rowH=Math.max(node*1.95,h/rows);
@@ -2949,9 +3132,10 @@ function startLevel(si,k){const st=ALL[si];save.run++;persist();mapSec=st.sec;
  const c=cfgFor(st.kind==='queen'?2:k);if(st.moon&&c.speed)c.speed*=3;
  // bigger numbers get more time for the speedy bonus (it is only ever a bonus); stories have no timer
  if(st.kind==='gen')c.speed=st.story?0:c.speed*(st.hard?3:st.lim>=1000?3:st.lim>=100?2:1);else if(st.kind==='word'||st.kind==='eng'||st.kind==='px'){c.speed=0;if(st.kind==='eng')c.forcePad=false;}
+ else if(st.kind==='dd'&&ddFocus().ops.some(o=>o==='add'||o==='sub'))c.speed*=save.dd.dig; // Daddy's Door: bigger sums get more time
  S={mode:'sec',si,k,st,cfg:c,gem:st.kind==='table'?null:st.gem,idx:0,boss:false,bossQs:null,bossIdx:0,locks:st.kind==='queen'||st.final?5:3,first:0,total:0,earned:{},requeued:{},busy:false,pad:st.kind!=='eng'&&(save.pad||c.forcePad),forcePad:c.forcePad,speedy:0};
  S.t0=performance.now();S.rs=0;S.rsb=0; // v4b records: time and the best run of first-try answers
- S.queue=st.moon?buildQueueM(si):st.kind==='px'?buildQueueP(si,k):st.kind==='gen'?buildQueueG(si,k):st.kind==='word'?buildQueueW(si,k):st.kind==='eng'?buildQueueE(si,k):buildQueue(si,k);
+ S.queue=st.moon?buildQueueM(si):st.kind==='px'?buildQueueP(si,k):st.kind==='dd'?buildQueueD(si,k):st.kind==='gen'?buildQueueG(si,k):st.kind==='word'?buildQueueW(si,k):st.kind==='eng'?buildQueueE(si,k):buildQueue(si,k);
  show('play');setupPlay();banner(st.name,st.kind==='queen'?'The Grand Boss!':LVN[k]+': '+lvLabel(st,k),1500);nextQ();}
 function startTunnel(ret){if(!ret){save.run++;persist();}
  const c=cfgFor(1);c.speed=0;c.forcePad=false;const sec=ret&&ret.st?ret.st.sec:mapSec;
@@ -3021,6 +3205,7 @@ function factsFor(si,k){const st=ALL[si],F=[];
  if(st.kind==='gen')return st.sec==='div'&&!st.hard?divFacts(st,k):genFacts(st,k);
  if(st.kind==='word')return wordFacts(st,k);
  if(st.kind==='px')return pFacts(st,k);
+ if(st.kind==='dd')return ddFacts(k);
  if(st.kind==='eng')return engFacts(st,k);
  const top=isVH()?12:10; // Very Hard adds ×11 and ×12
  if(st.kind==='table')range(1,top).forEach(b=>F.push({a:st.t,b}));
@@ -3339,19 +3524,21 @@ function startSpeed(){const sp=box$('.speed');if(!sp)return;S.qStart=performance
  if(!S.cfg.speed||S.mode!=='sec'){sp.hidden=true;return;}sp.hidden=false;const i=sp.querySelector('i');sp.classList.remove('gone');
  i.style.animation='none';void i.offsetWidth;i.style.animation='speedDown '+S.cfg.speed+'s linear forwards';S.qOn=true;
  if(spHeld()){i.style.animationPlayState='paused';}else{S.qRun=performance.now();const q=S.q;startSpeed.t=setTimeout(()=>spGone(q),S.cfg.speed*1000);}}
-function updateQ(){if(S&&S.q&&S.q.e)return updTagE();const q=box$('.q');if(!q||!S||!S.q)return;q.innerHTML=qHTML(S.q,S.pad?S.typed:'');q.classList.toggle('missQ',!!S.q.miss);
+function updateQ(){if(S&&S.q&&S.q.e)return updTagE();const q=box$('.q');if(!q||!S||!S.q)return;q.innerHTML=qHTML(S.q,padOn()?S.typed:'');q.classList.toggle('missQ',!!S.q.miss);
  const tg=box$('.door.boss .tag, .door.queen .tag');if(tg)tg.textContent=(S.st&&S.st.moon?'Moon Princess! Lock ':S.st&&S.st.kind==='queen'?'Crystal Queen! Lock ':'Boss Door! Lock ')+Math.min(S.locks,S.bossIdx+1)+' of '+S.locks;
  const stg=box$('.stTag');if(stg)stg.textContent=S.boss?(S.q.p?(S.st.final?'Final Boss! Lock ':'Boss Door! Lock '):'Story Lock! Lock ')+Math.min(S.locks,S.bossIdx+1)+' of '+S.locks:S.q.fotw?'⭐ Fact of the week':q.review?'Remember this one?':'Story Door';}
+// 02-4: a "which coins" question (q.noPad) always shows its coin choices, even when the number pad is on
+const padOn=()=>!!(S&&S.pad&&!(S.q&&S.q.noPad));
 function renderAnswers(){const a=$('#answers');$('#padT').textContent=S.pad?'ABC':'123';$('#padT').setAttribute('aria-label',S.pad?'Show answer buttons':'Show number pad');
  const hb=$('#hintB');hb.hidden=!(S.cfg.hintBtn||S.wrong);
- $('#padT').style.display=S.q&&S.q.e?'none':'';hb.style.display='';if(S.q&&S.q.e)return renderAnswersE();
- if(S.pad){let h='<div class="pad">';[1,2,3,4,5,6,7,8,9].forEach(n=>h+='<button class="btn purple" data-k="'+n+'">'+n+'</button>');
+ $('#padT').style.display=S.q&&(S.q.e||S.q.noPad)?'none':'';hb.style.display='';if(S.q&&S.q.e)return renderAnswersE();
+ if(padOn()){let h='<div class="pad">';[1,2,3,4,5,6,7,8,9].forEach(n=>h+='<button class="btn purple" data-k="'+n+'">'+n+'</button>');
   h+='<button class="btn del" data-k="del" aria-label="Delete">&#9003;</button><button class="btn purple" data-k="0">0</button><button class="btn go" data-k="go" aria-label="Check">&#10003;</button></div>';a.innerHTML=h;
   a.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>padKey(b.dataset.k)));}
- else{const ch=S.choices||(S.choices=choicesFor(S.q));let h='<div class="choices n'+ch.length+'">';ch.forEach(c=>{const no=S.tried.indexOf(c)>=0;h+='<button class="btn'+(no?' nope':'')+'" data-v="'+c+'"'+(no?' disabled':'')+'>'+c+'</button>';});a.innerHTML=h+'</div>';
-  a.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>answer(+b.dataset.v,b)));}}
-function padKey(k){if(!S||S.busy)return;Snd.tap();
- if(k==='del')S.typed=S.typed.slice(0,-1);else if(k==='go'){if(S.typed)answer(+S.typed,null);return;}else if(S.typed.length<((S.q.op||S.q.p)?4:3))S.typed=(S.typed==='0'?'':S.typed)+k;
+ else{const ch=S.choices||(S.choices=choicesFor(S.q));let h='<div class="choices n'+ch.length+'">';const sa=!!S.q.sa,mo=S.q.p==='money';ch.forEach(c=>{const no=S.tried.indexOf(c)>=0;h+='<button class="btn'+(no?' nope':'')+'" data-v="'+(sa?esc(c):c)+'"'+(mo?' aria-label="'+esc(String(c).replace(/\+/g,' + '))+'"':'')+(no?' disabled':'')+'>'+ansLab(S.q,c)+'</button>';});a.innerHTML=h+'</div>';
+  a.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>answer(sa?b.dataset.v:+b.dataset.v,b)));}} // string answers (money) stay strings
+function padKey(k){if(!S||S.busy||!padOn())return;Snd.tap();
+ if(k==='del')S.typed=S.typed.slice(0,-1);else if(k==='go'){if(S.typed)answer(S.q.sa?String(+S.typed):+S.typed,null);return;}else if(S.typed.length<((S.q.op||S.q.p)?4:3))S.typed=(S.typed==='0'?'':S.typed)+k;
  updateQ();}
 function nextQ(){if(!S)return;
  if(S.mode==='tunnel'){if(S.idx>=S.queue.length)return tunnelDone();S.q=S.queue[S.idx];}
@@ -3365,7 +3552,7 @@ function nextQ(){if(!S)return;
   S.q=S.queue[S.idx];}
  S.prevQ=null;S.easeNext=null;S.notYet=false;S.wrong=false;S.helped=false;S.tries=0;S.typed='';S.tried=[];S.choices=null;S.hx=null;S.busy=false;S.hintRows=0;S.counting=false;
  if(!Voice.cheer)Voice.stop();hideHint();renderDoor();renderAnswers();renderDots();fitPic();}
-async function startBoss(){const s=S;s.boss=true;s.bossIdx=0;s.bossQs=s.st.moon?buildBossM():s.st.kind==='px'?buildBossP():s.st.kind==='gen'?buildBossG():s.st.kind==='word'?buildBossW():s.st.kind==='eng'?buildBossE():buildBoss();s.doorDirty=true;s.busy=true;
+async function startBoss(){const s=S;s.boss=true;s.bossIdx=0;s.bossQs=s.st.moon?buildBossM():s.st.kind==='px'?buildBossP():s.st.kind==='dd'?buildBossD():s.st.kind==='gen'?buildBossG():s.st.kind==='word'?buildBossW():s.st.kind==='eng'?buildBossE():buildBoss();s.doorDirty=true;s.busy=true;
  if(s.st.moon){banner("The Moon Princess's Throne!",'Five moon locks to open.',1900);autoSay("The Moon Princess's Throne! Five moon locks to open.",{cheer:true});}else if(s.st.kind==='queen'){banner('The Crystal Queen!','Break all 5 gem locks!',1700);autoSay('The Crystal Queen! Break all 5 gem locks!',{cheer:true});}else if(s.st.final){banner('Final Boss Door!','Break all 5 gem locks!',1700);autoSay('Final boss door! Break all 5 gem locks!',{cheer:true});}else{banner('Boss Door!','Break all 3 gem locks!',1500);autoSay('Boss Door! Break all 3 gem locks!',{cheer:true});}
  FZ.buzz([40,50,60]);Snd.streak();await wait(s.st.kind==='queen'?900:700);if(S!==s)return;s.busy=false;nextQ();}
 // shared learning record (v5, its own key funzone.learn.v1; the cave's saves are untouched): one entry per question
@@ -3383,7 +3570,7 @@ function record(q,ok,helped){try{if(window.FunLearn)FunLearn.add('cc',learnKey(q
   if(!isObj(st[k])&&ok&&q.op!=='div'&&q.op!=='mul'&&Math.max(q.a,q.b)>20){save.answered++;persist();return;}}
  const r=isObj(st[k])?st[k]:(st[k]={n:0,c:0,w:0,box:0,due:0});r.n++;save.answered++;
  if(helped){r.due=save.run+1;}else if(ok){r.c++;r.box=Math.min(5,r.box+1);r.due=save.run+[1,1,2,3,5,8][r.box];}else{r.w++;r.box=0;r.due=save.run+1;}persist();}
-function answer(v,btn){if(!S||S.busy||!S.q)return;if(S.q.e&&S.q.read&&!S.q.readDone)return;if(v===ansOf(S.q)){if(S.q.e)eRight();onCorrect(btn);}else onWrong(v,btn);}
+function answer(v,btn){if(!S||S.busy||!S.q)return;if(S.q.e&&S.q.read&&!S.q.readDone)return;if(ansEq(v,S.q)){if(S.q.e)eRight();onCorrect(btn);}else onWrong(v,btn);}
 function say(txt,ms){const b=$('#bubble');b.dataset.t=txt;b.classList.add('on');placeBub();clearTimeout(say.t);say.t=setTimeout(()=>b.classList.remove('on'),(ms||2200)*Math.max(SPEED,0.4));}
 // The bubble never covers the question, its 🔊, the answer box/blank or any answer (#12, #23). It sits beside the lantern when that
 // spot is free; otherwise it moves to the nearest free spot of the play area (stage or answers column), then tries a smaller font and
@@ -3506,14 +3693,14 @@ function strat(q,full){if(!q||q.e||q.w||q.story||q.miss||isX(q))return null;
 // "Not yet" coaching (v5): after 2 misses on the same question, Glimmer gently shows the answer (it glows; she taps it), the next
 // question steps down to an easier stepping stone, and the missed one comes back a little later (spaced review, below).
 const NOTYET='Not yet! That is okay.';
-function notYet(s,q){if(s.notYet){if(s.pad){s.typed=String(ansOf(q));updateQ();}if(s.nyLine&&$('#hint').hidden)say(s.nyLine,4200);return;}
+function notYet(s,q){if(s.notYet){if(padOn()){s.typed=String(ansOf(q));updateQ();}if(s.nyLine&&$('#hint').hidden)say(s.nyLine,4200);return;}
  s.notYet=true;s.helped=true;s.prevQ=q;const a=ansOf(q),st=strat(q,true);
  s.easeNext=st&&st.step?st.step:true;
- const line=s.nyLine=NOTYET+' '+(st?st.t.replace('Here is a trick! ',''):'The answer is '+a+'.');
+ const line=s.nyLine=NOTYET+' '+(st?st.t.replace('Here is a trick! ',''):'The answer is '+(q.sa?String(a).replace(/\+/g,' + '):a)+'.');
  const sayEl=$('#hint').hidden?null:$('#say');if(sayEl){sayEl.textContent=line;if(isAS(q)&&s.as){s.hintRows=s.as.steps.length;try{asDraw();}catch(e){}}else $$('#hgrid .hrow').forEach(r=>r.classList.add('lit'));}else say(line,4200);
  autoSay(line);
- if(s.pad){s.typed=String(a);updateQ();const g=$('#answers [data-k="go"]');if(g)g.classList.add('reveal');}
- else $$('#answers .choices .btn').forEach(b=>{if(+b.dataset.v===a)b.classList.add('reveal');else if(!b.disabled){b.classList.add('nope');b.disabled=true;}});}
+ if(padOn()){s.typed=String(a);updateQ();const g=$('#answers [data-k="go"]');if(g)g.classList.add('reveal');}
+ else $$('#answers .choices .btn').forEach(b=>{if(ansEq(q.sa?b.dataset.v:+b.dataset.v,q))b.classList.add('reveal');else if(!b.disabled){b.classList.add('nope');b.disabled=true;}});}
 function onWrong(v,btn){const s=S,q=s.q;Snd.soft();s.tries++;
  if(!s.wrong){s.wrong=true;if(!s.helped)record(q,false);else{const r=factRec(qKey(q));if(r){r.w++;r.box=0;persist();}}
   if(s.mode==='sec'&&!s.boss&&!s.requeued[qKey(q)]){s.requeued[qKey(q)]=1;const at=Math.min(s.queue.length,s.idx+3);s.queue.splice(at,0,Object.assign({},q,{review:true}));renderDots();}
@@ -3763,6 +3950,7 @@ function renderBag(){BAG=[];let h='<div class="summary"><div class="s">'+gemSVG(
  h+='<div class="secH">Cave Gems</div><div class="case"><div class="tiles">';
  GEM_ORDER.forEach(t=>{h+=bagItem(caveGemItem(t));});
  secStages('mul').filter(i=>ALL[i].hard).forEach(i=>{h+=bagItem(caveGemItem(ALL[i].gem));});
+ if(ddOn()||gemCount('dd')>0)h+=bagItem(caveGemItem('dd')); // 02-4 Daddy's Door gem
  CAVES.filter(x=>x!=='mul'&&secVisible(x)).forEach(x=>{h+='</div></div><div class="secH">'+SECS[x].name+' Gems</div><div class="case"><div class="tiles">';
   secStages(x).forEach(i=>{h+=bagItem(caveGemItem(ALL[i].gem));});});
  h+='</div></div><div class="secH">Rare Gems <small style="font-size:15px;opacity:.85">(get 5 in a row!)</small></div><div class="case"><div class="tiles">';
@@ -3780,7 +3968,7 @@ function renderBag(){BAG=[];let h='<div class="summary"><div class="s">'+gemSVG(
   h+='<div class="tbl'+(stageMastered(i)?' m':'')+(stageOpen(i)?'':' lk')+'">'+gemSVG(GEMS[st.gem],40,{gray:!stageOpen(i)})+'<div><div class="tn">'+(st.kind==='table'?'×'+st.t+' '+GEMS[st.t].name:st.name)+'</div>'+lv+'<div class="acc">'+(stageMastered(i)?'Mastered! ':'')+(n?Math.round(c/n*100)+'% first try':(stageOpen(i)?'':'Locked'))+'</div></div></div>';});});
  h+='</div>';
  const tricky=Object.keys(save.facts).filter(k=>{const f=save.facts[k];return f.w>0&&f.box<2;}).sort((a,b)=>save.facts[b].w-save.facts[a].w).slice(0,10);
- const tricky2=['add','sub','div','word','eng','pv','pat','arr'].filter(secVisible).reduce((o,x)=>o.concat(trickyOf(x).slice(0,6)),[]);
+ const tricky2=['add','sub','div','word','eng','pv','pat','arr','money'].filter(secVisible).reduce((o,x)=>o.concat(trickyOf(x).slice(0,6)),[]);
  if(tricky.length||tricky2.length)h+='<div class="secH">Glimmer is helping with</div><div class="chips">'+tricky.map(k=>'<span>'+k.replace('x',' × ')+'</span>').concat(tricky2.map(k=>'<span>'+fmtKey(k)+'</span>')).join('')+'</div>';
  $('#bagBody').innerHTML=h;}
 // ---------- settings ----------
@@ -3816,7 +4004,7 @@ if('serviceWorker' in navigator&&location.protocol!=='file:'){const sw=navigator
 window.__cc={get save(){return save;},get S(){return S;},speed(v){SPEED=v;},show,startLevel,STAGES,TABLES,ansOf,qPlain,
  ALL,SECS,secStages,stageOpen,openSec,openGate,openWords:()=>openSec('word'),get W(){return W;},factsFor,asModel,parseKey,get mapSec(){return mapSec;},
  get E(){return E;},openEnglish:()=>openSec("eng"),EITEM,STORY,Voice,ttsKey,REC,
- sp:{nextQ,hideHint,PSTAGES,XSTAGES,XESTAGES,PMK,PGEN,mkP,parseP,pNew,pFacts,buildQueueP,buildBossP,choicesP,isP,pLabel,choicesFor,startBoss,showHint,answer,onWrong,strat,say,glimLv,wormSVG,GLIMSAY,NOTYET,learnKey,qSay,sayText,sayParts,numWords,mkStory,hintIntro,hintShape,rowText,stepSay,xInfo,asModel,isX,isAS,nLv,PRAISE,RARES,wordQ}};
+ sp:{ansEq,choicesM,coinKey,ddFacts,ddClean,ddFocus,ddLabel,buildQueueD,buildBossD,MSTAGES,DSTAGE,padOn,ansLab,DDSAY,SHOPSAY,renderParent,renderMine,nextQ,hideHint,PSTAGES,XSTAGES,XESTAGES,PMK,PGEN,mkP,parseP,pNew,pFacts,buildQueueP,buildBossP,choicesP,isP,pLabel,choicesFor,startBoss,showHint,answer,onWrong,strat,say,glimLv,wormSVG,GLIMSAY,NOTYET,learnKey,qSay,sayText,sayParts,numWords,mkStory,hintIntro,hintShape,rowText,stepSay,xInfo,asModel,isX,isAS,nLv,PRAISE,RARES,wordQ}};
 })();
 </script>
 </body>
