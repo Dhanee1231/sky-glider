@@ -1904,6 +1904,8 @@ function genTunnel(L,lvl,d){ // Rainbow Tunnel: rainbow rings, star swirls and l
 // ---------- 02-2 question-gate worlds: Math Gate Skies (30-32) and Pie Bakery Skies (33-35) ----------
 // A gate = 3 rings at one x. The plane flies through the ring with the right answer: right = +3 stars, a boost and sparkles; wrong = nothing lost
 // (a soft note, the right ring glows and the answer is shown). Every answer goes to the shared learning record (mul:/add:/sub:/div: like Crystal Cave, frac: for pies).
+// v10: kid-paced gates: the question shows ~1.6x further ahead and the whole gate world flies at 0.75x speed (≈2.1x reading time)
+const GATE_SHOW=1.55,GATE_SLOW=0.75;
 const GATE_NY=[0.28,0.55,0.82],GATE_SAY={ok:["Yes, that's right!","Brilliant!","You got it!","Sparkly smart!"],no:["Good try! Look at the answer.","Almost! Here is the answer.","That's okay! Let's see."],
  intro:{math:'Fly through the ring with the right answer!',pie:'Fly through the one that matches!'},perfect:'Every gate right! Amazing!'};
 const rint=(a,b)=>a+((Math.random()*(b-a+1))|0),pickOf=a=>a[(Math.random()*a.length)|0];
@@ -2068,7 +2070,7 @@ function raceUpdate(dt){
   for(let k=0;k<6;k++)if(R.pu[k]>0){R.pu[k]-=dt;if(R.pu[k]<=0){R.pu[k]=0;Snd.puEnd();}}
   if(R.pu[1]>0){p.bonk=0;for(let n=emitN('rocket',48*QUAL,dt);n>0;n--)addPart(wparts,{x:p.x-44,y:py+rand(-6,6),vx:rand(-260,-160),vy:rand(-30,30),life:0.35,max:0.35,size:rand(6,11),col:Math.random()<0.5?'#ffd93d':'#ff7a00',type:0,g:0,rot:0,vr:0});}
   p.boost=Math.max(0,p.boost-dt);p.bonk=Math.max(0,p.bonk-dt);p.inv=Math.max(0,p.inv-dt);p.loopCd=Math.max(0,p.loopCd-dt);
-  let mul=D.speed*sh.speed*(1+(p.boost>0?0.45:0)+(inGust?0.4*sh.lift:0));if(R.pu[1]>0)mul*=1.35;if(p.bonk>0)mul*=0.45;if(p.fin)mul=0.9;
+  let mul=D.speed*sh.speed*(1+(p.boost>0?0.45:0)+(inGust?0.4*sh.lift:0));if(R.pu[1]>0)mul*=1.35;if(p.bonk>0)mul*=0.45;if(p.fin)mul=0.9;if(WORLDS[R.w].gate)mul*=GATE_SLOW;
   p.spd=lerp(p.spd,BASE*mul,Math.min(1,dt*3));p.x+=p.spd*dt-p.bounce*dt;p.bounce=Math.max(0,p.bounce-900*dt);
   const lp=loopOffset(p);spawnTrail(look('trail'),p.x-42+lp.x,py+lp.y,dt);
   if(p.boost>0)for(let n=emitN('boost',30,dt);n>0;n--)addPart(wparts,{x:p.x-40,y:py+rand(-10,10),vx:-120,vy:0,life:0.35,max:0.35,size:rand(5,9),col:'rgba(255,255,255,.9)',type:0,g:0,rot:0,vr:0});
@@ -2084,7 +2086,7 @@ function raceUpdate(dt){
   let m=r.base*D.rival*D.speed;const d=r.x-p.x;
   if(!p.fin){if(d>450)m*=D.hang;else if(d<-D.cd)m*=D.catchup;}
   if(r.dz>0)m*=0.5;if(r.bst>0)m*=1.3;if(R.pu[5]>0)m*=0.8;
-  r.spd=lerp(r.spd,BASE*m,Math.min(1,dt*2));r.x+=r.spd*dt;
+  r.spd=lerp(r.spd,BASE*m*(WORLDS[R.w].gate?GATE_SLOW:1),Math.min(1,dt*2));r.x+=r.spd*dt;
   if(!r.fin&&r.x>=R.L){r.fin=true;r.finT=R.t;}
  }
  const b=R.bird,lp=loopOffset(p);b.x=lerp(b.x,p.x-Math.min(75,V.w*V.camFrac-28)+lp.x*0.3,Math.min(1,dt*4));b.y=lerp(b.y,py-70+Math.sin(R.t*3)*8,Math.min(1,dt*4));b.say=Math.max(0,b.say-dt);
@@ -2288,7 +2290,7 @@ function drawHUD(){
  if(R.skipT>0){const k=R.skipN,msg=(R.comet?'Comet Run! ':'')+k+', '+2*k+', '+3*k+' … '+10*k+'!',fs=fitSize(msg,30*UI,W*(R.comet?0.92:0.8)),a=Math.min(1,R.skipT*2),y=H*0.3-(1-a)*20*UI;
   ctx.globalAlpha=a;ctx.font='900 '+Math.round(fs)+'px '+FONT;const tw=mtext(msg)+fs*1.6;ctx.fillStyle='rgba(255,255,255,.92)';rr(W/2-tw/2,y-fs*0.85,tw,fs*1.7,fs*0.85);ctx.fill();
   ctx.strokeStyle='#ffd93d';ctx.lineWidth=4*UI;ctx.stroke();text(msg,W/2,y+1,fs,'#ff5aa8',null,INK,fs*0.08);ctx.globalAlpha=1;}
- if(!p.fin&&!R.tut&&R.gates&&R.gates.length){let g=null,rev=false;const fb=R.fb;if(fb&&R.t-fb.t<fb.dur){g=fb.g;rev=true;}else{const c=curGate();if(c&&c.x-p.x<V.w*0.95)g=c;}if(g)drawGateQ(g,rev);}
+ if(!p.fin&&!R.tut&&R.gates&&R.gates.length){let g=null,rev=false;const fb=R.fb;if(fb&&R.t-fb.t<fb.dur){g=fb.g;rev=true;}else{const c=curGate();if(c&&c.x-p.x<Math.min(V.w*GATE_SHOW,1500))g=c;}if(g)drawGateQ(g,rev);}
  if(!p.fin&&!R.tut)roundBtn('pause',LF?right-B/2:left+B/2,top+B/2,B/2,PAL.Y,'pause',pauseRace);
  const bx=LF?right-B-m-B*0.5:left+B+m+B*0.5,cols=['#ffd23f','#d5dde8','#e8a15e','#9fd3ff'];
  circ(bx,top+B/2,B*0.5);fillStroke(cols[R.place-1],INK,3);text(['1st','2nd','3rd','4th'][R.place-1],bx,top+B/2+1,B*0.36,'#fff',null,INK);
