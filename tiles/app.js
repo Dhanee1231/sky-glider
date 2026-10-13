@@ -48,8 +48,9 @@ const def = () => ({ v: 2, coins: 30, best: {}, plays: 0, owned: { skin: ['pinkg
   set: { sound: true, beat: true, missFx: true, vis: 0, calibrated: false, offset: 0, lang: 'en', practice: false, diff: 'easy' } });
 // v3: deep-merge nested objects so an old save can never wipe newer defaults (missing diff/lang used to crash/garble)
 const isObj = o => o && typeof o === 'object' && !Array.isArray(o);
-let S; try { const rawS = localStorage.getItem(KEY) || '{}'; let raw; try { raw = JSON.parse(rawS); } catch (e) { raw = null; try { localStorage.setItem(KEY + '.bad', rawS); } catch (e2) { } } /* 02-3: unreadable save is copied aside first, never lost */ S = isObj(raw) ? raw : {}; } catch (e) { S = {}; }
+let S; try { const rawS = localStorage.getItem(KEY) || '{}'; let raw; try { raw = JSON.parse(rawS); } catch (e) { raw = null; try { if (localStorage.getItem(KEY + '.bad') == null) localStorage.setItem(KEY + '.bad', rawS); else if (localStorage.getItem(KEY + '.bad2') == null) localStorage.setItem(KEY + '.bad2', rawS); } catch (e2) { } } /* review fix 11: the first bad copy is never overwritten */ /* 02-3: unreadable save is copied aside first, never lost */ S = isObj(raw) ? raw : {}; } catch (e) { S = {}; }
 const hadV = S.v; S = Object.assign(def(), S); S.v = hadV || 1; { const D0 = def(); for (const k of ['set', 'owned', 'eq', 'daily']) S[k] = Object.assign(D0[k], isObj(S[k]) ? S[k] : {}); for (const k of ['best', 'songTheme', 'stickers', 'badges', 'fav']) if (!isObj(S[k])) S[k] = {}; S.chest = Object.assign({ n: 0, c: 0 }, isObj(S.chest) ? S.chest : {}); if (!Array.isArray(S.gifts)) S.gifts = []; }
+for (const id in S.best) if (!isObj(S.best[id])) delete S.best[id]; // review fix 11: a broken song entry (null) is dropped, never crashes boot
 for (const k in def().owned) if (!Array.isArray(S.owned[k])) S.owned[k] = def().owned[k];
 for (const k of Object.keys(Art.THEMES)) if (!S.owned.theme.includes(k)) S.owned.theme.push(k); // all worlds unlocked
 if (S.v < 2) { S.v = 2; S.set = Object.assign({ missFx: true, vis: 0, calibrated: false }, S.set); } // migrations run oldest first
@@ -61,7 +62,11 @@ if (!DIFFS.includes(S.set.diff)) S.set.diff = 'easy'; if (!['en', 'hi'].includes
 // Defaults until she runs the tap tests: Android ~30 ms tap / ~45 ms screen (touch + compositor), other devices ~20 ms screen.
 { const android = /Android/i.test(navigator.userAgent); if (!S.set.calibrated && android) S.set.offset = 30;
   if (!S.set.visCal && (!S.set.vis || S.set.vis === 10)) S.set.vis = android ? 45 : 20; } // 0/10 were the old uncalibrated defaults
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } };
+// review fix 11: a full storage no longer loses progress silently: trim the oldest records runs, retry, and tell her if it still can't save
+let saveWarned = 0;
+const save = () => { const j = JSON.stringify(S); try { localStorage.setItem(KEY, j); return true; } catch (e) { }
+  try { const rk = 'gemtiles.records.v1', r = JSON.parse(localStorage.getItem(rk) || 'null'); if (r && Array.isArray(r.runs) && r.runs.length > 40) { r.runs = r.runs.slice(-40); localStorage.setItem(rk, JSON.stringify(r)); } localStorage.setItem(KEY, j); return true; } catch (e) { }
+  if (Date.now() - saveWarned > 60000) { saveWarned = Date.now(); setTimeout(() => { try { toast(S.set.lang === 'hi' ? '⚠️ सेव नहीं हो पाया (फ़ोन भरा है)' : '⚠️ Couldn\'t save (phone storage is full)', 3000); } catch (e) { } }, 0); } return false; };
 A.muted = !S.set.sound; const applyVol = () => { A.vol = 0.9 * (FZ ? FZ.vol() : 1); if (A.master()) A.master().gain.setTargetAtTime(A.muted ? 0 : A.vol, A.ctx().currentTime, 0.02); }; applyVol();
 
 // ---------- i18n (English / Hindi labels) ----------
@@ -123,7 +128,7 @@ const tx = (k, ...a) => { const v = TX[k] ? TX[k][S.set.lang === 'hi' ? 1 : 0] :
 const toast = (html, ms = 1800) => { const box = $('#toasts') || document.body, d = document.createElement('div'); d.className = 'toast'; d.innerHTML = html; box.appendChild(d); while (box.children.length > 3) box.firstChild.remove(); setTimeout(() => d.remove(), ms); };
 const ic = (n, cls) => window.Icons ? Icons.svg(n, cls) : '';
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const totalStars = () => { let n = 0; for (const id in S.best) for (const d in S.best[id]) n += S.best[id][d].stars || 0; return n; };
+const totalStars = () => { let n = 0; for (const id in S.best) { const b = S.best[id]; if (!isObj(b)) continue; for (const d in b) n += (isObj(b[d]) && +b[d].stars) || 0; } return n; }; // review fix 11: a null song entry can't stop boot
 const crownsOf = id => { const b = S.best[id] || {}; return (b.normal && b.normal.stars === 3 ? 1 : 0) + (b.hard && b.hard.stars === 3 ? 1 : 0) + (b.hard && b.hard.fc ? 1 : 0) + (b.veryhard && b.veryhard.stars === 3 ? 1 : 0); };
 const award = id => { if (S.badges[id]) return; S.badges[id] = Date.now(); const b = BADGES.find(x => x[0] === id); if (b) setTimeout(() => { toast(`<div style="font-size:40px">${b[1]}</div>${esc(tx('newBadge', nm('b|' + id, b[2])))}`, 2400); A.sfx('unlock'); }, 600); save(); };
 let customs = []; // loaded from IndexedDB (metadata only)
@@ -325,7 +330,7 @@ const GOLD = ['#fff', '#ffd84a', '#ffe9a0', '#ffc933', '#ff8fd0'];
 // ---- v4b records: every finished song (per song and difficulty: score, stars, accuracy, best combo), shared FunRecords block (records.js).
 // The party only ever shows on the results card, never during a song.
 const DIFN = d => tx(d) !== d ? tx(d) : tr(d);
-const REC = FunRecords({ key: 'gemtiles.records.v1', get title() { return tx('recTitle'); }, muted: () => !S.set.sound, calm: () => CALM(), voiceBase: 'audio/',
+const REC = FunRecords({ key: 'gemtiles.records.v1', get title() { return tx('recTitle'); }, muted: () => !S.set.sound, vol: () => (FZ && FZ.vol ? FZ.vol() : 1), calm: () => CALM(), voiceBase: 'audio/',
   fmt: e => NF.format(e.s), sub: e => { const x = e.x || {}; return [x.acc != null ? x.acc + '%' : '', x.cb ? '🔥 ' + x.cb : '', x.fc ? '💯' : ''].filter(Boolean).join(' · '); },
   groupOrder: g => DIFFS.map(DIFN).indexOf(g), get allLabel() { return tx('recAll'); }, get bestLabel() { return tx('recBest'); }, get recentLabel() { return tx('recRecent'); }, get empty() { return tx('recEmpty'); } });
 // best scores from before records existed fill the empty podiums once (built-in songs; dated "Before records")
@@ -381,7 +386,7 @@ function renderLab() { const w = Object.keys(Art.THEMES), ob = ['bomb', 'car', '
   <div class="lbl">${ic('sound')}<span>${tx('labFx')}</span></div><div class="row">${['powerup', 'poof', 'combo', 'starpower', 'intro', 'fanfare'].map(k => `<button class="btn small silver" data-fx="${k}">${k}</button>`).join('')}</div>
   <div class="row" style="margin-top:var(--s3)"><button class="btn gold" id="labGo">${ic('play')}<span>${tx('labGo')}</span></button></div>`; }
 $('#labBody').addEventListener('click', e => { const b = e.target.closest('[data-lab]'); if (b) { const k = b.dataset.lab; LABS[k] = b.dataset.v || (k === 'song' || k === 'diff' || k === 'dens' ? LABS[k] : null); renderLab(); return; }
-  const f = e.target.closest('[data-fx]'); if (f) { const ctx = A.init(); A.setFx(true, S.set.fxVol == null ? 0.5 : S.set.fxVol); ctx.resume().then(() => A.fx(f.dataset.fx), () => { }); return; } // wait for resume: the first tap used to be silent
+  const f = e.target.closest('[data-fx]'); if (f) { const ctx = A.init(); if (!ctx) return; A.setFx(true, S.set.fxVol == null ? 0.5 : S.set.fxVol); ctx.resume().then(() => A.fx(f.dataset.fx), () => { }); return; } // wait for resume: the first tap used to be silent
   if (e.target.closest('#labGo')) { const song = allSongs().find(s => s.id === LABS.song) || window.TILE_SONGS.find(s => s.id === 'ode'); LAB = { world: LABS.world || 'rainbowroad', obs: LABS.obs, pu: LABS.pu, dens: +LABS.dens || 1.6 }; startGame(song, LABS.diff || 'easy'); } });
 window.__lab = LABS; window.__renderLab = renderLab;
 $('#speedSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.set.speed = b.dataset.v; save(); renderSettings(); });
@@ -394,7 +399,7 @@ const CAL = { on: false, clicks: [], taps: [], mode: 'audio' };
 $('#calStart').addEventListener('click', () => startCal('audio'));
 $('#calVis').addEventListener('click', () => startCal('visual'));
 function startCal(mode) {
-  const ctx = A.init(); clearTimeout(CAL.timer); CAL.on = true; CAL.mode = mode; CAL.taps = []; CAL.clicks = []; $('#calBar').style.width = '0';
+  const ctx = A.init(); if (!ctx) { toast(tx('couldNotLoad')); return; } clearTimeout(CAL.timer); CAL.on = true; CAL.mode = mode; CAL.taps = []; CAL.clicks = []; $('#calBar').style.width = '0';
   clock.off = null; updateClock(); const t0 = ctx.currentTime + 0.8;
   if (mode === 'audio') { for (let i = 0; i < 12; i++) { CAL.clicks.push(t0 + i * 0.6); A.click(t0 + i * 0.6, i % 4 === 0); } $('#calOut').textContent = tx('listen'); }
   else { const p0 = performance.now() + 800; for (let i = 0; i < 12; i++) CAL.clicks.push((p0 + i * 600) / 1000); $('#calOut').textContent = tx('watch'); visAnim(p0); }
@@ -425,7 +430,7 @@ async function addSongFile(file) {
   const step = (p, t) => { bar.style.width = (p * 100) + '%'; m.textContent = t; return new Promise(r => setTimeout(r, 30)); };
   try {
     await step(0.1, tx('opening')); const buf = await file.arrayBuffer();
-    await step(0.25, tx('listening')); const { mono, duration } = await AN.decodeToMono(buf);
+    await step(0.25, tx('listening')); let dec; try { dec = await AN.decodeToMono(buf); } catch (e2) { if (e2 && (e2.code === 'tooShort' || e2.code === 'tooLong')) return err(tx(e2.code)); throw e2; } const { mono, duration } = dec;
     if (duration < 8) return err(tx('tooShort')); if (duration > 600) return err(tx('tooLong'));
     await step(0.5, tx('finding')); const { an, charts } = await analyzeAll(mono, 1);
     await step(0.85, tx('making'));
@@ -513,7 +518,10 @@ function updateClock() { // off = (audio time being HEARD) - (performance time)
   // v6e: no more 40 ms snaps mid-song. Android's output timestamp moves in audio-buffer steps (worst on long decoded custom tracks), and every
   // snap/0.08 jump moved the whole highway: a visible micro-hitch. Now: snap only on (re)start or a real discontinuity (>150 ms); otherwise
   // slew toward the estimate at most 1.5 ms per frame (invisible), so the average sync is exactly the same as before.
-  if (clock.off == null || Math.abs(est - clock.off) > 0.15) clock.off = est; else { const d = (est - clock.off) * 0.08; clock.off += d > 0.0015 ? 0.0015 : d < -0.0015 ? -0.0015 : d; }
+  // review fix 7: any step bigger than half the current Perfect window is snapped at once (judging and the strike line share this one clock),
+  // so a 40 ms Android buffer step can't mis-judge on-line taps for half a second; only sub-window jitter is slewed (invisible).
+  const snapT = Math.min(0.15, G && G.D && G.D.perf ? G.D.perf * 0.5 : 0.15);
+  if (clock.off == null || Math.abs(est - clock.off) > snapT) clock.off = est; else { const d = (est - clock.off) * 0.08; clock.off += d > 0.0015 ? 0.0015 : d < -0.0015 ? -0.0015 : d; }
 }
 const perfOf = e => { const t = e && e.timeStamp, n = performance.now(); return t > 0 && t <= n + 5 && n - t < 1000 ? t : n; };
 const songAt = perfMs => perfMs / 1000 + clock.off - G.startAt; // audio-track position heard at that moment
@@ -556,7 +564,7 @@ function arrange(song, diff) {
   return { tiles, mel, back, end: tOf(beats) + 0.6, beatTimes, bpm: bpm0, melTimes: mel.map(e => e.t) };
 }
 async function prepare(song, diff, onP) { // onP(progress, text)
-  const ctx = A.init();
+  const ctx = A.init(); if (!ctx) throw new Error('audio'); // review fix 1: shown as "Could not load that song"
   if (song.custom) {
     let full = FULL.id === song.id ? FULL.rec : await DB.get(song.id); if (!full) throw new Error('missing'); FULL.id = song.id; FULL.rec = full;
     if ((full.anv || 1) < AN.VERSION) { onP(0.2, tx('remaking')); full = await reanalyze(full); }
@@ -614,8 +622,8 @@ const loadUI = (p, t) => { $('#mLoad').classList.add('on'); $('#loadBar').style.
 let STARTING = false;
 async function startGame(song, diff) { if (STARTING) return; STARTING = true; try { await startGame0(song, diff); } finally { STARTING = false; } }
 async function startGame0(song, diff) {
-  LOOP++; G.on = false; (G.srcs || []).forEach(s => { try { s.stop(); } catch (e) { } }); G.srcs = []; // kill any previous loop/audio before starting
-  const ctx = A.init(); await ctx.resume(); A.inGame = true;
+  LOOP++; shakeBoth(0, 0); G.on = false; (G.srcs || []).forEach(s => { try { s.stop(); } catch (e) { } }); G.srcs = []; // kill any previous loop/audio before starting
+  const ctx = A.init(); if (!ctx) { toast(tx('couldNotLoad')); return; } try { await ctx.resume(); } catch (e) { } A.inGame = true; // review fix 1
   if (!ctx.__watch) { ctx.__watch = 1; ctx.addEventListener('statechange', () => { if (ctx.state !== 'running' && G.on && !G.paused && !G.ended) pauseGame(); }); }
   let b; try { loadUI(0.05, tx('loading')); b = await prepare(song, diff, loadUI); } catch (e) { console.warn(e); $('#mLoad').classList.remove('on'); A.inGame = false; toast(tx('couldNotLoad')); if (!$$('.screen.on').length) go(LAB ? 'lab' : 'songs'); return; }
   loadUI(1, tx('ready'));
@@ -692,9 +700,13 @@ function layout() { const [W, H] = fitGame(); if (L.W === W && L.H === H) return
 // fold/unfold, rotation or a big resize mid-song: pause (resume gets a 3-2-1) and pre-build the new size's sprites now, not on the next game frame
 onGameResize = () => { const pw = VIEW.w, ph = VIEW.h; measureGame(); if (!G.on) return;
   const big = pw && (Math.abs(VIEW.w - pw) / pw > 0.15 || Math.abs(VIEW.h - ph) / ph > 0.15);
-  if (big && !G.paused && !G.ended) { pauseGame(); G.pops.length = 0; G.poofs.length = 0; }
+  if (big && !G.paused && !G.ended) { pauseGame(); G.pops.length = 0; G.poofs.length = 0; releaseHolds(); }
   if (layout()) warmSprites(); };
 if (RO) RO.observe(cv0); window.addEventListener('orientationchange', () => setTimeout(onGameResize, 250));
+// review fix 2: the URL bar / a fold can move the canvas without resizing it; keep the tap offset in step with the visual viewport (no per-frame reads)
+const measureOff = () => { const r = cv.getBoundingClientRect(); if (r.width > 0) { VIEW.left = r.left; VIEW.top = r.top; } }; // offset only: size changes stay with onGameResize (fold pause)
+if (window.visualViewport) { const vvM = () => { if (G.on) measureOff(); }; visualViewport.addEventListener('scroll', vvM, { passive: true }); visualViewport.addEventListener('resize', vvM, { passive: true }); }
+window.addEventListener('scroll', () => { if (G.on) measureOff(); }, { passive: true });
 let PS = 1, PY = 0; // projection scratch (no per-call array allocation)
 const projS = u => { PS = 1 / (1 + L.P * Math.max(-0.12, u)); PY = L.strikeY - L.span * (1 - PS) / (1 - L.sFar); };
 const proj = u => { projS(u); return [PS, PY]; }; // (allocating form kept for tests/tools)
@@ -800,7 +812,8 @@ function missTile(t, now) {
 // input: pointerdown (no click delay), multi-touch, judged at the event's own timestamp mapped to the audio clock
 cv.addEventListener('pointerdown', e => {
   if (!G.on || G.ended) return; if (e.pointerType === 'mouse' && e.button !== 0) return;
-  const x = e.clientX - VIEW.left, y = e.clientY - VIEW.top, lane = laneAt(x, y); // cached offset: no layout read on the tap path
+  if (!window.visualViewport) measureOff(); // review fix 2: no viewport events on this browser -> one layout read per tap (never per frame)
+  const x = e.clientX - VIEW.left, y = e.clientY - VIEW.top, lane = laneAt(x, y); // offset kept fresh by ResizeObserver + visualViewport
   if (G.tut && G.tut.wait) { tutTap(lane, e.pointerId); return; } if (G.paused) return; try { cv.setPointerCapture(e.pointerId); } catch (_) { } if (lane < 0 || lane > 3) return;
   const perf = perfOf(e), now = judgeAt(perf); G.press.set(e.pointerId, lane); G.tapPerf = perf;
   let best = null, bd = 1e9; for (let i = G.first; i < G.tiles.length; i++) { const t = G.tiles[i]; if (t.t - now > G.win) break; if (t.state || t.lane !== lane) continue; const d = Math.abs(now - t.t); if (d <= G.win && d < bd) { bd = d; best = t; } }
@@ -810,6 +823,8 @@ cv.addEventListener('pointerdown', e => {
   let it = null; if (!best) for (const x of G.items) { if (x.t - now > G.win) break; if (!x.state && x.lane === lane && Math.abs(x.t - now) <= G.win * (x.kind === 'obs' ? 0.7 : 1.3)) { it = x; break; } }
   if (best) hitTile(best, now - best.t, e.pointerId); else if (it) { if (it.kind === 'pu') collect(it); else hitObstacle(it); } else { G.laneFlash[lane] = 0.6; if (HARDISH(G.diff)) { G.combo = 0; G.hudDirty = true; } }
 }, { passive: true });
+// review fix 8: a fold can swallow pointerup; the pause it causes lets go of every hold (no end-of-hold bonus) and clears pressed lanes
+function releaseHolds() { if (G.holds) { for (const t of G.holds.values()) t.state = 1; G.holds.clear(); } if (G.press) G.press.clear(); }
 const endHold = e => { G.press.delete(e.pointerId); const t = G.holds.get(e.pointerId); if (!t) return; G.holds.delete(e.pointerId); if (t.holdP >= 0.85) { t.holdP = 1; G.score += 50 * mult(); emit(laneX(t.lane, 1), L.strikeY, 12, true); } t.state = 1; };
 cv.addEventListener('pointerup', endHold, { passive: true }); cv.addEventListener('pointercancel', endHold, { passive: true });
 // ---------- v2b: power-ups, obstacles, immersive reactions ----------
@@ -922,10 +937,12 @@ const cssFx = id => { const el = document.getElementById(id); if (!el || !el.ani
 const wipe = () => { const w = $('#wipe'); if (CALM() || !w || !w.animate) return; w.animate([{ transform: 'translateX(-110%)', opacity: 1 }, { transform: 'translateX(110%)', opacity: 1 }], { duration: 700, easing: 'ease-in-out' }); };
 
 // ---------- frame ----------
+// review fix 5: the shake moves BOTH game canvases by the same CSS offset (compositor-only), so the road, its strike line and the notes stay one picture.
+let SHK = ''; function shakeBoth(x, y) { const v = x || y ? `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)` : ''; if (v === SHK) return; SHK = v; cv.style.transform = v; bcv.style.transform = v; }
 let FONT = '', F18; const DOWN = [0, 0, 0, 0], markDown = l => { DOWN[l] = 1; }, SPEEDK = { slow: 1, normal: 0.82, fast: 0.66 }, NOSKIP = {}, RESUME = 2100, TAU = Math.PI * 2;
 const initFont = () => { if (!FONT) { FONT = getComputedStyle(document.body).fontFamily; F18 = `800 18px ${FONT}`; } };
 let LOOP = 0, LOOPS = 0; // exactly one gameplay rAF loop at a time
-function startLoop() { const id = ++LOOP; LOOPS++; const step = ts => { if (id !== LOOP || !G.on) { LOOPS--; return; } requestAnimationFrame(step); if (G.cap60 && (G.skipTog = !G.skipTog)) return; frame(ts); }; requestAnimationFrame(step); }
+function startLoop() { const id = ++LOOP; LOOPS++; const step = ts => { if (id !== LOOP || !G.on) { LOOPS--; return; } requestAnimationFrame(step); if (G.cap60) { if (ts - (G.capLast || 0) < 14.5) return; G.capLast = ts; } frame(ts); }; /* review fix 10: 16.7 ms pacing by time, not every-other-vsync */ requestAnimationFrame(step); }
 // v6: a level that just proved too slow is not retried for 90 s (across songs too): stepping up and straight back down was itself a hitch
 const QMEM = { bad: -1, t: -1e9 };
 function autoQuality(dtMs) { // adaptive quality: drop on sustained long frames, recover after a calm stretch. Ring buffer, percentile ~1x/s (no per-frame sort/alloc)
@@ -936,7 +953,7 @@ function autoQuality(dtMs) { // adaptive quality: drop on sustained long frames,
   const base = Q.base * (G.cap60 ? 2 : 1); Q.ema += (dtMs - Q.ema) * 0.1; if (Q.ema > base * 1.3) { Q.bad += dtMs; Q.good = 0; } else if (Q.ema < base * 1.08) { Q.good += dtMs; Q.bad = 0; }
   if (Q.bad > 700 || Q.lf) { Q.bad = 0; Q.lf = false; Q.n = 0; Q.lastP = 0; Q.ema = base; // (ring restarts: judge the new level on its own frames)
     Q.hold = Math.min(60000, (Q.hold || 5000) * 2); // first step on a 120 Hz panel: even 60 fps pacing before lowering resolution
-    if (!G.cap60 && Q.base < 12 && (G.qual || 0) === (G.qMin || 0)) { G.cap60 = true; G.qLog.push(['cap60', G.qual || 0, Math.round(G.nowS)]); }
+    if (!G.cap60 && Q.base < 10 && (G.qual || 0) === (G.qMin || 0)) { G.cap60 = true; G.qLog.push(['cap60', G.qual || 0, Math.round(G.nowS)]); }
     else if ((G.qual || 0) < 3) { QMEM.bad = G.qual || 0; QMEM.t = performance.now(); G.qual = (G.qual || 0) + 1; G.bgDirty = true; G.spr = null; G.qGrace = pn + 2000; G.qLog.push(['down', G.qual, Math.round(G.nowS)]); } }
   if (Q.good > (Q.hold || 5000)) { Q.good = 0; if ((G.qual || 0) > (G.qMin || 0) && !(G.qual - 1 <= QMEM.bad && performance.now() - QMEM.t < 90000)) { if (!G.qUp) { G.qUp = true; G.qLog.push(['up-next', G.qual - 1, Math.round(G.nowS)]); } } /* v6e: a better tier is applied at the NEXT song start (no mid-song sprite rebuild) */ else if (G.cap60) { G.cap60 = false; G.qLog.push(['uncap', G.qual || 0, Math.round(G.nowS)]); } } }
 function finishTail(now) { if (G.pendingTap) { G.ivl.push(performance.now() - G.pendingTap.perf); G.pendingTap = null; } }
@@ -1001,7 +1018,7 @@ function frame(ts) {
     if (!SK.bg && q < 3) Art.bg(bc, G.theme, L.W, L.H, T, beat, energy, true); if (q < 3) drawImmersive(T, beat, energy, spOn, bc, bdt); edgeUpdate(pulse, energy, spOn, q);
     if (spOn) { bc.globalAlpha = 0.35 + 0.25 * Math.sin(T * 8); bc.drawImage(SPR.glowGold, L.cx - L.bw * 0.6, L.strikeY - L.span * 0.5, L.bw * 1.2, L.span * 0.7); bc.globalAlpha = 1; } }
   // gameplay layer
-  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); if (SK.all) return; const ox = shOn ? sx * GDPR : 0, oy = shOn ? sy * GDPR : 0; c.setTransform(GDPR, 0, 0, GDPR, ox, oy); window.__gc = c;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); if (SK.all) return; shakeBoth(shOn ? sx : 0, shOn ? sy : 0); c.setTransform(GDPR, 0, 0, GDPR, 0, 0); window.__gc = c; // review fix 5: road + notes shake together (one CSS offset on both canvases)
   if (SK.part1) { finishTail(now); return; }
   // strike line breathes on the beat; beat lines brighten as they reach it
   c.globalAlpha = 0.25 + 0.45 * pulse; c.drawImage(SPR.bar, L.cx - L.bw * 0.56, L.strikeY - L.lw * 0.14, L.bw * 1.12, L.lw * 0.28);
@@ -1028,10 +1045,10 @@ function frame(ts) {
       const u1 = Math.min(1.02, (t.t + t.dur - vnow) / lead); if (u1 > -0.1) { const held = t.state === 3, ua = held ? -0.035 : Math.max(-0.1, u), x = laneX(t.lane, 1), N = q < 2 ? 9 : 5, neon = q < 2 ? (spOn ? SPR.neonGold : SPR.neon) : null;
         projS(ua); let pS = PS, pY = PY, px = laneX(t.lane, PS);
         for (let k = 1; k <= N; k++) { const uk = ua + (u1 - ua) * k / N; projS(uk); const xk = laneX(t.lane, PS), sm = (pS + PS) / 2, hh = pY - PY + 1, sh = hh > 1 ? (px - xk) / (pY - PY) : 0;
-          c.setTransform(GDPR, 0, GDPR * sh, GDPR, ox + GDPR * (xk - sh * PY), oy);
+          c.setTransform(GDPR, 0, GDPR * sh, GDPR, GDPR * (xk - sh * PY), 0);
           if (neon) { const gw = L.lw * 0.8 * sm; c.globalAlpha = held ? 0.85 : 0.6; c.drawImage(neon, -gw / 2, PY, gw, hh); }
           const w = L.lw * 0.4 * sm; c.globalAlpha = held ? 1 : 0.9; c.drawImage(rib, 0, ((k * 24 + T * 90) % 192) | 0, 64, 64, -w / 2, PY, w, hh); pS = PS; pY = PY; px = xk; }
-        c.setTransform(GDPR, 0, 0, GDPR, ox, oy);
+        c.setTransform(GDPR, 0, 0, GDPR, 0, 0);
         if (u1 < 1.02) { projS(u1); const cs = L.lw * 0.3 * PS; c.globalAlpha = 1; c.drawImage(bead, laneX(t.lane, PS) - cs, PY - cs, cs * 2, cs * 2); } // gem cap marks where the string ends
         c.globalAlpha = 1; const nb = Math.floor(t.dur / 0.3);
         for (let b = t.bead + 1; b <= nb; b++) { const ub = (t.t + b * 0.3 - vnow) / lead; if (ub > 1.02) break; if (ub < -0.05) continue; projS(ub); const bs = L.lw * 0.24 * PS; c.drawImage(bead, laneX(t.lane, PS) - bs * 0.8, PY - bs * 0.8, bs * 1.6, bs * 1.6); }
@@ -1060,8 +1077,8 @@ function frame(ts) {
   if (!SK.fx) { for (const p of POOL) { if (!p.on) continue; p.age += DT; if (p.age >= p.life) { p.on = false; poolOn--; continue; } const k = 1 - p.age / p.life; p.vy += 900 * DT; p.x += p.vx * DT; p.y += p.vy * DT;
       if (p.gem) { const d = p.s * 2.4 * 1.6; c.globalAlpha = k; c.drawImage(p.im, p.x - d / 2, p.y - d / 2, d, d); c.globalAlpha = 1; } else spark(p.im, p.x, p.y, p.s * k + 1, k); }
     const sk = L.lw / 110 * GDPR; for (const p of SHARDS) { if (!p.on) continue; p.age += DT; if (p.age >= p.life) { p.on = false; continue; } p.vy += 700 * DT; p.x += p.vx * DT; p.y += p.vy * DT; p.r += p.vr * DT;
-      const kk = sk * p.k, cs = Math.cos(p.r) * kk, sn = Math.sin(p.r) * kk; c.globalAlpha = 1 - p.age / p.life; c.setTransform(cs, sn, -sn, cs, ox + GDPR * p.x, oy + GDPR * p.y); c.drawImage(p.im, -16, -16); }
-    c.setTransform(GDPR, 0, 0, GDPR, ox, oy); c.globalAlpha = 1; }
+      const kk = sk * p.k, cs = Math.cos(p.r) * kk, sn = Math.sin(p.r) * kk; c.globalAlpha = 1 - p.age / p.life; c.setTransform(cs, sn, -sn, cs, GDPR * p.x, GDPR * p.y); c.drawImage(p.im, -16, -16); }
+    c.setTransform(GDPR, 0, 0, GDPR, 0, 0); c.globalAlpha = 1; }
   if (SK.part3) { finishTail(now); return; }
   // judgement / combo pops: cached sprites with an easeOutBack scale pop
   for (let i = G.pops.length - 1; i >= 0; i--) { const p = G.pops[i]; p.a -= 1.8 * DT; if (p.a <= 0) { G.pops.splice(i, 1); continue; } const age = p.a0 - p.a, sc = calm ? 1 : age < 0.22 ? Math.max(0.2, easeBack(age / 0.22)) : 1, hh = p.im.ch * sc * (p.big ? 1 : 0.95) * Math.min(1.25, L.lw / 100 + 0.35);
@@ -1083,7 +1100,7 @@ function frame(ts) {
   if (SK.part4) { finishTail(now); return; }
   // mascot (cached sprite, drawn at device pixels so it stays sharp)
   const ms = Math.min(84, L.H * 0.11); if (!SK.mascot) { const mxx = L.cx - L.bw / 2 > ms * 1.2 ? L.cx - L.bw / 2 - ms * 0.6 : L.W - ms * 0.55, myy = L.cx - L.bw / 2 > ms * 1.2 ? L.H * 0.35 : L.H - ms * 0.6;
-    c.setTransform(1, 0, 0, 1, ox, oy); Art.mascotFast(c, mxx * GDPR, myy * GDPR, ms * GDPR, performance.now() < G.moodT ? G.mood : 'idle', S.eq.outfit, T); c.setTransform(GDPR, 0, 0, GDPR, ox, oy); }
+    c.setTransform(1, 0, 0, 1, 0, 0); Art.mascotFast(c, mxx * GDPR, myy * GDPR, ms * GDPR, performance.now() < G.moodT ? G.mood : 'idle', S.eq.outfit, T); c.setTransform(GDPR, 0, 0, GDPR, 0, 0); }
   drawPuHud(now);
   if (G.pendingTap) { G.ivl.push(performance.now() - G.pendingTap.perf); G.pendingTap = null; if (G.ivl.length > 600) G.ivl.splice(0, 300); }
   G.syncTv = tv; G.ft[G.fN & 4095] = performance.now() - f0; G.fN++; G.pausedDrawn = G.paused;
@@ -1096,7 +1113,7 @@ function renderLegend() { const el = $('#legend'); if (!el || !G.on) return; con
 function pauseGame(noModal) {
   if (!G.on || G.ended) return; // the song is over: the results card is on its way
   if (G.paused) { if (noModal) return; if (G.resuming) G.resuming = 0; renderLegend(); $('#mPause').classList.add('on'); return; } // pausing again during the 3-2-1 (or a tutorial wait) shows the menu again
-  fzWake(false); G.paused = true; G.pauseN = (G.pauseN || 0) + 1; G.resuming = 0; G.pauseAt = songTime(); A.ctx().suspend(); if (!noModal) { renderLegend(); $('#mPause').classList.add('on'); } }
+  shakeBoth(0, 0); fzWake(false); G.paused = true; G.pauseN = (G.pauseN || 0) + 1; G.resuming = 0; G.pauseAt = songTime(); A.ctx().suspend(); if (!noModal) { renderLegend(); $('#mPause').classList.add('on'); } }
 // resume = a 3-2-1 gem countdown with the song still paused, then the audio continues (no lost heart right after resuming)
 function resumeGame() { $('#mPause').classList.remove('on'); $('#mOut').classList.remove('on'); if (!G.on || !G.paused || G.resuming || (G.tut && G.tut.wait)) return; G.resuming = performance.now() + RESUME; G.pausedDrawn = false; }
 function doResume() { const n = G.pauseN; G.resuming = 0; const go2 = () => { if (!G.on || G.pauseN !== n || !G.paused) return; clock.off = null; updateClock(); G.lastFrame = 0; G.paused = false; G.bgDirty = true; G.qGrace = performance.now() + 2000; G.Q = null; fzWake(true); }; A.ctx().resume().then(go2, go2); }
@@ -1140,7 +1157,7 @@ const RES = { raf: 0 };
 // the card and the action bar is pinned to its bottom, toasts move to the top while it is open.
 function finishGame(opts) {
   if (!G.on) return; const quitRun = !!(opts && opts.quit);
-  G.ended = true; G.resuming = 0; fzWake(false); ['mPause', 'mOut', 'mLoad'].forEach(id => $('#' + id).classList.remove('on')); // never leave a game modal stacked under (or over) the results
+  G.ended = true; G.resuming = 0; shakeBoth(0, 0); fzWake(false); ['mPause', 'mOut', 'mLoad'].forEach(id => $('#' + id).classList.remove('on')); // never leave a game modal stacked under (or over) the results
   if (quitRun && G.tut && !G.tut.done) tutFinish(true);
   stopAudio(); if (!quitRun) G.tiles.forEach(t => { if (t.state === 0) { t.state = 2; G.j.miss++; } }); window.__lastItems = G.items.map(i => ({ kind: i.kind, k: i.pu || i.ob, state: i.state, t: i.t, lane: i.lane }));
   const j = G.j, n = quitRun ? j.perfect + j.great + j.good + j.miss : G.tiles.length, acc = n ? (j.perfect + j.great * 0.85 + j.good * 0.6) / n : 0;
@@ -1182,13 +1199,14 @@ function finishGame(opts) {
   $$('#resCard .big-stars span.won').forEach((el, i) => setTimeout(() => { if (!$('#mRes').classList.contains('on')) return; SPK.at(el, 22, 260, GOLD); A.sfx('sparkle'); }, (450 + i * 300)));
   if (fc || (newBest && !noSave && G.score > 0)) setTimeout(() => { if ($('#mRes').classList.contains('on')) { SPK.burst(innerWidth / 2, innerHeight * 0.3, 40, 420); A.sfx('star'); } }, 1500);
   const rm = $('#resMascot').getContext('2d'), sEl = $('#resScore'), fx = $('#resFx'), fc2 = fx.getContext('2d'), t0 = performance.now(), final = G.score, mood = quitRun ? 'happy' : stars >= 2 ? 'wow' : 'happy';
-  const [fw, fh] = [innerWidth, innerHeight], fd = Math.min(DPR, 1.5); fx.width = Math.round(fw * fd); fx.height = Math.round(fh * fd); let shown = -1;
+  let fw = innerWidth, fh = innerHeight; const fd = Math.min(DPR, 1.5); fx.width = Math.round(fw * fd); fx.height = Math.round(fh * fd); let shown = -1;
+  const refitFx = () => { fw = innerWidth; fh = innerHeight; fx.width = Math.round(fw * fd); fx.height = Math.round(fh * fd); for (const g of gems) if (g.x > fw + 20) g.x = Math.random() * fw; }; // review fix 6: follow a fold
   const nGems = CALM() ? 8 : 10 + stars * 10, gems = Array.from({ length: nGems }, (_, i) => ({ x: Math.random() * fw, y: -Math.random() * fh, v: 60 + Math.random() * 120, r: Math.random() * 6, s: 14 + Math.random() * 18, im: i % 3 ? Art.gemImg(Art.MIX[i % 6], '#ffffff', ['#ff5fae', '#ffd76a', '#b98cff', '#5ad1ff'][i % 4], 32) : Art.sparkleImg(['#ffd76a', '#ffffff', '#ff8ccf'][i % 3]) }));
   cancelAnimationFrame(RES.raf); let lt = t0;
   (function anim() { if (!$('#mRes').classList.contains('on')) { fc2.clearRect(0, 0, fx.width, fx.height); document.body.classList.remove('res-open'); return; } const now = performance.now(), dt = Math.min(0.05, (now - lt) / 1000); lt = now;
     const k = Math.min(1, (now - t0) / 1000), v = Math.round(final * (1 - Math.pow(1 - k, 3))); if (v !== shown) { shown = v; sEl.textContent = NF.format(v); } // score counts up over ~1 s
     rm.setTransform(1, 0, 0, 1, 0, 0); rm.clearRect(0, 0, rm.canvas.width, rm.canvas.height); Art.mascotFast(rm, 60 * DPR, 56 * DPR, 76 * DPR, mood, S.eq.outfit, (now - t0) / 1000);
-    fc2.setTransform(fd, 0, 0, fd, 0, 0); fc2.clearRect(0, 0, fw, fh); for (const g of gems) { g.y += g.v * dt * (CALM() ? 0.5 : 1); if (g.y > fh + 20) { g.y = -20; g.x = Math.random() * fw; } g.r += dt; fc2.save(); fc2.translate(g.x + Math.sin(g.r * 2) * 10, g.y); fc2.rotate(g.r); fc2.drawImage(g.im, -g.s / 2, -g.s / 2, g.s, g.s); fc2.restore(); }
+    if (fw !== innerWidth || fh !== innerHeight) refitFx(); fc2.setTransform(fd, 0, 0, fd, 0, 0); fc2.clearRect(0, 0, fw, fh); for (const g of gems) { g.y += g.v * dt * (CALM() ? 0.5 : 1); if (g.y > fh + 20) { g.y = -20; g.x = Math.random() * fw; } g.r += dt; fc2.save(); fc2.translate(g.x + Math.sin(g.r * 2) * 10, g.y); fc2.rotate(g.r); fc2.drawImage(g.im, -g.s / 2, -g.s / 2, g.s, g.s); fc2.restore(); }
     RES.raf = requestAnimationFrame(anim); })();
   G.on = false; LOOP++; $('#game').classList.remove('on'); $$('.screen').forEach(s => s.classList.remove('on')); window.__lastResult = { stars, score: G.score, j: { ...j }, n, fc, maxCombo: G.maxCombo, dodged: G.stats.dodged, powerups: G.stats.pu, items: G.items.length, lab, quit: quitRun };
 }

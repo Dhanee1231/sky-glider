@@ -109,9 +109,14 @@
     return beats.map(b => { let m = b; for (let j = Math.max(0, b - 2); j <= Math.min(n - 1, b + 2); j++) if (env[j] > env[m]) m = j; return m; });
   }
   async function decodeToMono(arrayBuf) {
-    const AC = window.AudioContext || window.webkitAudioContext, tmp = new AC();
-    const buf = await tmp.decodeAudioData(arrayBuf.slice(0)); tmp.close && tmp.close();
-    const len = Math.ceil(buf.duration * SR), off = new OfflineAudioContext(1, len, SR), s = off.createBufferSource(); s.buffer = buf; s.connect(off.destination); s.start();
+    // review fix 1: the temporary context is always closed (Android caps live AudioContexts), and the length is checked
+    // BEFORE the offline render so a long file can never allocate a huge buffer and kill the tab.
+    const AC = window.AudioContext || window.webkitAudioContext; let tmp = null, buf;
+    try { tmp = new AC(); buf = await tmp.decodeAudioData(arrayBuf.slice(0)); }
+    finally { try { tmp && tmp.close && tmp.close(); } catch (e) { } }
+    if (!(buf.duration >= 8)) { const e = new Error('tooShort'); e.code = 'tooShort'; throw e; }
+    if (buf.duration > 600) { const e = new Error('tooLong'); e.code = 'tooLong'; throw e; }
+    const len = Math.min(Math.ceil(buf.duration * SR), Math.ceil(600 * SR)), off = new OfflineAudioContext(1, len, SR), s = off.createBufferSource(); s.buffer = buf; s.connect(off.destination); s.start();
     const r = await off.startRendering(); return { mono: r.getChannelData(0), duration: buf.duration };
   }
   function analyzeMono(mono, onProgress) {

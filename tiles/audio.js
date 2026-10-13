@@ -6,7 +6,7 @@
   A.ctx = () => ctx;
   A.init = () => {
     if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return ctx; }
-    const AC = window.AudioContext || window.webkitAudioContext; ctx = new AC({ latencyHint: 'interactive' });
+    const AC = window.AudioContext || window.webkitAudioContext; try { ctx = new AC({ latencyHint: 'interactive' }); } catch (e) { ctx = null; A.initErr = e; return null; } // review fix 1: context limit -> caller shows a message
     master = ctx.createGain(); master.gain.value = A.muted ? 0 : A.vol; master.connect(ctx.destination);
     sfxBus = ctx.createGain(); sfxBus.gain.value = 0.5; sfxBus.connect(master);
     return ctx;

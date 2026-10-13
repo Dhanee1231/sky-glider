@@ -5,6 +5,8 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden}
+/* review fix 7: the hub fits the VISIBLE viewport (URL bar, Fold taskbar), so the shelf and the grown-ups gear are never underneath */
+body{height:100dvh;height:var(--vvh,100dvh)}
 body{font-family:"Baloo 2","Comic Sans MS","Trebuchet MS",system-ui,sans-serif;color:#fff;
 background:radial-gradient(ellipse at 20% 0%,#ff8fd0 0%,transparent 55%),radial-gradient(ellipse at 100% 100%,#c58bff 0%,transparent 50%),linear-gradient(160deg,#ff4fa8,#9b1f8e 60%,#4a0f5c);
 display:flex;flex-direction:column;padding:max(10px,env(safe-area-inset-top)) 14px max(10px,env(safe-area-inset-bottom));user-select:none}
@@ -36,6 +38,8 @@ a.card::after{content:"";position:absolute;inset:0;background:linear-gradient(11
 .icon svg{height:100%;max-height:200px;width:auto;max-width:90%;filter:drop-shadow(0 4px 4px rgba(0,0,0,.25))}
 .name{font-size:clamp(17px,2.4vmin + 8px,30px);font-weight:800;line-height:1.05;text-shadow:0 2px 0 rgba(0,0,0,.25);flex:0 0 auto;margin-top:4px}
 .desc{font-size:clamp(12px,1.2vmin + 7px,18px);opacity:.95;line-height:1.15;flex:0 0 auto;margin-top:3px}
+/* Sparkle follow-up: its pale sky card needs a darker outline under the white text to be readable */
+a.card[data-cp="sparkle-kingdom-"] .name,a.card[data-cp="sparkle-kingdom-"] .desc{opacity:1;text-shadow:0 1px 0 #3d1580,0 -1px 0 #3d1580,1px 0 0 #3d1580,-1px 0 0 #3d1580,0 2px 6px rgba(40,8,90,.8)}
 dialog{margin:auto;border:4px solid #f5c542;border-radius:24px;padding:18px;background:linear-gradient(160deg,#ffe0f1,#fff);color:#8a1270;text-align:center;font:inherit;width:min(90vw,340px)}
 dialog::backdrop{background:rgba(40,0,40,.6)}
 dialog input{font:inherit;font-size:22px;width:100%;margin:12px 0;padding:8px;border-radius:14px;border:3px solid #ff7ac8;text-align:center;color:#8a1270}
@@ -298,7 +302,7 @@ function dec(v){if(Array.isArray(v))return v.map(dec);if(!isO(v))return v;
  if(typeof v.__blob==='string'&&typeof v.b64==='string')return new Blob([unb64(v.b64)],{type:v.__blob});
  if(v.__ab&&typeof v.b64==='string')return unb64(v.b64);
  if(TA.includes(v.__ta)&&typeof v.b64==='string')return new self[v.__ta](unb64(v.b64));
- const o={};for(const k in v)o[k]=dec(v[k]);return o;}
+ const o={};for(const k in v)if(!BADK.has(k))o[k]=dec(v[k]);return o;}
 // Gem Tiles' IndexedDB, opened exactly like Gem Tiles opens it (same name, version and store)
 const gtDB=()=>new Promise((res,rej)=>{const r=indexedDB.open('gemtiles',1);r.onupgradeneeded=()=>r.result.createObjectStore('songs',{keyPath:'id'});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});
 const idbAll=db=>new Promise((res,rej)=>{const q=db.transaction('songs','readonly').objectStore('songs').getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>rej(q.error);});
@@ -314,11 +318,17 @@ async function exportAll(){const ls={};for(let i=0;i<localStorage.length;i++){co
 // additive merge of one save: missing fields are added, numbers keep the larger value, true wins, lists gain missing entries;
 // choices (settings, difficulty, name, outfit…) always stay as they are on this phone
 const KEEP=new Set(['v','set','settings','diff','muted','tilt','pad','name','lang','theme','active','eq','color','shape','pattern','trail','hat','decal','lastWorld','tut','sound','calm','fs','swr','parent','world','level','minutes','vol','big','lefty','shapes','vibe','nick']);
+// review fix 4: a backup can only restore our own apps' keys, never prototype keys, and every records run keeps a numeric score
+const BADK=new Set(['__proto__','constructor','prototype']),OURK=/^(skyglider\.|crystalcave\.|gemtiles[.-]|funzone[.-]|yogaCoach\.|sparkle-kingdom\.)/;
+const cleanO=v=>{if(Array.isArray(v))return v.map(cleanO);if(!isO(v))return v;const o={};for(const k of Object.keys(v))if(!BADK.has(k))o[k]=cleanO(v[k]);return o;};
+const cleanRun=e=>isO(e)?Object.assign({},e,{s:Number.isFinite(+e.s)?+e.s:0}):null;
+const cleanRec=r=>{r=cleanO(r);if(!isO(r))return r;if(Array.isArray(r.runs))r.runs=r.runs.map(cleanRun).filter(Boolean);
+ if(isO(r.top))for(const c of Object.keys(r.top))r.top[c]=Array.isArray(r.top[c])?r.top[c].map(cleanRun).filter(Boolean):[];if(r.best!=null)r.best=cleanRun(r.best);return r;};
 function mergeVal(a,b,k){if(a===undefined)return b;if(KEEP.has(k))return a;
  if(typeof a==='number'&&typeof b==='number')return Math.max(a,b);
  if(typeof a==='boolean'&&typeof b==='boolean')return a||b;
  if(Array.isArray(a)&&Array.isArray(b)){const seen=new Set(a.map(e=>JSON.stringify(e))),o=a.slice();for(const e of b)if(!seen.has(JSON.stringify(e)))o.push(e);return o;}
- if(isO(a)&&isO(b)){const o=Object.assign({},a);for(const kk in b)o[kk]=mergeVal(a[kk],b[kk],kk);return o;}
+ if(isO(a)&&isO(b)){const o=Object.assign({},a);for(const kk of Object.keys(b))if(!BADK.has(kk))o[kk]=mergeVal(a[kk],b[kk],kk);return o;}
  return a;}
 // records stores: past runs are combined; a podium only fills where this phone has none (so its order stays right)
 function mergeRec(a,b){const o=Object.assign({},b,a);const seen=new Set((a.runs||[]).map(e=>JSON.stringify(e)));o.runs=(a.runs||[]).slice();
@@ -326,13 +336,15 @@ function mergeRec(a,b){const o=Object.assign({},b,a);const seen=new Set((a.runs|
  o.top=Object.assign({},isO(b.top)?b.top:{},isO(a.top)?a.top:{});if(!isO(a.best))o.best=b.best;return o;}
 async function importAll(d){if(!isO(d)||d.app!=='funzone-backup'||!isO(d.ls))throw new Error('this is not a Fun Zone backup file');
  let added=0,merged=0,same=0,songs=0;
- for(const k in d.ls){const bv=d.ls[k];if(typeof bv!=='string')continue;if(/\.(pre-restore|bad\d*)$/.test(k)&&localStorage.getItem(k)!=null)continue;
+ for(const k of Object.keys(d.ls)){let bv=d.ls[k];if(typeof bv!=='string'||BADK.has(k)||!OURK.test(k))continue;if(/\.(pre-restore|bad\d*)$/.test(k)&&localStorage.getItem(k)!=null)continue;
   if(k==='funzone.play.v1')continue;
+  if(/\.records\.v\d+$/.test(k)){try{const r=JSON.parse(bv);if(!isO(r))continue;bv=JSON.stringify(cleanRec(r));}catch(e){continue;}} // review fix 4: typed runs only
+  else{try{const j=JSON.parse(bv);if(j&&typeof j==='object')bv=JSON.stringify(cleanO(j));}catch(e){}} // review fix 4: no prototype keys in any restored JSON
   const av=localStorage.getItem(k);
   if(av===null){try{localStorage.setItem(k,bv);added++;}catch(e){}continue;}
   if(av===bv||/^yogaCoach/.test(k)){same++;continue;}  // Coach Sunny's saves are only ever added back when missing, never merged
   if(k===(window.FunLearn&&FunLearn.KEY)){try{localStorage.setItem(k+'.pre-restore',av);}catch(e){}try{FunLearn.merge(JSON.parse(bv));merged++;}catch(e){}continue;}
-  let A,B;try{A=JSON.parse(av);B=JSON.parse(bv);}catch(e){continue;}  // plain values (name, mute…) stay as they are here
+  let A,B;try{A=JSON.parse(av);B=cleanO(JSON.parse(bv));}catch(e){continue;}  // plain values (name, mute…) stay as they are here
   if(!isO(A)||!isO(B))continue;
   const out=/\.records\.v\d+$/.test(k)?mergeRec(A,B):k==='skyglider.ghost.v1'?Object.assign({},B,A,{g:Object.assign({},isO(B.g)?B.g:{},isO(A.g)?A.g:{})}):mergeVal(A,B,'');const s2=JSON.stringify(out);if(s2===av){same++;continue;}
   try{localStorage.setItem(k+'.pre-restore',av);localStorage.setItem(k,s2);merged++;}catch(e){}}
@@ -340,6 +352,9 @@ async function importAll(d){if(!isO(d)||d.app!=='funzone-backup'||!isO(d.ls))thr
  if(list.length&&window.indexedDB){const db=await gtDB();for(const s of list){if(!isO(s)||typeof s.id!=='string'&&typeof s.id!=='number')continue;
   if(await idbHas(db,s.id))continue;try{await idbPut(db,dec(s));songs++;}catch(e){}}db.close();}
  shelf();return added+' added, '+merged+' merged, '+same+' already here, '+songs+(songs===1?' song':' songs')+' added';}
+// review fix 7: --vvh follows visualViewport (height + offset), so nothing sits under the browser bar or the Fold taskbar
+(function(){const v=window.visualViewport;if(!v)return;let raf=0;const set=()=>{raf=0;if(v.scale>1.01)return;document.body.style.setProperty('--vvh',Math.round(v.height+v.offsetTop)+'px');};
+ const q=()=>{if(!raf)raf=requestAnimationFrame(set);};v.addEventListener('resize',q,{passive:true});v.addEventListener('scroll',q,{passive:true});set();})();
 if('serviceWorker' in navigator&&location.protocol!=='file:'){const sw=navigator.serviceWorker,had=!!sw.controller;
  // a new version: reload once (only if a worker already ran this page, never twice within 30 s)
  sw.addEventListener('controllerchange',()=>{if(!had)return;let t=0;try{t=+sessionStorage.getItem('fz.swr')||0;}catch(e){}if(Date.now()-t<30000)return;try{sessionStorage.setItem('fz.swr',String(Date.now()));}catch(e){}location.reload();});

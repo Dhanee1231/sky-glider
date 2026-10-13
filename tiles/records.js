@@ -11,9 +11,13 @@ window.FunRecords = function (o) {
   const isObj = v => !!v && typeof v === 'object' && !Array.isArray(v);
   // ---------- storage (additive, never destroys: an unreadable store is copied to <key>.bad first) ----------
   let D = { v: 1, runs: [], top: {}, best: null };
-  try { const raw = localStorage.getItem(o.key); if (raw) { const d = JSON.parse(raw); if (isObj(d)) { D.runs = Array.isArray(d.runs) ? d.runs.filter(isObj) : []; D.top = isObj(d.top) ? d.top : {}; D.best = isObj(d.best) ? d.best : null; for (const k in d) if (!(k in D)) D[k] = d[k]; } } }
+  try { const raw = localStorage.getItem(o.key); if (raw) { const d = JSON.parse(raw); if (isObj(d)) { D.runs = Array.isArray(d.runs) ? d.runs.filter(isObj) : []; D.top = isObj(d.top) ? d.top : {}; D.best = isObj(d.best) ? d.best : null; for (const k in d) if (!(k in D) && k !== '__proto__' && k !== 'constructor' && k !== 'prototype') D[k] = d[k]; } } }
   catch (e) { try { const raw = localStorage.getItem(o.key); if (raw != null && localStorage.getItem(o.key + '.bad') == null) localStorage.setItem(o.key + '.bad', raw); } catch (_) { } }
-  const persist = () => { try { localStorage.setItem(o.key, JSON.stringify(D)); } catch (e) { } };
+  // review fix: scores are always numbers (a restored backup can't smuggle HTML in), and a full storage trims old runs and retries instead of failing silently
+  const okRun = e => { if (!isObj(e)) return false; e.s = Number.isFinite(+e.s) ? +e.s : 0; return true; };
+  D.runs = D.runs.filter(okRun); for (const c in D.top) D.top[c] = Array.isArray(D.top[c]) ? D.top[c].filter(okRun) : []; if (D.best && !okRun(D.best)) D.best = null;
+  const persist = () => { try { localStorage.setItem(o.key, JSON.stringify(D)); return true; } catch (e) { }
+    try { localStorage.removeItem(o.key + '.bad'); D.runs.splice(0, Math.max(0, D.runs.length - 40)); localStorage.setItem(o.key, JSON.stringify(D)); return true; } catch (e) { if (o.onSaveFail) try { o.onSaveFail(); } catch (_) { } return false; } };
   const better = o.better || ((a, b) => a.s > b.s || (a.s === b.s && a.t < b.t));
   const overall = o.overall || (e => e.s);
   // ---------- dates in ET ----------
@@ -93,7 +97,7 @@ window.FunRecords = function (o) {
   const starStr = n => n == null ? '' : '★'.repeat(Math.max(0, Math.min(3, n | 0))) + '☆'.repeat(Math.max(0, 3 - (n | 0)));
   function step(e, cls, num) {
     if (!e) return `<div class="frStep ${cls} e"><div class="frMed">${num}</div><div class="sc">–</div><div class="dt">&nbsp;</div><div class="frBlock"></div></div>`;
-    return `<div class="frStep ${cls}"><div class="frMed">${num}</div><div class="sc">${o.fmt(e)}</div><div class="st">${starStr(e.st)}</div><div class="dt">${esc(o.sub ? o.sub(e) : '')}</div><div class="dt">${esc(when(e.t))}</div><div class="frBlock"></div></div>`;
+    return `<div class="frStep ${cls}"><div class="frMed">${num}</div><div class="sc">${esc(o.fmt(e))}</div><div class="st">${starStr(e.st)}</div><div class="dt">${esc(o.sub ? o.sub(e) : '')}</div><div class="dt">${esc(when(e.t))}</div><div class="frBlock"></div></div>`;
   }
   function render() {
     const cats = Object.keys(D.top).filter(c => Array.isArray(D.top[c]) && D.top[c].length), groups = [];
@@ -105,11 +109,11 @@ window.FunRecords = function (o) {
     let h = '';
     if (!cats.length) h = `<div class="frEmpty">🏆<br>${esc(o.empty || 'Play to set your first record!')}</div>`;
     else {
-      const B = D.best; if (B) h += `<div class="frBest"><span class="cup">🏆</span><div><small>${esc(o.bestLabel || 'Best ever')}</small><b>${o.fmt(B)}</b><small>${esc(B.n)}${o.sub ? ' · ' + esc(o.sub(B)) : ''} · ${esc(when(B.t))}</small></div></div>`;
+      const B = D.best; if (B) h += `<div class="frBest"><span class="cup">🏆</span><div><small>${esc(o.bestLabel || 'Best ever')}</small><b>${esc(o.fmt(B))}</b><small>${esc(B.n)}${o.sub ? ' · ' + esc(o.sub(B)) : ''} · ${esc(when(B.t))}</small></div></div>`;
       if (groups.length > 1) h += '<div class="frChips">' + ['all'].concat(groups).map(g => `<button data-g="${esc(g)}" class="${g === grp ? 'on' : ''}">${esc(g === 'all' ? (o.allLabel || 'All') : g)}</button>`).join('') + '</div>';
       h += '<div class="frGrid">' + shown.map(c => { const L = D.top[c]; return `<div class="frCard"><h3>${esc(L[0].n)}</h3><div class="frPod">${step(L[1], 's', 2)}${step(L[0], 'g', 1)}${step(L[2], 'b', 3)}</div></div>`; }).join('') + '</div>';
       const recent = D.runs.slice(-25).reverse().filter(e => grp === 'all' || e.g === grp);
-      if (recent.length) h += `<div class="frH">${esc(o.recentLabel || 'Recent games')}</div><div class="frList">` + recent.map(e => `<div class="frRow"><span class="w">${esc(when(e.t))}</span><span class="n">${esc(e.n)}${o.sub ? `<br><small style="opacity:.8;font-weight:700">${esc(o.sub(e))}</small>` : ''}</span><span class="v">${o.fmt(e)}<i>${starStr(e.st)}</i></span></div>`).join('') + '</div>';
+      if (recent.length) h += `<div class="frH">${esc(o.recentLabel || 'Recent games')}</div><div class="frList">` + recent.map(e => `<div class="frRow"><span class="w">${esc(when(e.t))}</span><span class="n">${esc(e.n)}${o.sub ? `<br><small style="opacity:.8;font-weight:700">${esc(o.sub(e))}</small>` : ''}</span><span class="v">${esc(o.fmt(e))}<i>${starStr(e.st)}</i></span></div>`).join('') + '</div>';
     }
     root.querySelector('.frBody').innerHTML = h;
   }
@@ -123,10 +127,11 @@ window.FunRecords = function (o) {
   function close() { if (!root) return false; root.remove(); root = null; const f = onClose; onClose = null; if (f) f(); return true; }
   // ---------- sounds: a little tap, and the fanfare (own audio context unless the app shares one) ----------
   let AC = null; const ctx = () => { if (o.ac) { const c = o.ac(); if (c) return c; } if (!AC) { const C = window.AudioContext || window.webkitAudioContext; if (C) try { AC = new C(); } catch (e) { } } if (AC && AC.state === 'suspended') AC.resume().catch(() => { }); return AC; };
-  const tone = (c, f, at, d, type, v, f2) => { const os = c.createOscillator(), g = c.createGain(); os.type = type; os.frequency.setValueAtTime(f, at); if (f2) os.frequency.exponentialRampToValueAtTime(f2, at + d);
+  const VOL = () => { try { const v = o.vol ? +o.vol() : 1; return Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 1; } catch (e) { return 1; } }; // review fix: follows the grown-ups volume slider
+  const tone = (c, f, at, d, type, v, f2) => { v *= VOL(); if (v < 0.0002) return; const os = c.createOscillator(), g = c.createGain(); os.type = type; os.frequency.setValueAtTime(f, at); if (f2) os.frequency.exponentialRampToValueAtTime(f2, at + d);
     g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(v, at + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, at + d); os.connect(g); g.connect(c.destination); os.start(at); os.stop(at + d + 0.05); };
   function tap() { if (o.muted && o.muted()) return; const c = ctx(); if (!c) return; const t = c.currentTime; tone(c, 988, t, 0.07, 'triangle', 0.08); tone(c, 1976, t + 0.03, 0.06, 'sine', 0.03); }
-  function fanfare() { if (o.muted && o.muted()) return; const c = ctx(); if (!c) return; const t = c.currentTime + 0.05;
+  function fanfare() { if ((o.muted && o.muted()) || VOL() <= 0) return; const c = ctx(); if (!c) return; const t = c.currentTime + 0.05;
     [0, 4, 7, 12].forEach((s, i) => tone(c, 523 * Math.pow(2, s / 12), t + i * 0.1, 0.18, 'triangle', 0.14));
     [12, 16, 19, 24].forEach(s => tone(c, 523 * Math.pow(2, s / 12), t + 0.45, 0.9, 'triangle', 0.06));
     tone(c, 262, t + 0.45, 0.9, 'sine', 0.1); for (let i = 0; i < 10; i++) tone(c, 2200 + Math.random() * 2200, t + 0.5 + i * 0.07, 0.14, 'sine', 0.035); }
@@ -137,19 +142,26 @@ window.FunRecords = function (o) {
   function cheer() {
     if (o.muted && o.muted()) return; const pool = CHEERS.filter(x => x !== lastCheer), line = pool[Math.floor(Math.random() * pool.length)]; lastCheer = line;
     if (o.say) { o.say(line); return; }
-    const syn = () => { try { if (window.speechSynthesis) { const u = new SpeechSynthesisUtterance(line); u.rate = 0.95; u.pitch = 1.15; speechSynthesis.cancel(); speechSynthesis.speak(u); } } catch (e) { } };
+    // review fix: Android Chrome can drop an utterance spoken right after cancel(); resume() first and retry once if it never started
+    const syn = () => { try { if (window.speechSynthesis) { const ss = speechSynthesis, mk = () => { const u = new SpeechSynthesisUtterance(line); u.rate = 0.95; u.pitch = 1.15; u.volume = VOL(); return u; };
+      ss.cancel(); try { ss.resume(); } catch (_) { } ss.speak(mk()); setTimeout(() => { try { if (!ss.speaking && !ss.pending) { ss.resume(); ss.speak(mk()); } } catch (_) { } }, 350); } } catch (e) { } };
+    if (VOL() <= 0) return;
     if (!MAN || MAN[ttsKey(line)] == null) return syn();
-    try { const a = new Audio(o.voiceBase + ttsKey(line) + '.ogg'); a.onerror = syn; const p = a.play(); if (p && p.catch) p.catch(syn); } catch (e) { syn(); }
+    try { const a = new Audio(o.voiceBase + ttsKey(line) + '.ogg'); a.volume = VOL(); a.onerror = syn; const p = a.play(); if (p && p.catch) p.catch(syn); } catch (e) { syn(); }
   }
   // ---------- NEW RECORD party: fireworks, gem confetti, a shimmer wave across the screen, a glowing banner, fanfare and a cheer ----------
   let party = null;
   function celebrate(info) {
     if (party) endParty(); info = info || {}; const calm = RM();
     const el = document.createElement('div'); el.className = 'frParty'; el.setAttribute('role', 'alertdialog'); el.setAttribute('aria-label', 'New record');
-    el.innerHTML = `<canvas></canvas>${calm ? '' : '<div class="frWave"></div>'}<div class="frBan"><h2>${esc(info.title || 'NEW RECORD!')}</h2>${info.score != null ? `<div class="sc">${info.score}</div>` : ''}${info.name ? `<div class="nm">${esc(info.name)}</div>` : ''}<div class="tap">✨ Tap to keep playing ✨</div></div>`;
+    el.innerHTML = `<canvas></canvas>${calm ? '' : '<div class="frWave"></div>'}<div class="frBan"><h2>${esc(info.title || 'NEW RECORD!')}</h2>${info.score != null ? `<div class="sc">${esc(info.score)}</div>` : ''}${info.name ? `<div class="nm">${esc(info.name)}</div>` : ''}<div class="tap">✨ Tap to keep playing ✨</div></div>`;
     if (o.font) el.style.fontFamily = o.font; document.body.appendChild(el);
-    const cv = el.querySelector('canvas'), g = cv.getContext('2d'), DPR = Math.min(window.devicePixelRatio || 1, 1.5); let W = innerWidth, H = innerHeight; cv.width = W * DPR; cv.height = H * DPR;
-    const P = [], CAP = calm ? 40 : 260, COLS = ['#fff', '#ffd84a', '#ff6ad5', '#7ff3ff', '#c79bff', '#e9edf6', '#ff9ec7'];
+    const cv = el.querySelector('canvas'), g = cv.getContext('2d'); let DPR = 1, W = 1, H = 1;
+    // review fix: the party canvas follows a fold / rotation (bitmap re-sized from the overlay's own box, off-screen particles dropped, never stretched)
+    const fitP = () => { const r = el.getBoundingClientRect(); W = Math.max(1, Math.round(r.width || innerWidth)); H = Math.max(1, Math.round(r.height || innerHeight)); DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+      cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); for (let i = P.length - 1; i >= 0; i--) if (P[i].x < -40 || P[i].x > W + 40) P.splice(i, 1); };
+    const onRs = () => fitP(); window.addEventListener('resize', onRs); if (window.visualViewport) visualViewport.addEventListener('resize', onRs);
+    const P = []; fitP(); const CAP = calm ? 40 : 260, COLS = ['#fff', '#ffd84a', '#ff6ad5', '#7ff3ff', '#c79bff', '#e9edf6', '#ff9ec7'];
     const gem = (x, y, r, rot, col) => { g.save(); g.translate(x, y); g.rotate(rot); g.fillStyle = col; g.beginPath(); g.moveTo(0, -r); g.lineTo(r * 0.8, -r * 0.2); g.lineTo(0, r); g.lineTo(-r * 0.8, -r * 0.2); g.closePath(); g.fill(); g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.moveTo(0, -r); g.lineTo(r * 0.8, -r * 0.2); g.lineTo(0, -r * 0.1); g.closePath(); g.fill(); g.restore(); };
     const star = (x, y, r) => { g.beginPath(); for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, rr = i % 2 ? r * 0.32 : r; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } g.closePath(); g.fill(); };
     const boom = (x, y) => { const c = COLS[(Math.random() * COLS.length) | 0], n = calm ? 0 : 34; for (let i = 0; i < n && P.length < CAP; i++) { const a = i / n * 6.283 + Math.random() * 0.2, s = 120 + Math.random() * 180; P.push({ k: 's', x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, l: 1 + Math.random() * 0.5, m: 1.5, r: 2.5 + Math.random() * 2.5, c: Math.random() < 0.3 ? '#fff' : c }); } };
@@ -167,7 +179,7 @@ window.FunRecords = function (o) {
     raf = requestAnimationFrame(tick);
     fanfare(); setTimeout(() => { if (party && party.el === el) cheer(); }, 650);
     const born = performance.now(); el.addEventListener('click', () => { if (performance.now() - born > 700) endParty(); });
-    party = { el, stop: () => cancelAnimationFrame(raf), timer: setTimeout(() => endParty(), calm ? 4000 : 5500), done: info.done };
+    party = { el, stop: () => { cancelAnimationFrame(raf); window.removeEventListener('resize', onRs); if (window.visualViewport) visualViewport.removeEventListener('resize', onRs); }, timer: setTimeout(() => endParty(), calm ? 4000 : 5500), done: info.done };
   }
   function endParty() { if (!party) return false; const p = party; party = null; clearTimeout(p.timer); p.stop(); p.el.remove(); if (p.done) p.done(); return true; }
   return { record, seed, open, close, isOpen: () => !!root || !!party, back: () => endParty() || close(), celebrate, endParty, when, data: () => D, CHEERS, ttsKey };

@@ -115,6 +115,9 @@ html.fz-big .song .favbtn{width:64px;height:64px;min-height:64px}
 .song .dd.veryhard{color:#7a3fe0}
 #diffSeg{flex-wrap:nowrap}#diffSeg button{flex:1 1 auto;min-width:0;padding:8px 11px;white-space:nowrap}
 @media (max-width:480px){#diffSeg button{font-size:15px;padding:8px 8px}}
+/* review fix 14: long labels (Hindi "बहुत कठिन") wrap inside their button, and on a Fold-cover width the four buttons go 2 x 2, so Very Hard is never clipped */
+#diffSeg button{white-space:normal;line-height:1.1;text-align:center}
+@media (max-width:380px){#diffSeg{flex-wrap:wrap}#diffSeg button{flex:1 1 40%}}
 .row{display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap;justify-content:center;width:100%;max-width:820px}
 .tabs{display:flex;gap:var(--s2);flex-wrap:wrap;justify-content:center}
 .tabs .btn{min-height:52px;padding:8px 14px;font-size:16px}

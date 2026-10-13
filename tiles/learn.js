@@ -15,13 +15,15 @@ window.FunLearn = (function () {
     const D = { v: 1, items: {}, days: {}, log: [] };
     if (!raw) return D;
     try { const d = JSON.parse(raw); if (!isObj(d)) throw 0;
-      for (const k in d) D[k] = d[k];                                  // unknown fields are kept
+      for (const k in d) if (k !== '__proto__' && k !== 'constructor' && k !== 'prototype') D[k] = d[k]; // unknown fields are kept (never prototype keys)
       if (!isObj(D.items)) D.items = {}; if (!isObj(D.days)) D.days = {}; if (!Array.isArray(D.log)) D.log = [];
     } catch (e) { try { if (localStorage.getItem(KEY + '.bad') == null) localStorage.setItem(KEY + '.bad', raw); } catch (_) { } }
     return D;
   }
   const write = D => { try { localStorage.setItem(KEY, JSON.stringify(D)); return true; } catch (e) {
-    try { D.log = D.log.slice(-100); localStorage.setItem(KEY, JSON.stringify(D)); return true; } catch (_) { return false; } } };
+    try { D.log = D.log.slice(-100); localStorage.setItem(KEY, JSON.stringify(D)); return true; } catch (_) { }
+    // review fix: storage still full -> drop the oldest per-day buckets (keep the last 60 days; item totals are kept) and retry once
+    try { const ks = Object.keys(D.days).sort(); ks.slice(0, Math.max(0, ks.length - 60)).forEach(k => delete D.days[k]); localStorage.setItem(KEY, JSON.stringify(D)); return true; } catch (_) { return false; } } };
   // add one practice result. app: 'cc' | 'sg' | 'gt' | …; key: item id; ok: true/false
   function add(app, key, ok) {
     if (!app || !key) return;

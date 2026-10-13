@@ -42,9 +42,13 @@ window.FunRecords = function (o) {
   const isObj = v => !!v && typeof v === 'object' && !Array.isArray(v);
   // ---------- storage (additive, never destroys: an unreadable store is copied to <key>.bad first) ----------
   let D = { v: 1, runs: [], top: {}, best: null };
-  try { const raw = localStorage.getItem(o.key); if (raw) { const d = JSON.parse(raw); if (isObj(d)) { D.runs = Array.isArray(d.runs) ? d.runs.filter(isObj) : []; D.top = isObj(d.top) ? d.top : {}; D.best = isObj(d.best) ? d.best : null; for (const k in d) if (!(k in D)) D[k] = d[k]; } } }
+  try { const raw = localStorage.getItem(o.key); if (raw) { const d = JSON.parse(raw); if (isObj(d)) { D.runs = Array.isArray(d.runs) ? d.runs.filter(isObj) : []; D.top = isObj(d.top) ? d.top : {}; D.best = isObj(d.best) ? d.best : null; for (const k in d) if (!(k in D) && k !== '__proto__' && k !== 'constructor' && k !== 'prototype') D[k] = d[k]; } } }
   catch (e) { try { const raw = localStorage.getItem(o.key); if (raw != null && localStorage.getItem(o.key + '.bad') == null) localStorage.setItem(o.key + '.bad', raw); } catch (_) { } }
-  const persist = () => { try { localStorage.setItem(o.key, JSON.stringify(D)); } catch (e) { } };
+  // review fix: scores are always numbers (a restored backup can't smuggle HTML in), and a full storage trims old runs and retries instead of failing silently
+  const okRun = e => { if (!isObj(e)) return false; e.s = Number.isFinite(+e.s) ? +e.s : 0; return true; };
+  D.runs = D.runs.filter(okRun); for (const c in D.top) D.top[c] = Array.isArray(D.top[c]) ? D.top[c].filter(okRun) : []; if (D.best && !okRun(D.best)) D.best = null;
+  const persist = () => { try { localStorage.setItem(o.key, JSON.stringify(D)); return true; } catch (e) { }
+    try { localStorage.removeItem(o.key + '.bad'); D.runs.splice(0, Math.max(0, D.runs.length - 40)); localStorage.setItem(o.key, JSON.stringify(D)); return true; } catch (e) { if (o.onSaveFail) try { o.onSaveFail(); } catch (_) { } return false; } };
   const better = o.better || ((a, b) => a.s > b.s || (a.s === b.s && a.t < b.t));
   const overall = o.overall || (e => e.s);
   // ---------- dates in ET ----------
@@ -124,7 +128,7 @@ window.FunRecords = function (o) {
   const starStr = n => n == null ? '' : '★'.repeat(Math.max(0, Math.min(3, n | 0))) + '☆'.repeat(Math.max(0, 3 - (n | 0)));
   function step(e, cls, num) {
     if (!e) return `<div class="frStep ${cls} e"><div class="frMed">${num}</div><div class="sc">–</div><div class="dt">&nbsp;</div><div class="frBlock"></div></div>`;
-    return `<div class="frStep ${cls}"><div class="frMed">${num}</div><div class="sc">${o.fmt(e)}</div><div class="st">${starStr(e.st)}</div><div class="dt">${esc(o.sub ? o.sub(e) : '')}</div><div class="dt">${esc(when(e.t))}</div><div class="frBlock"></div></div>`;
+    return `<div class="frStep ${cls}"><div class="frMed">${num}</div><div class="sc">${esc(o.fmt(e))}</div><div class="st">${starStr(e.st)}</div><div class="dt">${esc(o.sub ? o.sub(e) : '')}</div><div class="dt">${esc(when(e.t))}</div><div class="frBlock"></div></div>`;
   }
   function render() {
     const cats = Object.keys(D.top).filter(c => Array.isArray(D.top[c]) && D.top[c].length), groups = [];
@@ -136,11 +140,11 @@ window.FunRecords = function (o) {
     let h = '';
     if (!cats.length) h = `<div class="frEmpty">🏆<br>${esc(o.empty || 'Play to set your first record!')}</div>`;
     else {
-      const B = D.best; if (B) h += `<div class="frBest"><span class="cup">🏆</span><div><small>${esc(o.bestLabel || 'Best ever')}</small><b>${o.fmt(B)}</b><small>${esc(B.n)}${o.sub ? ' · ' + esc(o.sub(B)) : ''} · ${esc(when(B.t))}</small></div></div>`;
+      const B = D.best; if (B) h += `<div class="frBest"><span class="cup">🏆</span><div><small>${esc(o.bestLabel || 'Best ever')}</small><b>${esc(o.fmt(B))}</b><small>${esc(B.n)}${o.sub ? ' · ' + esc(o.sub(B)) : ''} · ${esc(when(B.t))}</small></div></div>`;
       if (groups.length > 1) h += '<div class="frChips">' + ['all'].concat(groups).map(g => `<button data-g="${esc(g)}" class="${g === grp ? 'on' : ''}">${esc(g === 'all' ? (o.allLabel || 'All') : g)}</button>`).join('') + '</div>';
       h += '<div class="frGrid">' + shown.map(c => { const L = D.top[c]; return `<div class="frCard"><h3>${esc(L[0].n)}</h3><div class="frPod">${step(L[1], 's', 2)}${step(L[0], 'g', 1)}${step(L[2], 'b', 3)}</div></div>`; }).join('') + '</div>';
       const recent = D.runs.slice(-25).reverse().filter(e => grp === 'all' || e.g === grp);
-      if (recent.length) h += `<div class="frH">${esc(o.recentLabel || 'Recent games')}</div><div class="frList">` + recent.map(e => `<div class="frRow"><span class="w">${esc(when(e.t))}</span><span class="n">${esc(e.n)}${o.sub ? `<br><small style="opacity:.8;font-weight:700">${esc(o.sub(e))}</small>` : ''}</span><span class="v">${o.fmt(e)}<i>${starStr(e.st)}</i></span></div>`).join('') + '</div>';
+      if (recent.length) h += `<div class="frH">${esc(o.recentLabel || 'Recent games')}</div><div class="frList">` + recent.map(e => `<div class="frRow"><span class="w">${esc(when(e.t))}</span><span class="n">${esc(e.n)}${o.sub ? `<br><small style="opacity:.8;font-weight:700">${esc(o.sub(e))}</small>` : ''}</span><span class="v">${esc(o.fmt(e))}<i>${starStr(e.st)}</i></span></div>`).join('') + '</div>';
     }
     root.querySelector('.frBody').innerHTML = h;
   }
@@ -154,10 +158,11 @@ window.FunRecords = function (o) {
   function close() { if (!root) return false; root.remove(); root = null; const f = onClose; onClose = null; if (f) f(); return true; }
   // ---------- sounds: a little tap, and the fanfare (own audio context unless the app shares one) ----------
   let AC = null; const ctx = () => { if (o.ac) { const c = o.ac(); if (c) return c; } if (!AC) { const C = window.AudioContext || window.webkitAudioContext; if (C) try { AC = new C(); } catch (e) { } } if (AC && AC.state === 'suspended') AC.resume().catch(() => { }); return AC; };
-  const tone = (c, f, at, d, type, v, f2) => { const os = c.createOscillator(), g = c.createGain(); os.type = type; os.frequency.setValueAtTime(f, at); if (f2) os.frequency.exponentialRampToValueAtTime(f2, at + d);
+  const VOL = () => { try { const v = o.vol ? +o.vol() : 1; return Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 1; } catch (e) { return 1; } }; // review fix: follows the grown-ups volume slider
+  const tone = (c, f, at, d, type, v, f2) => { v *= VOL(); if (v < 0.0002) return; const os = c.createOscillator(), g = c.createGain(); os.type = type; os.frequency.setValueAtTime(f, at); if (f2) os.frequency.exponentialRampToValueAtTime(f2, at + d);
     g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(v, at + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, at + d); os.connect(g); g.connect(c.destination); os.start(at); os.stop(at + d + 0.05); };
   function tap() { if (o.muted && o.muted()) return; const c = ctx(); if (!c) return; const t = c.currentTime; tone(c, 988, t, 0.07, 'triangle', 0.08); tone(c, 1976, t + 0.03, 0.06, 'sine', 0.03); }
-  function fanfare() { if (o.muted && o.muted()) return; const c = ctx(); if (!c) return; const t = c.currentTime + 0.05;
+  function fanfare() { if ((o.muted && o.muted()) || VOL() <= 0) return; const c = ctx(); if (!c) return; const t = c.currentTime + 0.05;
     [0, 4, 7, 12].forEach((s, i) => tone(c, 523 * Math.pow(2, s / 12), t + i * 0.1, 0.18, 'triangle', 0.14));
     [12, 16, 19, 24].forEach(s => tone(c, 523 * Math.pow(2, s / 12), t + 0.45, 0.9, 'triangle', 0.06));
     tone(c, 262, t + 0.45, 0.9, 'sine', 0.1); for (let i = 0; i < 10; i++) tone(c, 2200 + Math.random() * 2200, t + 0.5 + i * 0.07, 0.14, 'sine', 0.035); }
@@ -168,19 +173,26 @@ window.FunRecords = function (o) {
   function cheer() {
     if (o.muted && o.muted()) return; const pool = CHEERS.filter(x => x !== lastCheer), line = pool[Math.floor(Math.random() * pool.length)]; lastCheer = line;
     if (o.say) { o.say(line); return; }
-    const syn = () => { try { if (window.speechSynthesis) { const u = new SpeechSynthesisUtterance(line); u.rate = 0.95; u.pitch = 1.15; speechSynthesis.cancel(); speechSynthesis.speak(u); } } catch (e) { } };
+    // review fix: Android Chrome can drop an utterance spoken right after cancel(); resume() first and retry once if it never started
+    const syn = () => { try { if (window.speechSynthesis) { const ss = speechSynthesis, mk = () => { const u = new SpeechSynthesisUtterance(line); u.rate = 0.95; u.pitch = 1.15; u.volume = VOL(); return u; };
+      ss.cancel(); try { ss.resume(); } catch (_) { } ss.speak(mk()); setTimeout(() => { try { if (!ss.speaking && !ss.pending) { ss.resume(); ss.speak(mk()); } } catch (_) { } }, 350); } } catch (e) { } };
+    if (VOL() <= 0) return;
     if (!MAN || MAN[ttsKey(line)] == null) return syn();
-    try { const a = new Audio(o.voiceBase + ttsKey(line) + '.ogg'); a.onerror = syn; const p = a.play(); if (p && p.catch) p.catch(syn); } catch (e) { syn(); }
+    try { const a = new Audio(o.voiceBase + ttsKey(line) + '.ogg'); a.volume = VOL(); a.onerror = syn; const p = a.play(); if (p && p.catch) p.catch(syn); } catch (e) { syn(); }
   }
   // ---------- NEW RECORD party: fireworks, gem confetti, a shimmer wave across the screen, a glowing banner, fanfare and a cheer ----------
   let party = null;
   function celebrate(info) {
     if (party) endParty(); info = info || {}; const calm = RM();
     const el = document.createElement('div'); el.className = 'frParty'; el.setAttribute('role', 'alertdialog'); el.setAttribute('aria-label', 'New record');
-    el.innerHTML = `<canvas></canvas>${calm ? '' : '<div class="frWave"></div>'}<div class="frBan"><h2>${esc(info.title || 'NEW RECORD!')}</h2>${info.score != null ? `<div class="sc">${info.score}</div>` : ''}${info.name ? `<div class="nm">${esc(info.name)}</div>` : ''}<div class="tap">✨ Tap to keep playing ✨</div></div>`;
+    el.innerHTML = `<canvas></canvas>${calm ? '' : '<div class="frWave"></div>'}<div class="frBan"><h2>${esc(info.title || 'NEW RECORD!')}</h2>${info.score != null ? `<div class="sc">${esc(info.score)}</div>` : ''}${info.name ? `<div class="nm">${esc(info.name)}</div>` : ''}<div class="tap">✨ Tap to keep playing ✨</div></div>`;
     if (o.font) el.style.fontFamily = o.font; document.body.appendChild(el);
-    const cv = el.querySelector('canvas'), g = cv.getContext('2d'), DPR = Math.min(window.devicePixelRatio || 1, 1.5); let W = innerWidth, H = innerHeight; cv.width = W * DPR; cv.height = H * DPR;
-    const P = [], CAP = calm ? 40 : 260, COLS = ['#fff', '#ffd84a', '#ff6ad5', '#7ff3ff', '#c79bff', '#e9edf6', '#ff9ec7'];
+    const cv = el.querySelector('canvas'), g = cv.getContext('2d'); let DPR = 1, W = 1, H = 1;
+    // review fix: the party canvas follows a fold / rotation (bitmap re-sized from the overlay's own box, off-screen particles dropped, never stretched)
+    const fitP = () => { const r = el.getBoundingClientRect(); W = Math.max(1, Math.round(r.width || innerWidth)); H = Math.max(1, Math.round(r.height || innerHeight)); DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+      cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); for (let i = P.length - 1; i >= 0; i--) if (P[i].x < -40 || P[i].x > W + 40) P.splice(i, 1); };
+    const onRs = () => fitP(); window.addEventListener('resize', onRs); if (window.visualViewport) visualViewport.addEventListener('resize', onRs);
+    const P = []; fitP(); const CAP = calm ? 40 : 260, COLS = ['#fff', '#ffd84a', '#ff6ad5', '#7ff3ff', '#c79bff', '#e9edf6', '#ff9ec7'];
     const gem = (x, y, r, rot, col) => { g.save(); g.translate(x, y); g.rotate(rot); g.fillStyle = col; g.beginPath(); g.moveTo(0, -r); g.lineTo(r * 0.8, -r * 0.2); g.lineTo(0, r); g.lineTo(-r * 0.8, -r * 0.2); g.closePath(); g.fill(); g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.moveTo(0, -r); g.lineTo(r * 0.8, -r * 0.2); g.lineTo(0, -r * 0.1); g.closePath(); g.fill(); g.restore(); };
     const star = (x, y, r) => { g.beginPath(); for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, rr = i % 2 ? r * 0.32 : r; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } g.closePath(); g.fill(); };
     const boom = (x, y) => { const c = COLS[(Math.random() * COLS.length) | 0], n = calm ? 0 : 34; for (let i = 0; i < n && P.length < CAP; i++) { const a = i / n * 6.283 + Math.random() * 0.2, s = 120 + Math.random() * 180; P.push({ k: 's', x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, l: 1 + Math.random() * 0.5, m: 1.5, r: 2.5 + Math.random() * 2.5, c: Math.random() < 0.3 ? '#fff' : c }); } };
@@ -198,7 +210,7 @@ window.FunRecords = function (o) {
     raf = requestAnimationFrame(tick);
     fanfare(); setTimeout(() => { if (party && party.el === el) cheer(); }, 650);
     const born = performance.now(); el.addEventListener('click', () => { if (performance.now() - born > 700) endParty(); });
-    party = { el, stop: () => cancelAnimationFrame(raf), timer: setTimeout(() => endParty(), calm ? 4000 : 5500), done: info.done };
+    party = { el, stop: () => { cancelAnimationFrame(raf); window.removeEventListener('resize', onRs); if (window.visualViewport) visualViewport.removeEventListener('resize', onRs); }, timer: setTimeout(() => endParty(), calm ? 4000 : 5500), done: info.done };
   }
   function endParty() { if (!party) return false; const p = party; party = null; clearTimeout(p.timer); p.stop(); p.el.remove(); if (p.done) p.done(); return true; }
   return { record, seed, open, close, isOpen: () => !!root || !!party, back: () => endParty() || close(), celebrate, endParty, when, data: () => D, CHEERS, ttsKey };
@@ -223,13 +235,15 @@ window.FunLearn = (function () {
     const D = { v: 1, items: {}, days: {}, log: [] };
     if (!raw) return D;
     try { const d = JSON.parse(raw); if (!isObj(d)) throw 0;
-      for (const k in d) D[k] = d[k];                                  // unknown fields are kept
+      for (const k in d) if (k !== '__proto__' && k !== 'constructor' && k !== 'prototype') D[k] = d[k]; // unknown fields are kept (never prototype keys)
       if (!isObj(D.items)) D.items = {}; if (!isObj(D.days)) D.days = {}; if (!Array.isArray(D.log)) D.log = [];
     } catch (e) { try { if (localStorage.getItem(KEY + '.bad') == null) localStorage.setItem(KEY + '.bad', raw); } catch (_) { } }
     return D;
   }
   const write = D => { try { localStorage.setItem(KEY, JSON.stringify(D)); return true; } catch (e) {
-    try { D.log = D.log.slice(-100); localStorage.setItem(KEY, JSON.stringify(D)); return true; } catch (_) { return false; } } };
+    try { D.log = D.log.slice(-100); localStorage.setItem(KEY, JSON.stringify(D)); return true; } catch (_) { }
+    // review fix: storage still full -> drop the oldest per-day buckets (keep the last 60 days; item totals are kept) and retry once
+    try { const ks = Object.keys(D.days).sort(); ks.slice(0, Math.max(0, ks.length - 60)).forEach(k => delete D.days[k]); localStorage.setItem(KEY, JSON.stringify(D)); return true; } catch (_) { return false; } } };
   // add one practice result. app: 'cc' | 'sg' | 'gt' | …; key: item id; ok: true/false
   function add(app, key, ok) {
     if (!app || !key) return;
@@ -496,15 +510,35 @@ const KEY='skyglider.v3',V2KEY='skyglider.v2',OLDKEY='skyglider.v1';
 const save={v:3,total:0,coins:0,races:0,diff:0,color:4,shape:1,pattern:0,trail:0,hat:0,
  ownTrail:[0],ownHat:[0],ownPat:[0,1,2,3,4],ownCol:[],muted:false,tilt:false,world:0,level:0,
  lv:{},maxLv:0,stk:{},boxes:0,dry:0,pending:0,gift:'',streak:0,wins:0,seenDiff:false,decal:['','',''],best:0,outfits:[null,null,null],box:0,ownBox:[0],albFr:0,albBg:0};
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
+// review fix 3: before writing, re-read the store; if another tab wrote since our last read/write, its coin / sticker / win changes are added
+// (deltas, so spending in either tab is kept too) and level stars keep the larger value. A full storage frees our own spare copies, trims
+// old ghost runs and retries, then shows a small "couldn't save" note instead of failing silently.
+let SAVED=null,saveWarnAt=0;
+function mergeOther(){let cur=null;try{cur=localStorage.getItem(KEY);}catch(e){return;}if(SAVED==null||cur==null||cur===SAVED)return;
+ let o,b;try{o=JSON.parse(cur);b=JSON.parse(SAVED);}catch(e){return;}if(!o||!b||typeof o!=='object'||typeof b!=='object')return;
+ const add=(dst,k,ov,bv)=>{const d=(+ov||0)-(+bv||0);if(Number.isFinite(d)&&d)dst[k]=Math.max(0,(+dst[k]||0)+d);};
+ ['coins','total','races','wins','boxes','pending'].forEach(k=>add(save,k,o[k],b[k]));
+ save.maxLv=Math.max(save.maxLv|0,o.maxLv|0);save.best=Math.max(+save.best||0,+o.best||0);
+ const ol=o.lv&&typeof o.lv==='object'?o.lv:{},os=o.stk&&typeof o.stk==='object'?o.stk:{},bs=b.stk&&typeof b.stk==='object'?b.stk:{};
+ for(const k of Object.keys(ol))if(/^\d+$/.test(k))save.lv[k]=Math.max(+save.lv[k]||0,Math.min(3,+ol[k]||0));
+ for(const k of Object.keys(os))if(/^[\w-]{1,24}$/.test(k))add(save.stk,k,os[k],bs[k]);}
+function saveWarn(){if(Date.now()-saveWarnAt<120000)return;saveWarnAt=Date.now();try{const d=document.createElement('div');d.textContent="⚠️ Couldn't save — the phone's storage is full. Ask a grown-up.";
+ d.style.cssText='position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:9999;background:#fff;color:#4a1340;font:800 15px system-ui,sans-serif;padding:10px 16px;border-radius:16px;box-shadow:0 4px 14px rgba(0,0,0,.3);max-width:90vw;text-align:center;pointer-events:none';
+ document.body.appendChild(d);setTimeout(()=>d.remove(),3500);}catch(e){}}
+function persist(){mergeOther();const j=JSON.stringify(save);
+ try{localStorage.setItem(KEY,j);SAVED=j;return true;}catch(e){}
+ try{localStorage.removeItem(KEY+'.bad2');for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&/^skyglider\..*\.pre-restore$/.test(k))localStorage.removeItem(k);}
+  const g=JSON.parse(localStorage.getItem('skyglider.ghost.v1')||'null');if(g&&g.g&&typeof g.g==='object'){const ks=Object.keys(g.g);ks.slice(0,Math.ceil(ks.length/2)).forEach(k=>delete g.g[k]);localStorage.setItem('skyglider.ghost.v1',JSON.stringify(g));}
+  localStorage.setItem(KEY,j);SAVED=j;return true;}catch(e){}
+ saveWarn();return false;}
 (function load(){
  const get=k=>{try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}};
- const raw=(()=>{try{return localStorage.getItem(KEY);}catch(e){return null;}})();
+ const raw=(()=>{try{return localStorage.getItem(KEY);}catch(e){return null;}})();SAVED=raw; // review fix 3: what this tab last saw
  const d=get(KEY);
  // a v3 save that exists but can't be read is kept (never silently thrown away) before anything is written over it
  const bad=raw!=null&&!(d&&typeof d==='object');
- if(bad){try{if(localStorage.getItem(KEY+'.bad')==null)localStorage.setItem(KEY+'.bad',raw);else localStorage.setItem(KEY+'.bad2',raw);}catch(e){}}
- if(d&&typeof d==='object'&&!Array.isArray(d)){Object.assign(save,d);}
+ if(bad){SAVED=null;try{if(localStorage.getItem(KEY+'.bad')==null)localStorage.setItem(KEY+'.bad',raw);}catch(e){}} // review fix 3: one bad backup only (the first, never overwritten)
+ if(d&&typeof d==='object'&&!Array.isArray(d)){['__proto__','constructor','prototype'].forEach(k=>{if(Object.prototype.hasOwnProperty.call(d,k))delete d[k];});Object.assign(save,d);} // review fix 4: no prototype keys
  else{const d2=get(V2KEY);
   if(d2&&typeof d2==='object'){ // ---- migrate v2: everything carries over
    Object.assign(save,d2);save.v=3;save.from2=1;
@@ -643,7 +677,7 @@ const Snd={ac:null,master:null,mus:null,fx:null,nb:null,lastChirp:0,lastStar:0,f
   if(ac.state!=='running')ac.resume().catch(()=>{});
   Music.next=ac.currentTime+0.1;
  },
- ok(){return this.ac&&!save.muted&&this.ac.state==='running';},
+ ok(){return this.ac&&!save.muted&&this.ac.state==='running'&&this.mg()>0;}, // review fix 8: volume 0 = no music scheduling at all
  now(){return this.ac?this.ac.currentTime:0;},
  mg(){return save.muted?0:0.9*FZ.vol();}, // master level: mute, then the grown-up volume (0 = silent)
  applyVol(){if(this.master&&this.ac)this.master.gain.setTargetAtTime(this.mg(),this.ac.currentTime,0.03);},
@@ -1436,21 +1470,25 @@ const V={scale:1,w:1,h:1,top:0,bot:1,bandH:1,camFrac:0.22,cb:80};
 function layoutWorld(){
  const refW=clamp(560+(W/H-0.45)*240,560,760);const s=clamp(Math.min(H/600,W/refW),0.3,5);
  V.scale=s;V.w=W/s;V.h=H/s;
- V.cb=Math.min(84*UI,H*0.19,W*0.21); // control button diameter (px)
+ V.cb=Math.min(84*UI,H*0.19,W*0.21);if(W<H&&H<W*1.3)V.cb=Math.min(V.cb,96); // review fix 1: near-square portrait (Fold inner) keeps the thumb buttons under ~96px. control button diameter (px)
  const m=10*UI;
  V.top=(SAFE.t+m+56*UI)/s+34;
  V.bot=(H-SAFE.b)/s-74;
  V.bandH=Math.max(150,V.bot-V.top);
  // keep the plane clear of the left thumb buttons
- if(H>W*1.3){ // tall phone / cover screen: fly above the thumb buttons, so the plane can sit further left and see further ahead
+ // review fix 1: any portrait screen where the Up/Down stack would reach into the lane (Fold inner ~1.1-1.25) flies above the buttons, not only H>1.3W
+ if(H>W*1.3||(H>W*1.05&&V.bot*s>H-SAFE.b-V.cb*2-m*3)){ // tall phone / cover screen: fly above the thumb buttons, so the plane can sit further left and see further ahead
   V.bot=Math.max(V.top+150,(H-SAFE.b-V.cb*2-m*3)/s-24);V.bandH=Math.max(150,V.bot-V.top);V.camFrac=clamp((SAFE.l+m+40*s)/W,0.17,0.3);}
  else V.camFrac=clamp((SAFE.l+V.cb+m*3+50*s)/W,0.22,0.42);
 }
 const wy=ny=>V.top+ny*V.bandH;
+const vpV=()=>{const v=window.visualViewport;return v&&v.scale<=1.01&&v.width>0&&v.height>0?v:null;};
+const vpW=()=>{const v=vpV();return Math.max(1,Math.round(v?Math.min(window.innerWidth,v.width):window.innerWidth));};
+const vpH=()=>{const v=vpV();return Math.max(1,Math.round(v?Math.min(window.innerHeight,v.height):window.innerHeight));};
 function resize(){ // returns true only if the canvas had to be reallocated
- W=Math.max(1,Math.round(window.innerWidth));H=Math.max(1,Math.round(window.innerHeight));
+ W=vpW();H=vpH(); // review fix 7: size to the VISIBLE viewport (URL bar / Fold taskbar), rounded so a fractional width can't re-trigger layout
  DPR=Math.min(window.devicePixelRatio||1,2.5);
- const maxPx=3.2e6; if(W*H*DPR*DPR>maxPx)DPR=Math.max(1,Math.sqrt(maxPx/(W*H)));
+ const maxPx=2.4e6; if(W*H*DPR*DPR>maxPx)DPR=Math.max(1,Math.sqrt(maxPx/(W*H)));
  if(typeof RESF!=='undefined'&&RESF<1)DPR=Math.max(1,DPR*RESF);
  const cw=Math.round(W*DPR),ch=Math.round(H*DPR),re=cv.width!==cw||cv.height!==ch;
  if(re){cv.width=cw;cv.height=ch;clearCaches();}
@@ -1803,7 +1841,7 @@ function endPtr(e,cancel){
 }
 cv.addEventListener('pointerup',e=>endPtr(e,false));
 cv.addEventListener('pointercancel',e=>endPtr(e,true));
-document.addEventListener('touchmove',e=>{if(e.target.closest&&e.target.closest('.frRoot'))return;e.preventDefault();},{passive:false});
+document.addEventListener('touchmove',e=>{if(e.target.closest&&e.target.closest('.frRoot,#fzBreak,dialog'))return;e.preventDefault();},{passive:false}); // review fix 6: the break card / dialogs scroll by touch
 document.addEventListener('touchend',()=>Snd.init(),{passive:true});
 ['gesturestart','gesturechange','dblclick','contextmenu'].forEach(n=>document.addEventListener(n,e=>e.preventDefault(),{passive:false}));
 window.addEventListener('keydown',e=>{Snd.init();
@@ -2093,6 +2131,7 @@ function startLevel(w,l){
  // v5 ghost: her own best run on this track (same difficulty) flies along, see-through; path only, it never collides or counts
  R.gh=[];R.ghT=0;R.ghost=loadGhost(R.w*3+R.lvl,d);
  R.cam=-V.w*V.camFrac;wparts.length=0;sparts.length=0;tilt.neutral=null;
+ if(!qLock&&W*H*DPR*DPR>1.5e6&&QUAL>0.7)QUAL=0.7; // review fix 9: big screens (Fold inner) start the race a step lower; quality climbs back if the phone keeps up
  scene='race';sceneT=0;ptrs.clear();wipe();Music.play(WORLDS[R.w].track);
  if(R.comet&&!R.tut)FZ.say('Comet run!',{dir:'audio/',muted:save.muted});
  if(WORLDS[R.w].gate&&!R.tut)gateIntro(R);
@@ -2135,7 +2174,7 @@ function raceUpdate(dt){
  const p=R.p,sh=SHAPES[save.shape],D=DIFFS[R.d];
  if(R.paused)return;
  if(R.tut){R.tutT+=dt;return;} // first-run picture tutorial is showing
- if(R.resume>0){R.resume-=dt;const c=Math.ceil(R.resume/0.6);if(c!==R.lastRes){R.lastRes=c;if(c>0)Snd.beep(0);else Snd.beep(1);}if(R.resume>0)return;R.resume=0;}
+ if(R.resume>0){R.resume-=dt;const c=Math.ceil(R.resume/0.6);if(c!==R.lastRes){R.lastRes=c;if(c>0)Snd.beep(0);else Snd.beep(1);}if(R.resume>0)return;R.resume=0;if(tilt.raw!=null)tilt.neutral=tilt.raw;} // review fix 2: tilt re-centres when the resume 3-2-1 ends
  R.t+=dt;R.shake=Math.max(0,R.shake-dt);R.pop=Math.max(0,R.pop-dt*4);R.pileBump=Math.max(0,(R.pileBump||0)-dt*4);R.squash=Math.max(0,R.squash-dt*3.5);R.hudBump=Math.max(0,(R.hudBump||0)-dt*5);
  const so=R.pu[5]>0?0.4:1,dto=dt*so;R.ot+=dto;R.streakT=Math.max(0,R.streakT-dt);R.puPopT=Math.max(0,R.puPopT-dt);
  if(R.count>-1){R.count-=dt;const c=Math.ceil(R.count);if(c!==R.lastCount){R.lastCount=c;if(c>0&&c<=3)Snd.beep(0);else if(c===0){Snd.beep(1);tilt.neutral=tilt.raw;}}}
@@ -2607,7 +2646,7 @@ function chevrons(n,x,y,s){const c=Math.max(3,n);for(let i=0;i<c;i++){ctx.fillSt
 const lvName=idx=>{const w=(idx/3)|0,l=idx%3;return WORLDS[w].name+' '+(l+1);};
 const PLACE=['1st','2nd','3rd','4th'];
 // a race's score is the stars it earned (the finish screen's "+N"); ties go to the better place, then the faster finish
-const REC=FunRecords({key:'skyglider.records.v1',title:'Sky Records',font:FONT,muted:()=>save.muted,ac:()=>Snd.ac,voiceBase:'audio/',
+const REC=FunRecords({key:'skyglider.records.v1',title:'Sky Records',font:FONT,muted:()=>save.muted,ac:()=>Snd.ac,voiceBase:'audio/',vol:()=>(window.FZ&&FZ.vol?FZ.vol():1),
  fmt:e=>'⭐ '+e.s,sub:e=>{const x=e.x||{};return [DIFFS[x.d]?DIFFS[x.d].name:'',PLACE[(x.p|0)-1]||'',x.tm?x.tm.toFixed(1)+' s':''].filter(Boolean).join(' · ');},
  better:(a,b)=>a.s>b.s||(a.s===b.s&&((a.x&&a.x.p)||9)<((b.x&&b.x.p)||9))||(a.s===b.s&&((a.x&&a.x.p)||9)===((b.x&&b.x.p)||9)&&((a.x&&a.x.tm)||1e9)<((b.x&&b.x.tm)||1e9)),
  groupOrder:g=>WORLDS.findIndex(w=>w.name===g),bestLabel:'Best race ever',recentLabel:'Recent races'});
@@ -3183,8 +3222,8 @@ function qSecond(){
  const low=fps<target*0.8||frameMs>Q.ref*0.9,high=fps>target*0.93&&frameMs<Q.ref*0.55;
  if(low){Q.low++;Q.high=0;Q.good=0;
   const very=fps<target*0.5; // QA fix: very slow, so step down every second instead of every two
-  if((Q.low>=2||very)&&QUAL>0.35){Q.cap=Math.max(0.35,QUAL-0.1);Q.capT=30;QUAL=Math.max(0.35,QUAL-0.15);Q.low=0;}
-  else if((Q.low>=3||(very&&Q.low>=2))&&QUAL<=0.35&&RESF===1&&DPR>1.2&&Q.resBlock<=0){RESF=0.75;Q.low=0;if(Q.resT>0)Q.resBlock=180;resize();Q.stall=true;return;}}
+  if((Q.low>=2||very)&&QUAL>0.35&&!(QUAL<=0.55&&W*H>4.5e5&&RESF===1&&DPR>1.2&&Q.resBlock<=0)){ /* review fix 9: big screens shed resolution earlier */Q.cap=Math.max(0.35,QUAL-0.1);Q.capT=30;QUAL=Math.max(0.35,QUAL-0.15);Q.low=0;}
+  else if((Q.low>=3||(very&&Q.low>=2))&&(QUAL<=0.35||(QUAL<=0.55&&W*H>4.5e5))&&RESF===1&&DPR>1.2&&Q.resBlock<=0){RESF=0.75;Q.low=0;if(Q.resT>0)Q.resBlock=180;resize();Q.stall=true;return;}}
  else if(high){Q.high++;Q.low=0;Q.good++;const cap=Q.capT>0?Q.cap:1;
   if(RESF<1&&Q.good>=20){RESF=1;Q.good=0;Q.resT=60;resize();Q.stall=true;return;}
   if(Q.high>=5&&QUAL<cap){QUAL=Math.min(cap,QUAL+0.1);Q.high=0;}}
@@ -3195,7 +3234,8 @@ let rzAt=0,rzCheck=0;
 function markResize(){rzAt=performance.now()+90;}
 function pauseRace(){if(scene==='race'&&R&&!R.p.fin&&!R.paused){R.paused=true;R.resume=0;}}
 function handleResize(now){const oW=W,oH=H;resize();
- if(W!==oW||H!==oH){ptrs.clear();Q.stall=true;Q.iv.length=0;rzCheck=now+300; // the insets can lag behind: read them again shortly
+ if(W!==oW||H!==oH){ptrs.clear();Q.stall=true;if(Math.abs(W-oW)>4||Math.abs(H-oH)>4)tilt.neutral=null; // review fix 2: a fold re-centres tilt
+Q.iv.length=0;rzCheck=now+300; // the insets can lag behind: read them again shortly
   if(scene==='race'&&R&&!R.p.fin&&W>oW*1.2&&oW>0)unfoldSky(); // Fold opened mid-race: the sky opens up
   if(Math.abs(W-oW)>oW*0.08||Math.abs(H-oH)>oH*0.2)pauseRace();}}
 // Batch 02: "unfold reveals more sky". R.unf = time it happened (drives a short zoom-out of the backdrop); R.sky = far skyline kept for the rest of the race
@@ -3203,7 +3243,7 @@ function unfoldSky(){R.unf=T;R.sky=1;if(!RM){try{Snd.twinkle();}catch(e){}}}
 function drawFarSky(k){ // pastel far skyline (castle towers, domes, gold windows), cached per size, slow parallax, sits on the horizon
  const tw=Math.max(1,Math.round(W)),hh=Math.round(Math.min(H*0.3,260*UI)),key='farsky|'+[W,H,DPR].join(',');
  let c=SPR.get(key);
- if(!c){c=document.createElement('canvas');c.width=Math.ceil(tw*DPR);c.height=Math.ceil(hh*DPR);const o=ctx;ctx=c.getContext('2d');ctx.setTransform(DPR,0,0,DPR,0,0);
+ if(!c){c=document.createElement('canvas');c.width=Math.ceil(tw*DPR);c.height=Math.ceil(hh*DPR);const o=ctx;ctx=c.getContext('2d');try{ctx.setTransform(DPR,0,0,DPR,0,0); // review fix 12: ctx is always restored
   const n=Math.max(8,Math.round(tw/46));
   for(let pass=0;pass<2;pass++){ctx.fillStyle=pass?'#d9b8ff':'#f0d3ff';
    for(let i=0;i<n;i++){const h0=hash(i*3+pass*17),x=(i+pass*0.5)/n*tw,w=tw/n*(0.8+h0*0.5),ht=hh*(pass?0.35+h0*0.4:0.5+h0*0.45);
@@ -3211,7 +3251,7 @@ function drawFarSky(k){ // pastel far skyline (castle towers, domes, gold window
     if(h0>0.55){ctx.beginPath();ctx.moveTo(x,hh-ht);ctx.lineTo(x+w/2,hh-ht-w*0.9);ctx.lineTo(x+w,hh-ht);ctx.fill();}
     else if(h0>0.25){ctx.beginPath();ctx.arc(x+w/2,hh-ht,w/2,Math.PI,0);ctx.fill();}
     if(pass===0){ctx.fillStyle='#ffe58a';for(let r=0;r<3;r++)if(hash(i*7+r)>0.35)ctx.fillRect(x+w*0.38,hh-ht+8+r*14,w*0.2,6);ctx.fillStyle='#f0d3ff';}}}
-  ctx=o;if(SPR.size>400)SPR.clear();SPR.set(key,c);}
+  }finally{ctx=o;}if(SPR.size>400)SPR.clear();SPR.set(key,c);}
  const y=(V.h-60)*V.scale+10*V.scale-hh,off=-(((R.cam*0.05)%tw)+tw)%tw;
  ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=0.6*k;
  for(let x=off;x<W;x+=tw)ctx.drawImage(c,Math.round(x*DPR),Math.round((y+(1-k)*hh*0.5)*DPR));
@@ -3221,18 +3261,23 @@ function frame(now){
  const ms=now-last;let dt=ms/1000;last=now;if(!(dt>0))dt=0;if(dt>0.1){dt=0.1;if(ms>250)Q.stall=true;} // QA fix: only a real hitch (tab switch, long GC) is a stall; steady slow frames must still be judged
  if(scene!=='race')qLearn(ms);
  fpsAcc+=dt;fpsN++;if(fpsAcc>=1){fps=fpsN/fpsAcc;fpsAcc=0;fpsN=0;qSecond();}
- if(!rzAt&&(window.innerWidth!==W||window.innerHeight!==H))markResize();
+ if(!rzAt&&(vpW()!==W||vpH()!==H))markResize(); // review fix 7: same rounded measure as resize()
  if(rzAt&&now>=rzAt){rzAt=0;handleResize(now);}
  if(rzCheck&&now>=rzCheck){rzCheck=0;resize();}
  const t0=performance.now();
- try{let rem=dt*TS;while(rem>1e-6){const s=Math.min(rem,1/50);update(s);rem-=s;}
-  Music.update();draw();}catch(e){errors++;if(errors<5)console.error(e);}
+ // review fix 12: audio, update and draw fail separately (a bad audio call can't blank the picture); errors keep being logged, with a backoff
+ const logE=e=>{errors++;if(errors<5||(errors&(errors-1))===0)console.error(e);};
+ try{let rem=dt*TS;while(rem>1e-6){const s=Math.min(rem,1/50);update(s);rem-=s;}}catch(e){logE(e);}
+ try{Music.update();}catch(e){logE(e);}
+ try{draw();}catch(e){logE(e);}
  frameMs=frameMs*0.95+(performance.now()-t0)*0.05;
 }
 ['resize','orientationchange','fullscreenchange','webkitfullscreenchange'].forEach(n=>window.addEventListener(n,markResize,{passive:true}));
 if(window.visualViewport)window.visualViewport.addEventListener('resize',markResize,{passive:true});
 if(screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener('change',()=>{markResize();tilt.neutral=null;});
-document.addEventListener('visibilitychange',()=>{if(document.hidden){pauseRace();if(Snd.ac)Snd.ac.suspend().catch(()=>{});}else{Q.stall=true;if(Snd.ac)Snd.ac.resume().catch(()=>{});}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){pauseRace();if(Snd.ac)Snd.ac.suspend().catch(()=>{});}else{Q.stall=true;if(Snd.ac)Snd.ac.resume().catch(()=>{});audioKick();}});
+// review fix 11: if the phone refuses resume() without a gesture, the very next touch anywhere (canvas, pause menu, any card) brings the sound back
+function audioKick(){if(!Snd.ac||Snd.ac.state==='running')return;const k=()=>{document.removeEventListener('pointerdown',k,true);if(Snd.ac&&Snd.ac.state!=='running')Snd.ac.resume().catch(()=>{});};document.addEventListener('pointerdown',k,true);}
 // Android back gesture / button: never leave the game by accident. Back pauses a race or goes back one screen.
 let guardArmed=false;
 function pushGuard(){try{history.pushState({sg:1},'');}catch(e){}}
@@ -3259,7 +3304,7 @@ if('serviceWorker' in navigator&&location.protocol!=='file:'){window.addEventLis
  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!hadCtl||swReload)return;let lastR=0;try{lastR=+sessionStorage.getItem('sg.swr')||0;}catch(e){}
   if(Date.now()-lastR<30000)return;swReload=1;maybeReload();});}
 // test / debug hook (harmless, local only)
-window.__sky={REC,get TRY(){return TRY;},set TRY(v){TRY=v;},get FINTRY(){return FINTRY;},get FZP(){return FZP;},get outSave(){return outSave;},look,wearOutfit,storeOutfit,get RM(){return RM;},get UI(){return UI;},FZ,get PAY(){return PAY;},ghostStore,loadGhost,payParts,get scene(){return scene;},get race(){return R;},get save(){return save;},get fps(){return fps;},get frameMs(){return frameMs;},get V(){return V;},get BOX(){return BOX;},get keys(){return keys;},
+window.__sky={get tilt(){return tilt;},REC,get TRY(){return TRY;},set TRY(v){TRY=v;},get FINTRY(){return FINTRY;},get FZP(){return FZP;},get outSave(){return outSave;},look,wearOutfit,storeOutfit,get RM(){return RM;},get UI(){return UI;},FZ,get PAY(){return PAY;},ghostStore,loadGhost,payParts,get scene(){return scene;},get race(){return R;},get save(){return save;},get fps(){return fps;},get frameMs(){return frameMs;},get V(){return V;},get BOX(){return BOX;},get keys(){return keys;},
  set timeScale(v){TS=clamp(+v||1,0.1,20);},get timeScale(){return TS;},
  buttons(){return buttons.map(b=>({id:b.id,x:b.circle?b.x:b.x+b.w/2,y:b.circle?b.y:b.y+b.h/2}));},
  buttonsFull(){return buttons.map(b=>({id:b.id,circle:!!b.circle,x:b.x,y:b.y,r:b.r,w:b.w,h:b.h}));},

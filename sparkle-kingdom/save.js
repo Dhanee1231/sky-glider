@@ -14,8 +14,11 @@
     let d = null; try { d = JSON.parse(raw); } catch (e) { }
     if (!isO(d)) { if (ls.get(KEY + '.bad') == null) ls.set(KEY + '.bad', raw); return s; }
     s.gems = num(d.gems, 0, 1e6, 0); s.muted = d.muted === true;
-    if (isO(d.lv)) for (let i = 1; i <= LEVELS; i++) { const e = d.lv[i]; if (isO(e)) s.lv[i] = { s: num(e.s, 0, 3, 0), g: num(e.g, 0, 9999, 0) }; }
-    if (isO(d.stk)) STICKERS.forEach(id => { if (d.stk[id]) s.stk[id] = 1; });
+    const BAD = k => k === '__proto__' || k === 'constructor' || k === 'prototype';
+    if (isO(d.lv)) for (const k of Object.keys(d.lv)) { const e = d.lv[k]; if (BAD(k)) continue; const i = +k;
+      if (Number.isInteger(i) && i >= 1 && i <= LEVELS) { if (isO(e)) s.lv[i] = { s: num(e.s, 0, 3, 0), g: num(e.g, 0, 9999, 0) }; }
+      else s.lv[k] = e; } // follow-up: level entries this version doesn't know (a newer copy's levels) are kept untouched
+    if (isO(d.stk)) for (const k of Object.keys(d.stk)) { if (BAD(k)) continue; if (STICKERS.includes(k)) { if (d.stk[k]) s.stk[k] = 1; } else s.stk[k] = d.stk[k]; } // unknown stickers kept too
     if (isO(d.seen)) for (const k in d.seen) if (d.seen[k] === true && /^[a-z]{1,12}$/.test(k)) s.seen[k] = true;
     // keep unknown future fields untouched so an older copy of the page never drops them
     for (const k in d) if (!(k in s)) s[k] = d[k];
