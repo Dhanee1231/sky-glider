@@ -20,7 +20,8 @@ animation:shine 5s linear infinite;filter:drop-shadow(0 2px 0 #7a1066) drop-shad
 #greet>span{flex:none}#greet b+span{margin-left:-5px}
 .btn{flex:0 0 auto;display:grid;place-items:center;width:48px;height:48px;border-radius:50%;border:3px solid #e9e9f5;background:linear-gradient(145deg,#fff,#d8d8e8);font-size:22px;cursor:pointer;box-shadow:0 3px 0 #9a8fb0}
 main{position:relative;z-index:1;flex:1;min-height:0;display:grid;gap:12px;margin-top:10px;grid-template-columns:1fr 1fr;grid-auto-rows:1fr}
-@media (min-aspect-ratio:4/3){main{grid-template-columns:repeat(4,1fr)}}
+@media (min-aspect-ratio:4/3){main{grid-template-columns:repeat(5,1fr)}}
+a.card:last-of-type{grid-column:1/-1}@media (min-aspect-ratio:4/3){a.card:last-of-type{grid-column:auto}}
 a.card{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;text-decoration:none;color:#fff;
 border-radius:26px;padding:10px;min-height:0;overflow:hidden;
 border:4px solid transparent;background:var(--bg) padding-box,linear-gradient(135deg,#fff8d0,#f5c542,#fff,#c0c0d0,#f5c542) border-box;
@@ -128,6 +129,15 @@ html.fz-calm :not(.speed>i),html.fz-calm ::before,html.fz-calm ::after{animation
 <circle cx="60" cy="54" r="28" fill="#ffe14d" stroke="#fff" stroke-width="3"/><circle cx="50" cy="50" r="3.5" fill="#5a2a00"/><circle cx="70" cy="50" r="3.5" fill="#5a2a00"/><path d="M48 60 Q60 72 72 60" stroke="#5a2a00" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="43" cy="60" r="4" fill="#ff8fb0" opacity=".7"/><circle cx="77" cy="60" r="4" fill="#ff8fb0" opacity=".7"/>
 <path d="M38 36 Q46 10 56 18 M82 36 Q74 10 64 18" stroke="#ffe14d" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M56 80 L50 108 M64 80 L80 92 L66 98" stroke="#ffe14d" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
 <div class="name">Coach Sunny</div><div class="desc">Stretch and do yoga together!</div></a>
+<a class="card" data-cp="sparkle-kingdom-" href="../sparkle-kingdom/" style="--bg:linear-gradient(160deg,#9fe6ff,#d38bff);--d:1.6s"><span class="off" aria-label="Ready offline" role="img">✔</span>
+<div class="icon"><svg viewBox="0 0 120 120"><defs><linearGradient id="sk1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6c4"/><stop offset="1" stop-color="#f5a623"/></linearGradient></defs>
+<ellipse cx="28" cy="102" rx="34" ry="14" fill="#fff" stroke="#b79cff" stroke-width="2.5"/><ellipse cx="92" cy="104" rx="36" ry="13" fill="#ffe3f3" stroke="#b79cff" stroke-width="2.5"/>
+<circle cx="18" cy="78" r="9" fill="#7df08a" stroke="#2f9a55" stroke-width="2.5"/><circle cx="34" cy="74" r="10" fill="#86f592" stroke="#2f9a55" stroke-width="2.5"/>
+<path d="M46 40 L50 20 L60 30 L70 20 L74 40Z" fill="url(#sk1)" stroke="#a35f00" stroke-width="3" stroke-linejoin="round"/><circle cx="60" cy="34" r="3" fill="#ff2d8a"/>
+<circle cx="60" cy="62" r="26" fill="#a8ff9e" stroke="#2f9a55" stroke-width="3"/><circle cx="51" cy="58" r="7" fill="#fff" stroke="#2f9a55" stroke-width="2"/><circle cx="69" cy="58" r="7" fill="#fff" stroke="#2f9a55" stroke-width="2"/><circle cx="52" cy="59" r="3.6" fill="#2b1257"/><circle cx="70" cy="59" r="3.6" fill="#2b1257"/>
+<path d="M52 72 Q60 80 68 72" stroke="#2b1257" stroke-width="3.5" fill="none" stroke-linecap="round"/><ellipse cx="42" cy="70" rx="5" ry="3" fill="#ff8fb8"/><ellipse cx="78" cy="70" rx="5" ry="3" fill="#ff8fb8"/>
+<path d="M84 44 C92 30 108 34 104 46 C100 56 88 52 84 44Z" fill="#ffb6e6" stroke="#fff" stroke-width="2" opacity=".9"/><path d="M96 10 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3z" fill="#fff"/></svg></div>
+<div class="name">Sparkle Kingdom</div><div class="desc">Glide with Glimmer and pop the puffs!</div></a>
 </main>
 <dialog id="dlg"><div style="font-size:22px;font-weight:800">What's your name? 💎</div><input id="nmIn" maxlength="16" autocomplete="off"><div><button id="ok">Save</button><button id="cancel" style="background:#c0c0d0">Cancel</button></div></dialog>
 <dialog id="tdlg"><h2>🏆 My Treasures 🏆</h2><div id="tlist"></div><div style="text-align:center;margin-top:8px"><button id="tok">OK 💖</button></div></dialog>
