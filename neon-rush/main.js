@@ -107,7 +107,7 @@ function onObstacle(ev){if(ev==='barrel'||ev==='crane'){shake=.25;blip('boing');
 // power-ups
 function itemHud(){const it=P.item,b=$('btnItem');b.classList.toggle('has',!!it);b.setAttribute('aria-label',it?NAMES[it]:'No power-up yet');$('itemIcon').innerHTML=it?ICONS[it]:ICONS.box;}
 function useItem(){if(mode!=='race'||!P.item||P.finished)return;items.use(P,ictx);itemHud();}
-const ictx={all:ALL,onPickup:(k,it)=>{if(k.isPlayer){itemHud();blip('pickup');say('b_got',25);$('btnItem').classList.remove('pop');void $('btnItem').offsetWidth;$('btnItem').classList.add('pop');}},
+const ictx={all:ALL,onPickup:(k,it)=>{if(k.isPlayer){itemHud();blip('pickup');say('b_got',25);$('btnItem').classList.remove('ipop');void $('btnItem').offsetWidth;$('btnItem').classList.add('ipop');}},
  onItem:(k,got,was)=>{if(k.isPlayer){const line={speed:'boost',shield:'b_shield',rocket:'b_rocket',hop:'b_hop'}[got];
    if(was==='box'){popup('Surprise! '+NAMES[got]+'!');say('b_mystery');}else{popup(NAMES[got]+'!');say(line);}blip(got==='speed'?'whoosh':got);if(got==='speed'||got==='rocket')shake=.12;}},
  onHit:(k,r,by)=>{if(k.isPlayer){if(r==='spin'){blip('boing');say('b_spin',6);popup('Whoa! Spinny!');}else if(r==='blocked'){blip('shield');say('b_saved',6);popup('Shield saved you!');}else if(r==='wiggle')blip('boing');}}};
