@@ -682,6 +682,16 @@ i.mSym{display:inline-block;flex:none;width:.62em;height:.62em;border-radius:50%
 .fz-calm .pRect .pFill{transition:none}
 /* Batch 02-1: the grown-ups' Calm mode (hub) also rests every CSS animation/transition here, like the phone's reduced-motion setting */
 html.fz-calm :not(.speed>i),html.fz-calm ::before,html.fz-calm ::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0s!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+/* ===== v11 css begin ===== */
+/* v11: adaptive step-up sparkle */
+#adPill{position:fixed;left:8px;top:40%;z-index:60;transform:translate(0,-14px) scale(.8);opacity:0;pointer-events:none;
+ padding:6px 12px;border-radius:999px;font-weight:900;font-size:16px;color:#5a1d00;white-space:nowrap;
+ background:linear-gradient(180deg,#fff7c2,#ffd84a 55%,#ffb3e6);border:2px solid #fff;box-shadow:0 4px 18px rgba(255,120,220,.6),0 0 0 3px rgba(255,216,74,.35);transition:opacity .25s,transform .35s cubic-bezier(.2,1.6,.4,1)}
+#adPill.on{opacity:1;transform:translate(0,0) scale(1)}
+#adPill span{display:inline-block;animation:adTw 0.9s ease-in-out infinite alternate}
+@keyframes adTw{from{transform:scale(.8) rotate(-10deg)}to{transform:scale(1.2) rotate(10deg)}}
+@media (prefers-reduced-motion:reduce){#adPill span{animation:none}}
+/* ===== v11 css end ===== */
 </style>
 </head>
 <body>
@@ -3036,7 +3046,7 @@ function renderParent(){const p=save.parent,b=$('#parBody'),y=b.scrollTop;
   '<div class="setRow">'+lbl('div','Sharing tables<small>Also the Sharing Stories</small>')+seg('divT',[['easy','÷2, 5, 10'],['all','÷2 to ÷9']],p.divT)+'</div>';
  h+='<div class="secH">Skip ahead: open every level</div>';
  CAVES.forEach(s=>{h+='<div class="setRow">'+lbl(s,SECS[s].name)+tog('open-'+s,p.open[s])+'</div>';});
- h+='<div class="secH">How tricky</div><div class="setRow"><span class="lbl">'+diffIcon(save.diff)+'<span>Difficulty<small>'+DIFFS[save.diff].desc+'</small></span></span>'+seg('diff',[[0,'Easy'],[1,'Normal'],[2,'Tricky'],[3,'Very Hard']],save.diff)+'</div>';
+ h+='<div class="secH">How tricky</div><div class="setRow"><span class="lbl">'+diffIcon(save.diff)+'<span>Difficulty<small>'+DIFFS[save.diff].desc+'</small></span></span>'+seg('diff',[[0,'Easy'],[1,'Normal'],[2,'Tricky'],[3,'Very Hard']],save.diff)+'</div>'+adaptParentRow(tog);
  h+='<div class="secH">Reading</div>'+
   '<div class="setRow"><span class="lbl"><span>Story Doors<small>One word problem guards each boss door (+, −, ÷)</small></span></span>'+tog('stories',p.stories)+'</div>'+
   '<div class="setRow"><span class="lbl">'+IC.sndOn+'<span>Read aloud<small>Questions, Glimmer\'s hints, cheers, Story Doors, Word Problems, Story Pages and Missing Gem, in a friendly recorded voice. Spelling words are always said. The 🔊 button always works.</small></span></span>'+tog('read',p.read)+'</div>';
@@ -3051,8 +3061,8 @@ function renderParent(){const p=save.parent,b=$('#parBody'),y=b.scrollTop;
  ESECS.forEach(s=>on('#ea-'+s,()=>{tapSnd();const k=SECS[s].ek;if(p.eng[k]&&ESECS.filter(x=>p.eng[SECS[x].ek]).length===1){cele(IC.lock+'<span>Keep at least one English activity on.</span>',1800);return;}
   p.eng[k]=!p.eng[k];re();}));
  b.querySelectorAll('[data-seg]').forEach(bt=>bt.addEventListener('click',()=>{tapSnd();const k=bt.dataset.seg,v=bt.dataset.v;
-  if(k==='max-add')p.max.add=+v;else if(k==='max-sub')p.max.sub=+v;else if(k==='divT')p.divT=v;else if(k==='diff')save.diff=+v;re();}));
- ddParentWire(b,re);
+  if(k==='max-add')p.max.add=+v;else if(k==='max-sub')p.max.sub=+v;else if(k==='divT')p.divT=v;else if(k==='diff'){save.diff=+v;adaptPick();}re();}));
+ ddParentWire(b,re);adaptParentWire(re);
  on('#stories',()=>{tapSnd();p.stories=!p.stories;re();});
  on('#read',()=>{tapSnd();p.read=!p.read;re();if(p.read)Voice.say('I will read the stories out loud.');});
  on('#pReset',()=>{tapSnd();modal('<h2>Start over?</h2><p>This erases all gems, stars and treasures in every cave. A backup copy is kept on this device.</p><div class="row"><button class="btn green big" id="rKeep">Keep everything</button><button class="btn red" id="rYes">Yes, erase</button></div>');
@@ -3133,7 +3143,7 @@ function openStage(si){const st=ALL[si];
 function openDiff(after){let h='<h2>How tricky?</h2><div class="lvls">';
  DIFFS.forEach((d,i)=>{h+='<button class="btn lvCard '+d.cls+(save.diff===i?' sel':'')+'" data-d="'+i+'"><span class="dIc dBig">'+diffIcon(i)+'</span><span class="lvT">'+d.name+'</span><span class="lvD">'+d.desc+'</span>'+(save.diff===i?'<span class="selT">Chosen</span>':'')+'</button>';});
  modal(h+'</div><p class="small">Every level still gets a little harder as you go.</p>');
- $$('.lvCard[data-d]').forEach(b=>b.addEventListener('click',()=>{save.diff=+b.dataset.d;persist();tapSnd();closeModal();cele(diffIcon(save.diff)+'<span>'+DIFFS[save.diff].name+' mode!</span>',1500);
+ $$('.lvCard[data-d]').forEach(b=>b.addEventListener('click',()=>{save.diff=+b.dataset.d;persist();adaptPick();tapSnd();closeModal();cele(diffIcon(save.diff)+'<span>'+DIFFS[save.diff].name+' mode!</span>',1500);
   if(curScreen==='map')renderMap();if(curScreen==='settings')renderSettings();if(after)after();}));}
 
 // ---------- play ----------
@@ -3147,11 +3157,10 @@ function leavePlay(){closeModal();Voice.stop();
  if(S&&S.mode==='tunnel'&&S.ret){S=S.ret;S.doorDirty=true;setupPlay();const r=tunnelResolve;tunnelResolve=null;if(r)r();return;}
  S=null;show('map');}
 // difficulty = chosen setting (Easy/Normal/Tricky) + natural ramp from the level (Learn/Practice/Challenge)
-function cfgFor(lv){const c=cfgBase(lv);if(c.speed&&FZ.parent().relax)c.speed*=2;return c;} // grown-ups' Relaxed timers: twice as long for the speedy bonus
-function cfgBase(lv){const d=save.diff;if(d===3)return {lv,n:4,close:4,hintBtn:false,autoHint:false,vh:1,forcePad:lv>=1,speed:lv===2?4:0}; // Very Hard: hints only after a miss and only when she taps Glimmer
- return {lv,n:d===0?3:4,close:Math.min(4,lv+d),hintBtn:d===0||(d===1&&lv===0),autoHint:d<2,forcePad:d===2&&lv===2,speed:lv===2?[9,7,5][d]:0};}
+// v11: the level's subject step decides choices and help (adaptCfg); at the starting step it is exactly the old Easy/Normal/Tricky/Very Hard setting
+function cfgFor(lv,sid){const c=adaptCfg(lv,sid);if(c.speed&&FZ.parent().relax)c.speed*=2;return c;} // grown-ups' Relaxed timers: twice as long for the speedy bonus
 function startLevel(si,k){const st=ALL[si];save.run++;persist();mapSec=st.sec;
- const c=cfgFor(st.kind==='queen'?2:k);if(st.moon&&c.speed)c.speed*=3;
+ const c=cfgFor(st.kind==='queen'?2:k,subjOfSec(st.sec));if(st.moon&&c.speed)c.speed*=3;
  // bigger numbers get more time for the speedy bonus (it is only ever a bonus); stories have no timer
  if(st.kind==='gen')c.speed=st.story?0:c.speed*(st.hard?3:st.lim>=1000?3:st.lim>=100?2:1);else if(st.kind==='word'||st.kind==='eng'||st.kind==='px'){c.speed=0;if(st.kind==='eng')c.forcePad=false;}
  else if(st.kind==='dd'&&ddFocus().ops.some(o=>o==='add'||o==='sub'))c.speed*=save.dd.dig; // Daddy's Door: bigger sums get more time
@@ -3160,7 +3169,7 @@ function startLevel(si,k){const st=ALL[si];save.run++;persist();mapSec=st.sec;
  S.queue=st.moon?buildQueueM(si):st.kind==='px'?buildQueueP(si,k):st.kind==='dd'?buildQueueD(si,k):st.kind==='gen'?buildQueueG(si,k):st.kind==='word'?buildQueueW(si,k):st.kind==='eng'?buildQueueE(si,k):buildQueue(si,k);
  show('play');setupPlay();banner(st.name,st.kind==='queen'?'The Grand Boss!':LVN[k]+': '+lvLabel(st,k),1500);nextQ();}
 function startTunnel(ret){if(!ret){save.run++;persist();}
- const c=cfgFor(1);c.speed=0;c.forcePad=false;const sec=ret&&ret.st?ret.st.sec:mapSec;
+ const sec=ret&&ret.st?ret.st.sec:mapSec,c=cfgFor(1,subjOfSec(sec));c.speed=0;c.forcePad=false;
  S={mode:'tunnel',sec,ret,cfg:c,gem:null,idx:0,boss:false,locks:3,first:0,total:0,earned:{},requeued:{},busy:false,pad:save.pad&&!isE(sec),forcePad:false,speedy:0};
  S.queue=sec==='mul'?buildTunnel():isE(sec)?buildTunnelE(sec):buildTunnelG(sec);
  show('play');setupPlay();banner('Secret Tunnel','Golden doors ahead!',1500);nextQ();}
@@ -3408,7 +3417,7 @@ function buildTunnelE(sec){const L=secStages(sec).filter(stageOpen);if(!L.length
  const sts=L.map(i=>ALL[i]);if(sts[0].stories){const st=pick(sts);return storyQs(pick(st.stories),3,st.gem);}
  const pool=[];sts.forEach(st=>engFacts(st,1).forEach(f=>pool.push(Object.assign({},f,{gem:st.gem}))));
  return pickW(pool,8).slice(0,3);}
-function eChoices(q){const d=save.diff,k=S.mode==='tunnel'?1:S.k;
+function eChoices(q){const d=adTier(subjOf(q)),k=S.mode==='tunnel'?1:S.k; // v11: the English subject's adaptive tier
  const n=q.hd?(q.e==='r'&&d===1&&k===0?3:4):q.e==='r'?(d===0&&k===0?2:3):[[2,2,3],[2,3,3],[2,3,4],[3,4,4]][d][k];
  return shuffle([q.ans].concat(shuffle(q.c.slice()).slice(0,Math.max(1,n-1))));}
 // words she can tap to hear; ___ is the missing gem
@@ -3571,8 +3580,11 @@ function nextQ(){if(!S)return;
    else{const sz=x=>x.e?0:(+ansOf(x)||0)+(x.miss?50:0)+(x.story||x.w?30:0);let bi=-1,bv=S.queue[S.idx]?sz(S.queue[S.idx]):0;
     for(let i=S.idx+1;i<Math.min(S.queue.length,S.idx+6);i++){const x=S.queue[i];if(!x.review&&sz(x)<bv){bv=sz(x);bi=i;}}
     if(bi>0){const t=S.queue[bi];S.queue[bi]=S.queue[S.idx];S.queue[S.idx]=t;}}}
+  else if(S.hardNext&&S.mode==='sec'){const sz=x=>x.e?0:(+ansOf(x)||0)+(x.miss?50:0)+(x.story||x.w?30:0);let bi=-1,bv=S.queue[S.idx]?sz(S.queue[S.idx]):0; // v11: she just stepped up: a bigger one of the next few comes first
+   for(let i=S.idx+1;i<Math.min(S.queue.length,S.idx+5);i++){const x=S.queue[i];if(!x.review&&sz(x)>bv){bv=sz(x);bi=i;}}
+   if(bi>0){const t=S.queue[bi];S.queue[bi]=S.queue[S.idx];S.queue[S.idx]=t;}}
   S.q=S.queue[S.idx];}
- S.prevQ=null;S.easeNext=null;S.notYet=false;S.wrong=false;S.helped=false;S.tries=0;S.typed='';S.tried=[];S.choices=null;S.hx=null;S.busy=false;S.hintRows=0;S.counting=false;
+ S.prevQ=null;S.easeNext=null;S.hardNext=false;S.notYet=false;S.wrong=false;S.helped=false;S.tries=0;S.typed='';S.tried=[];S.choices=null;S.hx=null;S.busy=false;S.hintRows=0;S.counting=false;
  if(!Voice.cheer)Voice.stop();hideHint();renderDoor();renderAnswers();renderDots();fitPic();}
 async function startBoss(){const s=S;s.boss=true;s.bossIdx=0;s.bossQs=s.st.moon?buildBossM():s.st.kind==='px'?buildBossP():s.st.kind==='dd'?buildBossD():s.st.kind==='gen'?buildBossG():s.st.kind==='word'?buildBossW():s.st.kind==='eng'?buildBossE():buildBoss();s.doorDirty=true;s.busy=true;
  if(s.st.moon){banner("The Moon Princess's Throne!",'Five moon locks to open.',1900);autoSay("The Moon Princess's Throne! Five moon locks to open.",{cheer:true});}else if(s.st.kind==='queen'){banner('The Crystal Queen!','Break all 5 gem locks!',1700);autoSay('The Crystal Queen! Break all 5 gem locks!',{cheer:true});}else if(s.st.final){banner('Final Boss Door!','Break all 5 gem locks!',1700);autoSay('Final boss door! Break all 5 gem locks!',{cheer:true});}else{banner('Boss Door!','Break all 3 gem locks!',1500);autoSay('Boss Door! Break all 3 gem locks!',{cheer:true});}
@@ -3643,7 +3655,7 @@ function shatter(gold){const door=box$('.door');if(!door)return;const r=door.get
  const c=centerOf(door);burst(c[0],c[1],46,gold?['#fff','#fff27a','#ffcf3a']:(sparkCols()||SPK),420);Snd.shatter();}
 async function onCorrect(btn){const s=S;s.busy=true;const q=s.q,first=!s.wrong&&!s.helped,full=!s.wrong,gk=gemKey(s,q);
  const fast=first&&s.cfg.speed&&s.mode==='sec'&&!q.story&&spMs(s)/1000<=s.cfg.speed;
- if(!s.wrong)record(q,true,s.helped);
+ if(!s.wrong){record(q,true,s.helped);coachLog(q,true,s.helped);} // v11: the Learning Coach logs every answer per subject and skill
  if(first){s.first++;save.streak++;if(save.streak>save.best)save.best=save.streak;s.rs=(s.rs|0)+1;s.rsb=Math.max(s.rsb|0,s.rs);}
  const gl0=glimLv();s.total++;save.correct++;persist();const gl1=glimLv();
  if(gl1>gl0){$('#hintB').innerHTML=wormSVG(gl1);setTimeout(()=>{if(S!==s)return;Snd.streak();cele('<div class="celeBig">'+wormSVG(gl1)+'</div><span>'+GLIMSAY[gl1]+'</span>',3000);autoSay(GLIMSAY[gl1],{after:true,cheer:true});},900);}
@@ -3724,7 +3736,7 @@ function notYet(s,q){if(s.notYet){if(padOn()){s.typed=String(ansOf(q));updateQ()
  if(padOn()){s.typed=String(a);updateQ();const g=$('#answers [data-k="go"]');if(g)g.classList.add('reveal');}
  else $$('#answers .choices .btn').forEach(b=>{if(ansEq(q.sa?b.dataset.v:+b.dataset.v,q))b.classList.add('reveal');else if(!b.disabled){b.classList.add('nope');b.disabled=true;}});}
 function onWrong(v,btn){const s=S,q=s.q;Snd.soft();s.tries++;
- if(!s.wrong){s.wrong=true;if(!s.helped)record(q,false);else{const r=factRec(qKey(q));if(r){r.w++;r.box=0;persist();}}
+ if(!s.wrong){s.wrong=true;coachLog(q,false,s.helped);if(!s.helped)record(q,false);else{const r=factRec(qKey(q));if(r){r.w++;r.box=0;persist();}}
   if(s.mode==='sec'&&!s.boss&&!s.requeued[qKey(q)]){s.requeued[qKey(q)]=1;const at=Math.min(s.queue.length,s.idx+3);s.queue.splice(at,0,Object.assign({},q,{review:true}));renderDots();}
   const old=save.streak;save.streak=Math.floor(old/2);persist();updateStreak(old>=2);
   if(old>=2)cele(IC.flame+'<span>Streak resting at '+save.streak+'. You can build it back up!</span>',2600);}
@@ -4005,6 +4017,101 @@ function renderSettings(){const b=$('#setBody');
  if(fsEnabled)on('#tFs',()=>{tapSnd();toggleFS();setTimeout(renderSettings,400);});
  $('#sName').addEventListener('change',e=>{save.name=cleanName(e.target.value);persist();});
 }
+// ===== v11 begin =====
+// ================= v11: Learning Coach save (its own key crystalcave.coach.v1; the older saves are never touched by it) =================
+// What she practised, per subject and per skill, plus the adaptive step of each subject (batch 2), Gem Challenges (batch 3–5),
+// Gem of the Week, the Gem Museum and Lab Quests (batch 6–7). Every field is optional: a missing, old or broken save falls back to
+// these defaults, a save we can't read is copied to .bad first, and yesterday's good copy is kept in .bak (rolled once a day).
+const CKEY='crystalcave.coach.v1';
+const SUBJ={add:{n:'Adding',sym:'+'},sub:{n:'Taking away',sym:'−'},mul:{n:'Times tables',sym:'×'},div:{n:'Sharing',sym:'÷'},
+ word:{n:'Word problems',sym:'📜'},pv:{n:'Numbers & place value',sym:'🔢'},pat:{n:'Patterns',sym:'🔁'},arr:{n:'Arrays',sym:'▦'},
+ money:{n:'Counting & money',sym:'🪙'},spell:{n:'Spelling',sym:'abc'},read:{n:'Reading',sym:'📚'},gram:{n:'Grammar',sym:'✏️'}};
+const SUBJ_ORDER=Object.keys(SUBJ);
+const CDEF={v:1,lock:false,subj:{},skills:{},days:{},hist:[],chal:{runs:0,best:0,shards:0,types:{}},gotw:{},museum:{},lab:{},areas:{}};
+const SDEF={step:-1,win:[],run:0,miss:0,cool:0,n:0,c:0,h:0,w:0,hi:-1,up:0,dn:0,last:''};
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const int=(v,lo,hi,d)=>Number.isInteger(v)&&v>=lo&&v<=hi?v:d;
+// one subject record, sanitized (unknown extra fields are kept)
+function subjClean(r){r=merge(SDEF,isObj(r)?r:{});r.step=int(r.step,-1,11,-1);r.hi=int(r.hi,-1,11,r.step);
+ r.win=r.win.filter(x=>x===0||x===1).slice(-10);['run','miss','cool','n','c','h','w','up','dn'].forEach(k=>{r[k]=Math.max(0,r[k]|0);});return r;}
+function coachLoad(){let raw=null,d=null;try{raw=localStorage.getItem(CKEY);}catch(e){}
+ if(raw!=null){try{d=JSON.parse(raw);}catch(e){d=null;}
+  if(!isObj(d)){d=null;try{localStorage.setItem(localStorage.getItem(CKEY+'.bad')==null?CKEY+'.bad':CKEY+'.bad2',raw);}catch(e){}}}
+ // QA fix: main save unreadable -> try yesterday's .bak before defaults; only a save that parsed may later roll into .bak
+ let good=d?raw:null;if(!d&&raw!=null){try{const br=localStorage.getItem(CKEY+'.bak'),bd=br!=null?JSON.parse(br):null;if(isObj(bd)){d=bd;good=br;}}catch(e){}}
+ const c=merge(CDEF,d);c.v=1;c.lock=!!c.lock;
+ for(const k in c.subj){if(SUBJ[k])c.subj[k]=subjClean(c.subj[k]);}
+ for(const k in c.skills){const r=c.skills[k];if(!isObj(r))delete c.skills[k];}
+ if(!Array.isArray(c.hist))c.hist=[];c.hist=c.hist.filter(isObj).slice(-80);
+ for(const k in c.days)if(!isObj(c.days[k]))delete c.days[k];
+ c._raw=good;return c;}
+let CS=coachLoad();
+// write the coach save; the first write of a day keeps a copy of the save as it was (the .bak), so a bad day can always be undone
+function coachPersist(){const t=today();
+ try{if(CS._raw!=null&&CS._bak!==t&&(()=>{try{return isObj(JSON.parse(CS._raw));}catch(e){return false;}})()){const b=localStorage.getItem(CKEY+'.bak.day');if(b!==t){localStorage.setItem(CKEY+'.bak',CS._raw);localStorage.setItem(CKEY+'.bak.day',t);}CS._bak=t;}}catch(e){}
+ const o={};for(const k in CS)if(k[0]!=='_')o[k]=CS[k];const j=JSON.stringify(o);
+ try{localStorage.setItem(CKEY,j);CS._raw=j;}catch(e){}}
+// which subject a question belongs to
+function subjOf(q){if(!q)return 'mul';if(q.subj)return q.subj;if(q.e)return q.e==='s'?'spell':q.e==='r'?'read':'gram';if(q.p)return SUBJ[q.p]?q.p:'pv';
+ if(q.w||q.story)return 'word';if(q.op==='two')return /^s/.test(q.t||'')?'sub':'add';return q.op==='add'||q.op==='sub'||q.op==='div'?q.op:'mul';}
+// which subject a whole stage (level) belongs to
+function subjOfSec(sec){if(isW(sec))return 'word';if(sec==='espell')return 'spell';if(sec==='estory')return 'read';if(sec==='emiss')return 'gram';
+ if(sec==='dd'){const o=ddFocus().ops[0];return SUBJ[o]?o:'mul';}return SUBJ[sec]?sec:'mul';}
+// the finer skill: the stage she is playing (e.g. 't7' = the 7s tunnel, 'a2' = Twin Falls), a challenge type, or the tunnel
+function skillOf(q,ctx){if(ctx&&ctx.skill)return ctx.skill;if(S&&S.st&&S.st.id)return S.st.id;if(S&&S.mode==='tunnel')return 'tunnel:'+(S.sec||'mul');return subjOf(q);}
+function subjRec(sid){let r=CS.subj[sid];if(!isObj(r))r=CS.subj[sid]=subjClean(null);return r;}
+// one answer: ok = right on the first try, helped = Glimmer helped before she answered. A miss is logged once per question.
+function coachLog(q,ok,helped,ctx){try{const sid=subjOf(q),sk=skillOf(q,ctx),t=today(),r=subjRec(sid);
+ r.n++;if(ok&&!helped)r.c++;else if(ok)r.h++;else r.w++;r.last=t;
+ const k=isObj(CS.skills[sk])?CS.skills[sk]:(CS.skills[sk]={n:0,c:0,h:0,w:0,s:sid});k.n=(k.n|0)+1;if(ok&&!helped)k.c=(k.c|0)+1;else if(ok)k.h=(k.h|0)+1;else k.w=(k.w|0)+1;k.d=t;
+ const D=isObj(CS.days[t])?CS.days[t]:(CS.days[t]={n:0,c:0,w:0,sj:{}});D.n++;if(ok&&!helped)D.c++;if(!ok)D.w++;
+ if(!isObj(D.sj))D.sj={};const sj=Array.isArray(D.sj[sid])?D.sj[sid]:(D.sj[sid]=[0,0]);sj[0]++;if(ok&&!helped)sj[1]++;
+ const ks=Object.keys(CS.days).sort();if(ks.length>90)ks.slice(0,ks.length-90).forEach(x=>delete CS.days[x]);
+ if(typeof adaptStep==='function')adaptStep(sid,ok,helped,ctx);
+ coachPersist();}catch(e){}}
+const V11={get CS(){return CS;},CKEY,SUBJ,coachLog,coachLoad,coachPersist,subjOf,subjOfSec,skillOf,today}; // test hooks (window.__cc.v11)
+// ================= v11: adaptive engine (the Learning Coach's rules) =================
+// Each subject has 12 steps (0–11): Easy, Normal, Tricky and Very Hard, each split into 3 (gentle, middle, firm).
+// Up a step after 4 right in a row, or 8 of the last 10. Down a step after 2 misses in a row, or fewer than 5 of the last 10.
+// After any change there is a 5-question cooldown. Speed never counts. "Right" means right on the first try without help.
+// The How-tricky picker only sets the starting step; a grown-up's Lock keeps the picked level fixed (the old behaviour).
+const startStep=()=>Math.max(0,Math.min(3,save.diff|0))*3+1;
+function adStep(sid){if(CS.lock)return startStep();const r=CS.subj[sid];return isObj(r)&&r.step>=0?r.step:startStep();}
+const adTier=sid=>CS.lock||!sid?save.diff|0:Math.floor(adStep(sid)/3); // 0 Easy … 3 Very Hard
+const adSub=sid=>CS.lock||!sid?1:adStep(sid)%3;                        // 0 gentle, 1 middle, 2 firm
+function adaptStep(sid,ok,helped,ctx){const r=subjRec(sid);if(r.step<0){r.step=startStep();r.hi=Math.max(r.hi,r.step);}
+ const res=ok&&!helped?1:0;r.win.push(res);if(r.win.length>10)r.win=r.win.slice(-10);
+ if(res){r.run++;r.miss=0;}else if(!ok){r.miss++;r.run=0;}else{r.run=0;r.miss=0;}
+ if(CS.lock)return 0;
+ if(r.cool>0){r.cool--;return 0;}
+ const full=r.win.length>=10,sum=r.win.reduce((a,b)=>a+b,0);let dir=0;
+ if((r.run>=4||full&&sum>=8)&&r.step<11)dir=1;else if((r.miss>=2||full&&sum<5)&&r.step>0)dir=-1;
+ if(!dir)return 0;
+ const f=r.step;r.step+=dir;r.hi=Math.max(r.hi,r.step);if(dir>0)r.up++;else r.dn++;r.cool=5;r.run=0;r.miss=0;r.win=[];
+ CS.hist.push({d:today(),s:sid,f,t:r.step});if(CS.hist.length>80)CS.hist=CS.hist.slice(-80);
+ try{adaptChanged(sid,dir,ctx);}catch(e){}return dir;}
+// the picker (kid's How tricky, or the grown-ups' segment) sets every subject's starting step again
+function adaptPick(){const st=startStep();for(const k in CS.subj){const r=subjRec(k);if(r.step===st)continue;CS.hist.push({d:today(),s:k,f:r.step,t:st,p:1});r.step=st;r.hi=Math.max(r.hi,st);r.win=[];r.run=0;r.miss=0;r.cool=0;}
+ if(CS.hist.length>80)CS.hist=CS.hist.slice(-80);if(Object.keys(CS.subj).length)coachPersist();}
+// a level's settings from its subject's step (choices, how close they are, when Glimmer helps). Number ranges stay with the picker.
+function adaptCfg(lv,sid){const d=adTier(sid),sub=adSub(sid);
+ if(d===3)return {lv,n:4,close:4,hintBtn:false,autoHint:false,vh:1,forcePad:lv>=1,speed:lv===2?4:0};
+ return {lv,n:d===0?(sub===2&&lv>0?4:3):4,close:Math.max(0,Math.min(4,lv+d+(sub-1))),hintBtn:d===0||(d===1&&lv===0),autoHint:d===0||d===1&&sub<2,forcePad:d===2&&lv===2,speed:lv===2?[9,7,5][d]:0};}
+// mid-level: a new step changes the next questions' choices and help right away, and picks an easier / harder next question
+function adaptChanged(sid,dir,ctx){
+ if(ctx&&ctx.onStep)ctx.onStep(dir);
+ if(S&&S.cfg&&(S.mode==='sec'&&S.st&&subjOfSec(S.st.sec)===sid||S.mode==='tunnel'&&subjOfSec(S.sec)===sid)){const c=adaptCfg(S.cfg.lv,sid);['n','close','hintBtn','autoHint','vh'].forEach(k=>{S.cfg[k]=c[k];});
+  if(dir<0){if(!S.easeNext)S.easeNext=true;}else S.hardNext=true;}
+ if(dir>0)adPill();}
+// a little "Trickier gems!" sparkle when she steps up (stepping down is silent)
+function adPill(){clearTimeout(adPill.d);adPill.d=setTimeout(adPillGo,900);}
+function adPillGo(){if(curScreen!=='play'&&curScreen!=='chal')return;let el=document.getElementById('adPill');if(!el){el=document.createElement('div');el.id='adPill';el.setAttribute('aria-hidden','true');document.body.appendChild(el);}
+ el.innerHTML='<span>✨</span> Trickier gems! <span>✨</span>';const L=document.querySelector(curScreen==='play'?'#pLantern':'#chal .chLant');if(L){const r=L.getBoundingClientRect();el.style.left=Math.max(4,Math.min(innerWidth-190,r.right+6))+'px';el.style.top=Math.max(4,r.top+r.height*0.2)+'px';}else{el.style.left='';el.style.top='';}el.classList.remove('on');void el.offsetWidth;el.classList.add('on');clearTimeout(adPill.t);adPill.t=setTimeout(()=>el.classList.remove('on'),1900);}
+// grown-ups: Adapts / Locked
+function adaptParentRow(tog){return '<div class="setRow"><span class="lbl"><span>Adaptive level<small>'+(CS.lock?'Locked: every subject stays at the level picked above.':'On: each subject steps up after 4 right in a row (or 8 of 10) and down after 2 misses, with a 5-question pause between changes. The level above is the starting point.')+'</small></span></span><button class="btn tog '+(CS.lock?'gray':'green')+'" id="adLock">'+(CS.lock?'Locked':'Adapts')+'</button></div>';}
+function adaptParentWire(re){on('#adLock',()=>{tapSnd();CS.lock=!CS.lock;CS.hist.push({d:today(),s:'all',f:-1,t:-1,l:CS.lock?1:0});coachPersist();re();});}
+Object.assign(V11,{adStep,adTier,adSub,adaptStep,adaptPick,adaptCfg,startStep});
+// ===== v11 end =====
 // ================= boot =================
 document.addEventListener('visibilitychange',()=>{if(document.hidden)persist();});
 // ----- back gesture: never leaves the app; one step back per press (modal -> screen -> parent screen), like the on-screen Back buttons
@@ -4025,7 +4132,7 @@ if('serviceWorker' in navigator&&location.protocol!=='file:'){const sw=navigator
  window.addEventListener('load',()=>{sw.register('./sw.js',{scope:'./'}).catch(()=>{});});}
 window.__cc={get save(){return save;},get S(){return S;},speed(v){SPEED=v;},show,startLevel,STAGES,TABLES,ansOf,qPlain,
  ALL,SECS,secStages,stageOpen,openSec,openGate,openWords:()=>openSec('word'),get W(){return W;},factsFor,asModel,parseKey,get mapSec(){return mapSec;},
- get E(){return E;},openEnglish:()=>openSec("eng"),EITEM,STORY,Voice,ttsKey,REC,
+ v11:V11,get E(){return E;},openEnglish:()=>openSec("eng"),EITEM,STORY,Voice,ttsKey,REC,
  sp:{ansEq,choicesM,coinKey,ddFacts,ddClean,ddFocus,ddLabel,buildQueueD,buildBossD,MSTAGES,DSTAGE,padOn,ansLab,DDSAY,SHOPSAY,renderParent,renderMine,nextQ,hideHint,PSTAGES,XSTAGES,XESTAGES,PMK,PGEN,mkP,parseP,pNew,pFacts,buildQueueP,buildBossP,choicesP,isP,pLabel,choicesFor,startBoss,showHint,answer,onWrong,strat,say,glimLv,wormSVG,GLIMSAY,NOTYET,learnKey,qSay,sayText,sayParts,numWords,mkStory,hintIntro,hintShape,rowText,stepSay,xInfo,asModel,isX,isAS,nLv,PRAISE,RARES,wordQ}};
 })();
 </script>
