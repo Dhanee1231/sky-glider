@@ -1,17 +1,17 @@
-// Neon Rush rival racers (Track B, M3): six rivals, each with its own look (karts.js) and driving style.
+// Neon Rush rival racers (M3 Track B, M4 Track A): six rivals, each with its own look (karts.js) and driving style. M4: follows road height.
 import * as THREE from 'three';
 import {sample,wrap,FEAT} from './world.js';
-import {VMAX,VBOOST,ACC,LAPS,LEAD_GAP,LEAD_SLOW,LEAD_RAMP,TRAIL_GAP,TRAIL_HELP,AIR_G,HOP_G,HOP_VY} from './tuning.js';
+import {VMAX,VBOOST,ACC,LAPS,LEAD_GAP,LEAD_SLOW,LEAD_RAMP,TRAIL_GAP,TRAIL_HELP,TRAIL_RAMP,AIR_G,HOP_G,HOP_VY} from './tuning.js';
 import {RIVAL_LOOKS,buildRivals} from './karts.js';
 // driving styles: pace (x VMAX), acc (x ACC), line (racing-line strength), xmax, sway (wide drifter lines), margin (obstacle gap),
 //   miss (chance to clip an obstacle), itemDelay [min,max] s, late (final-lap surge), hunt (steers to item boxes), bumpy (leans on others)
-export const STYLES={
- Pip:   {pace:.948,acc:1,  line:170,xmax:3.8,sway:0, margin:1.0,miss:.10,itemDelay:[2,5],  hunt:.3},
- Mochi: {pace:.923,acc:.95,line:120,xmax:3.0,sway:0, margin:1.7,miss:0,  itemDelay:[3,6],  hunt:.2, careful:1},
- Bolt:  {pace:.953, acc:1.08,line:230,xmax:4.4,sway:0, margin:.5, miss:.2, itemDelay:[1.5,4],hunt:.2, bumpy:1},
- Kiki:  {pace:.938,acc:1,  line:150,xmax:4.2,sway:1.6,margin:.9, miss:.12,itemDelay:[2,5],  hunt:.3, drifter:1},
- Coco:  {pace:.933,acc:1,  line:150,xmax:3.8,sway:0, margin:1.0,miss:.12,itemDelay:[.5,1.3],hunt:1},
- Shelly:{pace:.918,acc:.9, line:160,xmax:3.6,sway:0, margin:1.1,miss:.08,itemDelay:[2,5],  hunt:.3, late:1.075}};
+export const STYLES={   // M4: paces +.015 for the ~1.2-1.4 km laps (kid bot 65-75% wins)
+ Pip:   {pace:.963,acc:1,  line:170,xmax:3.8,sway:0, margin:1.0,miss:.10,itemDelay:[2,5],  hunt:.3},
+ Mochi: {pace:.938,acc:.95,line:120,xmax:3.0,sway:0, margin:1.7,miss:0,  itemDelay:[3,6],  hunt:.2, careful:1},
+ Bolt:  {pace:.968, acc:1.08,line:230,xmax:4.4,sway:0, margin:.5, miss:.2, itemDelay:[1.5,4],hunt:.2, bumpy:1},
+ Kiki:  {pace:.953,acc:1,  line:150,xmax:4.2,sway:1.6,margin:.9, miss:.12,itemDelay:[2,5],  hunt:.3, drifter:1},
+ Coco:  {pace:.948,acc:1,  line:150,xmax:3.8,sway:0, margin:1.0,miss:.12,itemDelay:[.5,1.3],hunt:1},
+ Shelly:{pace:.933,acc:.9, line:160,xmax:3.6,sway:0, margin:1.1,miss:.08,itemDelay:[2,5],  hunt:.3, late:1.075}};
 // grid slots (s, x); the player starts at GRID_PLAYER
 export const GRID=[[-5,2.4],[-5,-2.4],[-9,2.4],[-13,2.4],[-13,-2.4],[-17,0]];export const GRID_PLAYER=[-9,-2.4];
 const ORDER=['Pip','Bolt','Kiki','Mochi','Coco','Shelly'];   // grid order (front to back)
@@ -25,9 +25,9 @@ export function createRacers(kit){
  function update(dt,ctx){const P=ctx.player,L=ctx.L,obs=ctx.obstacles,items=ctx.items;
   for(const F of list){if(F.finished&&F.s>LAPS*L+60){F.v=Math.max(0,F.v-10*dt);F.s+=F.v*dt;continue;}
    const st=F.st;sample(F.s,o2);const gap=F.s-P.s;const lap=Math.floor(F.s/L);
-   let vmax=VMAX*st.pace*(1+Math.sin(ctx.raceT*.37+F.idx*1.7)*.012);
+   let vmax=VMAX*st.pace*(ctx.pace||1)*(1+Math.sin(ctx.raceT*.37+F.idx*1.7)*.012);   // ctx.pace: per-track rival pace (TRACK.pace)
    if(st.late)vmax*=lap>=LAPS-1?st.late:.985;
-   if(!P.finished){if(gap>LEAD_GAP)vmax*=1-Math.min(LEAD_SLOW,(gap-LEAD_GAP)*LEAD_RAMP);else if(gap<-TRAIL_GAP)vmax*=1+Math.min(TRAIL_HELP,(-gap-TRAIL_GAP)*.002);}
+   if(!P.finished){if(gap>LEAD_GAP)vmax*=1-Math.min(LEAD_SLOW,(gap-LEAD_GAP)*LEAD_RAMP);else if(gap<-TRAIL_GAP)vmax*=1+Math.min(TRAIL_HELP,(-gap-TRAIL_GAP)*TRAIL_RAMP);}
    if(F.wiggle>0)vmax*=.93;if(F.spin>0)vmax*=.45;
    if(F.boost>0)vmax=Math.max(vmax,VBOOST*.95);if(F.rocket>0){vmax=VBOOST*1.02;F.rocket=Math.max(0,F.rocket-dt);F.boost=Math.max(F.boost,.2);}
    F.v+=(F.v<vmax?(F.boost>0?ACC*2.6:ACC*st.acc):-9)*dt;F.v=Math.max(0,F.v);F.s+=F.v*dt;
@@ -61,12 +61,12 @@ export function createRacers(kit){
    if((A.isPlayer||B.isPlayer)&&ctx.onBump)ctx.onBump();}}
  // matrices for the palette meshes; hero gets its shield bubble / rocket star from the same draw call
  const e=new THREE.Euler(0,0,0,'YXZ'),q=new THREE.Quaternion(),one=new THREE.Vector3(1,1,1),m=new THREE.Matrix4(),gm=new THREE.Matrix4(),v=new THREE.Vector3();
- function place(cam,P,hero,t){for(const F of list){sample(F.s,o2);kit.pointAt(F.s,F.x,v);v.y=F.y;F.mesh.position.copy(v);
+ function place(cam,P,hero,t){for(const F of list){sample(F.s,o2);kit.pointAt(F.s,F.x,v);const gy=v.y;v.y+=F.y;F.mesh.position.copy(v);
    const yaw=Math.atan2(-o2.tx,-o2.tz)+(F.spin>0?F.spin*12:0)+(F.drT>.4?Math.sign(-o2.k)*.18:0);
-   const pitch=F.air>0?-F.vy*.02:(F.y>0?-.15:0),roll=F.wiggle>0?Math.sin(F.wiggle*40)*.06:0;
+   const pitch=Math.atan(o2.gy)+(F.air>0?-F.vy*.02:(F.y>0?-.15:0)),roll=F.wiggle>0?Math.sin(F.wiggle*40)*.06:0;
    e.set(pitch,yaw,roll);q.setFromEuler(e);F.mesh.quaternion.copy(q);
    if(cam.position.distanceTo(v)<2.6){RV.setKart(F.idx,null);}
-   else{m.compose(v,q,one);e.set(0,yaw,0);q.setFromEuler(e);v.y=.001;gm.compose(v,q,one);RV.setKart(F.idx,m,gm);}
+   else{m.compose(v,q,one);e.set(Math.atan(o2.gy),yaw,0);q.setFromEuler(e);v.y=gy+.001;gm.compose(v,q,one);RV.setKart(F.idx,m,gm);}
    v.copy(F.mesh.position);v.y+=.62;RV.setShield(F.idx,v,F.shield>0?.75+.25*Math.sin(t*9+F.idx):0,cam.quaternion);
    v.y+=.35;RV.setStar(F.idx,v,F.rocket>0?1:0,cam.quaternion,t+F.idx);}
   const N=RV.N;v.copy(hero.position);v.y+=.62;RV.setShield(N,v,P.shield>0?(P.shield<1.5?.5+.5*Math.sin(t*20):.8+.2*Math.sin(t*9)):0,cam.quaternion);

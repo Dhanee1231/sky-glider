@@ -1,10 +1,10 @@
-// Neon Rush atmosphere (Track B, M3): cheering crowds along the track + disco/party light trusses.
+// Neon Rush atmosphere (M3 Track B; M4 Track A: per-track zones, follows the road height): cheering crowds along the track + disco/party light trusses.
 // Cost: 3 draw calls total (crowd = 1 instanced mesh, swinging beams + floor spots = 1 palette mesh, trusses + bulbs = 1 mesh).
 import * as THREE from 'three';
 import {palMesh,setSlotM} from './b_pal.js';
-// crowd stretches [s0,s1,side(+1 right/-1 left/0 both)] and light sites (s)
-const ZONES=[[-46,34,0],[214,268,0],[396,482,1],[556,622,-1]];const SITES=[-14,240,440,590];
-export function createParty(kit){const {S,W,L,sample,cv,tex,rnd,HIGH}=kit;const C=(h,m=1)=>new THREE.Color(h).multiplyScalar(m);
+// crowd stretches [s0,s1,side(+1 right/-1 left/0 both)] and light sites (s) come from the track (TRACK.crowd / TRACK.party)
+const ZONES0=[[-46,34,0],[214,268,0],[396,482,1],[556,622,-1]],SITES0=[-14,240,440,590];
+export function createParty(kit){const {S,W,L,sample,cv,tex,rnd,HIGH}=kit;const ZONES=kit.track?.crowd||ZONES0,SITES=kit.track?.party||SITES0,CB=.15;const C=(h,m=1)=>new THREE.Color(h).multiplyScalar(m);
  // ---- crowd: cute round fans, arms up, glow sticks + hearts (atlas of 4 poses), camera-facing on Y, bounce more near the hero
  const atl=tex(cv(512,256,(g)=>{const skins=['#ffd8b8','#c88a5a','#8a5a3a','#f0c090'];
   for(let i=0;i<4;i++){const ox=i*128;g.save();g.translate(ox+64,0);
@@ -20,7 +20,7 @@ export function createParty(kit){const {S,W,L,sample,cv,tex,rnd,HIGH}=kit;const 
  const tints=[0xff4fc8,0x35f2ff,0xffd23a,0x8a5cff,0x7dff6a,0xff8a2a,0xffffff,0xff6a8a];
  const fans=[];const o={};
  for(const [s0,s1,side] of ZONES)for(const sd of side?[side]:[-1,1])for(const row of[0,1])for(let s=s0+(row?.55:0);s<s1;s+=HIGH?1.05:1.6){
-  const x=sd*(W/2+1.7+row*1.25+(rnd()-.5)*.3);sample(s,o);fans.push({x:o.x-o.tz*x,z:o.z+o.tx*x,s,ph:rnd()*6.28,sp:2.6+rnd()*2.2,h:(row?1.15:1)*(.85+rnd()*.3),fr:Math.floor(rnd()*4)});}
+  const x=sd*(W/2+1.7+row*1.25+(rnd()-.5)*.3);sample(s,o);fans.push({x:o.x-o.tz*x,y:o.y+CB,z:o.z+o.tx*x,s,ph:rnd()*6.28,sp:2.6+rnd()*2.2,h:(row?1.15:1)*(.85+rnd()*.3),fr:Math.floor(rnd()*4)});}
  const geo=new THREE.PlaneGeometry(.95,.95).translate(0,.475,0);
  // per-instance atlas frame via a tiny vertex patch (uv.x offset = frame/4)
  const fr=new Float32Array(fans.length);fans.forEach((f,i)=>fr[i]=f.fr);geo.setAttribute('fr',new THREE.InstancedBufferAttribute(fr,1));
@@ -32,10 +32,10 @@ export function createParty(kit){const {S,W,L,sample,cv,tex,rnd,HIGH}=kit;const 
  const metal=[],bulbs=[],beams=[];const beamSlots=[];
  const tC=C(0x2a2436),bulbCols=[0xff4fc8,0x35f2ff,0xffd23a,0x7dff6a,0x8a5cff];let bi=0;
  SITES.forEach((s,si)=>{sample(s,o);const ang=Math.atan2(o.tx,o.tz),nx=-o.tz,nz=o.tx,H=8.6,span=W+3;
-  for(const sd of[-1,1]){const px=o.x+nx*sd*(span/2),pz=o.z+nz*sd*(span/2);metal.push(kit.paintCol(new THREE.BoxGeometry(.32,H,.32).rotateY(ang).translate(px,H/2,pz),tC));}
-  for(const y of[H,H-.6]){const g=new THREE.BoxGeometry(span,.18,.18);g.rotateY(ang+Math.PI/2);g.translate(o.x,y,o.z);metal.push(kit.paintCol(g,tC));}
-  for(let i=0;i<=20;i++){const t=-span/2+i*span/20,y=H-.9-Math.sin(i/20*Math.PI)*.9;bulbs.push(kit.paintCol(new THREE.SphereGeometry(.09,6,4).translate(o.x+nx*t,y,o.z+nz*t),C(bulbCols[bi++%5],3)));}
-  for(let b=0;b<4;b++){const t=(-1.5+b)*(span/4.6);beamSlots.push({x:o.x+nx*t,z:o.z+nz*t,y:H-.7,ang,ph:b*1.6+si,col:bulbCols[(b+si)%5]});}});
+  const Y=o.y;for(const sd of[-1,1]){const px=o.x+nx*sd*(span/2),pz=o.z+nz*sd*(span/2);metal.push(kit.paintCol(new THREE.BoxGeometry(.32,H,.32).rotateY(ang).translate(px,Y+H/2,pz),tC));}
+  for(const y of[H,H-.6]){const g=new THREE.BoxGeometry(span,.18,.18);g.rotateY(ang);g.translate(o.x,Y+y,o.z);metal.push(kit.paintCol(g,tC));}
+  for(let i=0;i<=20;i++){const t=-span/2+i*span/20,y=H-.9-Math.sin(i/20*Math.PI)*.9;bulbs.push(kit.paintCol(new THREE.SphereGeometry(.09,6,4).translate(o.x+nx*t,Y+y,o.z+nz*t),C(bulbCols[bi++%5],3)));}
+  for(let b=0;b<4;b++){const t=(-1.5+b)*(span/4.6);beamSlots.push({x:o.x+nx*t,z:o.z+nz*t,y:Y+H-.7,gy:Y,ang,ph:b*1.6+si,col:bulbCols[(b+si)%5]});}});
  const party=new THREE.Mesh(kit.merge([...metal,...bulbs]),new THREE.MeshBasicMaterial({vertexColors:true}));party.layers.set(1);S.add(party);
  // beam: open cone (apex at origin, pointing down), colour fades toward the floor; floor spot as a second slot
  const NB=beamSlots.length;const parts=[];
@@ -51,12 +51,12 @@ export function createParty(kit){const {S,W,L,sample,cv,tex,rnd,HIGH}=kit;const 
   // crowd: face the camera (Y only), bounce; extra cheer when the hero is close
   const cx=cam.position.x,cz=cam.position.z;
   for(let i=0;i<fans.length;i++){const f=fans[i];let d=f.s-hs;if(d<-L/2)d+=L;if(d>L/2)d-=L;const near=d>-25&&d<60?1:0;
-   const b=Math.abs(Math.sin(T*f.sp*(near?1.5:.8)+f.ph))*(near?.32:.12);v.set(f.x,b+.15,f.z);
+   const b=Math.abs(Math.sin(T*f.sp*(near?1.5:.8)+f.ph))*(near?.32:.12);v.set(f.x,f.y+b,f.z);
    q.setFromAxisAngle(THREE.Object3D.DEFAULT_UP,Math.atan2(cx-f.x,cz-f.z));m.compose(v,q,sc.set(f.h,f.h*1.8,1));crowd.setMatrixAt(i,m);}
   crowd.instanceMatrix.needsUpdate=true;
   // beams: swing in a slow figure-eight, colour pulse to the beat (~160 BPM)
   const beat=.75+.25*Math.max(0,Math.cos(T*Math.PI*2*160/60));
   for(let i=0;i<NB;i++){const b=beamSlots[i];const sw=Math.sin(T*1.3+b.ph)*.55,tw=Math.cos(T*.9+b.ph*1.3)*.4;e.set(tw,b.ang,sw);q.setFromEuler(e);v.set(b.x,b.y,b.z);m.compose(v,q,one);setSlotM(bm.M,i,m,beat);
    // floor spot where the beam axis meets the road
-   const dir=DN.set(0,-1,0).applyQuaternion(q);const t=b.y/Math.max(.2,-dir.y);v.set(b.x+dir.x*t,.03,b.z+dir.z*t);m.compose(v,q.identity(),sc.setScalar(1));setSlotM(bm.M,NB+i,m,beat*.9);}}
+   const dir=DN.set(0,-1,0).applyQuaternion(q);const t=(b.y-b.gy)/Math.max(.2,-dir.y);v.set(b.x+dir.x*t,b.gy+.03,b.z+dir.z*t);m.compose(v,q.identity(),sc.setScalar(1));setSlotM(bm.M,NB+i,m,beat*.9);}}
  return {update,meshes:[crowd,bm.mesh,party],fans:fans.length};}

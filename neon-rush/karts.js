@@ -3,11 +3,11 @@ import * as THREE from 'three';
 let K;  // kit
 function tyreGeo(r,w,seg=18){const ri=r*.62;const prof=[[ri,-w/2],[ri+.01,-w/2-.005],[r*.86,-w/2-.012],[r*.97,-w/2+.01],[r,-w/2+.04],[r,w/2-.04],[r*.97,w/2-.01],[r*.86,w/2+.012],[ri+.01,w/2+.005],[ri,w/2]];
   const g=new THREE.LatheGeometry(prof.map(([x,y])=>new THREE.Vector2(x,y)),seg);g.rotateZ(Math.PI/2);return g;}
-function rimGeo(r,w,lod){const merge=K.merge;const gs=[new THREE.CylinderGeometry(r*.6,r*.6,w*.8,lod?10:14,1,true).rotateZ(Math.PI/2),new THREE.CylinderGeometry(r*.16,r*.16,w*.85,lod?6:10).rotateZ(Math.PI/2)];
-  for(let i=0;i<(lod?3:5);i++){const s=new THREE.BoxGeometry(.012,r*.48,r*.1);s.translate(0,r*.3,0);s.rotateX(i/5*Math.PI*2);s.translate(w*.32,0,0);gs.push(s);}return merge(gs);}
+function rimGeo(r,w,lod,sp=5){const merge=K.merge;const gs=[new THREE.CylinderGeometry(r*.6,r*.6,w*.8,lod?10:14,1,true).rotateZ(Math.PI/2),new THREE.CylinderGeometry(r*.16,r*.16,w*.85,lod?6:10).rotateZ(Math.PI/2)];
+  for(let i=0;i<(lod?3:sp);i++){const s=new THREE.BoxGeometry(.012,r*.48,r*.1);s.translate(0,r*.3,0);s.rotateX(i/(lod?5:sp)*Math.PI*2);s.translate(w*.32,0,0);gs.push(s);}return merge(gs);}
 let coneT0=null;const mkCone=()=>coneT0||(coneT0=K.tex(K.cv(64,128,(g)=>{const r=g.createLinearGradient(0,0,0,128);r.addColorStop(0,'rgba(255,255,255,0)');r.addColorStop(1,'rgba(255,255,255,.8)');g.fillStyle=r;g.beginPath();g.moveTo(0,0);g.lineTo(64,0);g.lineTo(38,128);g.lineTo(26,128);g.fill();}),false,false));
 // chassis + driver parts as {key:[geometry]} (lod=true: fewer segments, used for the six rivals)
-function kartParts(kit,accent,driverFn,lod){K=kit;const {paintCol,RoundedBoxGeometry}=kit;const parts={};const seg=lod?1:3,s2=lod?1:2;
+function kartParts(kit,accent,driverFn,lod,o={}){K=kit;const {paintCol,RoundedBoxGeometry}=kit;const parts={};const seg=lod?1:3,s2=lod?1:2;
   const add=(key,g,x=0,y=0,z=0,rx=0,ry=0,rz=0,col)=>{g.rotateX(rx);g.rotateY(ry);g.rotateZ(rz);g.translate(x,y,z);if(col)g=paintCol(g,col);(parts[key]??=[]).push(g);};
   add('dark',new THREE.BoxGeometry(.9,.03,1.5),0,.08,0);
   for(const x of[-.42,.42])add('chrome',new THREE.CylinderGeometry(.018,.018,1.6,6),x,.09,0,Math.PI/2);
@@ -19,34 +19,81 @@ function kartParts(kit,accent,driverFn,lod){K=kit;const {paintCol,RoundedBoxGeom
   add('paint',new RoundedBoxGeometry(.95,.035,.2,s2,.012),0,.5,1.0,.08);for(const x of[-.38,.38])add('dark',new THREE.BoxGeometry(.03,.3,.08),x,.36,1.0);
   add('lights',new THREE.BoxGeometry(.95,.01,.01),0,.52,.9,0,0,0,new THREE.Color(accent).multiplyScalar(2.6));
   for(const x of[-.3,.3]){add('lights',new RoundedBoxGeometry(.22,.06,.02,s2,.01),x,.2,1.075,0,0,0,new THREE.Color(0xff2040).multiplyScalar(3));add('lights',new THREE.CircleGeometry(.04,10),x*.9,.2,-1.14,0,Math.PI,0,new THREE.Color(0xfff2e0).multiplyScalar(3.5));}
-  for(const [x,z,r,w] of[[-.6,-.66,.17,.15],[.6,-.66,.17,.15],[-.62,.66,.2,.22],[.62,.66,.2,.22]]){add('tyre',tyreGeo(r,w,lod?10:18),x,r,z);add('chrome',rimGeo(r,w,lod),x,r,z);}
+  for(const [x,z,r,w] of[[-.6,-.66,.17,.15],[.6,-.66,.17,.15],[-.62,.66,.2,.22],[.62,.66,.2,.22]]){add('tyre',tyreGeo(r,w,lod?10:18),x,r,z);add('chrome',rimGeo(r,w,lod,o.spokes),x,r,z);}
+  if(o.body)bodyExtras(add,o.body,seg,s2);if(o.decal)decalShapes(add,o.decal,o.decalCol);
   driverFn(add);return parts;}
-export function kart(kit,paint,accent,driverFn){K=kit;const {S,merge,glowT,shadowT}=kit;const N_flake=kit.N.flake,N_tread=kit.N.tread,N_fur=kit.N.fur,coneT=mkCone();const k=new THREE.Group();const body=new THREE.Group();k.add(body);
-  const parts=kartParts(kit,accent,driverFn,false);
+let HERO=null,MK=null;   // the main-scene hero kart + the main kit (set by buildHero)
+// ---------- M4 garage options (index 0 of every list = the original look). Counts must match save.js KART_N. ----------
+export const PAINTS=[{n:'Pink',hex:0xe8287a},{n:'Red',hex:0xe8204a},{n:'Orange',hex:0xff7a1a},{n:'Gold',hex:0xe8b020},{n:'Lime',hex:0x7aff3a},{n:'Teal',hex:0x20c0a0},{n:'Sky',hex:0x35c8ff},{n:'Blue',hex:0x2a5bff},{n:'Purple',hex:0x8a3aff},{n:'Silver',hex:0xc8d0e0}];
+export const FINISHES=[{n:'Gloss',metal:.55,rough:.38,coat:1,env:1.5,glow:0},{n:'Metallic',metal:1,rough:.16,coat:.7,env:2.3,glow:0},{n:'Neon glow',metal:.12,rough:.45,coat:.6,env:1,glow:.9}];
+export const WHEELS=[{n:'Chrome',col:0xd8d8e4,metal:1,rough:.15,glow:0,spokes:5},{n:'Gold',col:0xffc83a,metal:1,rough:.22,glow:0,spokes:5},{n:'Pink glow',col:0x3a1030,metal:.4,rough:.4,glow:0xff3fd8,spokes:8},{n:'Cyan glow',col:0x0a2a34,metal:.4,rough:.4,glow:0x35f2ff,spokes:6}];
+export const BODIES=['Classic','Racer','Buggy','Rocket'],TRAILS=['None','Sparkles','Hearts','Rainbow','Flames'],DECALS=['None','Star','Heart','Bolt','Stripes'];
+const lum=h=>{const c=new THREE.Color(h);return .2126*c.r+.7152*c.g+.0722*c.b;};
+const normCustom=c=>{const o={body:0,paint:0,finish:0,wheels:0,trail:0,decal:0},lim={body:BODIES.length,paint:PAINTS.length,finish:FINISHES.length,wheels:WHEELS.length,trail:TRAILS.length,decal:DECALS.length};
+  for(const k in o){const n=Math.round(+(c&&c[k]));o[k]=Number.isFinite(n)&&n>=0&&n<lim[k]?n:0;}return o;};
+// extra bodywork per style (paint parts, so no extra draw calls). The camera sees the kart from behind: the rear reads most.
+function bodyExtras(add,style,seg,s2){const RB=kitRB||K.RoundedBoxGeometry;
+  if(style===1){   // Racer: low nose wedge + big wide rear wing on endplates
+    add('paint',new RB(.78,.07,.5,seg,.03),0,.27,-1.05,.12);
+    add('paint',new RB(1.5,.05,.3,s2,.02),0,.8,1.08,.05);for(const x of[-.74,.74])add('paint',new RB(.05,.44,.34,s2,.02),x,.6,1.08);
+    for(const x of[-.28,.28])add('dark',new THREE.BoxGeometry(.04,.34,.06),x,.58,1.02);}
+  else if(style===2){   // Buggy: puffy rear fenders + roll hoop
+    for(const s of[-1,1]){const g=new THREE.SphereGeometry(.3,12,8,0,Math.PI*2,0,Math.PI/2);g.scale(.8,1.1,1.5);add('paint',g,s*.66,.3,.66);
+      const f=new THREE.SphereGeometry(.22,10,6,0,Math.PI*2,0,Math.PI/2);f.scale(.8,1,1.4);add('paint',f,s*.66,.24,-.66);}
+    add('dark',new THREE.TorusGeometry(.4,.022,6,seg>1?20:12,Math.PI),0,.42,.46,0,0,0);add('paint',new THREE.SphereGeometry(.05,8,6),0,.84,.46);}
+  else if(style===3){   // Rocket: dorsal fin, twin tail fins, nose cone
+    add('paint',new RB(.06,.5,.55,s2,.025),0,.78,.78,.2);
+    for(const s of[-1,1])add('paint',new RB(.05,.3,.4,s2,.02),s*.5,.42,.98,0,0,s*.35);
+    add('paint',new THREE.ConeGeometry(.16,.5,10).rotateX(-Math.PI/2),0,.2,-1.38);add('lights',new THREE.SphereGeometry(.05,8,6),0,.2,-1.66,0,0,0,new THREE.Color(0xfff2a0).multiplyScalar(3));}}
+// flat decals (star/heart/bolt/stripes), drawn on the nose plate and the rear wing top so they read from behind
+function shape(kind){const sh=new THREE.Shape();
+  if(kind===1){for(let i=0;i<10;i++){const a=i/10*Math.PI*2-Math.PI/2,r=i%2?.45:1;(i?sh.lineTo:sh.moveTo).call(sh,Math.cos(a)*r,Math.sin(a)*r);}sh.closePath();}
+  else if(kind===2){sh.moveTo(0,-.9);sh.bezierCurveTo(-1.3,-.1,-.9,.9,0,.45);sh.bezierCurveTo(.9,.9,1.3,-.1,0,-.9);}
+  else if(kind===3){const p=[[.2,1],[-.55,-.1],[-.05,-.1],[-.25,-1],[.6,.2],[.1,.2]];p.forEach(([x,y],i)=>i?sh.lineTo(x,y):sh.moveTo(x,y));sh.closePath();}
+  return new THREE.ShapeGeometry(sh);}
+function decalShapes(add,kind,col){if(kind===4){   // two racing stripes
+    for(const x of[-.09,.09]){add('paint',new THREE.PlaneGeometry(.07,.38).rotateX(-Math.PI/2),x,.248,-.92,0,0,0,col);add('paint',new THREE.PlaneGeometry(.04,.17).rotateX(-Math.PI/2),x*1.8,.523,1.0,.08,0,0,col);}return;}
+  const g1=shape(kind).rotateX(-Math.PI/2).scale(.13,1,.13),g2=shape(kind).rotateX(-Math.PI/2).scale(.065,1,.065);
+  add('paint',g1,0,.248,-.92,0,0,0,col);add('paint',g2,0,.523,1.0,.08,0,0,col);}
+let kitRB;
+const decalCol=hex=>new THREE.Color(lum(hex)>.55?0x241046:0xfff6b0);
+// the hero kart. custom = {body,paint,finish,wheels,trail,decal} (garage); restyle(custom) rebuilds it in place (no new draw calls).
+export function kart(kit,paint,accent,driverFn,custom){K=kit;kitRB=kit.RoundedBoxGeometry;const {S,merge,glowT,shadowT}=kit;const N_flake=kit.N.flake,N_tread=kit.N.tread,N_fur=kit.N.fur,coneT=mkCone();const k=new THREE.Group();const body=new THREE.Group();k.add(body);
   const flake=N_flake.clone();flake.repeat.set(24,24);flake.needsUpdate=true;
-  const mats={paint:new THREE.MeshPhysicalMaterial({color:paint,metalness:.55,roughness:.38,normalMap:flake,normalScale:new THREE.Vector2(.07,.07),clearcoat:1,clearcoatRoughness:.04,envMapIntensity:1.5}),
+  const mats={paint:new THREE.MeshPhysicalMaterial({color:0xffffff,vertexColors:true,metalness:.55,roughness:.38,normalMap:flake,normalScale:new THREE.Vector2(.07,.07),clearcoat:1,clearcoatRoughness:.04,envMapIntensity:1.5}),
    dark:new THREE.MeshStandardMaterial({color:0x1a1820,metalness:.3,roughness:.5}),chrome:new THREE.MeshStandardMaterial({color:0xd8d8e4,metalness:1,roughness:.15,envMapIntensity:1.6}),
    tyre:new THREE.MeshStandardMaterial({color:0x1a191c,roughness:.88,normalMap:N_tread}),lights:new THREE.MeshBasicMaterial({vertexColors:true}),
    suit:new THREE.MeshStandardMaterial({vertexColors:true,roughness:.62,normalMap:N_fur,normalScale:new THREE.Vector2(.15,.15)}),
    helmet:new THREE.MeshPhysicalMaterial({vertexColors:true,metalness:.2,roughness:.25,clearcoat:1,clearcoatRoughness:.05}),
    visor:new THREE.MeshPhysicalMaterial({color:0x101828,metalness:.95,roughness:.04,clearcoat:1,envMapIntensity:2.2}),
    fur:new THREE.MeshStandardMaterial({vertexColors:true,roughness:.85,normalMap:N_fur,normalScale:new THREE.Vector2(.6,.6)})};
-  for(const key in parts){const m=new THREE.Mesh(merge(parts[key]),mats[key]);if(!['paint','lights'].includes(key))m.layers.set(1);body.add(m);}  // small detail skipped in puddle reflections
   const sg=[new THREE.PlaneGeometry(1.6,2.4).rotateX(-Math.PI/2).translate(0,.012,0)];for(const [x,z] of[[-.6,-.66],[.6,-.66],[-.62,.66],[.62,.66]])sg.push(new THREE.PlaneGeometry(.5,.55).rotateX(-Math.PI/2).translate(x,.013,z));
   const sh=new THREE.Mesh(merge(sg),new THREE.MeshBasicMaterial({map:shadowT,transparent:true,depthWrite:false,opacity:.9}));sh.renderOrder=3;sh.layers.set(1);k.add(sh);
   const fxm=new THREE.Mesh(merge([new THREE.PlaneGeometry(.45,.3).translate(-.3,.2,1.1),new THREE.PlaneGeometry(.45,.3).translate(.3,.2,1.1)]),new THREE.MeshBasicMaterial({map:glowT,color:0xff3048,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));
   const cone=new THREE.Mesh(new THREE.PlaneGeometry(3.2,7).rotateX(-Math.PI/2).translate(0,.02,-4.6),new THREE.MeshBasicMaterial({map:coneT,color:0xfff0d0,transparent:true,opacity:.3,blending:THREE.AdditiveBlending,depthWrite:false}));
   const ug=new THREE.Mesh(new THREE.PlaneGeometry(1.8,2.6).rotateX(-Math.PI/2).translate(0,.02,0),new THREE.MeshBasicMaterial({map:glowT,color:accent,transparent:true,opacity:.45,blending:THREE.AdditiveBlending,depthWrite:false}));
   for(const m of[fxm,cone,ug]){m.renderOrder=6;m.layers.set(1);k.add(m);}
-  k.userData={body,shadow:sh,cone,ug};S.add(k);return k;}
+  const meshes=[];
+  function restyle(c){c=normCustom(c);const pc=PAINTS[c.paint].hex,fin=FINISHES[c.finish],wh=WHEELS[c.wheels];
+    for(const m of meshes){body.remove(m);m.geometry.dispose();}meshes.length=0;
+    const parts=kartParts(kit,accent,driverFn,false,{body:c.body,spokes:wh.spokes,decal:c.decal,decalCol:c.decal?decalCol(pc):null});
+    for(const key in parts){let gs=parts[key];if(key==='paint'){const col=new THREE.Color(pc);gs=gs.map(g=>g.attributes.color?g:kit.paintCol(g,col));}
+      const m=new THREE.Mesh(merge(gs),mats[key]);if(!['paint','lights'].includes(key))m.layers.set(1);body.add(m);meshes.push(m);}   // small detail skipped in puddle reflections
+    const P=mats.paint;P.metalness=fin.metal;P.roughness=fin.rough;P.clearcoat=fin.coat;P.envMapIntensity=fin.env;P.emissive.set(fin.glow?pc:0x000000);P.emissiveIntensity=fin.glow;
+    const ch=mats.chrome;ch.color.set(wh.col);ch.metalness=wh.metal;ch.roughness=wh.rough;ch.emissive.set(wh.glow||0x000000);ch.emissiveIntensity=wh.glow?1.5:0;
+    ug.material.color.set(fin.glow?pc:accent);
+    k.userData.custom=c;return k;}
+  k.userData={body,shadow:sh,cone,ug,fxm,restyle,mats,accent,baseUg:ug.material.color.clone()};
+  restyle(custom||{});S.add(k);return k;}
 const C=(h,m=1)=>new THREE.Color(h).multiplyScalar(m);
-export const buildHero=kit=>kart(kit,0xe8287a,0x35f2ff,add=>{const suit=C(0x7a3cff),white=C(0xf2eef8),glove=C(0x222028),hair=C(0x4a2a1a);
+const heroDriver=add=>{const suit=C(0x7a3cff),white=C(0xf2eef8),glove=C(0x222028),hair=C(0x4a2a1a);
   add('suit',new THREE.CapsuleGeometry(.17,.3,4,12),0,.48,.3,-.3,0,0,suit);add('suit',new THREE.BoxGeometry(.36,.04,.2),0,.6,.33,-.3,0,0,white);add('suit',new THREE.CapsuleGeometry(.1,.08,4,10),0,.72,.22,0,0,0,white);
   for(const s of[-1,1]){add('suit',new THREE.CapsuleGeometry(.055,.22,4,8),s*.2,.56,.12,-1.0,0,s*.35,suit);add('suit',new THREE.CapsuleGeometry(.05,.2,4,8),s*.14,.5,-.08,-1.35,0,s*.15,suit);
    add('suit',new THREE.SphereGeometry(.05,8,6),s*.12,.5,-.2,0,0,0,glove);add('suit',new THREE.CapsuleGeometry(.07,.32,4,8),s*.11,.2,-.25,-1.45,0,0,suit);}
   add('helmet',new THREE.SphereGeometry(.165,20,14),0,.92,.2,0,0,0,white);add('helmet',new THREE.TorusGeometry(.163,.014,6,32),0,.92,.2,0,Math.PI/2,0,C(0xe8287a,1.2));
   add('helmet',new THREE.BoxGeometry(.035,.02,.24),0,1.08,.22,0,0,0,C(0xe8287a,1.2));add('visor',new THREE.SphereGeometry(.168,18,8,Math.PI*1.12,Math.PI*.76,Math.PI*.36,Math.PI*.24),0,.92,.2);
-  add('suit',new THREE.CapsuleGeometry(.045,.16,4,8),0,.86,.4,.9,0,0,hair);add('suit',new THREE.SphereGeometry(.035,8,6),0,.9,.36,0,0,0,C(0xff4fb8));});
+  add('suit',new THREE.CapsuleGeometry(.045,.16,4,8),0,.86,.4,.9,0,0,hair);add('suit',new THREE.SphereGeometry(.035,8,6),0,.9,.36,0,0,0,C(0xff4fb8));};
+export const buildHero=(kit,custom)=>{MK=kit;HERO=kart(kit,0xe8287a,0x35f2ff,heroDriver,custom);if(custom)setHeroLook(custom);return HERO;};
 const pipDriver=add=>{const fur=C(0xd8641e),cream=C(0xf4ead8),blk=C(0x1a1214),jacket=C(0x2a7a5a);
   add('fur',new THREE.CapsuleGeometry(.16,.26,3,8),0,.48,.3,-.3,0,0,jacket);add('fur',new THREE.SphereGeometry(.12,9,6),0,.62,.18,0,0,0,cream);
   for(const s of[-1,1]){add('fur',new THREE.CapsuleGeometry(.05,.22,3,6),s*.19,.55,.1,-1.05,0,s*.35,jacket);add('fur',new THREE.CapsuleGeometry(.045,.18,3,6),s*.13,.5,-.08,-1.35,0,s*.15,fur);
@@ -95,7 +142,7 @@ const turtleD=add=>{const g=C(0x6ad86a),dg=C(0x2a7a4a),gold=C(0xffc02a),cream=C(
   const shell=new THREE.SphereGeometry(.26,14,8,0,Math.PI*2,0,Math.PI/2);shell.scale(1,.8,1.1);add('helmet',shell,0,.45,.5,-1.3,0,0,dg);
   add('helmet',new THREE.TorusGeometry(.25,.03,5,18),0,.45,.5,-1.3+Math.PI/2,0,0,cream);for(const [x,y] of[[0,0],[-.1,.09],[.1,.09],[-.1,-.09],[.1,-.09]])add('helmet',new THREE.CircleGeometry(.05,6),x,.47+y*.3,.73+y*.15,-.3,0,0,C(0x8ad86a));
   const cap=new THREE.SphereGeometry(.15,14,8,0,Math.PI*2,0,Math.PI/2.2);add('helmet',cap,0,.88,.18,0,0,0,gold);add('helmet',new THREE.BoxGeometry(.18,.02,.1),0,.89,.03,0,0,0,gold);};
-let kitRB;  // RoundedBoxGeometry class (set from kit)
+  // RoundedBoxGeometry class (set from kit)
 // look of each racer (style lives in racers.js). portrait = inner SVG (viewBox 0 0 24 24) for the HUD.
 export const RIVAL_LOOKS=[
  {name:'Pip',paint:0xff7a1a,accent:0x7dff6a,css:'#ff7a1a',drv:pipDriver,svg:'<path d="M4 3l5 6h6l5-6-1 10-7 8-7-8z" fill="#fff"/><circle cx="9.5" cy="12" r="1.3" fill="#1a1214"/><circle cx="14.5" cy="12" r="1.3" fill="#1a1214"/>'},
@@ -139,3 +186,47 @@ export function buildRivals(kit,looks){K=kit;kitRB=kit.RoundedBoxGeometry;const 
    // camera-facing bubble / spinning star; who = 0..N (N = hero); pos = world point, a = brightness (0 hides)
    setShield(who,pos,a,camQ){if(!(a>0)){hideSlot(fxM.M,N+who);return;}m4.compose(pos,camQ,one);setSlotM(fxM.M,N+who,m4,a);},
    setStar(who,pos,a,camQ,t){if(!(a>0)){hideSlot(fxM.M,2*N+1+who);return;}q.copy(camQ).multiply(qz.setFromAxisAngle(Z,t*3));m4.compose(pos,q,v.setScalar(.9+.15*Math.sin(t*14)));setSlotM(fxM.M,2*N+1+who,m4,a);}};}
+
+// ---------- M4: customization glue ----------
+export function setHeroLook(c){c=normCustom(c);HERO_LOOK.css='#'+new THREE.Color(PAINTS[c.paint].hex).getHexString();}   // ladder / podium portrait colour follows the paint
+export function applyKart(hero,c){const h=hero||HERO;if(h)h.userData.restyle(c);setHeroLook(c);}
+export const heroKart=()=>HERO;
+// a second kart for the garage preview (own scene; shares the kit's textures/geometry helpers, not its scene)
+export function buildPreviewKart(scene,custom){const kit=Object.assign({},MK,{S:scene});return kart(kit,0xe8287a,0x35f2ff,heroDriver,custom);}
+// ---------- M4: on-kart power-up effects + trail (hero only). 2 extra draw calls at most, and only while something is showing. ----------
+let FX=null;
+function heart(g){g.fillStyle='#fff';g.beginPath();g.moveTo(32,56);g.bezierCurveTo(-6,30,10,2,32,20);g.bezierCurveTo(54,2,70,30,32,56);g.fill();}
+function star(g){g.fillStyle='#fff';g.beginPath();for(let i=0;i<10;i++){const a=i/10*Math.PI*2-Math.PI/2,r=i%2?12:30;g.lineTo(32+Math.cos(a)*r,32+Math.sin(a)*r);}g.fill();g.fillRect(31,2,2,60);g.fillRect(2,31,60,2);}
+function makeFx(kit){const {S,cam,tex,cv,glowT}=kit,TR=40;
+  const T={glow:glowT,heart:tex(cv(64,64,heart),false,false),star:tex(cv(64,64,star),false,false)};
+  const flameT=tex(cv(32,128,g=>{const r=g.createLinearGradient(0,0,0,128);r.addColorStop(0,'rgba(255,255,255,1)');r.addColorStop(.25,'rgba(255,220,120,.9)');r.addColorStop(.6,'rgba(255,110,30,.5)');r.addColorStop(1,'rgba(255,60,0,0)');g.fillStyle=r;g.beginPath();g.moveTo(16,0);g.bezierCurveTo(40,10,26,70,16,128);g.bezierCurveTo(6,70,-8,10,16,0);g.fill();}),false,false);
+  const tm=new THREE.InstancedMesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:T.glow,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}),TR);
+  tm.frustumCulled=false;tm.layers.set(1);tm.renderOrder=7;tm.visible=false;S.add(tm);
+  const fg=[];for(const x of[-.28,.28])for(const yaw of[0,.3,-.3]){const p=new THREE.PlaneGeometry(.26,1.3).rotateX(-Math.PI/2).rotateY(yaw).translate(x,.3,1.75);fg.push(p);}
+  const flames=new THREE.Mesh(kit.merge(fg),new THREE.MeshBasicMaterial({map:flameT,color:new THREE.Color(2,1.2,.5),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+  flames.renderOrder=7;flames.layers.set(1);flames.visible=false;
+  const pt=[];for(let i=0;i<TR;i++)pt.push({x:0,y:0,z:0,vx:0,vy:0,vz:0,l:0,m:1,h:0,s:1});
+  return {tm,flames,pt,T,n:0,acc:0,t:0,mapKey:'glow',cam,TR,m:new THREE.Matrix4(),q:new THREE.Quaternion(),v:new THREE.Vector3(),sc:new THREE.Vector3(),c:new THREE.Color(),hop:0,ugBase:null};}
+const TRAIL_KIND=['','star','heart','glow','glow'];   // sprite per trail option
+export function heroFx(P,dt){const hero=HERO;if(!hero||!K||dt<=0)return;if(!FX){FX=makeFx(K);hero.add(FX.flames);}
+  const f=FX,c=hero.userData.custom||{trail:0},ud=hero.userData;f.t+=dt;if(f.flames.parent!==hero)hero.add(f.flames);
+  const boost=P.boost>0,rocket=P.rocket>0;f.flames.visible=boost||rocket;
+  if(f.flames.visible){const k=(rocket?1.5:1)*(.8+.35*Math.sin(f.t*40)+.15*Math.sin(f.t*67));f.flames.scale.set(1+.2*Math.sin(f.t*31),1,k);f.flames.material.color.setRGB(rocket?2.2:2,rocket?1.6:1.1,rocket?.5:.35);}
+  // Gravity Hop: the glow under the kart turns violet and swells
+  const hop=!!P.floaty;f.hop+=((hop?1:0)-f.hop)*Math.min(1,dt*10);const ug=ud.ug;
+  if(f.hop>.02){ug.material.color.setRGB(.7,.5,1).multiplyScalar(1+.4*Math.sin(f.t*14));ug.material.opacity=.45+.4*f.hop;ug.scale.setScalar(1+.7*f.hop);f.ugOn=true;}
+  else if(f.ugOn){f.ugOn=false;ug.scale.setScalar(1);ug.material.opacity=.45;const fin=FINISHES[c.finish||0];ug.material.color.set(fin.glow?PAINTS[c.paint||0].hex:ud.accent);}
+  // trail + Rocket Star sparkles share one instanced mesh
+  const kind=TRAIL_KIND[c.trail|0],want=(c.trail|0)>0||rocket,mov=P.v>3&&!P.finished;
+  let any=false;for(const p of f.pt)if(p.l>0){any=true;break;}
+  if(want&&mov||any){const key=rocket&&!(c.trail|0)?'star':kind||'star';if(key!==f.mapKey){f.mapKey=key;f.tm.material.map=f.T[key];f.tm.material.needsUpdate=true;}
+   if(want&&mov){f.acc+=dt*(rocket?46:c.trail===4?42:30);while(f.acc>=1){f.acc-=1;const p=f.pt[f.n++%f.TR],r=Math.random;hero.localToWorld(f.v.set((r()-.5)*.7,.18+r()*.2,1.35));p.x=f.v.x;p.y=f.v.y;p.z=f.v.z;
+     p.vx=(r()-.5)*.8;p.vz=(r()-.5)*.8;p.vy=c.trail===4?1+r():c.trail===2?.5+r()*.6:.2+r()*.5;p.l=p.m=c.trail===4?.45:.8;p.h=r();p.s=c.trail===3?.4:c.trail===4?.55:.34;if(rocket&&!(c.trail|0)){p.s=.36;p.h=.14;}}}
+   const mt=f.tm,cam=f.cam;mt.visible=true;let live=0;
+   for(let i=0;i<f.TR;i++){const p=f.pt[i];if(p.l>0){p.l-=dt;live++;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;}const a=p.l>0?p.l/p.m:0;
+    const sz=p.s*(c.trail===4?a*1.3+.2:.4+a*.8)*(p.l>0?1:0);f.m.compose(f.v.set(p.x,p.y,p.z),cam.quaternion,f.sc.setScalar(sz));mt.setMatrixAt(i,f.m);
+    const tk=(c.trail|0);if(tk===3)f.c.setHSL((p.h+f.t*.6)%1,1,.6);else if(tk===4)f.c.setHSL(.02+.1*(1-a),1,.55);else if(tk===2)f.c.setHSL(.9+.05*p.h,.9,.7);else f.c.setHSL(.12+.1*p.h,.9,.78);
+    f.c.multiplyScalar(1.5*a+.3);mt.setColorAt(i,f.c);}
+   mt.instanceMatrix.needsUpdate=true;if(mt.instanceColor)mt.instanceColor.needsUpdate=true;if(!live&&!(want&&mov))mt.visible=false;}
+  else if(f.tm.visible)f.tm.visible=false;}
+export function heroFxReset(){if(FX){FX.tm.visible=false;FX.flames.visible=false;for(const p of FX.pt)p.l=0;if(FX.ugOn){HERO.userData.ug.scale.setScalar(1);HERO.userData.ug.material.opacity=.45;FX.ugOn=false;}}}

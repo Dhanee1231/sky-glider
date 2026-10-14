@@ -62,6 +62,7 @@ h2 sup{font-size:.5em}
 .lbl{font-size:clamp(16px,calc(var(--u)*4),22px);font-weight:800;text-align:right;opacity:.9}
 #rotate{z-index:9;flex-direction:column;gap:16px;font-size:clamp(26px,7vw,40px);font-weight:900}
 #rotate svg{width:min(40vw,170px);height:min(40vw,170px)}
+body:has(#title.show,#trackSel.show,#garage.show,#settings.show,#finish.show) #rotate{display:none!important}   /* M4: portrait menus never ask to rotate; only the race does */
 #fps{position:fixed;left:4px;bottom:4px;z-index:8;white-space:pre;font:12px/1.3 ui-monospace,monospace;color:#7dff6a;background:rgba(0,0,0,.6);padding:3px 6px;border-radius:6px;display:none;pointer-events:none}
 #fps.show{display:block}
 #title .card{gap:clamp(10px,calc(var(--u)*3),26px)}
@@ -89,6 +90,88 @@ h2 sup{font-size:.5em}
 .rivals{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
 .rivals .pt{position:static;width:clamp(30px,calc(var(--u)*7),46px);height:clamp(30px,calc(var(--u)*7),46px);border-width:2px}
 @media (max-height:430px){#title .sub{display:none}}
+
+/* M4 Track B: use-item button, power-up rings, roulette */
+.hud{--stw:clamp(84px,calc(var(--u)*22),132px);--itw:clamp(64px,calc(var(--u)*15),92px);--padr:max(14px,env(safe-area-inset-right));--bot:calc(max(12px,env(safe-area-inset-bottom)) + var(--stw) + 14px)}
+.item{right:var(--padr);bottom:var(--bot);width:var(--itw);height:var(--itw);transform:none;border-radius:50%;background:rgba(40,20,70,.55);border:4px dashed rgba(255,225,77,.6)}
+.item svg{transform:none;width:54%;height:54%}
+.item.has{background:radial-gradient(circle at 35% 30%,#ff9ae0,#c43fd0 60%,#7a2a9a);border:4px solid #fff27a}
+.item.rolling{background:rgba(40,20,70,.55);border:4px dashed rgba(255,225,77,.6);box-shadow:none;animation:none}
+.item.rolling svg{opacity:.2;filter:grayscale(1)}
+@keyframes itemPop{from{transform:scale(.4)}to{transform:scale(1)}}
+@keyframes itemGlow{to{box-shadow:0 0 28px #ffe14d,0 0 46px #ff3fd8;transform:scale(1.06)}}
+.item.has{animation:itemGlow .7s ease-in-out infinite alternate}
+.item.ipop{animation:itemPop .45s cubic-bezier(.3,1.6,.5,1),itemGlow .7s ease-in-out .45s infinite alternate}
+#puRings{position:absolute;right:calc(var(--padr) + var(--itw) + 14px);bottom:calc(var(--bot) + var(--itw)*.11);display:flex;flex-direction:row-reverse;gap:8px;pointer-events:none}
+.pu{position:relative;display:none;width:calc(var(--itw)*.78);height:calc(var(--itw)*.78);filter:drop-shadow(0 0 8px var(--c))}
+.pu.on{display:block}
+.pu svg{width:100%;height:100%}
+.pu .bg{fill:rgba(20,8,40,.72);stroke:rgba(255,255,255,.22);stroke-width:4}
+.pu .fg{fill:none;stroke:var(--c);stroke-width:4.4;stroke-linecap:round;transform:rotate(-90deg);transform-origin:24px 24px;transition:stroke-dashoffset .12s linear}
+.pu b{position:absolute;right:-4px;bottom:-4px;min-width:1.5em;padding:0 4px;border-radius:10px;background:#2b1055;border:2px solid var(--c);font-size:clamp(11px,calc(var(--u)*2.6),16px);line-height:1.4;text-align:center}
+.pu.warn{animation:puWarn .3s linear infinite alternate}
+@keyframes puWarn{to{opacity:.45}}
+#roul{--cell:clamp(46px,calc(var(--u)*11),84px);left:50%;top:8px;transform:translateX(-50%);width:calc(var(--cell)*3 + 12px);height:calc(var(--cell) + 12px);padding:6px;border-radius:22px;background:rgba(24,8,50,.86);border:4px solid #ffd23a;box-shadow:0 0 22px #ffb000;overflow:hidden;opacity:0;visibility:hidden;transition:opacity .15s}
+#roul.show{opacity:1;visibility:visible}
+#roul .strip{display:flex;height:100%;will-change:transform}
+#roul .cell{flex:none;width:var(--cell);height:var(--cell);display:grid;place-items:center;opacity:.45;transform:scale(.8)}
+#roul .cell svg{width:78%;height:78%}
+#roul .cell.mid{opacity:1;transform:scale(1);background:linear-gradient(180deg,#ff9ae0,#8a4dff);border-radius:16px}
+#roul .win{position:absolute;left:calc(6px + var(--cell));top:6px;width:var(--cell);height:var(--cell);border-radius:16px;box-shadow:inset 0 0 0 3px #fff;pointer-events:none}
+#roul.land{animation:roulLand .4s ease-out}
+@keyframes roulLand{50%{box-shadow:0 0 44px #fff27a,0 0 22px #ffb000;transform:translateX(-50%) scale(1.1)}}
+/* M4 Track B: menus (track select + garage) */
+#trackSel,#garage{background:radial-gradient(circle at 50% 120%,#5a2a80,#12082a 70%);backdrop-filter:none}
+#garage{z-index:6}
+.mn{width:100%;height:100%;max-width:1040px;display:flex;flex-direction:column;gap:clamp(6px,calc(var(--u)*2),16px);min-height:0}
+.mn-head{display:flex;align-items:center;gap:clamp(8px,calc(var(--u)*2),16px);flex:none}
+.mn-head h2{flex:1;font-size:clamp(26px,calc(var(--u)*7),52px);white-space:nowrap}
+.mn .ib{width:clamp(48px,calc(var(--u)*10),64px);height:clamp(48px,calc(var(--u)*10),64px);border-radius:50%;border:3px solid #fff;background:rgba(30,10,60,.65);display:grid;place-items:center;padding:0;cursor:pointer;touch-action:manipulation;flex:none;text-decoration:none}
+.mn .ib svg{width:52%;height:52%}
+.mn-bar{display:flex;gap:clamp(10px,calc(var(--u)*2.4),20px);justify-content:center;align-items:center;flex:none}
+.mn-bar .big{min-height:56px;font-size:clamp(20px,calc(var(--u)*5.4),34px);padding:clamp(6px,calc(var(--u)*1.6),12px) clamp(18px,calc(var(--u)*5),38px)}
+.mn-bar .alt{background:rgba(53,242,255,.2);color:#fff;border-color:#35f2ff;box-shadow:0 0 16px rgba(53,242,255,.5),0 5px 0 #0a6a7a}
+.ts-row{flex:1;min-height:0;display:flex;gap:clamp(8px,calc(var(--u)*2.2),20px);justify-content:center;align-items:stretch}
+.tcard{position:relative;flex:1;max-width:340px;min-width:0;display:flex;flex-direction:column;border-radius:24px;overflow:hidden;background:#1d0f3a;border:4px solid rgba(255,255,255,.25);padding:0;color:#fff;font:inherit;text-align:left;cursor:pointer;touch-action:manipulation;transition:transform .15s,box-shadow .15s}
+.tcard[aria-pressed="true"]{border-color:#ffd23a;box-shadow:0 0 0 3px rgba(255,210,58,.35),0 0 30px #ffd23a;transform:scale(1.03)}
+.tcard .th{flex:1;min-height:0;position:relative}
+.tcard .th svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.tcard .ti{padding:6px 12px 8px;display:flex;flex-direction:column;gap:2px;flex:none}
+.tcard b{font-size:clamp(16px,calc(var(--u)*3.6),26px);font-weight:900;line-height:1.1}
+.tcard .bt{display:flex;align-items:center;gap:6px;font-size:clamp(14px,calc(var(--u)*3.2),20px);font-weight:800;opacity:.92;font-variant-numeric:tabular-nums}
+.tcard .bt svg{width:1.2em;height:1.2em;flex:none}
+.tcard .nw{position:absolute;top:8px;left:8px;z-index:1;background:#ff3fd8;border:2px solid #fff;border-radius:14px;padding:2px 12px;font-weight:900;font-size:clamp(13px,calc(var(--u)*3),18px);box-shadow:0 0 12px #ff3fd8}
+@media (max-aspect-ratio:1/1){
+ .ts-row{flex-direction:column}
+ .tcard{max-width:none;flex-direction:row}
+ .tcard .th{flex:1.3}.tcard .ti{flex:1;justify-content:center;padding:8px 14px}
+ .tcard b{font-size:clamp(18px,5.4vw,30px)}
+}
+.gar{flex:1;min-height:0;display:flex;gap:clamp(8px,calc(var(--u)*2),18px)}
+.gar-view{flex:1.1;min-width:0;position:relative;border-radius:24px;border:3px solid rgba(255,255,255,.22);background:radial-gradient(circle at 50% 70%,#4a1f78,#1a0b36 75%);overflow:hidden;touch-action:none}
+.gar-view canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+.gar-view .hint{position:absolute;left:0;right:0;bottom:8px;display:flex;justify-content:center;opacity:.8;pointer-events:none}
+.gar-view .hint svg{width:34px;height:34px}
+.gar-opt{flex:1;min-width:0;display:flex;flex-direction:column;gap:clamp(6px,calc(var(--u)*1.6),12px);min-height:0}
+.gtabs{display:flex;gap:6px;flex:none}
+.gtab{flex:1;min-width:0;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 2px;border-radius:16px;border:3px solid transparent;background:rgba(255,255,255,.1);color:#fff;font:inherit;font-size:clamp(11px,calc(var(--u)*2.6),15px);font-weight:800;cursor:pointer;touch-action:manipulation}
+.gtab svg{width:clamp(22px,calc(var(--u)*5),32px);height:clamp(22px,calc(var(--u)*5),32px)}
+.gtab[aria-selected="true"]{border-color:#ff4fd8;background:rgba(255,79,216,.28)}
+.ggrid{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(60px,calc(var(--u)*13),84px),1fr));gap:clamp(8px,calc(var(--u)*1.8),14px);align-content:start;padding:4px}
+.gopt{aspect-ratio:1;min-height:60px;border-radius:18px;border:3px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);display:grid;place-items:center;padding:0;cursor:pointer;color:#fff;font:inherit;touch-action:manipulation;position:relative}
+.gopt svg{width:78%;height:78%}
+.gopt[aria-pressed="true"]{border-color:#ffd23a;box-shadow:0 0 18px #ffd23a}
+.gopt .sw{width:68%;height:68%;border-radius:50%;border:2px solid rgba(255,255,255,.7)}
+.gfin{display:flex;gap:8px;flex:none}
+.gfin .gopt{aspect-ratio:auto;flex:1;min-height:52px;font-size:clamp(13px,calc(var(--u)*3),17px);font-weight:800;gap:6px;display:flex;align-items:center;justify-content:center;border-radius:16px}
+.gfin .gopt i{width:1.5em;height:1.5em;border-radius:50%;border:2px solid #fff;flex:none}
+@media (max-aspect-ratio:1/1){.gar{flex-direction:column}.gar-view{flex:none;height:36%;min-height:150px}.gtab{min-height:52px}}
+/* M4 Track B: settings fit (the Look row used to overflow at 360-412 px) */
+.seg{flex-wrap:nowrap;min-width:0}.seg .tg{flex:1 1 0;min-width:0;justify-content:center;padding:8px 6px;font-size:clamp(15px,calc(var(--u)*4),22px)}
+@media (max-width:560px){.setgrid{grid-template-columns:minmax(0,1fr);width:100%}.setgrid .lbl{text-align:left}.tg{min-width:0;width:100%}.seg .tg{width:auto}.setgrid .big{width:100%;justify-content:center}}
+@media (max-width:560px) and (min-aspect-ratio:1/1){.setgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-height:430px){.setgrid{gap:6px 12px}.tg{min-height:52px}#settings .card{gap:6px}}
+#finish .row{gap:clamp(8px,calc(var(--u)*2.4),18px)}
 /* /B:css */
 /* A:css (Track A adds styles below, if any) */
 .vol{pointer-events:auto;display:flex;align-items:center;gap:10px;font-size:clamp(18px,calc(var(--u)*4.4),24px);font-weight:800;color:#fff;background:rgba(255,255,255,.1);border:3px solid rgba(255,255,255,.5);border-radius:18px;padding:6px 14px;min-height:60px;min-width:0;width:100%}
@@ -119,12 +202,14 @@ h2 sup{font-size:.5em}
  <div class="steer" id="steerL" aria-label="Steer left"><svg viewBox="0 0 24 24"><path d="M16 3 6 12l10 9z" fill="#fff"/></svg></div>
  <!-- B:item (Track B owns this block) -->
  <button class="item" id="btnItem" aria-label="No power-up yet"><svg viewBox="0 0 24 24" id="itemIcon"></svg></button>
+ <div id="puRings" aria-hidden="true"></div>
+ <div id="roul" aria-hidden="true"><div class="strip" id="roulStrip"></div><div class="win"></div></div>
  <!-- /B:item -->
  <div class="steer" id="steerR" aria-label="Steer right"><svg viewBox="0 0 24 24"><path d="M8 3l10 9-10 9z" fill="#fff"/></svg></div>
 </div>
 
 <div class="layer panel show" id="title"><div class="card">
- <h1>Neon Rush</h1><div class="sub">Race six friends through Neon Sky City!</div><div class="rivals" id="titleRivals" aria-hidden="true"></div>
+ <h1>Neon Rush</h1><div class="sub">Race six friends through the neon city!</div><div class="rivals" id="titleRivals" aria-hidden="true"></div>
  <button class="big" id="btnStart"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" fill="#2b1055"/></svg>Tap to race!</button>
  <div class="row"><a class="lbtn" href="../home/" id="btnHomeTitle"><span class="rb"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" fill="#fff"/></svg></span>Home</a>
   <div class="lbtn"><button class="rb" id="btnSetTitle" aria-label="Settings"><svg viewBox="0 0 24 24"><path fill="#fff" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1L11 21h4l.4-2.9a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>Settings</div></div>
@@ -141,9 +226,10 @@ h2 sup{font-size:.5em}
 
 <div class="layer panel" id="finish"><div class="card">
  <h2 id="finTitle">1<sup>st</sup> place!</h2><div class="podium" id="finPod"></div><div class="sub" id="finSub">You won the race!</div>
- <div class="stats"><span>Time <b id="finTime">0:00.0</b></span><span>Best lap <b id="finBest">0:00.0</b></span></div>
+ <div class="stats"><span>Time <b id="finTime">0:00.0</b></span><span>Fastest lap <b id="finBest">0:00.0</b></span></div>
  <div class="row">
   <button class="big" id="btnAgain"><svg viewBox="0 0 24 24"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z" fill="#2b1055"/></svg>Race again</button>
+  <div class="lbtn"><button class="rb" id="btnNext" aria-label="Next track"><svg viewBox="0 0 24 24"><path d="M4 5l9 7-9 7zM12 5l9 7-9 7z" fill="#fff"/></svg></button>Next track</div>
   <a class="lbtn" href="../home/" id="btnHomeFinish"><span class="rb"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" fill="#fff"/></svg></span>Home</a>
   <div class="lbtn"><button class="rb" id="btnSetFinish" aria-label="Settings"><svg viewBox="0 0 24 24"><path fill="#fff" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1L11 21h4l.4-2.9a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>Settings</div>
  </div></div></div>
@@ -161,6 +247,27 @@ h2 sup{font-size:.5em}
   <!-- /A:settings -->
   <button class="big" id="btnSetClose" style="font-size:clamp(20px,calc(var(--u)*5),30px);min-height:60px"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10" stroke="#2b1055" stroke-width="3.4" fill="none" stroke-linecap="round"/></svg>Done</button>
  </div></div></div>
+
+
+<div class="layer panel" id="trackSel"><div class="mn">
+ <div class="mn-head"><a class="ib" href="../home/" id="btnHomeSel" aria-label="Home"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" fill="#fff"/></svg></a>
+  <h2>Pick a track!</h2>
+  <button class="ib" id="btnSetSel" aria-label="Settings"><svg viewBox="0 0 24 24"><path fill="#fff" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1L11 21h4l.4-2.9a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button></div>
+ <div class="ts-row" id="tsRow" role="radiogroup" aria-label="Tracks"></div>
+ <div class="mn-bar"><button class="big alt" id="btnGarage"><svg viewBox="0 0 24 24"><path d="M3 15l2-5a2 2 0 0 1 2-1.4h6.6a2 2 0 0 1 1.7 1l2.2 3.4 2 .6A1.6 1.6 0 0 1 21 15v1.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" fill="#fff"/><circle cx="7.5" cy="17.5" r="2.3" fill="#35f2ff"/><circle cx="16.5" cy="17.5" r="2.3" fill="#35f2ff"/></svg>Garage</button>
+  <button class="big" id="btnGo"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" fill="#2b1055"/></svg>Race!</button></div>
+</div></div>
+
+<div class="layer panel" id="garage"><div class="mn">
+ <div class="mn-head"><button class="ib" id="btnGarBack" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 4l-8 8 8 8" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  <h2>Garage</h2>
+  <button class="ib" id="btnSetGar" aria-label="Settings"><svg viewBox="0 0 24 24"><path fill="#fff" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1L11 21h4l.4-2.9a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button></div>
+ <div class="gar">
+  <div class="gar-view" id="garView"><canvas id="garCanvas" aria-label="Your kart. Drag to spin it."></canvas><div class="hint" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z" fill="#fff" opacity=".8"/></svg></div></div>
+  <div class="gar-opt"><div class="gtabs" id="gTabs" role="tablist"></div><div class="gfin" id="gFin" hidden></div><div class="ggrid" id="gGrid"></div></div>
+ </div>
+ <div class="mn-bar"><button class="big" id="btnGarDone"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10" stroke="#2b1055" stroke-width="3.4" fill="none" stroke-linecap="round"/></svg>Ride it!</button></div>
+</div></div>
 
 <div class="layer panel" id="rotate"><svg viewBox="0 0 100 100"><rect x="30" y="14" width="40" height="72" rx="8" fill="none" stroke="#35f2ff" stroke-width="6"/><path d="M80 40a30 30 0 0 1-10 34" fill="none" stroke="#ff3fd8" stroke-width="6"/><path d="M64 70l8 6 2-10z" fill="#ff3fd8"/></svg>Turn your phone sideways!</div>
 <div id="fps"></div>

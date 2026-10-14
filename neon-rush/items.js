@@ -22,19 +22,33 @@ export function hitKart(k,kind){if(k.rocket>0)return null;if(k.shield>0){k.shiel
  k.spin=Math.max(k.spin,.85);k.v*=.62;return 'spin';}
 export function createItems(kit){const {S,sample,cv,tex,L}=kit;let rnd=Math.random;
  const boxes=[];for(const s of ROWS)for(const x of LANES)boxes.push({s,x,t:0,on:1});
- const face=tex(cv(128,128,(g)=>{const r=g.createLinearGradient(0,0,128,128);r.addColorStop(0,'#ff8ae0');r.addColorStop(.5,'#b45cff');r.addColorStop(1,'#ffd23a');g.fillStyle=r;g.fillRect(0,0,128,128);
-  g.strokeStyle='#fff';g.lineWidth=10;g.strokeRect(5,5,118,118);g.fillStyle='rgba(255,255,255,.35)';g.beginPath();g.moveTo(10,10);g.lineTo(70,10);g.lineTo(10,70);g.fill();
-  g.font='900 84px Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#fff';g.shadowColor='#7a0060';g.shadowBlur=8;g.fillText('?',64,70);}),true,false);
- const bm=new THREE.InstancedMesh(new kit.RoundedBoxGeometry(.9,.9,.9,2,.14),new THREE.MeshStandardMaterial({map:face,emissiveMap:face,emissive:0xffffff,emissiveIntensity:.75,roughness:.25,metalness:.1,transparent:true,opacity:.92}),boxes.length);
+ // M4 look: spinning, bobbing GLASS neon cube with a pulsing "?", rainbow sheen (hue per box, drifting), neon frame, shatter + sparkle burst, pop-in respawn.
+ // 4 draw calls in total: glass cubes, frames, ground glow, sparkles (the sparkle pool also serves every burst).
+ const face=tex(cv(128,128,(g)=>{g.fillStyle='#160830';g.fillRect(0,0,128,128);const r=g.createLinearGradient(0,0,128,128);r.addColorStop(0,'rgba(255,255,255,.28)');r.addColorStop(.45,'rgba(255,255,255,0)');g.fillStyle=r;g.fillRect(0,0,128,128);
+  g.font='900 88px Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.shadowColor='#fff';g.shadowBlur=14;g.fillStyle='#fff';g.fillText('?',64,70);}),true,false);
+ const bm=new THREE.InstancedMesh(new kit.RoundedBoxGeometry(.82,.82,.82,2,.1),new THREE.MeshStandardMaterial({map:face,emissiveMap:face,emissive:0xffffff,emissiveIntensity:1.3,roughness:.08,metalness:.2,transparent:true,opacity:.9}),boxes.length);
+ const fg=[];for(const [x,y,z] of [[0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]]){fg.push(new THREE.BoxGeometry(1,.07,.07).translate(0,y*.47,z*.47));fg.push(new THREE.BoxGeometry(.07,.07,1).translate(y*.47,z*.47,0));fg.push(new THREE.BoxGeometry(.07,1,.07).translate(y*.47,0,z*.47));}
+ const fm=new THREE.InstancedMesh(kit.merge(fg),new THREE.MeshBasicMaterial({color:new THREE.Color(2.4,2.4,2.4)}),boxes.length);fm.frustumCulled=false;fm.layers.set(1);S.add(fm);const hc=new THREE.Color();
+ const SP=40,spk=new THREE.InstancedMesh(new THREE.OctahedronGeometry(.09,0),new THREE.MeshBasicMaterial({color:new THREE.Color(2.5,2.5,2.5)}),SP);spk.frustumCulled=false;spk.layers.set(1);S.add(spk);
  bm.frustumCulled=false;bm.layers.set(1);S.add(bm);
  const gm=new THREE.InstancedMesh(new THREE.PlaneGeometry(1.8,1.8).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({map:kit.glowT,color:0xff8ae0,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}),boxes.length);
  gm.frustumCulled=false;gm.layers.set(1);gm.renderOrder=3;S.add(gm);
- const o={},m=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),v=new THREE.Vector3(),sc=new THREE.Vector3(),one=new THREE.Vector3(1,1,1);
+ const o={},m=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),v=new THREE.Vector3(),sc=new THREE.Vector3();
+ // sparkle pool: position, velocity, life
+ const sp=[];for(let i=0;i<SP;i++)sp.push({x:0,y:0,z:0,vx:0,vy:0,vz:0,l:0,h:0});let spN=0;
+ const SHAT=.3;
+ function burst(b){sample(b.s,o);const cx=o.x-o.tz*b.x,cz=o.z+o.tx*b.x;for(let i=0;i<10;i++){const p=sp[spN++%SP],a=Math.random()*6.283,u=1.2+Math.random()*2.6;p.x=cx;p.y=.95;p.z=cz;p.vx=Math.cos(a)*u;p.vz=Math.sin(a)*u;p.vy=1.5+Math.random()*2.8;p.l=.55+Math.random()*.35;p.h=Math.random();}}
  let T=0;
- function draw(){for(let i=0;i<boxes.length;i++){const b=boxes[i];sample(b.s,o);v.set(o.x-o.tz*b.x,0,o.z+o.tx*b.x);const grow=b.on?(b.grow<1?b.grow:1):0;v.y=.95+Math.sin(T*2.4+i)*.12;e.set(.5,T*1.6+i,.3);q.setFromEuler(e);m.compose(v,q,sc.setScalar(grow));bm.setMatrixAt(i,m);
-   v.y=.025;m.compose(v,q.identity(),sc.setScalar(grow*(1+.12*Math.sin(T*5+i))));gm.setMatrixAt(i,m);}
-  bm.instanceMatrix.needsUpdate=true;gm.instanceMatrix.needsUpdate=true;}
- function reset(){for(const b of boxes){b.on=1;b.grow=1;b.t=0;}T=0;draw();}
+ const back=x=>{const c=1.70158,d=x-1;return 1+(c+1)*d*d*d+c*d*d;};   // easeOutBack: pop-in with a little overshoot
+ function draw(dt){for(let i=0;i<boxes.length;i++){const b=boxes[i];sample(b.s,o);v.set(o.x-o.tz*b.x,0,o.z+o.tx*b.x);
+   let grow=b.on?Math.max(0,back(Math.min(1,b.grow))):0;if(!b.on&&b.shat>0)grow=(1+(SHAT-b.shat)*3.5)*(b.shat/SHAT);   // shatter: puffs out and vanishes
+   v.y=.95+Math.sin(T*2.4+i)*.12;e.set(.5,T*1.6+i+(b.on?0:T*8),.3);q.setFromEuler(e);m.compose(v,q,sc.setScalar(grow));bm.setMatrixAt(i,m);fm.setMatrixAt(i,m);hc.setHSL((T*.25+i*.13)%1,1,.6);fm.setColorAt(i,hc);bm.setColorAt(i,hc);
+   v.y=.025;m.compose(v,q.identity(),sc.setScalar(Math.min(grow,1.2)*(1+.12*Math.sin(T*5+i))));gm.setMatrixAt(i,m);}
+  bm.instanceMatrix.needsUpdate=true;fm.instanceMatrix.needsUpdate=true;if(fm.instanceColor)fm.instanceColor.needsUpdate=true;if(bm.instanceColor)bm.instanceColor.needsUpdate=true;bm.material.emissiveIntensity=1.1+.5*Math.sin(T*6);gm.instanceMatrix.needsUpdate=true;
+  for(let i=0;i<SP;i++){const p=sp[i];if(p.l>0){p.l-=dt;p.vy-=7*dt;p.x+=p.vx*dt;p.y=Math.max(.05,p.y+p.vy*dt);p.z+=p.vz*dt;}
+   m.compose(v.set(p.x,p.y,p.z),q.identity(),sc.setScalar(p.l>0?Math.min(1,p.l*3):0));spk.setMatrixAt(i,m);hc.setHSL((p.h+T*.5)%1,.9,.7);spk.setColorAt(i,hc);}
+  spk.instanceMatrix.needsUpdate=true;if(spk.instanceColor)spk.instanceColor.needsUpdate=true;}
+ function reset(){for(const b of boxes){b.on=1;b.grow=1;b.t=0;b.shat=0;}for(const p of sp)p.l=0;T=0;draw(0);}
  function give(k,place){const it=roll(place||4,rnd);k.item=it;const st=k.st;k.itemT=it==='rocket'?.35:st?st.itemDelay[0]+rnd()*(st.itemDelay[1]-st.itemDelay[0]):0;return it;}
  function apply(k,it,ctx){
   if(it==='speed')k.boost=Math.max(k.boost,k.isPlayer?1.8:1.3);
@@ -47,12 +61,12 @@ export function createItems(kit){const {S,sample,cv,tex,L}=kit;let rnd=Math.rand
   apply(k,got,ctx);ctx&&ctx.onItem&&ctx.onItem(k,got,it);return got;}
  function hit(k,ctx,by){if(k.obCd>0&&!k.isPlayer)return null;const r=hitKart(k,'rocket');k.obCd=.6;ctx&&ctx.onHit&&ctx.onHit(k,r,by);return r;}
  function update(dt,ctx){T+=dt;const all=ctx.all;
-  for(const b of boxes){if(!b.on){b.t+=dt;if(b.t>2.6){b.on=1;b.grow=0;b.t=0;}continue;}if(b.grow<1)b.grow=Math.min(1,b.grow+dt*3);
+  for(const b of boxes){if(!b.on){b.t+=dt;if(b.shat>0)b.shat=Math.max(0,b.shat-dt);if(b.t>2.6){b.on=1;b.grow=0;b.t=0;}continue;}if(b.grow<1)b.grow=Math.min(1,b.grow+dt*3);
    for(const k of all){if(k.item!=null||k.finished)continue;let ds=((k.s%L)+L)%L-b.s;if(ds>L/2)ds-=L;if(ds<-1.3||ds>1.3)continue;if(Math.abs(k.x-b.x)>1.15||k.air>0&&k.y>1.6)continue;
-    b.on=0;b.t=0;const it=give(k,k.place);ctx.onPickup&&ctx.onPickup(k,it);break;}}
+    b.on=0;b.t=0;b.shat=SHAT;burst(b);const it=give(k,k.place);ctx.onPickup&&ctx.onPickup(k,it);break;}}
   for(const k of all){if(k.itemFx>0)k.itemFx=Math.max(0,k.itemFx-dt);if(k.immune>0)k.immune=Math.max(0,k.immune-dt);}
-  draw();}
+  draw(dt);}
  // AI: best active box ahead within `look` m (near in s, close to lateral x) -> {x}
  function boxAhead(s,look,x=0){const ks=((s%L)+L)%L;let best=null,bd=1e9;for(const b of boxes){if(!b.on)continue;let d=b.s-ks;if(d<-L/2)d+=L;if(d<3||d>look)continue;const c=d+Math.abs(b.x-x)*3;if(c<bd){bd=c;best=b;}}return best;}
  reset();
- return {reset,update,use,hit,boxAhead,held:k=>k.item||null,boxes,setRandom(f){rnd=f;},meshes:[bm,gm]};}
+ return {reset,update,use,hit,boxAhead,held:k=>k.item||null,boxes,setRandom(f){rnd=f;},meshes:[bm,fm,gm,spk]};}

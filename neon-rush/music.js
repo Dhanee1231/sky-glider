@@ -2,10 +2,11 @@
 // Each loop is rendered once in an OfflineAudioContext (off the main thread), then played as a seamless looping buffer.
 // 160 BPM bright synth/chiptune-pop in C major: 4-on-the-floor kick, clap, hats, octave bass, square arp, pulse lead.
 export const BPM=160;
-const SPB=60/BPM,BAR=SPB*4,S16=SPB/4,SR=32000;
+const SPB=60/BPM,BAR=SPB*4,S16=SPB/4,SR=32000;   // the sky loop's timing; harbor / skyway pass their own (see VARIANTS)
+const timing=bpm=>({SPB:60/bpm,BAR:60/bpm*4,S16:60/bpm/4});
 
 // chords: bass root (MIDI) + pad triad
-const CH={F:[41,[65,69,72]],G:[43,[67,71,74]],Em:[40,[64,67,71]],Am:[45,[64,69,72]],C:[36,[64,67,72]],Dm:[38,[62,65,69]]};
+const CH={E:[40,[64,68,71]],F:[41,[65,69,72]],G:[43,[67,71,74]],Em:[40,[64,67,71]],Am:[45,[64,69,72]],C:[36,[64,67,72]],Dm:[38,[62,65,69]]};
 const PROG=['F','G','Em','Am','F','G','C','C', 'Am','F','C','G','Am','F','G','G', 'F','G','Em','Am','F','G','C','C', 'Dm','G','C','Am','Dm','G','C','G'];
 // lead melody: 8 eighth-notes per bar; number = MIDI note, '-' = hold, 0 = rest
 const _='-';
@@ -20,6 +21,22 @@ const MEL=[
  [77,_,74,77,81,_,84,_],[83,_,86,_,83,79,74,79],[84,_,_,_,88,_,84,_],[86,_,83,_,79,_,74,0]];
 const hz=m=>440*Math.pow(2,(m-69)/12);
 
+// ---- per-track variants (M4): same engine, own tempo / chords / lead. Melodies are generated deterministically from the chord tones. ----
+const SCALES={harbor:[60,62,64,67,69,72,74,76,79,81,84],skyway:[57,60,62,64,67,69,72,74,76,79,81,84]};   // C major pentatonic / A minor pentatonic
+function genMel(prog,scale,pat,seed){let x=seed;const rnd=()=>((x=(x*1664525+1013904223)>>>0)/4294967296);let i=Math.floor(scale.length*.55);
+ return prog.map((c,b)=>{const tri=CH[c][1];return pat.map((p,e)=>{if(p===0)return 0;if(p===2)return _;
+  if(e===0||p===3){let best=0,bd=99;scale.forEach((m,k)=>{const d=Math.min(...tri.map(t=>Math.abs(((m-t)%12+12)%12)));const dd=d*3+Math.abs(k-i);if(dd<bd){bd=dd;best=k;}});i=best;}
+  else{i=Math.max(0,Math.min(scale.length-1,i+(rnd()<.5?-1:1)*(rnd()<.35?2:1)));if(b%8===7&&e>5)i=Math.min(scale.length-1,i+1);}
+  return scale[i];});});}
+const HP='C G Am F C G F F Am F C G Am F G G C G Am F C G F C Dm G C Am F G C C'.split(' ');
+const SP='Am F C G Am F G E Am F C G Dm Am G E Am F C G Am F G E F G Am Am F G E Am'.split(' ');
+const VARIANTS={
+ sky:{t:timing(BPM),prog:PROG,mel:MEL,style:'sky',duty:.25},
+ harbor:{t:timing(156),prog:HP,mel:genMel(HP,SCALES.harbor,[3,2,1,0,1,1,3,1],7),style:'beach',duty:.5},   // beachy: lighter kick, shaker hats, soft triangle lead with vibrato
+ skyway:{t:timing(168),prog:SP,mel:genMel(SP,SCALES.skyway,[3,1,1,1,3,1,1,1],21),style:'arcade',duty:.125},   // arcade: thin pulse lead, 16th bass
+};
+export const TRACKS=Object.keys(VARIANTS);
+
 // tiny deterministic drum samples (seeded noise), shared by every render
 let DR=null;
 function drums(){if(DR)return DR;let seed=12345;const rnd=()=>((seed=(seed*1103515245+12345)>>>0)/4294967296)*2-1;
@@ -32,7 +49,8 @@ function drums(){if(DR)return DR;let seed=12345;const rnd=()=>((seed=(seed*11035
 
 // Rendered in 2-bar chunks (each its own small OfflineAudioContext): render cost grows with nodes x length, so chunks are ~8x faster.
 const CHUNK=2,TAIL=1;
-async function renderChunk(OC,b0,b1,title){
+async function renderChunk(OC,b0,b1,title,V){
+ const {SPB,BAR,S16}=V.t,sty=V.style;const PROG=V.prog,MEL=V.mel;
  const ac=new OC(2,Math.ceil((b1-b0+TAIL)*BAR*SR),SR),d=drums();
  const buf=a=>{const b=ac.createBuffer(1,a.length,SR);b.copyToChannel?b.copyToChannel(a,0):b.getChannelData(0).set(a);return b;};
  const B={kick:buf(d.kick),clap:buf(d.clap),hat:buf(d.hat),crash:buf(d.crash)};
@@ -53,7 +71,7 @@ async function renderChunk(OC,b0,b1,title){
  const dly=ac.createDelay(1);dly.delayTime.value=SPB*.75;const fb=ac.createGain();fb.gain.value=.28;const wet=ac.createGain();wet.gain.value=.3;
  leadBus.connect(dly);dly.connect(fb);fb.connect(dly);dly.connect(wet);wet.connect(pan(-.2));
  // pulse wave (25%) for the chiptune lead
- const N=24,re=new Float32Array(N),im=new Float32Array(N);for(let k=1;k<N;k++)im[k]=2/(k*Math.PI)*Math.sin(k*Math.PI*.25);const pulse=ac.createPeriodicWave(re,im);
+ const N=24,re=new Float32Array(N),im=new Float32Array(N);for(let k=1;k<N;k++)im[k]=2/(k*Math.PI)*Math.sin(k*Math.PI*(V.duty||.25));const pulse=ac.createPeriodicWave(re,im);
  const hit=(b,t,g,bus)=>{const s=ac.createBufferSource();s.buffer=b;if(g!==1){const gg=ac.createGain();gg.gain.value=g;s.connect(gg);gg.connect(bus);}else s.connect(bus);s.start(t);};
  const tone=(type,f,t,dur,vol,bus,a=.005,rel=.05,det=0)=>{const o=ac.createOscillator(),g=ac.createGain();if(type==='pulse')o.setPeriodicWave(pulse);else o.type=type;o.frequency.value=f;if(det)o.detune.value=det;
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+a);g.gain.setTargetAtTime(vol*.6,t+a,dur*.5);g.gain.setValueAtTime(vol*.6,t+dur);g.gain.linearRampToValueAtTime(0,t+dur+rel);
@@ -62,11 +80,12 @@ async function renderChunk(OC,b0,b1,title){
   const t0=(b-b0)*BAR,[root,tri]=CH[PROG[b]],sec=Math.floor(b/8),last=b%8===7;
   // drums
   if(b%8===0&&!title)hit(B.crash,t0,1,drumBus);
-  for(let q=0;q<4;q++){const t=t0+q*SPB;if(!title||q%2===0)hit(B.kick,t,.42,drumBus);if(q%2===1&&!(title&&q===1))hit(B.clap,t,.8,drumBus);}
+  for(let q=0;q<4;q++){const t=t0+q*SPB;if(sty==='beach'&&!title){if(q%2===0)hit(B.kick,t,.4,drumBus);if(q===1)hit(B.kick,t+SPB*.5,.3,drumBus);}else if(!title||q%2===0)hit(B.kick,t,.42,drumBus);if(q%2===1&&!(title&&q===1))hit(B.clap,t,.8,drumBus);}
   for(let s=0;s<16;s++){const t=t0+s*S16;const off=s%4===2,busy=!title&&(sec===1||sec===3);if(off)hit(B.hat,t,1,hatBus);else if(s%2===0)hit(B.hat,t,.45,hatBus);else if(busy)hit(B.hat,t,.3,hatBus);}
   if(last&&!title){for(let s=8;s<16;s++)hit(B.clap,t0+s*S16,.25+.06*(s-8),drumBus);}   // build-up fill
   // octave bass: 8ths, root / root+12
-  for(let e=0;e<8;e++){const t=t0+e*SPB/2,m=root+12+(e%2?12:0);tone('sawtooth',hz(m),t,SPB/2*.7,.5,bassBus,.004,.03);tone('square',hz(m),t,SPB/2*.6,.18,bassBus,.004,.03,-5);}
+  if(sty==='arcade'&&!title){for(let e=0;e<16;e++){const t=t0+e*S16,m=root+12+(e%4===2?12:0)+(e%8===6?7:0);tone('square',hz(m),t,S16*.7,.42,bassBus,.002,.02);}}
+  else for(let e=0;e<8;e++){const t=t0+e*SPB/2,m=root+12+(e%2?12:0);tone('sawtooth',hz(m),t,SPB/2*.7,.5,bassBus,.004,.03);tone('square',hz(m),t,SPB/2*.6,.18,bassBus,.004,.03,-5);}
   // pad: two detuned saws per chord note, whole bar
   for(const m of tri){tone('sawtooth',hz(m),t0,BAR*.92,.33,padBus,.03,.12,-7);tone('sawtooth',hz(m),t0,BAR*.92,.33,padBus,.03,.12,7);}
   // arp: 16ths, up-down through the chord (+octave)
@@ -74,7 +93,7 @@ async function renderChunk(OC,b0,b1,title){
   for(let s=0;s<16;s++){if(title&&s%2)continue;tone('square',hz(ar[s%8]),t0+s*S16,S16*.55,.6,arpBus,.002,.02);}
   // lead
   if(!title){const mel=MEL[b];for(let e=0;e<8;e++){const m=mel[e];if(!m||m===_)continue;let n=1;while(e+n<8&&mel[e+n]===_)n++;
-   const t=t0+e*SPB/2,dur=n*SPB/2*.9,o=tone('pulse',hz(m),t,dur,.55,leadBus,.006,.06);
+   const t=t0+e*SPB/2,dur=n*SPB/2*.9,o=tone(sty==='beach'?'triangle':'pulse',hz(m),t,dur,sty==='beach'?.8:.55,leadBus,.006,.06);
    if(n>=3){const lfo=ac.createOscillator(),lg=ac.createGain();lfo.frequency.value=6;lg.gain.value=0;lg.gain.setValueAtTime(0,t+.15);lg.gain.linearRampToValueAtTime(9,t+dur);lfo.connect(lg);lg.connect(o.detune);lfo.start(t);lfo.stop(t+dur+.1);}
    if(sec>=2)tone('square',hz(m-12),t,dur,.25,leadBus,.006,.06);}}   // 2nd half: octave double = more energy
  }
@@ -83,8 +102,8 @@ async function renderChunk(OC,b0,b1,title){
 // render one loop. opts.title = lighter version (no lead, softer drums), opts.bars = number of bars of PROG to use
 export async function renderLoop(opts={}){
  const OC=window.OfflineAudioContext||window.webkitOfflineAudioContext;if(!OC)return null;
- const bars=opts.bars||PROG.length,title=!!opts.title,L=Math.round(bars*BAR*SR),out=new OC(2,1,SR).createBuffer(2,L,SR),o=[out.getChannelData(0),out.getChannelData(1)];
- for(let b0=0;b0<bars;b0+=CHUNK){const r=await renderChunk(OC,b0,Math.min(bars,b0+CHUNK),title),off=Math.round(b0*BAR*SR);
+ const V=VARIANTS[opts.track]||VARIANTS.sky,{BAR}=V.t,bars=opts.bars||V.prog.length,title=!!opts.title,L=Math.round(bars*BAR*SR),out=new OC(2,1,SR).createBuffer(2,L,SR),o=[out.getChannelData(0),out.getChannelData(1)];
+ for(let b0=0;b0<bars;b0+=CHUNK){const r=await renderChunk(OC,b0,Math.min(bars,b0+CHUNK),title,V),off=Math.round(b0*BAR*SR);
   // sum into the loop; anything past the loop end (echo, releases) wraps to the start -> perfectly seamless loop
   for(let c=0;c<2;c++){const src=r.getChannelData(c),dst=o[c];for(let i=0,n=src.length;i<n;i++)dst[(off+i)%L]+=src[i];}}
  let pk=0;for(const ch of o)for(let i=0;i<L;i++){const a=Math.abs(ch[i]);if(a>pk)pk=a;}

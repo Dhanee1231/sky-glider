@@ -10,5 +10,5 @@ export const BEND=.2;        // share of the bend the kid must steer herself (M2
 // catch-up (mostly slows leaders): rivals ahead of the player by more than LEAD_GAP m lose up to LEAD_SLOW of top speed
 export const LEAD_GAP=4,LEAD_SLOW=.22,LEAD_RAMP=.01;
 export const DRAFT_GAP=6,DRAFT_MAX=.05,DRAFT_RAMP=.003;   // player slipstream: behind the kart ahead by > DRAFT_GAP m -> up to +5% top speed
-export const TRAIL_GAP=35,TRAIL_HELP=.04;   // rivals far behind get a little help so the pack stays close
+export const TRAIL_GAP=6,TRAIL_HELP=.08,TRAIL_RAMP=.005;   // rivals behind the player by > TRAIL_GAP m get up to +8% (M4: longer laps need a firmer pull to keep the pack close)
 export const AIR_G=15,HOP_G=6.2,HOP_VY=6.6;  // gravity, Gravity Hop gravity + launch speed (big floaty jump)

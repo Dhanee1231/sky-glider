@@ -1,8 +1,8 @@
 // Neon Rush audio (owned by Track A in M3): Kokoro af_heart voice clips, engine, SFX, music. Taps stay silent.
-import {renderLoop,renderFanfare} from './music.js';
+import {renderLoop,renderFanfare,TRACKS} from './music.js';
 import {load,save} from './save.js';
 let AC=null,master,sfxBus,voiceBus,musicBus,musicDuck,musicF,musicP,engBus,settings={sound:true,voice:true,engine:7};const clips={};let voiceBusy=0;
-export const VOICE=['tap','three','two','one','go','lap2','final','boost','jump','trick','passed','pippass','win','second','paused','resume','rotate','settings','home','again','splash','bump','pip_hi','pip_win','quality_low','quality_high'];
+export const VOICE=['tap','three','two','one','go','lap2','final','boost','jump','trick','passed','pippass','win','second','paused','resume','rotate','settings','home','again','splash','bump','pip_hi','pip_win','quality_low','quality_high','s_pick','s_sky','s_harbor','s_skyway','s_garage','s_newbest','s_ready'];
 const extra=new Set();export function registerVoice(keys){for(const k of keys)extra.add(k);if(AC)loadClips([...keys]);}   // Track B adds racer/item lines here
 const MUSIC_VOL=.42;   // music sits under engine surge, SFX and voice
 const engPct=()=>{const e=+settings.engine;return Number.isFinite(e)?Math.max(0,Math.min(100,e)):7;};
@@ -63,28 +63,40 @@ const SFX={
  barrel:t=>{tn(t,.35,'sine',140,70,.3);tn(t,.25,'triangle',420,300,.08);nz(t,.1,'lowpass',1500,300,.15);},   // hollow "bonk"
  fan:t=>{for(let i=0;i<5;i++)nz(t+i*.07,.08,'bandpass',900,600,.09,1.5);},
  bump:t=>{tn(t,.2,'sine',200,90,.25);nz(t,.1,'lowpass',1200,300,.12);},
+ tick:t=>tn(t,.04,'square',1500,1500,.05,.002),                                                    // roulette strip tick
+ ding:t=>{tn(t,.5,'sine',1319,1319,.16,.003);tn(t,.5,'triangle',2637,2637,.06,.003);tn(t+.09,.6,'sine',1760,1760,.12,.003);},   // roulette landed
+ boxhit:t=>{nz(t,.22,'highpass',3500,6000,.16);[1046,1568,2093].forEach((f,i)=>tn(t+i*.04,.2,'triangle',f,f*1.02,.07));},   // item box shatter
+ end_shield:t=>{tn(t,.35,'sine',990,330,.12,.01);tn(t,.35,'triangle',1485,495,.06,.01);},          // expiry sounds: short, soft, falling
+ end_boost:t=>{nz(t,.4,'bandpass',3000,500,.12);tn(t,.35,'sawtooth',300,110,.05,.01);},
+ end_rocket:t=>{nz(t,.5,'bandpass',3500,300,.14,.8);tn(t,.5,'sawtooth',500,90,.05,.01);},
+ end_hop:t=>{tn(t,.3,'sine',880,330,.1,.01);tn(t+.12,.1,'square',200,90,.08);},
  spin:t=>{tn(t,.6,'triangle',900,250,.1,.01);tn(t,.6,'sine',1200,330,.06,.01);},                  // silly cartoon spin
 };
 export const SFX_NAMES=Object.keys(SFX);
 export function sfx(type){if(!AC||!settings.sound)return;(SFX[type]||SFX.whoosh)(AC.currentTime);}
 
-// ---------- music: 'title' | 'race' | 'final' | 'paused' | 'finish' | 'stop' ----------
-let mState='none',loops={},cur=null,curName='',fanfare=null,pendingState=null,titleTimer=0;
-async function prepMusic(){try{loops.title=await renderLoop({title:true,bars:8});if(pendingState)music(pendingState);
-  loops.race=await renderLoop();fanfare=await renderFanfare();if(pendingState)music(pendingState);}catch(e){}}
+// ---------- music: music(state, trackId): state 'title' | 'race' | 'final' | 'paused' | 'finish' | 'stop'; trackId 'sky' | 'harbor' | 'skyway' ----------
+// loops are rendered lazily (title once, each track's race loop on first use) so the first screen is never blocked; sky renders first.
+let mState='none',mTrack='sky',loops={},cur=null,curName='',fanfare=null,pendingState=null,titleTimer=0,rendering={};
+const rname=t=>'race_'+t;
+function prep(t){if(rendering[t]||!TRACKS.includes(t))return;rendering[t]=true;
+ renderLoop({track:t}).then(b=>{if(b){loops[rname(t)]=b;if(pendingState&&mTrack===t)music(pendingState,t);}}).catch(()=>{});}
+async function prepMusic(){try{loops.title=await renderLoop({title:true,bars:8});if(pendingState)music(pendingState,mTrack);
+  prep('sky');fanfare=await renderFanfare();if(pendingState)music(pendingState,mTrack);}catch(e){}}
 function play(name,rate=1){if(!loops[name])return false;if(cur&&curName===name){cur.playbackRate.setTargetAtTime(rate,AC.currentTime,.4);return true;}
  stopCur(.25);const s=AC.createBufferSource(),g=AC.createGain();s.buffer=loops[name];s.loop=true;s.playbackRate.value=rate;g.gain.setValueAtTime(0,AC.currentTime);g.gain.linearRampToValueAtTime(1,AC.currentTime+.15);
  s.connect(g);g.connect(musicDuck);s.start();cur=s;cur._g=g;curName=name;return true;}
 function stopCur(fade=.3){if(!cur)return;const t=AC.currentTime,s=cur;s._g.gain.cancelScheduledValues(t);s._g.gain.setValueAtTime(s._g.gain.value,t);s._g.gain.linearRampToValueAtTime(0,t+fade);try{s.stop(t+fade+.05);}catch(e){}cur=null;curName='';}
 function tone(open){const t=AC.currentTime;musicF.frequency.cancelScheduledValues(t);musicF.frequency.setTargetAtTime(open?20000:700,t,.15);musicP.gain.setTargetAtTime(open?1:.5,t,.15);}
-export function music(state){mState=state;if(!AC)return;clearTimeout(titleTimer);pendingState=null;
- if(state==='race'||state==='final'){tone(true);if(!play('race',state==='final'?1.06:1)){pendingState=state;play('title');}}   // final lap: a touch faster + brighter
+export function music(state,trackId){mState=state;if(TRACKS.includes(trackId))mTrack=trackId;if(!AC)return;clearTimeout(titleTimer);pendingState=null;
+ const rn=rname(mTrack);
+ if(state==='race'||state==='final'){tone(true);prep(mTrack);if(!play(rn,state==='final'?1.06:1)){pendingState=state;if(!cur)play('title');}}   // final lap: a touch faster + brighter; the title loop covers a track still rendering
  else if(state==='title'){tone(true);if(!play('title'))pendingState=state;}
  else if(state==='paused'){tone(false);}   // keep the loop, muffled and quieter
  else if(state==='finish'){stopCur(.4);tone(true);if(fanfare&&settings.sound){const s=AC.createBufferSource();s.buffer=fanfare;s.connect(musicDuck);s.start(AC.currentTime+.1);}
   titleTimer=setTimeout(()=>{if(mState==='finish')play('title');},2600);}
  else if(state==='stop')stopCur(.5);}
-export const __music=()=>({state:mState,playing:curName,rate:cur?cur.playbackRate.value:0,ready:Object.keys(loops),fanfare:!!fanfare});
+export const __music=()=>({state:mState,track:mTrack,playing:curName,rate:cur?cur.playbackRate.value:0,ready:Object.keys(loops),fanfare:!!fanfare});
 
 // ---------- Engine volume slider (index.html A:settings block) ----------
 let pendingEng=null;
