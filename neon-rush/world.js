@@ -43,10 +43,12 @@ export function setTrack(def){TRACK=def;
  for(let i=0;i<=NS;i++){const a=(i+NS-4)%NS,b=(i+4)%NS;let d=Math.atan2(TX[b],TZ[b])-Math.atan2(TX[a],TZ[a]);while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;KU[i]=d/(8*STEP);
   GY[i]=(PY[(i+2)%NS]-PY[(i+NS-2)%NS])/(4*STEP);}
  seed=def.seed||11;
- FEAT={boost:def.boost.slice(),ramp:Object.assign({},def.ramp),puddles:[],tunnels:(def.tunnels||[]).map(t=>t.slice()),gantry:0};
+ FEAT={boost:def.boost.slice(),ramps:(def.ramps||[def.ramp]).map(r=>Object.assign({},r)),puddles:[],tunnels:(def.tunnels||[]).map(t=>t.slice()),gantry:0};FEAT.ramp=FEAT.ramps[0];
  const pz=def.puddles;if(pz)for(let i=0;i<pz.n;i++)FEAT.puddles.push({s:pz.s0+i*pz.step+rnd()*4,x:(rnd()-.5)*(W-3),r:1.6+rnd()*1.2});
  return def;}
 export const wrap=s=>((s%L)+L)%L;
+// M5: the ramp whose slope/launch zone contains lap position s (or null)
+export function rampAt(s){s=wrap(s);for(const r of FEAT.ramps){const d=s-r.s0;if(d>=0&&d<r.len+1.5)return r;}return null;}
 // sample(s) -> {x,y,z,tx,tz,k,gy}; k = curvature (rad/m), y = road height, gy = grade (dy/ds)
 export function sample(s,o){s=wrap(s);const f=s/STEP,i=Math.floor(f),u=f-i,j=Math.min(i+1,NS);
  o.x=PX[i]+(PX[j]-PX[i])*u;o.z=PZ[i]+(PZ[j]-PZ[i])*u;o.y=PY[i]+(PY[j]-PY[i])*u;let tx=TX[i]+(TX[j]-TX[i])*u,tz=TZ[i]+(TZ[j]-TZ[i])*u;const l=Math.hypot(tx,tz)||1;o.tx=tx/l;o.tz=tz/l;
@@ -64,7 +66,8 @@ export function minDistToTrack(x,z,skipS=null,skipR=60){let m=1e9;const si=skipS
 // stretches [a,b] of the loop where pred(s) holds (1.5 m resolution)
 export function ranges(pred){const out=[];let a=-1;const n=Math.ceil(L/1.5);for(let i=0;i<=n;i++){const s=Math.min(L,i*1.5),ok=i<n&&pred(s);if(ok&&a<0)a=s;if(!ok&&a>=0){out.push([a,s]);a=-1;}}return out;}
 
-export function buildWorld(R,S,cam,HIGH,custom){
+import {emblemName,path2d,NEON,hexCss} from './emblems.js';
+export function buildWorld(R,S,cam,HIGH,custom){let bannerRef=null;
  const T=TRACK,PAL=T.pal,WALK=T.walk??4.5;seed=(T.seed||11)+7;
  const DPR=R.getPixelRatio();const C=(h,m=1)=>new THREE.Color(h).multiplyScalar(m);
  S.fog=new THREE.FogExp2(new THREE.Color(PAL.fog),PAL.fogD??.0105);let envRT=null;   // PMREM target: dispose the render target, not just its texture
@@ -85,8 +88,8 @@ export function buildWorld(R,S,cam,HIGH,custom){
  const asphH=cvk('asphH',()=>cv(512,512,(g,w,h)=>{g.fillStyle='#808080';g.fillRect(0,0,w,h);noise(g,w,h,60000,70,190,1);g.filter='blur(1.2px)';g.drawImage(g.canvas,0,0);g.filter='none';}));
  const puddle=cvk('puddle',()=>cv(512,512,(g,w,h)=>{g.fillStyle='#fff';g.fillRect(0,0,w,h);for(let i=0;i<9;i++){const x=rnd()*w,y=rnd()*h,r=14+rnd()*34;
   for(let k=0;k<4;k++){const gr=g.createRadialGradient(x+(rnd()-.5)*r,y+(rnd()-.5)*r*.5,0,x,y,r);gr.addColorStop(0,'rgba(0,0,0,.9)');gr.addColorStop(.6,'rgba(0,0,0,.6)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-r*1.5,y-r*1.5,r*3,r*3);}}}));
- const roadAlb=cvk('roadAlb'+PAL.asphalt+PAL.edgeLine,()=>cv(512,512,(g,w,h)=>{g.drawImage(asphH,0,0);g.globalCompositeOperation='multiply';g.fillStyle=PAL.asphalt??'#3a3640';g.fillRect(0,0,w,h);g.globalCompositeOperation='source-over';
-  g.globalAlpha=.55;g.globalCompositeOperation='multiply';g.drawImage(puddle,0,0);g.globalCompositeOperation='source-over';g.globalAlpha=1;
+ const roadAlb=cvk('roadAlb'+PAL.asphalt+PAL.edgeLine+(PAL.dry?'d':''),()=>cv(512,512,(g,w,h)=>{g.drawImage(asphH,0,0);g.globalCompositeOperation='multiply';g.fillStyle=PAL.asphalt??'#3a3640';g.fillRect(0,0,w,h);g.globalCompositeOperation='source-over';
+  if(!PAL.dry){g.globalAlpha=.55;g.globalCompositeOperation='multiply';g.drawImage(puddle,0,0);g.globalCompositeOperation='source-over';g.globalAlpha=1;}   // M5b: dry tracks (beach) have no wet-patch blotches
   g.fillStyle='rgba(235,230,215,.9)';for(const u of[1/3,2/3])g.fillRect(u*w-4,20,8,200);g.fillStyle=PAL.edgeLine??'rgba(235,230,215,.9)';g.fillRect(14,0,10,h);g.fillRect(w-24,0,10,h);}));
  const roadRough=cvk('roadRough',()=>cv(512,512,(g,w,h)=>{g.drawImage(asphH,0,0);g.globalCompositeOperation='multiply';g.fillStyle='#b0b0b0';g.fillRect(0,0,w,h);g.drawImage(puddle,0,0);g.globalCompositeOperation='lighten';g.fillStyle='#141414';g.fillRect(0,0,w,h);}));
  const roadAlpha=cvk('roadAlpha',()=>cv(512,512,(g,w,h)=>{g.drawImage(puddle,0,0);g.globalCompositeOperation='lighten';g.fillStyle='#707070';g.fillRect(0,0,w,h);}));
@@ -191,15 +194,16 @@ export function buildWorld(R,S,cam,HIGH,custom){
    g.rotateX(-Math.PI/2);g.rotateY(Math.atan2(_s.tx,_s.tz)+Math.PI);g.translate(_s.x-_s.tz*x,_s.y+.012,_s.z+_s.tx*x);gs.push(g);};
   for(const s of FEAT.boost)quad(s,0,3,3,0,.5,0,1);
   for(let x=-W/2+.75;x<W/2;x+=1.5)quad(2,x,1.5,.6,.5,1,.3,.6);
+  for(const r of FEAT.ramps)for(const d of[22,15,8])for(const x of[-3.6,0,3.6])quad(r.s0-d,x,3.2,3.2,0,.5,0,1);   // M5: gold chevrons lead up to every ramp
   const mm=new THREE.Mesh(merge(gs),m);mm.renderOrder=2;mm.layers.set(1);S.add(mm);}
  if(FEAT.puddles.length){const gs=[];for(const p of FEAT.puddles){sample(p.s,_s);const g=new THREE.CircleGeometry(p.r,20);g.scale(1,.6,1);g.rotateX(-Math.PI/2);g.rotateY(Math.atan2(_s.tx,_s.tz));g.translate(_s.x-_s.tz*p.x,_s.y+.008,_s.z+_s.tx*p.x);gs.push(g);}
   const m=new THREE.Mesh(merge(gs),new THREE.MeshStandardMaterial({color:PAL.puddle??0x1a2040,roughness:.02,metalness:.6,transparent:true,opacity:.85,envMapIntensity:2,polygonOffset:true,polygonOffsetFactor:-2}));m.renderOrder=2;S.add(m);}
- const R0=FEAT.ramp;{const gs=[];const steps=8;for(let i=0;i<steps;i++){const s0=R0.s0+i*R0.len/steps,s1=s0+R0.len/steps,h0=R0.h*i/steps,h1=R0.h*(i+1)/steps;
+ {const gs=[];for(const R0 of FEAT.ramps){const steps=8;for(let i=0;i<steps;i++){const s0=R0.s0+i*R0.len/steps,s1=s0+R0.len/steps,h0=R0.h*i/steps,h1=R0.h*(i+1)/steps;
    const a=new THREE.Vector3(),b=new THREE.Vector3(),c=new THREE.Vector3(),d=new THREE.Vector3();pointAt(s0,-W/2,a);pointAt(s0,W/2,b);pointAt(s1,-W/2,c);pointAt(s1,W/2,d);
    const g=new THREE.BufferGeometry();const P=[a.x,a.y+h0,a.z,b.x,b.y+h0,b.z,c.x,c.y+h1,c.z,d.x,d.y+h1,d.z];g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute([0,i/steps,1,i/steps,0,(i+1)/steps,1,(i+1)/steps],2));g.setIndex([0,2,1,1,2,3]);g.computeVertexNormals();
    if(g.attributes.normal.getY(0)<0){g.setIndex([0,1,2,1,3,2]);g.computeVertexNormals();}gs.push(g);}
   {const a=new THREE.Vector3(),b=new THREE.Vector3();pointAt(R0.s0+R0.len,-W/2,a);pointAt(R0.s0+R0.len,W/2,b);const g=new THREE.BufferGeometry();
-   g.setAttribute('position',new THREE.Float32BufferAttribute([a.x,a.y,a.z,b.x,b.y,b.z,a.x,a.y+R0.h,a.z,b.x,b.y+R0.h,b.z],3));g.setAttribute('uv',new THREE.Float32BufferAttribute([0,0,1,0,0,.02,1,.02],2));g.setIndex([0,1,2,1,3,2]);g.computeVertexNormals();gs.push(g);}
+   g.setAttribute('position',new THREE.Float32BufferAttribute([a.x,a.y,a.z,b.x,b.y,b.z,a.x,a.y+R0.h,a.z,b.x,b.y+R0.h,b.z],3));g.setAttribute('uv',new THREE.Float32BufferAttribute([0,0,1,0,0,.02,1,.02],2));g.setIndex([0,1,2,1,3,2]);g.computeVertexNormals();gs.push(g);}}
   const rc=cv(64,256,(g)=>{const cols=['#ff3f6a','#ff9a2a','#ffe14d','#4dff8a','#35c8ff','#8a6bff'];for(let i=0;i<32;i++){g.fillStyle=cols[i%6];g.fillRect(0,i*8,64,8);}});
   const m=new THREE.Mesh(merge(gs),new THREE.MeshStandardMaterial({map:tex(rc,true,false),emissiveMap:tex(rc,true,false),emissive:0xffffff,emissiveIntensity:.6,roughness:.3,metalness:.2,side:THREE.DoubleSide}));S.add(m);}
 
@@ -208,8 +212,11 @@ export function buildWorld(R,S,cam,HIGH,custom){
   const span=W+2.2;for(const y of[7.2,8.4]){const g=new THREE.BoxGeometry(span,.18,.18);g.rotateY(ang);g.translate(p.x,p.y+y,p.z);metal.push(g);}
   for(let i=0;i<=12;i++){const o=-span/2+i*span/12,g=new THREE.BoxGeometry(.08,1.4,.08);g.rotateZ(i%2?.6:-.6);g.rotateY(ang);g.translate(p.x+n.x*o,p.y+7.8,p.z+n.z*o);metal.push(g);}
   for(const y of[7.05,8.55]){const g=new THREE.CylinderGeometry(.04,.04,span,6);g.rotateZ(Math.PI/2);g.rotateY(Math.atan2(-n.z,n.x));g.translate(p.x-tg.x*.15,p.y+y,p.z-tg.z*.15);emit.push(paintCol(g,C(PAL.neon[0],3)));}
-  const scr=cv(1024,96,(g)=>{g.fillStyle='#06020c';g.fillRect(0,0,1024,96);g.font='bold 64px Arial';g.textAlign='center';g.fillStyle=PAL.gantryText??'#35f2ff';g.fillText('NEON RUSH  •  '+T.name.toUpperCase(),512,72,1000);g.fillStyle='rgba(0,0,0,.35)';for(let x=0;x<1024;x+=4)g.fillRect(x,0,1,96);});
-  const gs=new THREE.Mesh(new THREE.PlaneGeometry(W-1,1.0),new THREE.MeshBasicMaterial({map:tex(scr,true,false),color:new THREE.Color(1.8,1.8,1.8),side:THREE.DoubleSide}));gs.position.set(p.x-tg.x*.12,p.y+7.8,p.z-tg.z*.12);gs.rotation.y=ang+Math.PI;S.add(gs);}
+  const drawBanner=(g,emb,ecol)=>{g.fillStyle='#06020c';g.fillRect(0,0,1024,96);g.font='bold 64px Arial';g.textAlign='center';g.fillStyle=PAL.gantryText??'#35f2ff';g.fillText('NEON RUSH  •  '+T.name.toUpperCase(),512,72,800);   // M5: the player's emblem on both ends of the banner
+   const en=emblemName(emb);if(en){g.fillStyle=hexCss(NEON[ecol]||NEON[0]);g.strokeStyle='#fff';g.lineWidth=4;for(const x of[66,958]){const p=path2d(en,x,48,34);g.fill(p);g.stroke(p);}}
+   g.fillStyle='rgba(0,0,0,.35)';for(let x=0;x<1024;x+=4)g.fillRect(x,0,1,96);};
+  const scr=cv(1024,96,(g)=>drawBanner(g,custom&&custom.emblem,custom&&custom.emblemColor));const bannerTex=tex(scr,true,false);bannerRef={scr,bannerTex,drawBanner};
+  const gs=new THREE.Mesh(new THREE.PlaneGeometry(W-1,1.0),new THREE.MeshBasicMaterial({map:bannerTex,color:new THREE.Color(1.8,1.8,1.8),side:THREE.DoubleSide}));gs.position.set(p.x-tg.x*.12,p.y+7.8,p.z-tg.z*.12);gs.rotation.y=ang+Math.PI;S.add(gs);}
 
  // ---------- city: lit facades (one material, 8 chunks for culling), balconies, AC units, shop signs, wires ----------
  const CELL=128,FA=1024;
@@ -255,9 +262,9 @@ export function buildWorld(R,S,cam,HIGH,custom){
  const nm=(m,n)=>{m.name=n;return m;};
  for(const arr of bG)if(arr.length)S.add(nm(new THREE.Mesh(merge(arr),bMat),'bld'));
  if(balM.length||acM.length){const gs=[new THREE.BoxGeometry(1.1,.12,2.2)];gs.push(new THREE.BoxGeometry(.04,.95,2.2).translate(.53,.5,0));for(let i=-1;i<=1;i+=2)gs.push(new THREE.BoxGeometry(1.1,.95,.04).translate(0,.5,i*1.08));
-  const bal=new THREE.InstancedMesh(merge(gs),metalMat,Math.max(1,balM.length));bal.count=balM.length;balM.forEach((m,i)=>bal.setMatrixAt(i,m.clone().multiply(new THREE.Matrix4().makeRotationY(-Math.PI/2))));bal.layers.set(1);S.add(bal);
+  const bal=new THREE.InstancedMesh(merge(gs),metalMat,Math.max(1,balM.length));bal.name='bal';bal.count=balM.length;balM.forEach((m,i)=>bal.setMatrixAt(i,m.clone().multiply(new THREE.Matrix4().makeRotationY(-Math.PI/2))));bal.layers.set(1);S.add(bal);
   const ac=new THREE.InstancedMesh(merge([new THREE.BoxGeometry(.85,.6,.45),new THREE.CylinderGeometry(.2,.2,.02,8).rotateX(Math.PI/2).translate(.15,0,.23)]),new THREE.MeshStandardMaterial({color:0xbab4c0,roughness:.5,metalness:.3,normalMap:N_metal}),Math.max(1,acM.length));
-  ac.count=acM.length;acM.forEach((m,i)=>ac.setMatrixAt(i,m.clone().multiply(new THREE.Matrix4().makeRotationY(-Math.PI/2))));ac.layers.set(1);S.add(ac);}
+  ac.name='ac';ac.count=acM.length;acM.forEach((m,i)=>ac.setMatrixAt(i,m.clone().multiply(new THREE.Matrix4().makeRotationY(-Math.PI/2))));ac.layers.set(1);S.add(ac);}
  if(signs.length){const words=PAL.words??[['NOODLES','#ff4fc8'],['ARCADE','#35f2ff'],['ROBO FIX','#ffd23a'],['BOBA TEA','#7dff6a'],['DONUTS','#ff8a2a'],['PIZZA','#ff4f6a'],['KARAOKE','#b07aff'],['HOTEL','#35f2ff']];
   const signC=cv(1024,512,(g)=>{g.fillStyle='#0a0612';g.fillRect(0,0,1024,512);g.textAlign='center';g.textBaseline='middle';
    words.forEach(([w,c],i)=>{const x=(i%2)*512+256,y=(i>>1)*128+64;g.fillStyle='#120a1c';g.fillRect(x-246,y-58,492,116);g.strokeStyle=c;g.lineWidth=7;g.shadowColor=c;g.shadowBlur=16;g.strokeRect(x-238,y-50,476,100);
@@ -269,11 +276,11 @@ export function buildWorld(R,S,cam,HIGH,custom){
   S.add(new THREE.Mesh(merge(sg),new THREE.MeshBasicMaterial({map:tex(signC,true,false),color:new THREE.Color(1.7,1.7,1.7),side:THREE.DoubleSide})));}
  if(wires.length>1){const pts=[];for(let i=0;i<wires.length-1;i++){const a=wires[i],b=wires[(i*7+3)%wires.length];if(a.distanceTo(b)>40)continue;
    for(let k=0;k<12;k++){for(const t of[k/12,(k+1)/12]){const sag=Math.sin(t*Math.PI)*1.4;pts.push(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t-sag,a.z+(b.z-a.z)*t);}}}
-  if(pts.length){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));const l=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0x140e18}));l.layers.set(1);S.add(l);}}
+  if(pts.length){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));const l=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0x140e18}));l.name='wires';l.layers.set(1);S.add(l);}}
  // far skyline ring + moon
- {const fr=T.far??{n:80,h0:30,h1:110};const gs=[];for(let i=0;i<fr.n;i++){const a=i/fr.n*Math.PI*2,w=12+rnd()*16,h=fr.h0+rnd()*(fr.h1-fr.h0),g=new THREE.BoxGeometry(w,h,12);
+ if(T.far!==false){const fr=T.far??{n:80,h0:30,h1:110},nf=HIGH?fr.n:Math.max(8,Math.round(fr.n*.5));const gs=[];for(let i=0;i<nf;i++){const a=i/nf*Math.PI*2,w=12+rnd()*16,h=fr.h0+rnd()*(fr.h1-fr.h0),g=new THREE.BoxGeometry(w,h,12);
    const uv=g.attributes.uv;for(let k=0;k<uv.count;k++)uv.setXY(k,uv.getX(k)*w/24,uv.getY(k)*h/25.6);g.rotateY(-a+Math.PI/2);g.translate(CX+Math.cos(a)*(RAD+130),(fr.y0??GROUND)+h/2,CZ+Math.sin(a)*(RAD+130));gs.push(g);}
-  const m=new THREE.Mesh(merge(gs),new THREE.MeshBasicMaterial({map:bMat.emissiveMap,color:PAL.farTint??0x8060a0}));m.layers.set(1);S.add(m);}
+  const m=new THREE.Mesh(merge(gs),new THREE.MeshBasicMaterial({map:bMat.emissiveMap,color:PAL.farTint??0x8060a0}));m.name='far';m.layers.set(1);S.add(m);}
  {const mp=PAL.moon??[0,75,-330];const m=new THREE.Mesh(new THREE.CircleGeometry(10,40),new THREE.MeshBasicMaterial({color:C(0xfff0d0,1.3),fog:false}));m.position.set(CX+mp[0],mp[1],CZ+mp[2]-RAD*.4);m.lookAt(CX,0,CZ);S.add(m);}
  {const pool=[],glow=[];for(const lp of lampPos){const g=new THREE.PlaneGeometry(7,7);g.rotateX(-Math.PI/2);g.translate(lp.x,lp.y-6.9+.02,lp.z);pool.push(g);const h=new THREE.PlaneGeometry(1.1,1.1).rotateY(rnd()*3);h.translate(lp.x,lp.y-.15,lp.z);glow.push(h);}
   if(pool.length){const pm=new THREE.Mesh(merge(pool),new THREE.MeshBasicMaterial({map:glowT,color:PAL.pool??0xffa860,transparent:true,opacity:.1,blending:THREE.AdditiveBlending,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3}));pm.renderOrder=3;pm.layers.set(1);S.add(pm);
@@ -328,6 +335,7 @@ export function buildWorld(R,S,cam,HIGH,custom){
   envRT&&envRT.dispose();if(S.background&&S.background.isTexture)S.background.dispose();for(const t of[bMat.emissiveMap])t&&t.dispose();
   if(composer){for(const p of composer.passes)p.dispose&&p.dispose();composer.dispose();}
   S.clear();S.environment=null;S.background=null;S.fog=null;}
- return {hero,kit,resize,render,updateFx,mirror,composer,lampPos,dispose,land,get cover(){return cover;}};
+ const setEmblem=(emb,ecol)=>{if(!bannerRef)return;bannerRef.drawBanner(bannerRef.scr.getContext('2d'),emb,ecol);bannerRef.bannerTex.needsUpdate=true;};
+ return {setEmblem,hero,kit,resize,render,updateFx,mirror,composer,lampPos,dispose,land,get cover(){return cover;}};
 }
 const _v=new THREE.Vector3();

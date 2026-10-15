@@ -1,5 +1,6 @@
 // Neon Rush karts + drivers (owned by Track B in M3). kit comes from world.js.
 import * as THREE from 'three';
+import {emblemName,threeShapes,NEON,badgeInner} from './emblems.js';
 let K;  // kit
 function tyreGeo(r,w,seg=18){const ri=r*.62;const prof=[[ri,-w/2],[ri+.01,-w/2-.005],[r*.86,-w/2-.012],[r*.97,-w/2+.01],[r,-w/2+.04],[r,w/2-.04],[r*.97,w/2-.01],[r*.86,w/2+.012],[ri+.01,w/2+.005],[ri,w/2]];
   const g=new THREE.LatheGeometry(prof.map(([x,y])=>new THREE.Vector2(x,y)),seg);g.rotateZ(Math.PI/2);return g;}
@@ -20,7 +21,7 @@ function kartParts(kit,accent,driverFn,lod,o={}){K=kit;const {paintCol,RoundedBo
   add('lights',new THREE.BoxGeometry(.95,.01,.01),0,.52,.9,0,0,0,new THREE.Color(accent).multiplyScalar(2.6));
   for(const x of[-.3,.3]){add('lights',new RoundedBoxGeometry(.22,.06,.02,s2,.01),x,.2,1.075,0,0,0,new THREE.Color(0xff2040).multiplyScalar(3));add('lights',new THREE.CircleGeometry(.04,10),x*.9,.2,-1.14,0,Math.PI,0,new THREE.Color(0xfff2e0).multiplyScalar(3.5));}
   for(const [x,z,r,w] of[[-.6,-.66,.17,.15],[.6,-.66,.17,.15],[-.62,.66,.2,.22],[.62,.66,.2,.22]]){add('tyre',tyreGeo(r,w,lod?10:18),x,r,z);add('chrome',rimGeo(r,w,lod,o.spokes),x,r,z);}
-  if(o.body)bodyExtras(add,o.body,seg,s2);if(o.decal)decalShapes(add,o.decal,o.decalCol);
+  if(o.body)bodyExtras(add,o.body,seg,s2);if(o.decal)decalShapes(add,o.decal,o.decalCol);if(o.emblem)emblemShapes(add,o.emblem,o.emblemCol);
   driverFn(add);return parts;}
 let HERO=null,MK=null;   // the main-scene hero kart + the main kit (set by buildHero)
 // ---------- M4 garage options (index 0 of every list = the original look). Counts must match save.js KART_N. ----------
@@ -29,7 +30,7 @@ export const FINISHES=[{n:'Gloss',metal:.55,rough:.38,coat:1,env:1.5,glow:0},{n:
 export const WHEELS=[{n:'Chrome',col:0xd8d8e4,metal:1,rough:.15,glow:0,spokes:5},{n:'Gold',col:0xffc83a,metal:1,rough:.22,glow:0,spokes:5},{n:'Pink glow',col:0x3a1030,metal:.4,rough:.4,glow:0xff3fd8,spokes:8},{n:'Cyan glow',col:0x0a2a34,metal:.4,rough:.4,glow:0x35f2ff,spokes:6}];
 export const BODIES=['Classic','Racer','Buggy','Rocket'],TRAILS=['None','Sparkles','Hearts','Rainbow','Flames'],DECALS=['None','Star','Heart','Bolt','Stripes'];
 const lum=h=>{const c=new THREE.Color(h);return .2126*c.r+.7152*c.g+.0722*c.b;};
-const normCustom=c=>{const o={body:0,paint:0,finish:0,wheels:0,trail:0,decal:0},lim={body:BODIES.length,paint:PAINTS.length,finish:FINISHES.length,wheels:WHEELS.length,trail:TRAILS.length,decal:DECALS.length};
+const normCustom=c=>{const o={body:0,paint:0,finish:0,wheels:0,trail:0,decal:0,emblem:0,emblemColor:0},lim={body:BODIES.length,paint:PAINTS.length,finish:FINISHES.length,wheels:WHEELS.length,trail:TRAILS.length,decal:DECALS.length,emblem:9,emblemColor:8};
   for(const k in o){const n=Math.round(+(c&&c[k]));o[k]=Number.isFinite(n)&&n>=0&&n<lim[k]?n:0;}return o;};
 // extra bodywork per style (paint parts, so no extra draw calls). The camera sees the kart from behind: the rear reads most.
 function bodyExtras(add,style,seg,s2){const RB=kitRB||K.RoundedBoxGeometry;
@@ -55,6 +56,10 @@ function decalShapes(add,kind,col){if(kind===4){   // two racing stripes
     for(const x of[-.09,.09]){add('paint',new THREE.PlaneGeometry(.07,.38).rotateX(-Math.PI/2),x,.248,-.92,0,0,0,col);add('paint',new THREE.PlaneGeometry(.04,.17).rotateX(-Math.PI/2),x*1.8,.523,1.0,.08,0,0,col);}return;}
   const g1=shape(kind).rotateX(-Math.PI/2).scale(.13,1,.13),g2=shape(kind).rotateX(-Math.PI/2).scale(.065,1,.065);
   add('paint',g1,0,.248,-.92,0,0,0,col);add('paint',g2,0,.523,1.0,.08,0,0,col);}
+// M5 emblem: neon plate on the hood + an upright one on the tail between the wing end plates (glowing, so it reads from behind)
+function emblemShapes(add,name,col){const mk=()=>{const gs=threeShapes(THREE,name).map(s=>new THREE.ShapeGeometry(s));return gs;};
+  for(const g of mk())add('lights',g.scale(.21,.21,1).rotateX(-Math.PI/2),0,.252,-.42,0,0,0,col);
+  for(const g of mk())add('lights',g.scale(.17,.17,1),0,.37,1.075,0,0,0,col);}
 let kitRB;
 const decalCol=hex=>new THREE.Color(lum(hex)>.55?0x241046:0xfff6b0);
 // the hero kart. custom = {body,paint,finish,wheels,trail,decal} (garage); restyle(custom) rebuilds it in place (no new draw calls).
@@ -76,7 +81,7 @@ export function kart(kit,paint,accent,driverFn,custom){K=kit;kitRB=kit.RoundedBo
   const meshes=[];
   function restyle(c){c=normCustom(c);const pc=PAINTS[c.paint].hex,fin=FINISHES[c.finish],wh=WHEELS[c.wheels];
     for(const m of meshes){body.remove(m);m.geometry.dispose();}meshes.length=0;
-    const parts=kartParts(kit,accent,driverFn,false,{body:c.body,spokes:wh.spokes,decal:c.decal,decalCol:c.decal?decalCol(pc):null});
+    const parts=kartParts(kit,accent,driverFn,false,{body:c.body,spokes:wh.spokes,decal:c.decal,decalCol:c.decal?decalCol(pc):null,emblem:emblemName(c.emblem),emblemCol:new THREE.Color(NEON[c.emblemColor]).multiplyScalar(2.2)});
     for(const key in parts){let gs=parts[key];if(key==='paint'){const col=new THREE.Color(pc);gs=gs.map(g=>g.attributes.color?g:kit.paintCol(g,col));}
       const m=new THREE.Mesh(merge(gs),mats[key]);if(!['paint','lights'].includes(key))m.layers.set(1);body.add(m);meshes.push(m);}   // small detail skipped in puddle reflections
     const P=mats.paint;P.metalness=fin.metal;P.roughness=fin.rough;P.clearcoat=fin.coat;P.envMapIntensity=fin.env;P.emissive.set(fin.glow?pc:0x000000);P.emissiveIntensity=fin.glow;
@@ -151,7 +156,8 @@ export const RIVAL_LOOKS=[
  {name:'Kiki',paint:0x8a4dff,accent:0xff3fd8,css:'#8a4dff',drv:catD,svg:'<path d="M5 4l4 5h6l4-5v10a7 7 0 0 1-14 0z" fill="#e8dcff"/><circle cx="9.5" cy="13" r="1.3" fill="#241a30"/><circle cx="14.5" cy="13" r="1.3" fill="#241a30"/><path d="M11 16h2l-1 1z" fill="#ff6ab8"/>'},
  {name:'Coco',paint:0x2fd0a0,accent:0xffe14d,css:'#2fd0a0',drv:pandaD,svg:'<circle cx="6.5" cy="7" r="3" fill="#22202a"/><circle cx="17.5" cy="7" r="3" fill="#22202a"/><circle cx="12" cy="13" r="7.5" fill="#fff"/><ellipse cx="9" cy="12.5" rx="2" ry="2.6" fill="#22202a"/><ellipse cx="15" cy="12.5" rx="2" ry="2.6" fill="#22202a"/><circle cx="12" cy="16" r="1.2" fill="#22202a"/>'},
  {name:'Shelly',paint:0xffc02a,accent:0x7dff6a,css:'#e0a010',drv:turtleD,svg:'<circle cx="12" cy="13" r="7" fill="#6ad86a"/><path d="M5 11a7 7 0 0 1 14 0z" fill="#ffc02a"/><circle cx="9.5" cy="14" r="1.2" fill="#1a1214"/><circle cx="14.5" cy="14" r="1.2" fill="#1a1214"/><path d="M10 17q2 1.5 4 0" stroke="#2a7a4a" stroke-width="1.2" fill="none"/>'}];
-export const HERO_LOOK={name:'You',css:'#e8287a',svg:'<circle cx="12" cy="11" r="8" fill="#fff"/><rect x="5" y="9" width="14" height="5" rx="2.5" fill="#101828"/>'};
+const HERO_SVG='<circle cx="12" cy="11" r="8" fill="#fff"/><rect x="5" y="9" width="14" height="5" rx="2.5" fill="#101828"/>';
+export const HERO_LOOK={name:'You',css:'#e8287a',svg:HERO_SVG};
 // fx atlas: [glow | bubble] / [star | spark]
 let fxAtlas=null;
 function atlas(kit){if(fxAtlas)return fxAtlas;fxAtlas=kit.tex(kit.cv(256,256,(g)=>{
@@ -188,7 +194,7 @@ export function buildRivals(kit,looks){K=kit;kitRB=kit.RoundedBoxGeometry;const 
    setStar(who,pos,a,camQ,t){if(!(a>0)){hideSlot(fxM.M,2*N+1+who);return;}q.copy(camQ).multiply(qz.setFromAxisAngle(Z,t*3));m4.compose(pos,q,v.setScalar(.9+.15*Math.sin(t*14)));setSlotM(fxM.M,2*N+1+who,m4,a);}};}
 
 // ---------- M4: customization glue ----------
-export function setHeroLook(c){c=normCustom(c);HERO_LOOK.css='#'+new THREE.Color(PAINTS[c.paint].hex).getHexString();}   // ladder / podium portrait colour follows the paint
+export function setHeroLook(c){c=normCustom(c);HERO_LOOK.css='#'+new THREE.Color(PAINTS[c.paint].hex).getHexString();HERO_LOOK.svg=HERO_SVG+badgeInner(c.emblem,c.emblemColor);}   // ladder / podium portrait colour follows the paint
 export function applyKart(hero,c){const h=hero||HERO;if(h)h.userData.restyle(c);setHeroLook(c);}
 export const heroKart=()=>HERO;
 // a second kart for the garage preview (own scene; shares the kit's textures/geometry helpers, not its scene)

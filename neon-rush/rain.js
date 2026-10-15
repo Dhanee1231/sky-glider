@@ -4,6 +4,7 @@
 // camera shutter would see it, so at speed the rain leans toward you. Lamp-lit colour is kept.
 import * as THREE from 'three';
 export function createRain(kit,cam){const {S,HIGH,cv,tex,rnd,lampPos,W,pointAt}=kit;
+ if(kit.track&&kit.track.rain===false)return {update(){},rain:null,dispose(){}};   // M5b: the beach is dry
  const RAIN=HIGH?1300:500;
  const FALL=9.5,WIND_X=.9,WIND_Z=.4;           // m/s: terminal speed of a raindrop, light breeze
  const BX=34,BY=16,BZ=46,FWD=16;                // wrap box size; box centre sits FWD m ahead of the camera

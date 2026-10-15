@@ -6,13 +6,15 @@
 import * as THREE from 'three';
 import {palMesh,setSlotM,hideSlot} from './b_pal.js';
 import {hitKart} from './items.js';
+import {getDiff} from './tuning.js';
 // event -> what main.js plays: 'bonk' (bump + shake), 'crash' (crate smash), 'spin' (fan), 'wiggle', 'goo', 'boing'
-export const EVENTS={barrel:'bonk',crate:'crash',trap:'crash',cones:'crash',crane:'bonk',sign:'bonk',net:'bonk',car:'bonk',bollards:'bonk',sweeper:'bonk',pixel:'bonk',gate:'bonk',buoy:'boing',goo:'goo',fan:'spin',wheel:'spin'};
+export const EVENTS={barrel:'bonk',crate:'crash',trap:'crash',cones:'crash',crane:'bonk',sign:'bonk',net:'bonk',car:'bonk',bollards:'bonk',sweeper:'bonk',pixel:'bonk',gate:'bonk',buoy:'boing',goo:'goo',fan:'spin',wheel:'spin',barrier:'bonk',container:'bonk',bumper:'bonk',rollbot:'bonk',dockcart:'bonk',paddle:'bonk',ball:'boing',castle:'crash',board:'bonk',umbrella:'bonk',wave:'goo'};
 // half-width of the band each group can block (AI dodges the whole band; the lane beside it stays clear)
-const HW={barrel:1.6,crate:1.5,trap:1.5,crane:2.9,fan:2.2,cones:1.8,sign:3.3,net:3.3,car:1.3,goo:1.8,bollards:1.7,sweeper:3,buoy:1.6,pixel:1.8,gate:2.8,wheel:2};
-const GCOL={barrel:0xffa020,crate:0xff4fc8,trap:0xff7a3a,crane:0xffd23a,fan:0x35f2ff,cones:0xff8a2a,sign:0xff4fd8,net:0x35f2ff,car:0x7aa8ff,goo:0x9aff4a,bollards:0xff3a5a,sweeper:0xffd23a,buoy:0xff4a4a,pixel:0x7dff6a,gate:0xff3a3a,wheel:0xffd23a};
+const HW={barrel:1.6,crate:1.5,trap:1.5,crane:2.9,fan:2.2,cones:1.8,sign:3.3,net:3.3,car:1.3,goo:1.8,bollards:1.7,sweeper:3,buoy:1.6,pixel:1.8,gate:2.8,wheel:2,barrier:2.6,container:1.9,bumper:1.9,rollbot:2.7,dockcart:2.7,paddle:2.8,ball:1.6,castle:1.6,board:2.6,umbrella:1.7,wave:3.1};
+const GCOL={barrel:0xffa020,crate:0xff4fc8,trap:0xff7a3a,crane:0xffd23a,fan:0x35f2ff,cones:0xff8a2a,sign:0xff4fd8,net:0x35f2ff,car:0x7aa8ff,goo:0x9aff4a,bollards:0xff3a5a,sweeper:0xffd23a,buoy:0xff4a4a,pixel:0x7dff6a,gate:0xff3a3a,wheel:0xffd23a,barrier:0xff8a1a,container:0xff8a1a,bumper:0xff8a1a,rollbot:0xff8a1a,dockcart:0xff8a1a,paddle:0xff8a1a,ball:0xff4f7a,castle:0xffc060,board:0x35f2ff,umbrella:0xff4fd8,wave:0x35f2ff};
 export function createObstacles(kit){const {S,W,L,sample,cv,tex}=kit;const LAYOUT=(kit.track&&kit.track.obstacles)||[];const C=(h,m=1)=>new THREE.Color(h).multiplyScalar(m);
  const pc=(g,c)=>kit.paintCol(g,c);
+ const NEWK=['barrier','container','bumper','rollbot','dockcart','paddle','wave','umbrella','board'];
  const pieces=[],groups=[];const opParts=[],glowParts=[];const o={};
  const frameAt=(s,x,out)=>{sample(s,o);(out.p||(out.p=new THREE.Vector3())).set(o.x-o.tz*x,o.y,o.z+o.tx*x);out.ang=Math.atan2(o.tx,o.tz);return out;};
  // ---------- piece geometry (local frame: +z along the track backwards, +x = left, y up) ----------
@@ -84,9 +86,47 @@ export function createObstacles(kit){const {S,W,L,sample,cv,tex}=kit;const LAYOU
  const gatePost=(side)=>{const ex=-side*(W/2-.35);return [pc(new THREE.BoxGeometry(.7,1.5,.7).translate(ex,.75,0),C(0x303040)),pc(new THREE.BoxGeometry(.75,.12,.75).translate(ex,1.5,0),C(0xffd23a,2.4)),pc(new THREE.SphereGeometry(.16,8,6).translate(ex,1.72,0),C(0xff3a3a,3.2))];};
  const gateArm=(side,len)=>{const gs=[];for(let i=0;i<Math.round(len/.8);i++)gs.push(pc(new THREE.BoxGeometry(.8,.24,.18).translate(side*(.4+i*.8),0,0),C(i%2?0xffffff:0xff3a3a,i%2?1.6:2.2)));
   gs.push(pc(new THREE.SphereGeometry(.13,8,6).translate(side*len,0,0),C(0xffd23a,3)));return gs;};
+
+ // ---------- M5 hazards: one warm orange (0xff6a1a) + white stripes + amber beacon = "stay away"; big, chunky, low-poly ----------
+ const HZ=0xff6a1a,HZD=0x2a1a10;
+ const warnPad=(hw)=>{const gs=[];const n=Math.round(hw*2/.9);for(let i=0;i<n;i++){const x=-hw+(i+.5)*(hw*2/n);gs.push(pc(new THREE.BoxGeometry(hw*2/n*.62,.03,2.2).rotateY(i%2?.5:-.5).translate(x,.045,0),C(i%2?HZ:0xfff0d0,i%2?2:1.7)));}return gs;};   // flat chevron strip on the road, ~9 m before the hazard
+ const barrierGeo=()=>{const gs=[];gs.push(pc(new THREE.BoxGeometry(4.4,.9,.6).translate(0,.62,0),C(HZ)));
+  for(let i=0;i<8;i++)gs.push(pc(new THREE.BoxGeometry(.5,.92,.62).translate(-1.93+i*.55,.62,0),C(i%2?HZD:0xfff0d0,i%2?1:1.7)));
+  gs.push(pc(new THREE.BoxGeometry(4.6,.2,.75).translate(0,1.17,0),C(0xfff0d0,1.8)));
+  for(const x of[-1.9,1.9]){gs.push(pc(new THREE.BoxGeometry(.28,.5,.5).translate(x,.25,0),C(HZD)));gs.push(pc(new THREE.SphereGeometry(.22,8,6).translate(x,1.45,0),C(0xffd23a,3.2)));}
+  gs.push(pc(new THREE.SphereGeometry(.2,8,6).translate(0,1.43,0),C(0xffd23a,3.2)));return gs;};
+ const containerGeo=()=>{const gs=[];gs.push(pc(new THREE.BoxGeometry(2.5,1.5,3.2).translate(0,.78,0),C(HZ)));
+  for(const f of[-1,1])for(let z=-1.4;z<=1.41;z+=.35)gs.push(pc(new THREE.BoxGeometry(.1,1.3,.1).translate(f*1.27,.78,z),C(0xc84a10)));
+  gs.push(pc(new THREE.BoxGeometry(2.56,.2,3.26).translate(0,1.0,0),C(0xfff0d0,1.8)));gs.push(pc(new THREE.BoxGeometry(2.6,.12,3.3).translate(0,1.56,0),C(HZD)));
+  for(const f of[-1,1])gs.push(pc(new THREE.CircleGeometry(.42,12).rotateY(f*Math.PI/2).translate(f*1.285,.62,0),C(0x35f2ff,2.4)));
+  gs.push(pc(new THREE.SphereGeometry(.24,8,6).translate(0,1.8,0),C(0xffd23a,3.2)));return gs;};
+ const bumperGeo=()=>{const gs=[];gs.push(pc(new THREE.CylinderGeometry(.62,.72,.8,14).translate(0,.4,0),C(HZ)));gs.push(pc(new THREE.CylinderGeometry(.74,.74,.16,14).translate(0,.45,0),C(0xfff0d0,1.8)));
+  gs.push(pc(new THREE.SphereGeometry(.5,12,8,0,Math.PI*2,0,Math.PI/2).translate(0,.8,0),C(0xffd23a,2.6)));gs.push(pc(new THREE.TorusGeometry(.66,.07,6,18).rotateX(Math.PI/2).translate(0,.88,0),C(0xff4fd8,2.6)));return gs;};
+ const rollbotGeo=()=>{const gs=[];const RB=kit.RoundedBoxGeometry;gs.push(pc(new RB(1.5,.95,1.5,2,.25).translate(0,.7,0),C(HZ)));gs.push(pc(new THREE.BoxGeometry(1.54,.18,1.54).translate(0,.55,0),C(0xfff0d0,1.8)));
+  gs.push(pc(new THREE.SphereGeometry(.42,10,8,0,Math.PI*2,0,Math.PI/2).translate(0,1.15,0),C(0x35f2ff,2.2)));for(const x of[-.7,.7])for(const z of[-.55,.55])gs.push(pc(new THREE.CylinderGeometry(.24,.24,.18,10).rotateZ(Math.PI/2).translate(x,.24,z),C(HZD)));
+  gs.push(pc(new THREE.SphereGeometry(.2,8,6).translate(0,1.7,0),C(0xffd23a,3.2)));gs.push(pc(new THREE.CylinderGeometry(.04,.04,.35,6).translate(0,1.5,0),C(0x606070)));return gs;};
+ const dockcartGeo=()=>{const gs=[];gs.push(pc(new THREE.BoxGeometry(2.1,.3,1.6).translate(0,.45,0),C(HZ)));for(const x of[-.8,.8])for(const z of[-.6,.6])gs.push(pc(new THREE.CylinderGeometry(.28,.28,.2,10).rotateZ(Math.PI/2).translate(x,.28,z),C(HZD)));
+  gs.push(pc(new THREE.BoxGeometry(1.2,1.0,1.2).translate(-.3,1.1,0),C(0xe8a040)));gs.push(pc(new THREE.BoxGeometry(1.24,.18,1.24).translate(-.3,1.25,0),C(0xfff0d0,1.8)));
+  gs.push(pc(new THREE.BoxGeometry(.18,1.3,.18).translate(.85,1.05,0),C(HZD)));gs.push(pc(new THREE.SphereGeometry(.2,8,6).translate(.85,1.8,0),C(0xffd23a,3.2)));return gs;};
+ const paddleGeo=()=>{const gs=[];const RB=kit.RoundedBoxGeometry;gs.push(pc(new RB(2.3,.7,.85,2,.25).translate(0,.62,0),C(HZ)));gs.push(pc(new THREE.BoxGeometry(2.34,.14,.89).translate(0,.62,0),C(0xfff0d0,1.8)));
+  for(const x of[-1.15,1.15])gs.push(pc(new THREE.SphereGeometry(.36,10,8).translate(x,.62,0),C(0xff4fd8,2.6)));gs.push(pc(new THREE.BoxGeometry(.5,.14,.5).translate(0,1.05,0),C(0x7dff6a,2.6)));
+  gs.push(pc(new THREE.CylinderGeometry(.3,.4,.3,10).translate(0,.15,0),C(HZD)));return gs;};
+ // M5b beach pieces (Track 4): beach balls, sandcastle, surfboards, umbrella, foam wave
+ const tri=(g,f)=>{g=g.toNonIndexed();const p=g.attributes.position,c=new Float32Array(p.count*3);for(let i=0;i<p.count;i+=3){const k=f((p.getX(i)+p.getX(i+1)+p.getX(i+2))/3,(p.getY(i)+p.getY(i+1)+p.getY(i+2))/3,(p.getZ(i)+p.getZ(i+1)+p.getZ(i+2))/3,i/3);for(let j=0;j<3;j++){c[(i+j)*3]=k.r;c[(i+j)*3+1]=k.g;c[(i+j)*3+2]=k.b;}}g.setAttribute('color',new THREE.BufferAttribute(c,3));return g;};   // per-triangle colour
+ const ballGeo=(r,ph)=>{const cols=[0xff2d55,0xffffff,0x1e7bff,0xffd21a,0xffffff,0x22c56e].map(h=>C(h,1.15));return [tri(new THREE.SphereGeometry(r,14,10).translate(0,r,0),(x,y,z)=>Math.abs(y-r)>r*.86?C(0xffffff,1.4):cols[Math.floor((Math.atan2(z,x)+Math.PI+ph)/(Math.PI/3))%6])];};
+ const castleGeo=()=>{const gs=[],sd=C(0xe8c27a),dk=C(0xb98a4c);gs.push(pc(new THREE.CylinderGeometry(.85,1.0,.5,12).translate(0,.25,0),sd));
+  for(let i=0;i<4;i++){const a=i*Math.PI/2+Math.PI/4,x=Math.cos(a)*.62,z=Math.sin(a)*.62;gs.push(pc(new THREE.CylinderGeometry(.2,.26,.95,8).translate(x,.85,z),sd));gs.push(pc(new THREE.ConeGeometry(.27,.4,8).translate(x,1.5,z),C(0xff5a7a,1.3)));}
+  gs.push(pc(new THREE.CylinderGeometry(.34,.42,1.3,10).translate(0,1.1,0),sd));gs.push(pc(new THREE.ConeGeometry(.42,.6,10).translate(0,2.05,0),C(0xff3f6a,1.3)));gs.push(pc(new THREE.BoxGeometry(.04,.5,.04).translate(0,2.6,0),C(0xffffff,1.5)));gs.push(pc(new THREE.BoxGeometry(.34,.22,.03).translate(.17,2.74,0),C(0xffd23a,2.4)));
+  gs.push(pc(new THREE.BoxGeometry(.3,.45,.1).translate(0,.5,.98),dk));return gs;};
+ const boardGeo=(c1,c2,tilt)=>{const gs=[],b=new THREE.SphereGeometry(1,14,8);b.scale(.4,1.5,.08);gs.push(pc(b,C(c1,1.3)));const st=new THREE.SphereGeometry(1,10,6);st.scale(.1,1.48,.09);gs.push(pc(st,C(c2,1.4)));gs.push(pc(new THREE.BoxGeometry(.05,.3,.2).translate(0,-1.3,-.12),C(0x202030)));return gs.map(g=>g.rotateZ(tilt).translate(0,1.45,0));};
+ const umbrellaGeo=()=>{const gs=[pc(new THREE.CylinderGeometry(.05,.05,3.2,6).translate(0,1.6,0),C(0xf4f4f4))];
+  gs.push(tri(new THREE.ConeGeometry(1.9,.8,16,1,true).translate(0,3.4,0),(x,y,z)=>C(Math.floor((Math.atan2(z,x)+Math.PI)/(Math.PI/8))%2?0xff4f9a:0xffffff,1.3)));gs.push(pc(new THREE.SphereGeometry(.12,8,6).translate(0,3.85,0),C(0xffd23a,2.4)));gs.push(pc(new THREE.CylinderGeometry(.5,.6,.1,10).translate(0,.05,0),C(0xe8c27a)));return gs;};
+ const waveGeo=()=>{const gs=[];gs.push(pc(new THREE.BoxGeometry(3.7,.55,1.0).translate(0,.28,0),C(0x2ad0e8,1.2)));
+  gs.push(pc(new THREE.CylinderGeometry(.5,.5,3.7,10,1,false,0,Math.PI).rotateZ(Math.PI/2).translate(0,.62,.15),C(0x6aeaf8,1.4)));
+  gs.push(pc(new THREE.BoxGeometry(3.8,.14,.5).translate(0,1.12,-.25),C(0xffffff,2)));for(let i=0;i<6;i++)gs.push(pc(new THREE.SphereGeometry(.2+(i%3)*.05,8,6).translate(-1.6+i*.64,1.15+(i%2)*.12,-.2),C(0xffffff,2.2)));return gs;};
  let slot=0;const add=(gs,obj)=>{const id=slot++;for(const g of gs)opParts.push({g,slot:id});obj.slot=id;return obj;};
  const P0=(G,kind,o)=>{const P=add(o.geo,Object.assign({kind,g:G,s:G.s,x:G.x,y:0,r:.5,alive:1,t:0,vx:0,vy:0,vz:0,rot:0,yaw:0,roll:0,pitch:0,sc:1},o));delete P.geo;pieces.push(P);G.pieces.push(P);return P;};
- for(const [gi,d] of LAYOUT.entries()){const G={...d,gi,hw:HW[d.kind]||2,pieces:[],ph:gi*1.37};groups.push(G);const f={};const side=d.x>=0?1:-1;
+ for(const [gi,d] of LAYOUT.entries()){const G={...d,gi,hw:HW[d.kind]||2,pieces:[],ph:gi*1.37,on:1,pri:(gi*0.6180339887)%1};groups.push(G);const f={};const side=d.x>=0?1:-1;
   if(d.kind==='barrel'||d.kind==='crate'||d.kind==='trap'||d.kind==='buoy'){const spots=d.kind==='crate'||d.kind==='trap'?[[-.55,0],[.55,0],[0,.05,1]]:[[-.55,.6],[.55,.6],[0,-.5]];
    for(const [dx,ds,up] of spots)P0(G,d.kind,{geo:d.kind==='barrel'?barrelGeo():d.kind==='buoy'?buoyGeo():d.kind==='trap'?trapGeo():crateGeo(),s:d.s+ds,x:d.x+dx,y:up?(d.kind==='trap'?.9:1):0,y0:up?(d.kind==='trap'?.9:1):0,r:d.kind==='crate'||d.kind==='trap'?.55:.5,knock:1,yaw:(gi*1.7+dx)%1,ph:dx*3});}
   else if(d.kind==='cones'){for(const dx of[-1.35,-.45,.45,1.35])P0(G,'cones',{geo:coneGeo(),x:d.x+dx,s:d.s+Math.abs(dx)*.5,r:.35,knock:1,ph:dx*4});}
@@ -101,6 +141,16 @@ export function createObstacles(kit){const {S,W,L,sample,cv,tex}=kit;const LAYOU
   else if(d.kind==='sweeper'){P0(G,'sweeper',{geo:sweeperGeo(),r:.95,x0:d.x});}
   else if(d.kind==='pixel'){[[-1.15,0xffd23a],[0,0xff4fd8],[1.15,0x7dff6a]].forEach(([dx,c],i)=>P0(G,'pixel',{geo:pixelGeo(c),x:d.x+dx,r:.55,ph:i*1.05}));}
   else if(d.kind==='gate'){P0(G,'post',{geo:gatePost(side),x:0,stat:1,deco:1});P0(G,'gate',{geo:gateArm(side,5.6),x:side*(W/2-.35),y:1.35,side,a:0});G.x=side*(W/2-.35-2.8);}
+  else if(d.kind==='barrier'){P0(G,'barrier',{geo:barrierGeo(),r:.5,stat:1,yaw:0});}
+  else if(d.kind==='container'){P0(G,'container',{geo:containerGeo(),r:1.3,stat:1});}
+  else if(d.kind==='bumper'){[[-1.2,0],[0,.9],[1.2,0]].forEach(([dx,ds],i)=>P0(G,'bumper',{geo:bumperGeo(),x:d.x+dx,s:d.s+ds,r:.62,stat:1}));}
+  else if(d.kind==='rollbot'||d.kind==='dockcart'||d.kind==='paddle'){P0(G,d.kind,{geo:d.kind==='rollbot'?rollbotGeo():d.kind==='dockcart'?dockcartGeo():paddleGeo(),r:d.kind==='paddle'?1.1:.95,x0:d.x,amp:1.7});}
+  else if(d.kind==='ball'){for(const [dx,ds,ph] of[[-.7,.6,0],[.7,.6,1],[0,-.5,2]])P0(G,'ball',{geo:ballGeo(.55,ph),s:d.s+ds,x:d.x+dx,r:.55,knock:1,y0:0,yaw:(gi*1.7+dx)%1,ph:dx*3});}
+  else if(d.kind==='castle'){for(const [dx,ds] of[[-.6,0],[.6,0]])P0(G,'castle',{geo:castleGeo(),s:d.s+ds,x:d.x+dx,r:.9,knock:1,y0:0,yaw:dx,ph:dx*3});}
+  else if(d.kind==='board'){[[-1.1,0x35f2ff,0xffd23a,.12],[0,0xff4f7a,0xffffff,-.1],[1.1,0x7dff6a,0xff4fd8,.08]].forEach(([dx,c1,c2,t])=>P0(G,'board',{geo:boardGeo(c1,c2,t),x:d.x+dx,r:.55,stat:1,yaw:0}));}
+  else if(d.kind==='umbrella'){P0(G,'umbrella',{geo:umbrellaGeo(),r:.8,stat:1,yaw:gi});}
+  else if(d.kind==='wave'){P0(G,'wave',{geo:waveGeo(),r:1.8,x0:d.x,amp:1.3});}
+  if(NEWK.includes(d.kind))P0(G,'pad',{geo:warnPad(G.hw),s:d.s-9,x:d.x,stat:1,deco:1});
   frameAt(G.s,G.x,f);G.p=f.p;G.ang=f.ang;}
  // debris planks for breaking crates / traps (shared pool)
  const debris=[];for(let i=0;i<4;i++){const P=add([pc(new THREE.BoxGeometry(.7,.08,.2),C(0xc8803a))],{kind:'debris',t:9,p:new THREE.Vector3(),v:new THREE.Vector3(),rot:0});debris.push(P);}
@@ -113,37 +163,41 @@ export function createObstacles(kit){const {S,W,L,sample,cv,tex}=kit;const LAYOU
  const gl=palMesh(S,glowParts,new THREE.MeshBasicMaterial({map:ringT,vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2}),Math.max(1,groups.length),'rgb');gl.mesh.renderOrder=3;
  const m=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(0,0,0,'YXZ'),one=new THREE.Vector3(1,1,1),v=new THREE.Vector3(),sc=new THREE.Vector3();
  const fr={};
- function pieceMatrix(P){frameAt(P.s,P.x,fr);v.copy(fr.p);let yaw=fr.ang+P.yaw,pitch=P.pitch,roll=P.roll,s=P.sc;
+ function pieceMatrix(P){if(!P.g.on){hideSlot(op.M,P.slot);return;}frameAt(P.s,P.x,fr);v.copy(fr.p);let yaw=fr.ang+P.yaw,pitch=P.pitch,roll=P.roll,s=P.sc;
   if(P.knock){if(P.alive<1){const k=P.t;   // knocked: fly + tumble, then gone; pop back later
-    if(k<.9){const c=Math.cos(fr.ang),sn=Math.sin(fr.ang);v.x+=P.vx*k*c+P.vz*k*sn;v.z+=-P.vx*k*sn+P.vz*k*c;v.y=fr.p.y+Math.max(0,P.y0+P.vy*k-5*k*k);roll=P.rot*k*6;pitch=k*3;s=P.kind==='crate'||P.kind==='trap'?Math.max(0,1-k*1.4):1;}
+    if(k<.9){const c=Math.cos(fr.ang),sn=Math.sin(fr.ang);v.x+=P.vx*k*c+P.vz*k*sn;v.z+=-P.vx*k*sn+P.vz*k*c;v.y=fr.p.y+Math.max(0,P.y0+P.vy*k-5*k*k);roll=P.rot*k*6;pitch=k*3;s=P.kind==='crate'||P.kind==='trap'||P.kind==='castle'?Math.max(0,1-k*1.4):1;}
     else if(P.t<P.back){hideSlot(op.M,P.slot);return;}
     else{s=Math.min(1,(P.t-P.back)*3);v.y+=P.y;}}   // grow back in
    else v.y+=P.y;}
   else v.y+=P.y;
   e.set(pitch,yaw,roll);q.setFromEuler(e);m.compose(v,q,sc.setScalar(s));setSlotM(op.M,P.slot,m);}
- function reset(){T=0;for(const P of pieces){P.alive=1;P.t=0;if(P.kind==='car')P.s=P.g.s;}for(const D of debris){D.t=9;hideSlot(op.M,D.slot);}animate(0);}
- let T=0;
+ function reset(){T=0;TM=0;for(const P of pieces){P.alive=1;P.t=0;if(P.kind==='car')P.s=P.g.s;}for(const D of debris){D.t=9;hideSlot(op.M,D.slot);}animate(0);}
+ let T=0,TM=0;   // TM = hazard clock (T x the difficulty's mover speed): movers use it, so Easy ones are slower and Hard ones faster
  // per-kind motion (deterministic in T so every racer sees the same thing)
- function animate(dt){for(const P of pieces){const G=P.g;switch(P.kind){
-   case 'fan':P.rot+=dt*4.2;P.yaw=P.rot;break;
-   case 'wheel':P.rot+=dt*2.6;P.yaw=P.rot;break;
+ function animate(dt){const D=getDiff();TM+=dt*D.moveSpd;const mdt=dt*D.moveSpd;for(const P of pieces){const G=P.g;switch(P.kind){
+   case 'fan':P.rot+=mdt*4.2;P.yaw=P.rot;break;
+   case 'wheel':P.rot+=mdt*2.6;P.yaw=P.rot;break;
    case 'buoy':if(P.alive>=1){P.y=.06*Math.sin(T*2.2+P.ph);P.roll=.12*Math.sin(T*1.7+P.ph);}break;
    case 'cones':if(P.alive>=1)P.roll=.05*Math.sin(T*3+P.ph);break;
    case 'goo':P.sc=1+.04*Math.sin(T*3+G.ph);break;
-   case 'sign':case 'net':{const th=P.amp*Math.sin(T*(P.kind==='net'?1.7:2.4)+G.ph);P.roll=-th;P.cx=P.x+P.len*Math.sin(th);break;}   // pendulum across its band
-   case 'car':{P.s+=P.v*dt;let d=P.s-G.s;if(d>P.len){P.s=G.s;d=0;}P.sc=Math.min(1,d/3,(P.len-d)/3+.001);P.y=.15+.08*Math.sin(T*3+G.ph);P.roll=.04*Math.sin(T*2);G.cs=P.s;break;}
-   case 'bollards':{const c=(T+G.ph)%4.8;P.h=c<2.2?0:c<2.6?(c-2.2)/.4:c<4.4?1:1-(c-4.4)/.4;P.y=-1.2*(1-P.h)+.02;break;}   // caps stay peeking out (glowing) while down
-   case 'sweeper':P.x=P.x0+2*Math.sin(T*.55+G.ph);P.yaw=Math.cos(T*.55+G.ph)>0?-.4:.4;P.y=.03*Math.abs(Math.sin(T*9));break;
-   case 'pixel':{const u=Math.abs(Math.sin(T*1.7+P.ph+G.ph));P.y=u*2.1;P.yaw=T*.8+P.ph;break;}
-   case 'gate':{const c=(T+G.ph)%5;const up=c<2.2?0:c<2.7?(c-2.2)/.5:c<4.5?1:1-(c-4.5)/.5;P.a=up*1.25;P.roll=P.side*P.a;break;}}
+   case 'sign':case 'net':{const th=P.amp*Math.sin(TM*(P.kind==='net'?1.7:2.4)+G.ph);P.roll=-th;P.cx=P.x+P.len*Math.sin(th);break;}   // pendulum across its band
+   case 'car':{P.s+=P.v*mdt;let d=P.s-G.s;if(d>P.len){P.s=G.s;d=0;}P.sc=Math.min(1,d/3,(P.len-d)/3+.001);P.y=.15+.08*Math.sin(T*3+G.ph);P.roll=.04*Math.sin(T*2);G.cs=P.s;break;}
+   case 'bollards':{const c=(TM+G.ph)%4.8;P.h=c<2.2?0:c<2.6?(c-2.2)/.4:c<4.4?1:1-(c-4.4)/.4;P.y=-1.2*(1-P.h)+.02;break;}   // caps stay peeking out (glowing) while down
+   case 'sweeper':P.x=P.x0+2*Math.sin(TM*.55+G.ph);P.yaw=Math.cos(TM*.55+G.ph)>0?-.4:.4;P.y=.03*Math.abs(Math.sin(T*9));break;
+   case 'pixel':{const u=Math.abs(Math.sin(TM*1.7+P.ph+G.ph));P.y=u*2.1;P.yaw=TM*.8+P.ph;break;}
+   case 'rollbot':case 'dockcart':case 'paddle':{const w=TM*1.4+G.ph;P.x=P.x0+P.amp*Math.sin(w);P.yaw=Math.cos(w)>0?-.5:.5;P.roll=P.kind==='paddle'?.12*Math.cos(w):0;P.y=P.kind==='rollbot'?.03*Math.abs(Math.sin(TM*9)):0;break;}
+   case 'wave':{const w=TM*.9+G.ph;P.x=P.x0+P.amp*Math.sin(w);P.sc=1+.1*Math.sin(TM*3);P.y=.04*Math.sin(TM*4);break;}
+   case 'gate':{const c=(TM+G.ph)%5;const up=c<2.2?0:c<2.7?(c-2.2)/.5:c<4.5?1:1-(c-4.5)/.5;P.a=up*1.25;P.roll=P.side*P.a;break;}}
   if(P.kind==='debris')continue;if(P.alive<1&&P.knock){P.t+=dt;if(P.t>=P.back+.35){P.alive=1;P.t=0;}}
   if(dt===0||!P.stat||P.alive<1)pieceMatrix(P);}}
+ // difficulty: which sets are on (golden-ratio spread, so Easy ~40% / Medium ~70% / Hard 100% are evenly spaced along the lap)
+ function applyDiff(){const d=getDiff().density;for(const G of groups)G.on=G.pri<d||d>=1?1:0;animate(0);}
  function update(dt,time,heroS=0,heroV=20){T+=dt;animate(dt);
   for(const D of debris){if(D.t>1.2){hideSlot(op.M,D.slot);continue;}D.t+=dt;D.v.y-=12*dt;D.p.addScaledVector(D.v,dt);if(D.p.y<D.y0+.04){D.p.y=D.y0+.04;D.v.multiplyScalar(.5);D.v.y=Math.abs(D.v.y)*.3;}D.rot+=dt*8;
    e.set(D.rot,D.rot*.7,0);q.setFromEuler(e);m.compose(D.p,q,sc.setScalar(Math.max(0,1-Math.max(0,D.t-.8)*2.5)));setSlotM(op.M,D.slot,m);}
   // telegraph: brightens as the hero gets within ~1.5 s, pulses faster when close (bollards/gates also blink while closed/rising)
   const hs=((heroS%L)+L)%L,lead=Math.max(12,heroV*1.5);
-  for(const G of groups){const gs=G.kind==='car'?(G.cs??G.s):G.s;let d=gs-hs;if(d<-L/2)d+=L;if(d>L/2)d-=L;const near=d>-3&&d<lead*1.6?Math.max(0,1-Math.max(0,d-lead)/(lead*.6)):0;
+  for(const G of groups){if(!G.on){setSlotM(gl.M,G.gi,m.makeScale(0,0,0),0);continue;}const gs=G.kind==='car'?(G.cs??G.s):G.s;let d=gs-hs;if(d<-L/2)d+=L;if(d>L/2)d-=L;const near=d>-3&&d<lead*1.6?Math.max(0,1-Math.max(0,d-lead)/(lead*.6)):0;
    let a=.55+near*(1.1+.7*Math.sin(T*(6+near*8)));if(G.kind==='car')a*=G.pieces[0].sc;
    if(G.kind==='car'){frameAt(gs,G.x,fr);v.copy(fr.p);e.set(0,fr.ang,0);}else{v.copy(G.p);e.set(0,G.ang+(G.kind==='crane'?.5:0),0);}q.setFromEuler(e);m.compose(v,q,one);setSlotM(gl.M,G.gi,m,a);}}
  function knock(P,k){if(P.alive<1||!P.knock)return;P.alive=0;P.t=0;P.back=7;const side=Math.sign(P.x-k.x)||1;P.vx=side*(2.5+Math.random()*1.5);P.vz=-(k.v||10)*.35;P.vy=3+Math.random()*1.5;P.rot=side;
@@ -152,13 +206,16 @@ export function createObstacles(kit){const {S,W,L,sample,cv,tex}=kit;const LAYOU
  const nudge=(k,dx)=>{k.x+=dx;if(!k.isPlayer)k.xs=k.x;};
  // k: kart state (see racers.js / main.js). Effects are gentle; per-kart cooldown so one hazard = one bump.
  function collide(k){if(k.obCd>0)return null;const ks=((k.s%L)+L)%L;
-  for(const P of pieces){if(!P.alive||P.deco||P.kind==='debris')continue;let ds=ks-P.s;if(ds>L/2)ds-=L;if(ds<-L/2)ds+=L;if(ds>6||ds<-6)continue;
+  for(const P of pieces){if(!P.alive||P.deco||P.kind==='debris'||!P.g.on)continue;let ds=ks-P.s;if(ds>L/2)ds-=L;if(ds<-L/2)ds+=L;if(ds>6||ds<-6)continue;
    const dx=k.x-P.x;let hit=false,hx=P.x;
    switch(P.kind){
+    case 'barrier':if(Math.abs(ds)<.95&&Math.abs(dx)<2.75)hit=true;break;
+    case 'container':if(Math.abs(ds)<2.0&&Math.abs(dx)<1.85)hit=true;break;
     case 'crane':if(Math.abs(ds)<3&&Math.abs(dx)<=P.len/2*.88+.7&&Math.abs(ds-dx*.545)<=1.0)hit=true;break;
     case 'sign':case 'net':hx=P.cx??P.x;if(Math.abs(ds)<.95&&Math.abs(k.x-hx)<P.w+.55)hit=true;break;
     case 'car':if(Math.abs(ds)<1.9&&Math.abs(dx)<1.25&&P.sc>.5)hit=true;break;
     case 'goo':if(Math.abs(ds)<1.6&&Math.abs(dx)<1.7)hit=true;break;
+    case 'wave':if(Math.abs(ds)<1.2&&Math.abs(dx)<2.2)hit=true;break;
     case 'bollards':if(P.h>.45&&dx*dx+ds*ds<(P.r+.6)**2)hit=true;break;
     case 'pixel':if(P.y<.85&&dx*dx+ds*ds<(P.r+.6)**2)hit=true;break;
     case 'gate':{const lo=Math.min(P.x,P.x-P.side*5.6),hi=Math.max(P.x,P.x-P.side*5.6);if(P.a<.5&&Math.abs(ds)<.8&&k.x>lo-.5&&k.x<hi+.5){hit=true;hx=P.x-P.side*2.8;}break;}
@@ -168,21 +225,23 @@ export function createObstacles(kit){const {S,W,L,sample,cv,tex}=kit;const LAYOU
    k.obCd=.9;
    const kind=P.kind==='fanbase'?'fan':P.kind;
    if(k.rocket>0){knock(P,k);return 'smash';}
+   const D=getDiff(),pen=f=>{if(D.slow>0)k.slow=Math.max(k.slow||0,D.slow);};   // M5 hit penalty: wobble always; Medium +0.5 s slow, Hard +1 s, Easy none
+   if(kind==='wave'){k.wiggle=Math.max(k.wiggle,.7);k.v*=.95;pen();return 'wave';}   // foam wave: splash + wobble, never a spin, never uses the shield
    if(kind==='goo'){k.wiggle=Math.max(k.wiggle,.7);k.v*=.96;return 'goo';}   // goo never spins and never uses up the shield
    if(k.shield>0){k.shield=0;knock(P,k);return 'blocked';}
    const side=sideOf(k,hx);
-   if(kind==='fan'||kind==='wheel'){const r=hitKart(k,'fan');nudge(k,side*.4);return r==='spin'?kind:'wiggle';}
-   if(P.knock){knock(P,k);if(kind==='crate'||kind==='trap'){k.v*=.86;k.wiggle=Math.max(k.wiggle,.45);return kind;}
-    if(kind==='cones'){k.v*=.92;k.wiggle=Math.max(k.wiggle,.35);return 'cones';}
-    if(kind==='buoy'){k.v*=.85;k.bounce=.3;k.wiggle=Math.max(k.wiggle,.4);nudge(k,side*.5);return 'buoy';}
-    k.v*=.8;k.bounce=.35;k.wiggle=Math.max(k.wiggle,.5);nudge(k,side*.5);return 'barrel';}
-   k.v*=kind==='net'||kind==='sign'||kind==='gate'?.87:.8;k.bounce=.35;k.wiggle=Math.max(k.wiggle,.5);nudge(k,side*.7);return kind;}
+   if(kind==='fan'||kind==='wheel'){let r;if(D.cheer&&k.shield<=0&&k.rocket<=0){k.wiggle=Math.max(k.wiggle,.6);r='wiggle';}else r=hitKart(k,'fan');nudge(k,side*.4);return r==='spin'?kind:'wiggle';}
+   if(P.knock){knock(P,k);if(kind==='crate'||kind==='trap'||kind==='castle'){pen();k.wiggle=Math.max(k.wiggle,.45);return kind;}
+    if(kind==='cones'){pen();k.wiggle=Math.max(k.wiggle,.35);return 'cones';}
+    if(kind==='buoy'||kind==='ball'){pen();k.bounce=.3;k.wiggle=Math.max(k.wiggle,.4);nudge(k,side*.5);return 'buoy';}
+    pen();k.bounce=.35;k.wiggle=Math.max(k.wiggle,.5);nudge(k,side*.5);return 'barrel';}
+   pen();k.bounce=.35;k.wiggle=Math.max(k.wiggle,.5);nudge(k,side*.7);return kind;}
   return null;}
  // AI helper: next hazard within `look` m ahead of s whose band covers x (+margin) -> {id, x: a free target}
- function ahead(s,x,look,margin){const ks=((s%L)+L)%L;for(const G of groups){let d=(G.kind==='car'?(G.cs??G.s):G.s)-ks;if(d<-L/2)d+=L;if(d<-1||d>look)continue;
+ function ahead(s,x,look,margin){const ks=((s%L)+L)%L;for(const G of groups){if(!G.on)continue;let d=(G.kind==='car'?(G.cs??G.s):G.s)-ks;if(d<-L/2)d+=L;if(d<-1||d>look)continue;
    if(G.kind==='car'&&G.pieces[0].sc<.3)continue;
    const lo=G.x-G.hw-margin-.7,hi=G.x+G.hw+margin+.7;if(x<lo||x>hi)continue;
    const lim=W/2-1;const tx=(lo+lim>lim-hi)?Math.max(-lim,lo-.2):Math.min(lim,hi+.2);return {id:G.gi,x:tx};}
   return null;}
  reset();for(const P of pieces)pieceMatrix(P);
- return {reset,update,collide,ahead,groups,pieces,meshes:[op.mesh,gl.mesh],slots:NSL};}
+ return {reset,update,collide,ahead,applyDiff,groups,pieces,meshes:[op.mesh,gl.mesh],slots:NSL};}

@@ -1,7 +1,7 @@
 // Neon Rush rival racers (M3 Track B, M4 Track A): six rivals, each with its own look (karts.js) and driving style. M4: follows road height.
 import * as THREE from 'three';
-import {sample,wrap,FEAT} from './world.js';
-import {VMAX,VBOOST,ACC,LAPS,LEAD_GAP,LEAD_SLOW,LEAD_RAMP,TRAIL_GAP,TRAIL_HELP,TRAIL_RAMP,AIR_G,HOP_G,HOP_VY} from './tuning.js';
+import {sample,wrap,FEAT,rampAt} from './world.js';
+import {VMAX,VBOOST,ACC,LAPS,LEAD_GAP,LEAD_SLOW,LEAD_RAMP,TRAIL_GAP,TRAIL_HELP,TRAIL_RAMP,AIR_G,HOP_G,HOP_VY,getDiff} from './tuning.js';
 import {RIVAL_LOOKS,buildRivals} from './karts.js';
 // driving styles: pace (x VMAX), acc (x ACC), line (racing-line strength), xmax, sway (wide drifter lines), margin (obstacle gap),
 //   miss (chance to clip an obstacle), itemDelay [min,max] s, late (final-lap surge), hunt (steers to item boxes), bumpy (leans on others)
@@ -15,38 +15,44 @@ export const STYLES={   // M4: paces +.015 for the ~1.2-1.4 km laps (kid bot 65-
 // grid slots (s, x); the player starts at GRID_PLAYER
 export const GRID=[[-5,2.4],[-5,-2.4],[-9,2.4],[-13,2.4],[-13,-2.4],[-17,0]];export const GRID_PLAYER=[-9,-2.4];
 const ORDER=['Pip','Bolt','Kiki','Mochi','Coco','Shelly'];   // grid order (front to back)
-const fresh=()=>({v:0,y:0,vy:0,air:0,boost:0,shield:0,rocket:0,hop:0,floaty:0,spin:0,wiggle:0,bounce:0,item:null,itemT:0,finished:false,time:0,obCd:0,drT:0,bumpCd:0,place:0,avoid:null,avoidX:0,huntX:null});
+const fresh=()=>({v:0,y:0,vy:0,air:0,boost:0,shield:0,rocket:0,hop:0,floaty:0,spin:0,wiggle:0,bounce:0,item:null,itemT:0,finished:false,time:0,obCd:0,drT:0,bumpCd:0,place:0,avoid:null,avoidX:0,huntX:null,slow:0,zapWind:0,emp:0,empF:1});
 export function createRacers(kit){
  const looks=ORDER.map(n=>RIVAL_LOOKS.find(l=>l.name===n));const RV=buildRivals(kit,looks);
  const list=looks.map((lk,i)=>Object.assign({name:lk.name,css:lk.css,svg:lk.svg,idx:i,st:STYLES[lk.name],s:GRID[i][0],x:GRID[i][1],xs:GRID[i][1],mesh:new THREE.Object3D()},fresh()));
  let rnd=Math.random;
- function reset(){list.forEach((F,i)=>Object.assign(F,fresh(),{s:GRID[i][0],x:GRID[i][1],xs:GRID[i][1]}));}
- const o={},o2={};
- function update(dt,ctx){const P=ctx.player,L=ctx.L,obs=ctx.obstacles,items=ctx.items;
+ function reset(){zapT=8;list.forEach((F,i)=>Object.assign(F,fresh(),{s:GRID[i][0],x:GRID[i][1],xs:GRID[i][1]}));}
+ const o={},o2={};let zapT=0;
+ function update(dt,ctx){const P=ctx.player,L=ctx.L,obs=ctx.obstacles,items=ctx.items,D=getDiff();
+  // M5: Medium/Hard rivals aim an item at the player every so often (a short, visible Rocket-Star wind-up first; Easy never)
+  if(D.aiItem&&!P.finished&&ctx.raceT>6){zapT-=dt;if(zapT<=0){zapT=D.aiItem[0]+rnd()*(D.aiItem[1]-D.aiItem[0]);let best=null,bd=40;for(const F of list){if(F.finished||F.zapWind>0||F.spin>0||F.air>0)continue;const d=Math.abs(F.s-P.s);if(d<bd){bd=d;best=F;}}if(best)best.zapWind=1.3;}}
+
   for(const F of list){if(F.finished&&F.s>LAPS*L+60){F.v=Math.max(0,F.v-10*dt);F.s+=F.v*dt;continue;}
    const st=F.st;sample(F.s,o2);const gap=F.s-P.s;const lap=Math.floor(F.s/L);
-   let vmax=VMAX*st.pace*(ctx.pace||1)*(1+Math.sin(ctx.raceT*.37+F.idx*1.7)*.012);   // ctx.pace: per-track rival pace (TRACK.pace)
+   let vmax=VMAX*D.pace*(st.pace/.95)*(ctx.pace||1)*(1+Math.sin(ctx.raceT*.37+F.idx*1.7)*.012);   // ctx.pace: per-track rival pace (TRACK.pace)
    if(st.late)vmax*=lap>=LAPS-1?st.late:.985;
-   if(!P.finished){if(gap>LEAD_GAP)vmax*=1-Math.min(LEAD_SLOW,(gap-LEAD_GAP)*LEAD_RAMP);else if(gap<-TRAIL_GAP)vmax*=1+Math.min(TRAIL_HELP,(-gap-TRAIL_GAP)*TRAIL_RAMP);}
+   if(!P.finished){if(gap>LEAD_GAP)vmax*=1-Math.min(LEAD_SLOW*D.rubber,(gap-LEAD_GAP)*LEAD_RAMP*D.rubber);else if(gap<-TRAIL_GAP){const tr=D.rubber>1?.5:D.rubber;vmax*=1+Math.min(TRAIL_HELP*tr,(-gap-TRAIL_GAP)*TRAIL_RAMP*tr);}}
+   if(F.slow>0){F.slow=Math.max(0,F.slow-dt);vmax*=.62;}
+   if(F.emp>0){F.emp=Math.max(0,F.emp-dt);vmax*=F.empF;}   // M5b: EMP / Wave Ring slow
    if(F.wiggle>0)vmax*=.93;if(F.spin>0)vmax*=.45;
    if(F.boost>0)vmax=Math.max(vmax,VBOOST*.95);if(F.rocket>0){vmax=VBOOST*1.02;F.rocket=Math.max(0,F.rocket-dt);F.boost=Math.max(F.boost,.2);}
    F.v+=(F.v<vmax?(F.boost>0?ACC*2.6:ACC*st.acc):-9)*dt;F.v=Math.max(0,F.v);F.s+=F.v*dt;
    // steering target: racing line (+ wide drifter sway), then dodge hazards, then maybe hunt an item box
-   sample(F.s+16,o);let want=Math.max(-st.xmax,Math.min(st.xmax,-o.k*st.line));
+   sample(F.s+16,o);let want=Math.max(-st.xmax,Math.min(st.xmax,-o.k*st.line*D.line));
    if(st.drifter)want=Math.max(-4.4,Math.min(4.4,want+Math.sign(-o.k||1)*Math.min(1,Math.abs(o.k)*60)*st.sway));
    if(F.huntX!=null&&F.rocket<=0)want=F.huntX;
-   if(obs&&F.rocket<=0&&F.air<=0){const a=obs.ahead(F.s,want,28,st.margin);   // {id, x} free x for the next hazard, or null
-    if(a){if(F.avoid!==a.id){F.avoid=a.id;F.avoidMiss=rnd()<st.miss;}if(!F.avoidMiss)want=a.x;}}
+   if(obs&&F.rocket<=0&&F.air<=0){const a=obs.ahead(F.s,want,28,Math.max(.2,st.margin+D.wide));   // {id, x} free x for the next hazard, or null
+    if(a){if(F.avoid!==a.id){F.avoid=a.id;F.avoidMiss=rnd()<st.miss*(D.cheer?.6:1);}if(!F.avoidMiss)want=a.x;}}
    if(items&&st.hunt&&F.item==null&&F.rocket<=0){const b=items.boxAhead(F.s,40,F.x);F.huntX=b&&rnd()<st.hunt*dt*6?b.x:(b?F.huntX:null);}else F.huntX=null;
    const rate=F.rocket>0?3:st.careful?1.4:2.1;F.xs+=(want-F.xs)*Math.min(1,dt*rate);F.x=F.xs;
    // drifter: long bends charge a mini boost
    if(st.drifter){if(Math.abs(o2.k)>.012&&F.air<=0){F.drT+=dt;}else{if(F.drT>1.2)F.boost=Math.max(F.boost,.7);F.drT=0;}}
    for(const b of FEAT.boost){const d=wrap(F.s)-b;if(d>-1.5&&d<1.5&&F.boost<.5)F.boost=1.2;}F.boost=Math.max(0,F.boost-dt);
+   F.zapWind=Math.max(0,F.zapWind-dt);if(F.zapWind>0&&F.zapWind<=dt){const dS=F.s-P.s;if(!P.finished&&Math.abs(dS)<16&&Math.abs(F.x-P.x)<4&&P.air<=0&&items){items.hit(P,ctx,F);}}
    F.shield=Math.max(0,F.shield-dt);F.spin=Math.max(0,F.spin-dt);F.wiggle=Math.max(0,F.wiggle-dt);F.bounce=Math.max(0,F.bounce-dt);F.obCd=Math.max(0,F.obCd-dt);F.bumpCd=Math.max(0,F.bumpCd-dt);
    // ramp, Gravity Hop, air
-   const r=FEAT.ramp,rs=wrap(F.s)-r.s0;
+   const r=rampAt(F.s),rs=r?wrap(F.s)-r.s0:-1;
    if(F.hop>0&&F.air<=0){F.hop=0;F.air=1;F.vy=HOP_VY;F.floaty=1;}
-   if(F.air<=0){if(rs>=0&&rs<r.len)F.y=r.h*rs/r.len;else if(rs>=r.len&&rs<r.len+1.5&&F.y>.3){F.air=1;F.vy=4.6+F.v*.1;}else F.y=0;}
+   if(F.air<=0){if(r&&rs>=0&&rs<r.len)F.y=r.h*rs/r.len;else if(r&&rs>=r.len&&rs<r.len+1.5&&F.y>.3){F.air=1;F.vy=4.6+F.v*.1;}else F.y=0;}
    if(F.air>0){F.y+=F.vy*dt;F.vy-=(F.floaty?HOP_G:AIR_G)*dt;if(F.y<=0){F.y=0;F.air=0;F.floaty=0;}}
    // items: hold for a style-dependent moment, then use
    if(F.item!=null&&items){F.itemT-=dt;if(F.itemT<=0)items.use(F,ctx);}
@@ -55,7 +61,7 @@ export function createRacers(kit){
   // kart-to-kart nudges (player included); a Rocket Star racer spins others (shield blocks, player rule in items.hit)
   const all=ctx.all;for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){const A=all[i],B=all[j];const dS=A.s-B.s;if(dS>2||dS<-2)continue;const dX=A.x-B.x;
    if(Math.abs(dX)>1.35||A.air>0&&A.y>.5||B.air>0&&B.y>.5)continue;
-   if(A.rocket>0&&B.rocket<=0){items&&items.hit(B,ctx,A);continue;}if(B.rocket>0&&A.rocket<=0){items&&items.hit(A,ctx,B);continue;}
+   if(A.rocket>0&&B.rocket<=0){if(!(B.isPlayer&&!D.aiItem))items&&items.hit(B,ctx,A);continue;}if(B.rocket>0&&A.rocket<=0){if(!(A.isPlayer&&!D.aiItem))items&&items.hit(A,ctx,B);continue;}
    const push=(1.35-Math.abs(dX))*.5*(dX>=0?1:-1)*(A.st&&A.st.bumpy||B.st&&B.st.bumpy?1.2:1);
    if(A.isPlayer)A.x+=push;else A.xs+=push;if(B.isPlayer)B.x-=push;else B.xs-=push;
    if((A.isPlayer||B.isPlayer)&&ctx.onBump)ctx.onBump();}}
@@ -68,7 +74,7 @@ export function createRacers(kit){
    if(cam.position.distanceTo(v)<2.6){RV.setKart(F.idx,null);}
    else{m.compose(v,q,one);e.set(Math.atan(o2.gy),yaw,0);q.setFromEuler(e);v.y=gy+.001;gm.compose(v,q,one);RV.setKart(F.idx,m,gm);}
    v.copy(F.mesh.position);v.y+=.62;RV.setShield(F.idx,v,F.shield>0?.75+.25*Math.sin(t*9+F.idx):0,cam.quaternion);
-   v.y+=.35;RV.setStar(F.idx,v,F.rocket>0?1:0,cam.quaternion,t+F.idx);}
+   v.y+=.35;RV.setStar(F.idx,v,F.rocket>0||F.zapWind>0?1:0,cam.quaternion,t+F.idx);}
   const N=RV.N;v.copy(hero.position);v.y+=.62;RV.setShield(N,v,P.shield>0?(P.shield<1.5?.5+.5*Math.sin(t*20):.8+.2*Math.sin(t*9)):0,cam.quaternion);
   v.y+=.35;RV.setStar(N,v,P.rocket>0?1:0,cam.quaternion,t);}
  // standings: everyone sorted by distance (finished karts by finish time)

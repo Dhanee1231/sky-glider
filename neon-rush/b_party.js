@@ -19,7 +19,7 @@ export function createParty(kit){const {S,W,L,sample,cv,tex,rnd,HIGH}=kit;const 
    g.restore();}}),true,false);
  const tints=[0xff4fc8,0x35f2ff,0xffd23a,0x8a5cff,0x7dff6a,0xff8a2a,0xffffff,0xff6a8a];
  const fans=[];const o={};
- for(const [s0,s1,side] of ZONES)for(const sd of side?[side]:[-1,1])for(const row of[0,1])for(let s=s0+(row?.55:0);s<s1;s+=HIGH?1.05:1.6){
+ for(const [s0,s1,side] of ZONES)for(const sd of side?[side]:[-1,1])for(const row of HIGH?[0,1]:[0])for(let s=s0+(row?.55:0);s<s1;s+=HIGH?1.05:1.6){
   const x=sd*(W/2+1.7+row*1.25+(rnd()-.5)*.3);sample(s,o);fans.push({x:o.x-o.tz*x,y:o.y+CB,z:o.z+o.tx*x,s,ph:rnd()*6.28,sp:2.6+rnd()*2.2,h:(row?1.15:1)*(.85+rnd()*.3),fr:Math.floor(rnd()*4)});}
  const geo=new THREE.PlaneGeometry(.95,.95).translate(0,.475,0);
  // per-instance atlas frame via a tiny vertex patch (uv.x offset = frame/4)

@@ -22,7 +22,7 @@ const MEL=[
 const hz=m=>440*Math.pow(2,(m-69)/12);
 
 // ---- per-track variants (M4): same engine, own tempo / chords / lead. Melodies are generated deterministically from the chord tones. ----
-const SCALES={harbor:[60,62,64,67,69,72,74,76,79,81,84],skyway:[57,60,62,64,67,69,72,74,76,79,81,84]};   // C major pentatonic / A minor pentatonic
+const SCALES={harbor:[60,62,64,67,69,72,74,76,79,81,84],skyway:[57,60,62,64,67,69,72,74,76,79,81,84],beach:[64,67,69,72,74,76,79,81,84,86]};   // C major pentatonic / A minor pentatonic
 function genMel(prog,scale,pat,seed){let x=seed;const rnd=()=>((x=(x*1664525+1013904223)>>>0)/4294967296);let i=Math.floor(scale.length*.55);
  return prog.map((c,b)=>{const tri=CH[c][1];return pat.map((p,e)=>{if(p===0)return 0;if(p===2)return _;
   if(e===0||p===3){let best=0,bd=99;scale.forEach((m,k)=>{const d=Math.min(...tri.map(t=>Math.abs(((m-t)%12+12)%12)));const dd=d*3+Math.abs(k-i);if(dd<bd){bd=dd;best=k;}});i=best;}
@@ -30,9 +30,11 @@ function genMel(prog,scale,pat,seed){let x=seed;const rnd=()=>((x=(x*1664525+101
   return scale[i];});});}
 const HP='C G Am F C G F F Am F C G Am F G G C G Am F C G F C Dm G C Am F G C C'.split(' ');
 const SP='Am F C G Am F G E Am F C G Dm Am G E Am F C G Am F G E F G Am Am F G E Am'.split(' ');
+const BP='C F G C Am F G G C F G Am Dm G C C F G Em Am F C Dm G C F G Am F G C C'.split(' ');
 const VARIANTS={
  sky:{t:timing(BPM),prog:PROG,mel:MEL,style:'sky',duty:.25},
  harbor:{t:timing(156),prog:HP,mel:genMel(HP,SCALES.harbor,[3,2,1,0,1,1,3,1],7),style:'beach',duty:.5},   // beachy: lighter kick, shaker hats, soft triangle lead with vibrato
+ beach:{t:timing(144),prog:BP,mel:genMel(BP,SCALES.beach,[3,1,2,1,3,1,1,0],5),style:'beach',duty:.5},   // M5b Sunny Shores: relaxed boardwalk shuffle, brighter high-register pentatonic lead
  skyway:{t:timing(168),prog:SP,mel:genMel(SP,SCALES.skyway,[3,1,1,1,3,1,1,1],21),style:'arcade',duty:.125},   // arcade: thin pulse lead, 16th bass
 };
 export const TRACKS=Object.keys(VARIANTS);

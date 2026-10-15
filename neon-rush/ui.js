@@ -8,12 +8,14 @@
 import * as THREE from 'three';
 import {ICONS,NAMES} from './items.js';
 import {getBest,KART_N} from './save.js';
+import {EMB_ORDER,MARK_ORDER,EMB_NAMES,MARK_NAMES,FX_NAMES,NEON,NEON_NAMES,hexCss,markCss,svgIcon} from './emblems.js';
+import {paintMarker} from './minimap.js';
 import {PAINTS,FINISHES,WHEELS,BODIES,TRAILS,DECALS,applyKart,heroFx,heroFxReset,buildPreviewKart} from './karts.js';
 
 const $=id=>document.getElementById(id);
 let C=null,sel='sky',from='select';
-const DEF_TRACKS=[{id:'sky',name:'Neon Sky City'},{id:'harbor',name:'Glowtide Harbor'},{id:'skyway',name:'Arcade Skyway'}];
-const VOICE={sky:'s_sky',harbor:'s_harbor',skyway:'s_skyway'};
+const DEF_TRACKS=[{id:'sky',name:'Neon Sky City'},{id:'harbor',name:'Glowtide Harbor'},{id:'skyway',name:'Arcade Skyway'},{id:'beach',name:'Sunny Shores Boardwalk'}];
+const VOICE={sky:'s_sky',harbor:'s_harbor',skyway:'s_skyway',beach:'s_beach'};
 const say=(k,g)=>{try{(C&&C.say?C.say:C&&C.Audio&&C.Audio.say)?.(k,g);}catch(e){}};
 const sfx=n=>{try{C&&C.Audio&&C.Audio.sfx&&C.Audio.sfx(n);}catch(e){}};
 const show=(id,on)=>$(id).classList.toggle('show',on);
@@ -41,7 +43,12 @@ const THUMBS={
   <g transform="translate(150 20)"><rect x="-4" y="0" width="8" height="34" fill="#2a1060"/><rect x="-14" y="-4" width="28" height="12" rx="3" fill="#ff9a2a"/><path d="M-8 8v14M8 8v14" stroke="#fff" stroke-width="2"/><path d="M-12 24q4 8 8 0M4 24q4 8 8 0" fill="none" stroke="#fff" stroke-width="2.4"/></g>
   <g fill="none" stroke-width="3.6"><ellipse cx="100" cy="64" rx="44" ry="30" stroke="#35f2ff"/><ellipse cx="100" cy="67" rx="28" ry="19" stroke="#ff3fd8"/><ellipse cx="100" cy="70" rx="15" ry="10" stroke="#ffd23a"/></g>
   <path d="M0 120L84 78h32l84 42z" fill="#1c0c42"/><path d="M84 78L0 120M116 78l84 42" stroke="#ff3fd8" stroke-width="3"/><path d="M100 118V80" stroke="#fff" stroke-width="3" stroke-dasharray="7 7"/>
-  <g fill="#35f2ff"><rect x="60" y="100" width="6" height="6"/><rect x="134" y="98" width="6" height="6"/></g></svg>`};
+  <g fill="#35f2ff"><rect x="60" y="100" width="6" height="6"/><rect x="134" y="98" width="6" height="6"/></g></svg>`,
+ beach:`<svg viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="tg5" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1c6a"/><stop offset=".5" stop-color="#ff7a8a"/><stop offset="1" stop-color="#ffd0a0"/></linearGradient><linearGradient id="tg6" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2ad0d8"/><stop offset="1" stop-color="#1a7aa8"/></linearGradient></defs><rect width="200" height="120" fill="url(#tg5)"/><circle cx="168" cy="52" r="12" fill="#fff0c0"/><rect y="58" width="200" height="16" fill="url(#tg6)"/>
+  <g transform="translate(62 38)"><circle r="22" fill="none" stroke="#fff" stroke-width="3"/><circle r="3" fill="#ffd23a"/><path d="M-22 0h44M0-22v44M-15.5-15.5l31 31M15.5-15.5l-31 31" stroke="#fff" stroke-width="1.5"/><g fill="#ff4fd8"><circle cx="22" r="3.2"/><circle cx="-22" r="3.2"/><circle cy="22" r="3.2"/><circle cy="-22" r="3.2"/></g><g fill="#35f2ff"><circle cx="15.5" cy="15.5" r="3.2"/><circle cx="-15.5" cy="-15.5" r="3.2"/><circle cx="15.5" cy="-15.5" r="3.2"/><circle cx="-15.5" cy="15.5" r="3.2"/></g><path d="M-10 38L0 0l10 38" fill="none" stroke="#fff" stroke-width="2"/></g>
+  <g transform="translate(130 56)"><path d="M-16 4a16 11 0 0 1 32 0z" fill="#ff4f7a"/><path d="M-5 4a5 11 0 0 1 10 0z" fill="#fff"/><rect x="-1" y="4" width="2" height="12" fill="#fff"/></g>
+  <path d="M0 120L82 78h36l82 42z" fill="#e8c088"/><path d="M82 78L0 120M118 78l82 42" stroke="#ffd23a" stroke-width="3"/><path d="M100 118V80" stroke="#fff" stroke-width="3" stroke-dasharray="7 7"/>
+  <circle cx="30" cy="100" r="8" fill="#ff3f6a"/><path d="M30 92a8 8 0 0 1 0 16a4 8 0 0 0 0-16z" fill="#fff"/><path d="M22 100a8 8 0 0 1 8-8v16a8 8 0 0 1-8-8z" fill="#35b8ff"/><g fill="#ffd23a"><circle cx="170" cy="104" r="3"/><circle cx="184" cy="98" r="2.4"/></g></svg>`};
 const TROPHY='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v6a5 5 0 0 1-10 0z" fill="#ffd23a"/><path d="M7 5H3c0 4 2 6 4 6M17 5h4c0 4-2 6-4 6" fill="none" stroke="#ffd23a" stroke-width="2"/><path d="M12 14v4M8 21h8l-1-3H9z" fill="#ffd23a"/></svg>';
 function buildSelect(){const row=$('tsRow');row.innerHTML='';
  for(const t of tracks()){const b=document.createElement('button');b.className='tcard';b.dataset.id=t.id;b.setAttribute('role','radio');b.setAttribute('aria-label',t.name);
@@ -61,7 +68,9 @@ const TABS=[
  {k:'paint',n:'Paint',ic:svg('0 0 24 24','<path d="M12 2c3 4 7 7.5 7 12a7 7 0 0 1-14 0c0-4.5 4-8 7-12z" fill="#ff4fd8" stroke="#fff" stroke-width="1.6"/><path d="M8.5 14a3.5 3.5 0 0 0 3 3.4" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/>')},
  {k:'wheels',n:'Wheels',ic:svg('0 0 24 24','<circle cx="12" cy="12" r="9.5" fill="#222" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="#d8d8e4"/><path d="M12 7v10M7 12h10M8.5 8.5l7 7M15.5 8.5l-7 7" stroke="#555" stroke-width="1.4"/>')},
  {k:'trail',n:'Trail',ic:svg('0 0 24 24','<path d="M12 2l2.2 6.3L21 9l-5 4 1.6 6.6L12 16l-5.6 3.6L8 13 3 9l6.8-.7z" fill="#ffe14d" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/>')},
- {k:'decal',n:'Stickers',ic:svg('0 0 24 24','<path d="M12 21s-8-5-8-11a4.5 4.5 0 0 1 8-2.5A4.5 4.5 0 0 1 20 10c0 6-8 11-8 11z" fill="#ff3fd8" stroke="#fff" stroke-width="1.6"/>')}];
+ {k:'decal',n:'Stickers',ic:svg('0 0 24 24','<path d="M12 21s-8-5-8-11a4.5 4.5 0 0 1 8-2.5A4.5 4.5 0 0 1 20 10c0 6-8 11-8 11z" fill="#ff3fd8" stroke="#fff" stroke-width="1.6"/>')},
+ {k:'emblem',n:'Emblem',ic:svgIcon('crown','#ffd23a')},
+ {k:'marker',n:'Map marker',ic:svg('0 0 24 24','<path d="M12 22s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.800-7 12-7 12z" fill="#35f2ff" stroke="#fff" stroke-width="1.6"/><circle cx="12" cy="10" r="2.8" fill="#fff"/>')}];
 const hex=h=>'#'+new THREE.Color(h).getHexString();
 // option pictures
 const OPT={
@@ -87,14 +96,38 @@ function buildGarage(){const tb=$('gTabs');tb.innerHTML='';for(const t of TABS){
  const fin=$('gFin');fin.innerHTML='';FINISHES.forEach((f,i)=>{const b=document.createElement('button');b.className='gopt';b.dataset.i=i;b.setAttribute('aria-label',f.n);
   const bg=i===0?'linear-gradient(135deg,#ff8ae0,#e8287a)':i===1?'linear-gradient(135deg,#fff,#9aa4b8 45%,#fff 60%,#7a8498)':'radial-gradient(circle,#fff,#ff4fd8 55%,#ff4fd8)';
   b.innerHTML=`<i style="background:${bg};${i===2?'box-shadow:0 0 10px #ff4fd8':''}"></i>${f.n.replace(' glow','')}`;b.addEventListener('click',()=>choose('finish',i));fin.appendChild(b);});}
+// M5: Emblem tab = shape row + colour row; Map marker tab = shape row + colour row (8 neon + rainbow) + effect row. Other tabs = one row.
+const SECTIONS={emblem:['emblem','emblemColor'],marker:['marker','markerColor','markerFx']};
+const swatch=(c,rb)=>`<span class="sw${rb?' rb7':''}" style="${rb?'':'background:'+hexCss(c)}"></span>`;
+const FXI=[svg('0 0 24 24','<circle cx="12" cy="12" r="6" fill="#fff"/>'),svg('0 0 24 24','<circle cx="12" cy="12" r="10" fill="#35f2ff" opacity=".3"/><circle cx="12" cy="12" r="7" fill="#35f2ff" opacity=".5"/><circle cx="12" cy="12" r="4" fill="#fff"/>'),
+ svg('0 0 24 24','<path d="M5 18l2-1.2M9 14l1.6-.9" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><path d="M16 8l1.1 2.7 2.9.2-2.2 1.9.7 2.8L16 14l-2.5 1.6.7-2.8L12 10.900l2.900-.2z" fill="#ffe97a"/><circle cx="6" cy="9" r="1.4" fill="#ff7ac8"/><circle cx="11" cy="19" r="1.2" fill="#35f2ff"/>')];
+function optHtml(k,i){const d=draft||{};
+ if(k==='emblem')return i===0?OPT.decal(0):svgIcon(EMB_ORDER[i-1],hexCss(NEON[d.emblemColor|0]));
+ if(k==='emblemColor')return swatch(NEON[i]);
+ if(k==='marker')return svgIcon(MARK_ORDER[i],markCss(d.markerColor|0,0));
+ if(k==='markerColor')return i===8?swatch(0,1):swatch(NEON[i]);
+ if(k==='markerFx')return FXI[i];
+ if(k==='paint')return `<span class="sw" style="background:${hex(PAINTS[i].hex)}"></span>`;
+ return OPT[k](i);}
+const optName=(k,i)=>k==='paint'?PAINTS[i].n:k==='emblem'?EMB_NAMES[i]:k==='marker'?MARK_NAMES[i]:k==='emblemColor'?NEON_NAMES[i]:k==='markerColor'?(NEON_NAMES[i]||'Rainbow'):k==='markerFx'?FX_NAMES[i]:({body:BODIES,wheels:WHEELS.map(w=>w.n),trail:TRAILS,decal:DECALS})[k][i];
 function renderTab(){for(const b of $('gTabs').children)b.setAttribute('aria-selected',b.dataset.k===tab);$('gFin').hidden=tab!=='paint';
- const g=$('gGrid');g.innerHTML='';for(let i=0;i<lim(tab);i++){const b=document.createElement('button');b.className='gopt';b.dataset.i=i;
-  if(tab==='paint'){b.setAttribute('aria-label',PAINTS[i].n);b.innerHTML=`<span class="sw" style="background:${hex(PAINTS[i].hex)}"></span>`;}
-  else{b.setAttribute('aria-label',({body:BODIES,wheels:WHEELS.map(w=>w.n),trail:TRAILS,decal:DECALS})[tab][i]);b.innerHTML=OPT[tab](i);}
-  b.addEventListener('click',()=>choose(tab,i));g.appendChild(b);}
- syncPressed();}
-function syncPressed(){if(!draft)return;for(const b of $('gGrid').children)b.setAttribute('aria-pressed',+b.dataset.i===draft[tab]);for(const b of $('gFin').children)b.setAttribute('aria-pressed',+b.dataset.i===draft.finish);}
-function choose(k,i){if(!draft||draft[k]===i)return;draft[k]=i;syncPressed();if(pv)pv.kart.userData.restyle(draft);}   // silent: taps make no sound
+ const g=$('gGrid'),keep=g.scrollTop;g.innerHTML='';g.classList.toggle('sz64',tab==='marker'||tab==='emblem');
+ (SECTIONS[tab]||[tab]).forEach((k,si)=>{if(si){const sp=document.createElement('div');sp.className='gsec';g.appendChild(sp);}
+  for(let i=0;i<lim(k);i++){const b=document.createElement('button');b.className='gopt';b.dataset.i=i;b.dataset.k=k;b.setAttribute('aria-label',optName(k,i));b.innerHTML=optHtml(k,i);
+   b.addEventListener('click',()=>choose(k,i));g.appendChild(b);}});
+ g.scrollTop=keep;syncPressed();$('mkPrev').classList.toggle('show',tab==='marker');if(tab==='marker')mkLoop();}
+function syncPressed(){if(!draft)return;for(const b of $('gGrid').children)if(b.dataset.k)b.setAttribute('aria-pressed',+b.dataset.i===draft[b.dataset.k]);for(const b of $('gFin').children)b.setAttribute('aria-pressed',+b.dataset.i===draft.finish);}
+function choose(k,i){if(!draft||draft[k]===i)return;draft[k]=i;if(k==='emblemColor'||k==='markerColor')renderTab();else{syncPressed();if(k==='emblem')renderTab();}if(pv)pv.kart.userData.restyle(draft);}
+// live preview of the map marker: it loops round a little circle so glow / sparkle trail show
+let mkRaf=0,mkT=0,mkTrail=[];
+function mkLoop(){if(mkRaf)return;const cv=$('mkPrev');cv.width=cv.height=160;const g=cv.getContext('2d');let last=performance.now(),tt=0;
+ const f=now=>{if(!garageOpen()||tab!=='marker'||!draft){mkRaf=0;return;}const dt=Math.min(.05,(now-last)/1000);last=now;mkT+=dt;
+  if(now-tt>33){tt=now;g.clearRect(0,0,160,160);g.fillStyle='rgba(20,8,44,.78)';g.beginPath();g.roundRect(1,1,158,158,26);g.fill();g.strokeStyle='rgba(255,255,255,.5)';g.lineWidth=3;g.stroke();
+   g.strokeStyle='#35f2ff';g.lineWidth=7;g.beginPath();g.arc(80,80,42,0,7);g.stroke();
+   const a=mkT*2,x=80+Math.cos(a)*42,y=80+Math.sin(a)*42;
+   if(draft.markerFx===2){mkTrail.push({x:x+(Math.random()-.5)*6,y:y+(Math.random()-.5)*6,a:1});if(mkTrail.length>9)mkTrail.shift();for(const p of mkTrail)p.a=Math.max(0,p.a-.1);}else mkTrail.length=0;
+   paintMarker(g,x,y,18,draft,mkT,mkTrail);}
+  mkRaf=requestAnimationFrame(f);};mkRaf=requestAnimationFrame(f);}   // silent: taps make no sound
 export function showGarage(){if(!C)return;draft=Object.assign({},C.ST.kart||{});for(const k in KART_N)if(!(draft[k]>=0&&draft[k]<KART_N[k]))draft[k]=0;
  if(!$('gTabs').children.length)buildGarage();renderTab();show('trackSel',false);show('garage',true);startPreview();say('s_garage',8);}
 export const garageOpen=()=>$('garage').classList.contains('show');

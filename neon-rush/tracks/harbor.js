@@ -7,16 +7,17 @@ export default {
  pts:[[0,180],[0,-108],[-22,-204],[-90,-252],[-168,-234],[-206,-162],[-198,-72],[-228,12],[-222,108],[-180,192],[-108,246],[-36,240]],
  elev:[[995,1115,4.5,40]],                        // drawbridge over the basin
  tunnels:[[822,900,'boathouse']],
- boost:[80,88,96],ramp:{s0:300,len:7,h:1.1},puddles:{s0:640,n:8,step:9},
+ boost:[80,88,96],ramps:[{s0:25,len:7,h:1.1},{s0:300,len:7,h:1.1},{s0:668,len:7,h:1.1}],puddles:{s0:640,n:8,step:9},
  items:[230,470,770,1215],
  obstacles:[
   {kind:'buoy',s:150,x:3.2},{kind:'trap',s:262,x:-3.3},{kind:'cones',s:345,x:3.0},{kind:'net',s:420,x:3.2},
   {kind:'sweeper',s:525,x:-3},{kind:'barrel',s:590,x:3.3},{kind:'goo',s:735,x:-2.8},{kind:'bollards',s:935,x:-3.2},
-  {kind:'car',s:1125,x:3.5,len:75},{kind:'buoy',s:1192,x:-3.2}],
+  {kind:'car',s:1125,x:3.5,len:75},{kind:'buoy',s:1192,x:-3.2},
+  {kind:'container',s:195,x:-3.3},{kind:'dockcart',s:380,x:3},{kind:'container',s:975,x:3.3}],   // M5: cargo containers + a dock cart
  crowd:[[-46,34,0],[190,250,1],[480,540,-1],[940,985,0],[1150,1185,-1]],party:[-14,220,505,962,1160],
  city:{sides:[-1],f0:2,f1:7,dp0:9,dpR:5,gap:.4},lampSides:[-1],
  mirrorY:-.6,walk:4.5,far:{n:60,h0:12,h1:46,y0:-.6},
- pal:{fog:0x2a4a6a,fogD:.0095,env:[[0,'#0a1a3a'],[.42,'#1f5a8a'],[.5,'#ff8ab8'],[.56,'#203050'],[1,'#081020']],neon:[0xff4fd8,0x35f2ff,0xffc26a,0x7affc8],
+ pal:{fog:0x2a4a6a,fogD:.0045,env:[[0,'#0a1a3a'],[.42,'#1f5a8a'],[.5,'#ff8ab8'],[.56,'#203050'],[1,'#081020']],neon:[0xff4fd8,0x35f2ff,0xffc26a,0x7affc8],
   bg:[[0,'#06142e'],[.36,'#123a66'],[.55,'#2fa3c0'],[.66,'#ff8ab8'],[.8,'#ffb88a'],[1,'#ffd0a0']],hemi:[0x80a8e0,0x182838,.62],key:[0xffb090,1.1,[60,30,-120]],rim:[0x80e8ff,.75],
   edge:0xffd23a,edge2:0x35f2ff,tunnel:[0xffc26a,0xff7ab8],tunnelLight:0xffb060,mirror:0x6a9ac8,ground:0x0a2238,groundRough:.18,
   facade:'#9a8a90',tints:[[1,.95,.9],[.9,1,1],[1,.9,.95],[.95,.95,1],[1,1,.9]],farTint:0x4070a0,pool:0xffb070,lamp:0xffd8a0,

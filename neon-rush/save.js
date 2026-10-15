@@ -1,11 +1,15 @@
 // Neon Rush save (localStorage). Versioned, additive, write-then-verify, backup key, corrupt data kept in .bad.
+// M5b additive: TRACK_IDS gains 'beach' (track/unlocked/best.beach follow the existing per-track rules).
+// M5 additive fields: kart.emblem (0 none,1-8) + kart.emblemColor (0-7), kart.marker (0-7) + kart.markerColor (0-8, 8 = rainbow) + kart.markerFx (0-2); all clampInt, default 0.
+// M5 additive field: settings.difficulty ('easy'|'medium'|'hard', default 'easy'; unknown -> 'easy').
 // M4 additive fields: track, unlocked{sky,harbor,skyway}, best.<trackId> (seconds), kart{body,paint,finish,wheels,trail,decal}.
 export const KEY='neon-rush.v1',BAK='neon-rush.v1.bak',BAD='neon-rush.v1.bad';
-export const TRACK_IDS=['sky','harbor','skyway'];
-export const KART_N={body:4,paint:10,finish:3,wheels:4,trail:5,decal:5};   // option counts per garage tab (index 0 = the original look)
-export const KART_DEFAULT=()=>({body:0,paint:0,finish:0,wheels:0,trail:0,decal:0});
-export const DEFAULTS=()=>({v:1,settings:{sound:true,voice:true,quality:'auto',fps:false,engine:7},best:{lapMs:0,raceMs:0},races:0,wins:0,
- track:'sky',unlocked:{sky:true,harbor:true,skyway:true},kart:KART_DEFAULT()});
+export const DIFFS=['easy','medium','hard'];
+export const TRACK_IDS=['sky','harbor','skyway','beach'];   // M5b: 'beach' added (all tracks open)
+export const KART_N={body:4,paint:10,finish:3,wheels:4,trail:5,decal:5,emblem:9,emblemColor:8,marker:8,markerColor:9,markerFx:3};   // option counts per garage tab (index 0 = the original look)
+export const KART_DEFAULT=()=>({body:0,paint:0,finish:0,wheels:0,trail:0,decal:0,emblem:0,emblemColor:0,marker:0,markerColor:0,markerFx:0});
+export const DEFAULTS=()=>({v:1,settings:{sound:true,voice:true,quality:'auto',fps:false,engine:7,difficulty:'easy'},best:{lapMs:0,raceMs:0},races:0,wins:0,
+ track:'sky',unlocked:{sky:true,harbor:true,skyway:true,beach:true},kart:KART_DEFAULT()});
 // numbers may arrive as numeric strings from old/hand-edited saves: coerce, never throw
 const num=v=>typeof v==='number'?v:typeof v==='string'&&v.trim()!==''?Number(v):NaN;
 const clampInt=(v,lo,hi,d)=>{const n=num(v);return Number.isFinite(n)?Math.max(lo,Math.min(hi,Math.round(n))):d;};
@@ -15,6 +19,7 @@ export function sane(o){const d=DEFAULTS();if(!o||typeof o!=='object'||Array.isA
  out.settings=Object.assign({},d.settings,s);
  for(const k of['sound','voice','fps'])out.settings[k]=bool(out.settings[k],d.settings[k]);
  if(!['auto','high','low'].includes(out.settings.quality))out.settings.quality='auto';
+ if(!DIFFS.includes(out.settings.difficulty))out.settings.difficulty='easy';
  {const e=num(out.settings.engine);out.settings.engine=Number.isFinite(e)?Math.max(0,Math.min(100,e)):d.settings.engine;}   // engine volume %, default 7 (M3 fix: "50" -> 50, 150 -> 100)
  const b=o.best&&typeof o.best==='object'&&!Array.isArray(o.best)?o.best:{};out.best=Object.assign({},d.best,b);
  for(const k of['lapMs','raceMs']){const n=num(out.best[k]);out.best[k]=Number.isFinite(n)&&n>=0?n:0;}
@@ -33,9 +38,11 @@ export function getBest(st,id){const v=st&&st.best?num(st.best[id]):NaN;if(Numbe
 export function setBest(st,id,secs){const t=num(secs);if(!st||!(t>0&&t<36000)||!/^[a-z0-9_-]{1,24}$/.test(String(id)))return false;
  st.best=st.best||{};const old=getBest(st,id);if(old>0&&t>=old)return false;st.best[id]=Math.round(t*1000)/1000;return true;}
 function read(k){try{const s=localStorage.getItem(k);if(s==null)return null;return {raw:s,obj:JSON.parse(s)};}catch(e){return {raw:(()=>{try{return localStorage.getItem(k)}catch(_){return null}})(),bad:true};}}
-export function load(){const a=read(KEY);if(a&&!a.bad&&a.obj&&typeof a.obj==='object')return sane(a.obj);
+// M5a fix: a save from a newer version (v>1) is loaded into memory but this session never writes, trims or backs it up.
+let RO=false;export const isReadOnly=()=>RO;
+export function load(){RO=false;const a=read(KEY);if(a&&!a.bad&&a.obj&&typeof a.obj==='object'&&!Array.isArray(a.obj)){const v=num(a.obj.v);if(Number.isFinite(v)&&v>1)RO=true;return sane(a.obj);}
  if(a&&a.raw!=null){try{localStorage.setItem(BAD,a.raw);}catch(e){}}
  const b=read(BAK);if(b&&!b.bad&&b.obj)return sane(b.obj);return DEFAULTS();}
-export function save(state){try{const s=JSON.stringify(sane(state));const prev=localStorage.getItem(KEY);
+export function save(state){if(RO)return false;try{const s=JSON.stringify(sane(state));const prev=localStorage.getItem(KEY);
   localStorage.setItem(KEY,s);if(localStorage.getItem(KEY)!==s)throw new Error('verify');
   if(prev!=null){try{JSON.parse(prev);localStorage.setItem(BAK,prev);}catch(e){}}return true;}catch(e){return false;}}

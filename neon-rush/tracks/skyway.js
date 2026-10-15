@@ -7,15 +7,16 @@ export default {
  elev:[[250,735,9.5,300,110]],                    // spiral ramp: climbs the loop, crosses over the start straight at s~592, back down
  tunnels:[[1190,1262,'arcade']],
  deck:true,ground:-36,mirror:false,walk:3,tunnelH:7.4,
- boost:[70,78,86],ramp:{s0:160,len:7,h:1.1},puddles:{s0:900,n:7,step:9},
+ boost:[70,78,86],ramps:[{s0:25,len:7,h:1.1},{s0:160,len:7,h:1.1}],puddles:{s0:900,n:7,step:9},
  items:[205,780,1010,1290],
  obstacles:[
   {kind:'pixel',s:300,x:3},{kind:'gate',s:400,x:3},{kind:'cones',s:470,x:-3},{kind:'wheel',s:540,x:3.2},
   {kind:'sign',s:660,x:-3.2},{kind:'sweeper',s:820,x:3},{kind:'gate',s:870,x:-3},{kind:'goo',s:975,x:2.8},
-  {kind:'pixel',s:1060,x:-3},{kind:'car',s:1100,x:3.5,len:70},{kind:'cones',s:1325,x:-3.1}],
+  {kind:'pixel',s:1060,x:-3},{kind:'car',s:1100,x:3.5,len:70},{kind:'cones',s:1325,x:-3.1},
+  {kind:'bumper',s:600,x:3.2},{kind:'paddle',s:720,x:-3},{kind:'bumper',s:1150,x:-3}],   // M5: pinball bumpers + a sliding arcade paddle
  crowd:[[-46,34,0],[178,212,0],[760,800,0],[1000,1040,-1],[1278,1312,1]],party:[-14,195,780,1020,1296],
  signals:[],far:{n:70,h0:40,h1:120,y0:-36},
- pal:{fog:0x4a1a6a,fogD:.0072,env:[[0,'#160a30'],[.4,'#4a1a7a'],[.5,'#ff6a3a'],[.56,'#3a1a4a'],[1,'#0a0618']],neon:[0xff4fd8,0x35f2ff,0xffd23a,0x7dff6a],
+ pal:{fog:0x4a1a6a,fogD:.0035,env:[[0,'#160a30'],[.4,'#4a1a7a'],[.5,'#ff6a3a'],[.56,'#3a1a4a'],[1,'#0a0618']],neon:[0xff4fd8,0x35f2ff,0xffd23a,0x7dff6a],
   bg:[[0,'#0c0626'],[.34,'#3a1470'],[.56,'#a03aa0'],[.7,'#ff6a5a'],[.8,'#ffb06a'],[1,'#2a1040']],hemi:[0xa080e0,0x200c30,.62],key:[0xff9a70,1.15,[-60,40,-110]],rim:[0x70d8ff,.75],
   edge:0xff4fd8,edge2:0x35f2ff,tunnel:[0xff4fd8,0xffd23a,0x35f2ff,0x7dff6a,0x8a6bff],tunnelLight:0x9a6bff,ground:0x0c0818,groundRough:.6,asphalt:'#3a3448',
   farTint:0x7050b0,bloom:.42,moon:[60,90,-360],

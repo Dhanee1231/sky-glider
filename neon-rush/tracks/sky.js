@@ -5,17 +5,18 @@ export default {
  pts:[[0,130],[0,-55],[-15,-152],[-85,-207],[-192,-192],[-252,-107],[-237,0],[-181,63],[-200,159],[-137,237],[-52,237]],
  elev:[[598,704,3.6,34]],                         // canal bridge
  tunnels:[[132,214,'building']],                  // tunnel under a building block (start straight)
- boost:[86,94,102],ramp:{s0:430,len:7,h:1.1},puddles:{s0:765,n:9,step:8},
+ boost:[86,94,102],ramps:[{s0:55,len:7,h:1.1},{s0:430,len:7,h:1.1}],puddles:{s0:765,n:9,step:8},
  items:[245,465,565,1015],                        // item-box rows (flat ground only)
  signals:[.27,.47,.83],
  // kid-fair obstacle groups: s = metres along the lap, x = lateral (+ right); every group leaves a >= 5.5 m clear lane
  obstacles:[
   {kind:'barrel',s:290,x:3.3},{kind:'sweeper',s:345,x:-3},{kind:'crate',s:395,x:-3.3},{kind:'cones',s:505,x:3.1},
   {kind:'sign',s:535,x:-3.2},{kind:'fan',s:590,x:3.4},{kind:'bollards',s:732,x:3.2},{kind:'goo',s:880,x:-2.8},
-  {kind:'car',s:905,x:3.5,len:80},{kind:'crane',s:1065,x:3.2},{kind:'barrel',s:1125,x:-3.3}],
+  {kind:'car',s:905,x:3.5,len:80},{kind:'crane',s:1065,x:3.2},{kind:'barrel',s:1125,x:-3.3},
+  {kind:'rollbot',s:660,x:-3},{kind:'barrier',s:820,x:3.3},{kind:'barrier',s:1190,x:3.3}],   // M5: delivery bot patrols the bridge, roadblocks
  crowd:[[-46,34,0],[236,300,0],[440,520,1],[880,950,-1],[1080,1140,0]],party:[-14,262,470,905,1110],
  city:{sides:[-1,1],f0:4,f1:14,dp0:10,dpR:6},
- pal:{fog:0x6a3a78,fogD:.0105,env:[[0,'#1a0c34'],[.42,'#5a2a80'],[.5,'#ff8a7a'],[.56,'#3a2040'],[1,'#120a18']],neon:[0xff3fd8,0x35f2ff,0xffb060,0x8a6bff],
+ pal:{fog:0x6a3a78,fogD:.0048,env:[[0,'#1a0c34'],[.42,'#5a2a80'],[.5,'#ff8a7a'],[.56,'#3a2040'],[1,'#120a18']],neon:[0xff3fd8,0x35f2ff,0xffb060,0x8a6bff],
   bg:[[0,'#140a2c'],[.38,'#3c1a66'],[.6,'#a8407e'],[.75,'#e8787a'],[1,'#f0a888']],hemi:[0x9a80d0,0x281830,.6],key:[0xffa080,1.2,[-40,25,-90]],rim:[0x70d8ff,.7],
   edge:0x35f2ff,edge2:0xff4fd8,tunnel:[0xff4fd8,0x35f2ff,0xffd23a],tunnelLight:0xff6ad8,mirror:0xa098b8},
  build(c){const {THREE,S,V,C,merge,paintCol,sample,pointAt,L,W,WALK,TH,TOFF,conc,metal,emit,rnd,addBuilding,signs}=c;const o={};
