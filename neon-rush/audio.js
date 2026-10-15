@@ -70,7 +70,10 @@ const SFX={
  end_boost:t=>{nz(t,.4,'bandpass',3000,500,.12);tn(t,.35,'sawtooth',300,110,.05,.01);},
  end_rocket:t=>{nz(t,.5,'bandpass',3500,300,.14,.8);tn(t,.5,'sawtooth',500,90,.05,.01);},
  end_hop:t=>{tn(t,.3,'sine',880,330,.1,.01);tn(t+.12,.1,'square',200,90,.08);},
- spin:t=>{tn(t,.6,'triangle',900,250,.1,.01);tn(t,.6,'sine',1200,330,.06,.01);},                  // silly cartoon spin
+ spin:t=>{tn(t,.6,'triangle',900,250,.1,.01);tn(t,.6,'sine',1200,330,.06,.01);},
+ end_mega:t=>{tn(t,.45,'sawtooth',420,80,.07,.01);nz(t,.35,'lowpass',2200,300,.12);},
+ end_emp:t=>{tn(t,.3,'sine',330,880,.1,.01);tn(t+.1,.2,'triangle',660,1320,.07,.01);},   // slow wore off: rising, relieved
+ warn:t=>{tn(t,.12,'square',880,880,.06,.003);tn(t+.16,.12,'square',880,880,.06,.003);},   // M6 moving-hazard heads-up: two soft beeps                  // silly cartoon spin
 };
 export const SFX_NAMES=Object.keys(SFX);
 export function sfx(type){if(!AC||!settings.sound)return;(SFX[type]||SFX.whoosh)(AC.currentTime);}

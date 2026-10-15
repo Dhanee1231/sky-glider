@@ -285,6 +285,15 @@ export function buildWorld(R,S,cam,HIGH,custom){let bannerRef=null;
  {const pool=[],glow=[];for(const lp of lampPos){const g=new THREE.PlaneGeometry(7,7);g.rotateX(-Math.PI/2);g.translate(lp.x,lp.y-6.9+.02,lp.z);pool.push(g);const h=new THREE.PlaneGeometry(1.1,1.1).rotateY(rnd()*3);h.translate(lp.x,lp.y-.15,lp.z);glow.push(h);}
   if(pool.length){const pm=new THREE.Mesh(merge(pool),new THREE.MeshBasicMaterial({map:glowT,color:PAL.pool??0xffa860,transparent:true,opacity:.1,blending:THREE.AdditiveBlending,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3}));pm.renderOrder=3;pm.layers.set(1);S.add(pm);
    const gm=new THREE.Mesh(merge(glow),new THREE.MeshBasicMaterial({map:glowT,color:0xffd0a0,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));gm.renderOrder=4;gm.layers.set(1);S.add(gm);}}
+ // M6B forks: a raised median island splits the road into two 5.2 m branches (tapered nose + tail, neon edge); the karts are held off it by obstacles.js
+ for(const [fa,fb] of (T.forks||[])){const NOSE=12,MW=.75,MH=.42,top=[],sideL=[],sideR=[],glowL=[],glowR=[];const n=Math.ceil((fb-fa)/2);
+  const strip=(f)=>{const g=new THREE.BufferGeometry(),pos=[],uv=[],idx=[];for(let i=0;i<=n;i++){const s=fa+(fb-fa)*i/n,h=MW*smooth(Math.min((s-fa)/NOSE,(fb-s)/NOSE));sample(s,_s);const p=f(h,_s);pos.push(...p[0],...p[1]);uv.push(s/3,0,s/3,1);if(i<n){const q=i*2;idx.push(q,q+1,q+2,q+1,q+3,q+2);}}
+   g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();return g;};
+  const P=(h,x,y)=>[_s.x-_s.tz*x,_s.y+y,_s.z+_s.tx*x];
+  const up=g=>{if(g.attributes.normal.getY(g.attributes.normal.count>>1)<0){const ix=g.index.array;for(let i=0;i<ix.length;i+=3){const k=ix[i+1];ix[i+1]=ix[i+2];ix[i+2]=k;}g.index.needsUpdate=true;g.computeVertexNormals();}return g;};
+  conc.push(up(strip((h,o)=>[P(h,-h,MH),P(h,h,MH)])));
+  for(const sd of[-1,1]){const w=strip((h,o)=>[P(h,sd*h,0),P(h,sd*h,MH)]);conc.push(w);   // both faces are drawn (concMat is double-sided)
+   emit.push(paintCol(up(strip((h,o)=>[P(h,sd*h,MH+.01),P(h,sd*(h*.62),MH+.01)])),C(sd<0?0x35f2ff:0xff4fd8,2.6)));}}
  const lay1=m=>{m.layers.set(1);S.add(m);return m;};
  if(conc.length)lay1(nm(new THREE.Mesh(merge(conc),concMat),'conc'));   // layer 1 = not in the mirror pass (saves a full copy)
  lay1(nm(new THREE.Mesh(merge(metal),metalMat),'metal'));
@@ -311,7 +320,7 @@ export function buildWorld(R,S,cam,HIGH,custom){let bannerRef=null;
   if(composer){composer.setSize(w,h);bloom.resolution.set(w*DPR/2,h*DPR/2);}if(mirror)mirror.getRenderTarget().setSize(Math.round(w*DPR/2),Math.round(h*DPR/2));}
 
  const M4=new THREE.Matrix4(),v=new THREE.Vector3(),q2=new THREE.Quaternion(),qq=new THREE.Quaternion(),sc=new THREE.Vector3(),one=new THREE.Vector3(1,1,1),Yax=V(0,1,0),qx90=new THREE.Quaternion().setFromAxisAngle(V(1,0,0),Math.PI/2),o2={};
- let cover=0,T0=0;const BLOOM0=PAL.bloom??.38;
+ let cover=0,T0=0,night=0;const BLOOM0=PAL.bloom??.38,FOG0=new THREE.Color(PAL.fog),FOGN=new THREE.Color(0x0a0620),FD0=PAL.fogD??.0105;
  // fx state from game: speed 0..1, drift level 0..3, boosting, heroS
  function updateFx(dt,g){T0+=dt;sample(g.heroS,o2);
   qq.setFromAxisAngle(Yax,Math.atan2(cam.position.x-hero.position.x,cam.position.z-hero.position.z));
@@ -325,7 +334,9 @@ export function buildWorld(R,S,cam,HIGH,custom){let bannerRef=null;
   // tunnel lighting: sky light fades, the tunnel's own neon colour takes over the rim light, a touch more bloom
   const want=g.cover??tunnelCover(g.heroS);cover+=(want-cover)*Math.min(1,dt*5);
   hemi.intensity=LB.hemi*(1-.55*cover);key.intensity=LB.key*(1-.85*cover);rimL.intensity=LB.rim+1.3*cover;rimL.color.copy(LB.rimC).lerp(LB.tunC,cover);S.environmentIntensity=.8*(1-.45*cover);
-  if(bloom)bloom.strength=BLOOM0+.22*cover;
+  night+=((g.night||0)-night)*Math.min(1,dt*1.2);   // M6B: the last lap is dusk -> night (dimmer sky light, darker fog), neon stays bright
+  if(night>.002||night<-.002){hemi.intensity*=1-.4*night;key.intensity*=1-.55*night;S.environmentIntensity*=1-.3*night;S.backgroundIntensity=1-.55*night;S.fog.color.copy(FOG0).lerp(FOGN,.6*night);S.fog.density=FD0*(1+.25*night);}
+  if(bloom)bloom.strength=BLOOM0+.22*cover+.12*night;
   land.update&&land.update(dt,T0,g);}
  function render(){if(composer)composer.render();else R.render(S,cam);}
  // free every GPU resource of this scene (track switch)

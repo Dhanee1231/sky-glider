@@ -1,28 +1,28 @@
 // Neon Rush rival racers (M3 Track B, M4 Track A): six rivals, each with its own look (karts.js) and driving style. M4: follows road height.
 import * as THREE from 'three';
 import {sample,wrap,FEAT,rampAt} from './world.js';
-import {VMAX,VBOOST,ACC,LAPS,LEAD_GAP,LEAD_SLOW,LEAD_RAMP,TRAIL_GAP,TRAIL_HELP,TRAIL_RAMP,AIR_G,HOP_G,HOP_VY,getDiff} from './tuning.js';
+import {VMAX,VBOOST_AI as VBOOST,ACC,getLaps,LEAD_GAP,LEAD_SLOW,LEAD_RAMP,TRAIL_GAP,TRAIL_HELP,TRAIL_RAMP,AIR_G,HOP_G,HOP_VY,getDiff} from './tuning.js';
 import {RIVAL_LOOKS,buildRivals} from './karts.js';
 // driving styles: pace (x VMAX), acc (x ACC), line (racing-line strength), xmax, sway (wide drifter lines), margin (obstacle gap),
 //   miss (chance to clip an obstacle), itemDelay [min,max] s, late (final-lap surge), hunt (steers to item boxes), bumpy (leans on others)
 export const STYLES={   // M4: paces +.015 for the ~1.2-1.4 km laps (kid bot 65-75% wins)
- Pip:   {pace:.963,acc:1,  line:170,xmax:3.8,sway:0, margin:1.0,miss:.10,itemDelay:[2,5],  hunt:.3},
- Mochi: {pace:.938,acc:.95,line:120,xmax:3.0,sway:0, margin:1.7,miss:0,  itemDelay:[3,6],  hunt:.2, careful:1},
- Bolt:  {pace:.968, acc:1.08,line:230,xmax:4.4,sway:0, margin:.5, miss:.2, itemDelay:[1.5,4],hunt:.2, bumpy:1},
- Kiki:  {pace:.953,acc:1,  line:150,xmax:4.2,sway:1.6,margin:.9, miss:.12,itemDelay:[2,5],  hunt:.3, drifter:1},
- Coco:  {pace:.948,acc:1,  line:150,xmax:3.8,sway:0, margin:1.0,miss:.12,itemDelay:[.5,1.3],hunt:1},
- Shelly:{pace:.933,acc:.9, line:160,xmax:3.6,sway:0, margin:1.1,miss:.08,itemDelay:[2,5],  hunt:.3, late:1.075}};
+ Pip:   {pace:.963,acc:1,  line:170,xmax:3.8,sway:0, margin:1.0,miss:.10,itemDelay:[2,5],  hunt:.3,risk:.5},
+ Mochi: {pace:.938,acc:.95,line:120,xmax:3.0,sway:0, margin:1.7,miss:0,  itemDelay:[3,6],  hunt:.2, careful:1,risk:.15},
+ Bolt:  {pace:.968, acc:1.08,line:230,xmax:4.4,sway:0, margin:.5, miss:.2, itemDelay:[1.5,4],hunt:.2, bumpy:1,risk:.8},
+ Kiki:  {pace:.953,acc:1,  line:150,xmax:4.2,sway:1.6,margin:.9, miss:.12,itemDelay:[2,5],  hunt:.3, drifter:1,risk:.5},
+ Coco:  {pace:.948,acc:1,  line:150,xmax:3.8,sway:0, margin:1.0,miss:.12,itemDelay:[.5,1.3],hunt:1,risk:.65},
+ Shelly:{pace:.933,acc:.9, line:160,xmax:3.6,sway:0, margin:1.1,miss:.08,itemDelay:[2,5],  hunt:.3, late:1.075,risk:.3}};
 // grid slots (s, x); the player starts at GRID_PLAYER
 export const GRID=[[-5,2.4],[-5,-2.4],[-9,2.4],[-13,2.4],[-13,-2.4],[-17,0]];export const GRID_PLAYER=[-9,-2.4];
 const ORDER=['Pip','Bolt','Kiki','Mochi','Coco','Shelly'];   // grid order (front to back)
-const fresh=()=>({v:0,y:0,vy:0,air:0,boost:0,shield:0,rocket:0,hop:0,floaty:0,spin:0,wiggle:0,bounce:0,item:null,itemT:0,finished:false,time:0,obCd:0,drT:0,bumpCd:0,place:0,avoid:null,avoidX:0,huntX:null,slow:0,zapWind:0,emp:0,empF:1});
+const fresh=()=>({v:0,y:0,vy:0,air:0,boost:0,shield:0,rocket:0,hop:0,floaty:0,spin:0,wiggle:0,bounce:0,item:null,itemT:0,finished:false,time:0,obCd:0,drT:0,bumpCd:0,place:0,avoid:null,avoidX:0,huntX:null,slow:0,zapWind:0,emp:0,empF:1,mega:0,storm:0});
 export function createRacers(kit){
  const looks=ORDER.map(n=>RIVAL_LOOKS.find(l=>l.name===n));const RV=buildRivals(kit,looks);
  const list=looks.map((lk,i)=>Object.assign({name:lk.name,css:lk.css,svg:lk.svg,idx:i,st:STYLES[lk.name],s:GRID[i][0],x:GRID[i][1],xs:GRID[i][1],mesh:new THREE.Object3D()},fresh()));
  let rnd=Math.random;
  function reset(){zapT=8;list.forEach((F,i)=>Object.assign(F,fresh(),{s:GRID[i][0],x:GRID[i][1],xs:GRID[i][1]}));}
  const o={},o2={};let zapT=0;
- function update(dt,ctx){const P=ctx.player,L=ctx.L,obs=ctx.obstacles,items=ctx.items,D=getDiff();
+ function update(dt,ctx){const P=ctx.player,L=ctx.L,obs=ctx.obstacles,items=ctx.items,D=getDiff(),LAPS=getLaps();
   // M5: Medium/Hard rivals aim an item at the player every so often (a short, visible Rocket-Star wind-up first; Easy never)
   if(D.aiItem&&!P.finished&&ctx.raceT>6){zapT-=dt;if(zapT<=0){zapT=D.aiItem[0]+rnd()*(D.aiItem[1]-D.aiItem[0]);let best=null,bd=40;for(const F of list){if(F.finished||F.zapWind>0||F.spin>0||F.air>0)continue;const d=Math.abs(F.s-P.s);if(d<bd){bd=d;best=F;}}if(best)best.zapWind=1.3;}}
 
@@ -34,19 +34,20 @@ export function createRacers(kit){
    if(F.slow>0){F.slow=Math.max(0,F.slow-dt);vmax*=.62;}
    if(F.emp>0){F.emp=Math.max(0,F.emp-dt);vmax*=F.empF;}   // M5b: EMP / Wave Ring slow
    if(F.wiggle>0)vmax*=.93;if(F.spin>0)vmax*=.45;
-   if(F.boost>0)vmax=Math.max(vmax,VBOOST*.95);if(F.rocket>0){vmax=VBOOST*1.02;F.rocket=Math.max(0,F.rocket-dt);F.boost=Math.max(F.boost,.2);}
+   if(F.mega>0)vmax*=1.1;if(F.boost>0)vmax=Math.max(vmax,VBOOST*.95);if(F.rocket>0){vmax=VBOOST*1.02;F.rocket=Math.max(0,F.rocket-dt);F.boost=Math.max(F.boost,.2);}
    F.v+=(F.v<vmax?(F.boost>0?ACC*2.6:ACC*st.acc):-9)*dt;F.v=Math.max(0,F.v);F.s+=F.v*dt;
    // steering target: racing line (+ wide drifter sway), then dodge hazards, then maybe hunt an item box
    sample(F.s+16,o);let want=Math.max(-st.xmax,Math.min(st.xmax,-o.k*st.line*D.line));
    if(st.drifter)want=Math.max(-4.4,Math.min(4.4,want+Math.sign(-o.k||1)*Math.min(1,Math.abs(o.k)*60)*st.sway));
-   if(F.huntX!=null&&F.rocket<=0)want=F.huntX;
+   {const fk=obs&&obs.forkAt(F.s+6,45,P.s);if(fk){if(F.fkKey!==fk.key){F.fkKey=fk.key;F.fkRisky=rnd()<st.risk*D.riskK;}want=(F.fkRisky?fk.risk:-fk.risk)*3.2;}}   // M6B forks: pick a branch (bold drivers take the risky, boosted one)
+   if(F.huntX!=null&&F.rocket<=0&&!(obs&&obs.forkAt(F.s,0,P.s)))want=F.huntX;
    if(obs&&F.rocket<=0&&F.air<=0){const a=obs.ahead(F.s,want,28,Math.max(.2,st.margin+D.wide));   // {id, x} free x for the next hazard, or null
     if(a){if(F.avoid!==a.id){F.avoid=a.id;F.avoidMiss=rnd()<st.miss*(D.cheer?.6:1);}if(!F.avoidMiss)want=a.x;}}
    if(items&&st.hunt&&F.item==null&&F.rocket<=0){const b=items.boxAhead(F.s,40,F.x);F.huntX=b&&rnd()<st.hunt*dt*6?b.x:(b?F.huntX:null);}else F.huntX=null;
    const rate=F.rocket>0?3:st.careful?1.4:2.1;F.xs+=(want-F.xs)*Math.min(1,dt*rate);F.x=F.xs;
    // drifter: long bends charge a mini boost
    if(st.drifter){if(Math.abs(o2.k)>.012&&F.air<=0){F.drT+=dt;}else{if(F.drT>1.2)F.boost=Math.max(F.boost,.7);F.drT=0;}}
-   for(const b of FEAT.boost){const d=wrap(F.s)-b;if(d>-1.5&&d<1.5&&F.boost<.5)F.boost=1.2;}F.boost=Math.max(0,F.boost-dt);
+   for(const b of FEAT.boost){const d=wrap(F.s)-b;if(d>-1.5&&d<1.5&&F.boost<.5)F.boost=1.2;}if(obs&&F.boost<.5&&F.air<=0&&obs.padAt(F.s,F.x))F.boost=1.2;F.boost=Math.max(0,F.boost-dt);
    F.zapWind=Math.max(0,F.zapWind-dt);if(F.zapWind>0&&F.zapWind<=dt){const dS=F.s-P.s;if(!P.finished&&Math.abs(dS)<16&&Math.abs(F.x-P.x)<4&&P.air<=0&&items){items.hit(P,ctx,F);}}
    F.shield=Math.max(0,F.shield-dt);F.spin=Math.max(0,F.spin-dt);F.wiggle=Math.max(0,F.wiggle-dt);F.bounce=Math.max(0,F.bounce-dt);F.obCd=Math.max(0,F.obCd-dt);F.bumpCd=Math.max(0,F.bumpCd-dt);
    // ramp, Gravity Hop, air
@@ -61,20 +62,23 @@ export function createRacers(kit){
   // kart-to-kart nudges (player included); a Rocket Star racer spins others (shield blocks, player rule in items.hit)
   const all=ctx.all;for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){const A=all[i],B=all[j];const dS=A.s-B.s;if(dS>2||dS<-2)continue;const dX=A.x-B.x;
    if(Math.abs(dX)>1.35||A.air>0&&A.y>.5||B.air>0&&B.y>.5)continue;
-   if(A.rocket>0&&B.rocket<=0){if(!(B.isPlayer&&!D.aiItem))items&&items.hit(B,ctx,A);continue;}if(B.rocket>0&&A.rocket<=0){if(!(A.isPlayer&&!D.aiItem))items&&items.hit(A,ctx,B);continue;}
+   const Ap=A.rocket>0||A.mega>0,Bp=B.rocket>0||B.mega>0;if(Ap&&!Bp){items&&items.hit(B,ctx,A);continue;}if(Bp&&!Ap){items&&items.hit(A,ctx,B);continue;}
    const push=(1.35-Math.abs(dX))*.5*(dX>=0?1:-1)*(A.st&&A.st.bumpy||B.st&&B.st.bumpy?1.2:1);
    if(A.isPlayer)A.x+=push;else A.xs+=push;if(B.isPlayer)B.x-=push;else B.xs-=push;
    if((A.isPlayer||B.isPlayer)&&ctx.onBump)ctx.onBump();}}
  // matrices for the palette meshes; hero gets its shield bubble / rocket star from the same draw call
- const e=new THREE.Euler(0,0,0,'YXZ'),q=new THREE.Quaternion(),one=new THREE.Vector3(1,1,1),m=new THREE.Matrix4(),gm=new THREE.Matrix4(),v=new THREE.Vector3();
+ const e=new THREE.Euler(0,0,0,'YXZ'),q=new THREE.Quaternion(),sv=new THREE.Vector3(),m=new THREE.Matrix4(),gm=new THREE.Matrix4(),v=new THREE.Vector3();
  function place(cam,P,hero,t){for(const F of list){sample(F.s,o2);kit.pointAt(F.s,F.x,v);const gy=v.y;v.y+=F.y;F.mesh.position.copy(v);
    const yaw=Math.atan2(-o2.tx,-o2.tz)+(F.spin>0?F.spin*12:0)+(F.drT>.4?Math.sign(-o2.k)*.18:0);
    const pitch=Math.atan(o2.gy)+(F.air>0?-F.vy*.02:(F.y>0?-.15:0)),roll=F.wiggle>0?Math.sin(F.wiggle*40)*.06:0;
    e.set(pitch,yaw,roll);q.setFromEuler(e);F.mesh.quaternion.copy(q);
-   if(cam.position.distanceTo(v)<2.6){RV.setKart(F.idx,null);}
-   else{m.compose(v,q,one);e.set(Math.atan(o2.gy),yaw,0);q.setFromEuler(e);v.y=gy+.001;gm.compose(v,q,one);RV.setKart(F.idx,m,gm);}
-   v.copy(F.mesh.position);v.y+=.62;RV.setShield(F.idx,v,F.shield>0?.75+.25*Math.sin(t*9+F.idx):0,cam.quaternion);
-   v.y+=.35;RV.setStar(F.idx,v,F.rocket>0||F.zapWind>0?1:0,cam.quaternion,t+F.idx);}
+   F.sc=(F.sc||1)+((F.mega>0?1.6:F.storm>0?.62:1)-(F.sc||1))*.2;sv.setScalar(F.sc);   // M6: Mega Kart grows, Lightning Storm shrinks
+   if(cam.position.distanceTo(v)<2.6*F.sc){RV.setKart(F.idx,null);}
+   else{m.compose(v,q,sv);e.set(Math.atan(o2.gy),yaw,0);q.setFromEuler(e);v.y=gy+.001;gm.compose(v,q,sv);RV.setKart(F.idx,m,gm);}
+   v.copy(F.mesh.position);v.y+=.62*F.sc;RV.setShield(F.idx,v,F.shield>0?(.75+.25*Math.sin(t*9+F.idx))*F.sc:0,cam.quaternion);
+   v.y+=.35;RV.setStar(F.idx,v,F.rocket>0||F.zapWind>0?1:0,cam.quaternion,t+F.idx);
+   const sl=F.mega>0?0:Math.max(F.emp||0,F.slow||0);   // M6B: slowed rival = blue fizz + a timer ring that shrinks (not while Mega)
+   if(sl>(F.slPrev||0)+.05||!(sl>0))F.slMax=sl;F.slPrev=sl;v.copy(F.mesh.position);v.y+=1.1*F.sc;RV.setSlow(F.idx,v,sl>.05?Math.min(1,sl/(F.slMax||sl)):0,cam.quaternion,t);}
   const N=RV.N;v.copy(hero.position);v.y+=.62;RV.setShield(N,v,P.shield>0?(P.shield<1.5?.5+.5*Math.sin(t*20):.8+.2*Math.sin(t*9)):0,cam.quaternion);
   v.y+=.35;RV.setStar(N,v,P.rocket>0?1:0,cam.quaternion,t);}
  // standings: everyone sorted by distance (finished karts by finish time)

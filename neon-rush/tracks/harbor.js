@@ -4,17 +4,22 @@
 import {palMesh,setSlotM} from '../b_pal.js';
 export default {
  id:'harbor',name:'Glowtide Harbor',music:'harbor',pace:.999,seed:23,
- pts:[[0,180],[0,-108],[-22,-204],[-90,-252],[-168,-234],[-206,-162],[-198,-72],[-228,12],[-222,108],[-180,192],[-108,246],[-36,240]],
- elev:[[995,1115,4.5,40]],                        // drawbridge over the basin
- tunnels:[[822,900,'boathouse']],
- boost:[80,88,96],ramps:[{s0:25,len:7,h:1.1},{s0:300,len:7,h:1.1},{s0:668,len:7,h:1.1}],puddles:{s0:640,n:8,step:9},
- items:[230,470,770,1215],
+ pts:[[0,180],[0,-108],[-22,-204],[-90,-252],[-175,-350],[-285,-405],[-400,-355],[-455,-245],[-430,-115],[-340,-35],[-228,12],[-222,108],[-180,192],[-108,246],[-36,240]],
+ elev:[[1536,1656,4.5,40]],                        // drawbridge over the basin
+ tunnels:[[1363,1441,'boathouse']],
+ boost:[80,88,96,672,680,688,1332,1340,1348],ramps:[{s0:25,len:7,h:1.1},{s0:300,len:7,h:1.1},{s0:1063,len:7,h:1.1},{s0:1385,len:7,h:1.1},{s0:1430,len:7,h:1.1}],puddles:{s0:985,n:8,step:9},
+ items:[230,469,675,881,1112,1292,1524,1756],
  obstacles:[
-  {kind:'buoy',s:150,x:3.2},{kind:'trap',s:262,x:-3.3},{kind:'cones',s:345,x:3.0},{kind:'net',s:420,x:3.2},
-  {kind:'sweeper',s:525,x:-3},{kind:'barrel',s:590,x:3.3},{kind:'goo',s:735,x:-2.8},{kind:'bollards',s:935,x:-3.2},
-  {kind:'car',s:1125,x:3.5,len:75},{kind:'buoy',s:1192,x:-3.2},
-  {kind:'container',s:195,x:-3.3},{kind:'dockcart',s:380,x:3},{kind:'container',s:975,x:3.3}],   // M5: cargo containers + a dock cart
- crowd:[[-46,34,0],[190,250,1],[480,540,-1],[940,985,0],[1150,1185,-1]],party:[-14,220,505,962,1160],
+   // M6B: 40-60% longer lap -> relocated out of the forks + new groups (lv = first level that has a mover: 0 Easy, 1 Medium, 2 Hard, 3 Extreme)
+  {kind:'swinggate',s:125,x:-3.35,lv:2},{kind:'buoy',s:150,x:3.2},{kind:'container',s:195,x:-3.3},{kind:'trap',s:262,x:-3.3},
+  {kind:'dockcart',s:380,x:3},{kind:'net',s:420,x:3.2},{kind:'cones',s:455,x:3},{kind:'sweeper',s:662,x:-3},
+  {kind:'drone',s:698,x:2.65,lv:0},{kind:'swinggate',s:763,x:-3.35,lv:0},{kind:'trap',s:798,x:3.2},{kind:'barrel',s:832,x:3.3},
+  {kind:'buoy',s:868,x:-3.2},{kind:'slidebar',s:924,x:-2.55,lv:3},{kind:'cones',s:963,x:3.2},{kind:'sweeper',s:998,x:-3.2},
+  {kind:'drone',s:1033,x:2.65,lv:1},{kind:'rotor',s:1115,x:3.1,lv:1},{kind:'goo',s:1319,x:-2.8},{kind:'bollards',s:1481,x:-3.2},
+  {kind:'container',s:1516,x:3.3},{kind:'swinggate',s:1546,x:3.35,lv:0},{kind:'slidebar',s:1591,x:-2.55,lv:3},{kind:'rotor',s:1636,x:3.1,lv:1},
+  {kind:'car',s:1666,x:3.5,len:75},{kind:'buoy',s:1733,x:-3.2},{kind:'drone',s:1755,x:-2.65,lv:2}],
+ forks:[[500,650],[1160,1310]],   // M6B: split sections (median island; risky branch = boost pads + hazards, safe branch = clear; sides swap per lap)
+ crowd:[[-46,34,0],[190,250,1],[492,552,-1],[1481,1526,0],[1691,1726,-1]],party:[-14,220,570,1503,1701],
  city:{sides:[-1],f0:2,f1:7,dp0:9,dpR:5,gap:.4},lampSides:[-1],
  mirrorY:-.6,walk:4.5,far:{n:60,h0:12,h1:46,y0:-.6},
  pal:{fog:0x2a4a6a,fogD:.0045,env:[[0,'#0a1a3a'],[.42,'#1f5a8a'],[.5,'#ff8ab8'],[.56,'#203050'],[1,'#081020']],neon:[0xff4fd8,0x35f2ff,0xffc26a,0x7affc8],
@@ -60,7 +65,7 @@ export default {
    for(let i=0;i<5;i++){const t=OUT+2+i*(fwOff-OUT+4)/4;for(const sd of[-3.6,3.6]){const p=V(o.x-o.tz*t+o.tx*sd,0,o.z+o.tx*t+o.tz*sd);solid.push(paintCol(new THREE.CylinderGeometry(.22,.22,1.4,6).translate(p.x,SEA+.3,p.z),C(0x4a3424)));
      emit.push(paintCol(new THREE.SphereGeometry(.16,6,4).translate(p.x,.6,p.z),C(0xffc26a,3)));}}}
   // lighthouse on a rocky islet past the north hairpin + a slow sweeping beam
-  let beam;{sample(470,o);const lx=o.x-o.tz*58,lz=o.z+o.tx*58;
+  let beam;{sample(469,o);const lx=o.x-o.tz*58,lz=o.z+o.tx*58;
    solid.push(paintCol(new THREE.CylinderGeometry(9,12,3,10).translate(lx,SEA+.6,lz),C(0x2a2a34)));
    for(let i=0;i<6;i++)solid.push(paintCol(new THREE.CylinderGeometry(2.3-i*.24,2.5-i*.24,3.2,16).translate(lx,1.6+i*3.2,lz),C(i%2?0xff3a6a:0xf2f0ff)));
    solid.push(paintCol(new THREE.CylinderGeometry(1.8,1.8,.4,16).translate(lx,19.6,lz),C(0x30303a)));emit.push(paintCol(new THREE.CylinderGeometry(1.2,1.2,1.8,12).translate(lx,20.7,lz),C(0xfff2b0,3.2)));
@@ -70,7 +75,7 @@ export default {
    beam=new THREE.Mesh(bg,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));beam.position.set(lx,20.7,lz);beam.layers.set(1);beam.renderOrder=6;S.add(beam);}
   // lantern boats bobbing on the sea (2 palette meshes: lit hulls + glowing lanterns)
   const boats=[];const hulls=[],lights=[];const BC=[0x2a6aa0,0xd04060,0xf0f0f0,0x30a070,0xffb03a,0x8a5ac0];
-  [[60,22],[230,30],[560,26],[700,-34],[1080,24],[1180,34]].forEach(([s,off],i)=>{sample(s,o);const side=off>0?1:-1,x=o.x-o.tz*off,z=o.z+o.tx*off;boats.push({x,z,y:SEA,yaw:Math.atan2(o.tx,o.tz)+(rnd()-.5)*.8,ph:i*1.3});
+  [[60,22],[230,30],[741,26],[1154,-34],[1621,24],[1721,34]].forEach(([s,off],i)=>{sample(s,o);const side=off>0?1:-1,x=o.x-o.tz*off,z=o.z+o.tx*off;boats.push({x,z,y:SEA,yaw:Math.atan2(o.tx,o.tz)+(rnd()-.5)*.8,ph:i*1.3});
    const hp=[paintCol(new THREE.BoxGeometry(3,1,7.4).translate(0,.2,0),C(BC[i])),paintCol(new THREE.BoxGeometry(2.6,.12,6.6).translate(0,.75,0),C(0xd8c0a0)),paintCol(new THREE.ConeGeometry(1.5,2.2,4,1).rotateY(Math.PI/4).scale(1,1,1.4).rotateX(Math.PI/2).translate(0,.2,-4.5),C(BC[i])),
     paintCol(new THREE.BoxGeometry(1.8,1.3,2.2).translate(0,1.4,.8),C(0xf4f0ea)),paintCol(new THREE.CylinderGeometry(.06,.06,6,5).translate(0,3.8,-1),C(0xddddee))];
    for(const g of hp)hulls.push({g,slot:i});

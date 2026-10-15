@@ -4,16 +4,22 @@
 // Data + landmarks only (world.js builds the road / bridge / tunnel kit). Landmarks: one lit "solid" mesh, a few glowing/spinning parts.
 export default {
  id:'beach',name:'Sunny Shores Boardwalk',music:'beach',pace:.99,seed:53,
- pts:[[0,120],[0,-70],[25,-150],[100,-205],[190,-200],[255,-150],[270,-70],[235,10],[260,90],[220,165],[130,195],[50,190]],
- elev:[[250,830,3.8,55,55]],                       // the boardwalk plateau; the 55 m slopes are the big ramp up and the gentle drop down
- tunnels:[[925,990,'arcade']],                     // funhouse tunnel on the sand
- boost:[100,108,116],ramps:[{s0:70,len:7,h:1.1},{s0:225,len:7,h:1.1},{s0:470,len:7,h:1.1},{s0:720,len:7,h:1.1},{s0:1110,len:7,h:1.1}],puddles:{s0:1005,n:5,step:9},
- items:[345,580,880,1038],
+ pts:[[-40,180],[-14,85],[-66,-10],[-40,-105],[-8,-225],[90,-307],[207,-300],[291,-225],[311,-105],[265,15],[298,135],[246,248],[129,293],[25,285]],
+ elev:[[396,976,3.8,55,55]],                       // the boardwalk plateau; the 55 m slopes are the big ramp up and the gentle drop down
+ tunnels:[[1352,1417,'arcade']],                     // funhouse tunnel on the sand
+ boost:[162,170,178,1307,1315,1323],ramps:[{s0:113,len:7,h:1.1},{s0:359,len:7,h:1.1},{s0:694,len:7,h:1.1},{s0:1056,len:7,h:1.1},{s0:1601,len:7,h:1.1}],puddles:{s0:1458,n:5,step:9},
+ items:[71,204,332,529,849,1031,1292,1501],
  // kid-fair groups: every one leaves a >= 5 m clear lane; waves are the only movers on the sand
  obstacles:[
-  {kind:'ball',s:135,x:3.2},{kind:'wave',s:160,x:-2.9},{kind:'umbrella',s:300,x:3.2},{kind:'board',s:385,x:-3.2},
-  {kind:'crate',s:525,x:-3.3},{kind:'bumper',s:640,x:3.2},{kind:'castle',s:835,x:-3.3}],
- crowd:[[-46,34,0],[330,380,-1],[600,650,-1],[860,910,0]],party:[-14,360,600,890],
+   // M6B: 40-60% longer lap -> relocated out of the forks + new groups (lv = first level that has a mover: 0 Easy, 1 Medium, 2 Hard, 3 Extreme)
+  {kind:'ball',s:75,x:-3.2},{kind:'ball',s:218,x:3.2},{kind:'wave',s:258,x:-2.9},{kind:'crab',s:295,x:2.65,lv:1},
+  {kind:'rollball',s:332,x:-2.6,lv:2},{kind:'crab',s:410,x:2.65,lv:0},{kind:'umbrella',s:467,x:3.2},{kind:'rollball',s:525,x:-2.6,lv:0},
+  {kind:'board',s:583,x:-3.2},{kind:'board',s:624,x:-3.2},{kind:'slidebar',s:664,x:-2.55,lv:3},{kind:'crate',s:770,x:-3.3},
+  {kind:'umbrella',s:821,x:3.2},{kind:'rotor',s:872,x:3.1,lv:1},{kind:'bumper',s:939,x:3.2},{kind:'crab',s:978,x:2.65,lv:0},
+  {kind:'rollball',s:1012,x:-2.6,lv:2},{kind:'castle',s:1296,x:-3.3},{kind:'swinggate',s:1457,x:-3.35,lv:3},{kind:'wave',s:1516,x:3.2},
+  {kind:'rollball',s:1574,x:2.6,lv:1}],
+ forks:[[1135,1285]],   // M6B: split sections (median island; risky branch = boost pads + hazards, safe branch = clear; sides swap per lap)
+ crowd:[[-66,14,0],[508,558,-1],[879,929,-1],[1262,1312,0]],party:[-20,549,879,1306],
  walk:2.5,mirror:false,mirrorY:-.6,far:false,rain:false,lampSides:[-1,1],
  pal:{fog:0xffb48e,fogD:.0042,env:[[0,'#2a2870'],[.42,'#ff9a7a'],[.5,'#ffd8a0'],[.56,'#4a9ab0'],[1,'#1a4058']],neon:[0xff4fd8,0x35f2ff,0xffd23a,0x7dff6a],
   bg:[[0,'#1c1858'],[.3,'#4a3490'],[.52,'#e0607e'],[.68,'#ff9a6a'],[.82,'#ffc890'],[1,'#ffe0b0']],hemi:[0xffd0b0,0xc89868,.95],key:[0xffb070,1.5,[-70,28,-90]],rim:[0x9adcff,.55],
@@ -78,7 +84,7 @@ export default {
    for(const z of[-8,8])glow(new THREE.BoxGeometry(.2,4.4,7),C(z<0?0xff3fd8:0xfff27a,2.2),M(-6.1,4.4,z),P);
    glow(new THREE.TorusGeometry(3.4,.18,5,18,Math.PI),C(0xff3fd8,3),M(-6.1,2.6,0,Math.PI/2),P);
    const nb=HIGH?36:18;for(let i=0;i<nb;i++){const t=i/(nb-1);glow(new THREE.SphereGeometry(.2,5,4),C(i%2?0xfff27a:0xffffff,3.2),M(-6.4,14.3,-12+24*t),P);glow(new THREE.SphereGeometry(.18,5,4),C(i%2?0xffffff:0xfff27a,3.2),M(-6.4,8.4,-12+24*t),P);}
-   sample(505,o);const sa=Math.atan2(o.tz,-o.tx),sx=f.x+o.tz*6.9,sz=f.z-o.tx*6.9;signs.push({raw:1,x:sx,y:11,z:sz,ang:sa,w:13,k:0},{raw:1,x:sx,y:5.2,z:sz,ang:sa,w:8,k:1});}
+   sample(742,o);const sa=Math.atan2(o.tz,-o.tx),sx=f.x+o.tz*6.9,sz=f.z-o.tx*6.9;signs.push({raw:1,x:sx,y:11,z:sz,ang:sa,w:13,k:0},{raw:1,x:sx,y:5.2,z:sz,ang:sa,w:8,k:1});}
   // carousel: static base + a spinning top (one mesh) with sea-horses and dolphins
   let spin,spinA=0;{const f=F(610,38);spinA=f.ang;const P=M(f.x,0,f.z,f.ang);put(new THREE.CylinderGeometry(8.2,8.6,.9,24),0xfff0f6,M(0,.45,0),P);put(new THREE.CylinderGeometry(8.25,8.25,.3,24),0xffc83a,M(0,.95,0),P);
    const nb=HIGH?24:12;for(let i=0;i<nb;i++){const a=i/nb*6.283;glow(new THREE.SphereGeometry(.15,5,4),C([0xfff27a,0xff8ad8][i%2],3.2),M(Math.cos(a)*9.5,7.2,Math.sin(a)*9.5),P);}
@@ -100,7 +106,7 @@ export default {
    const tg=[];[0xffd21a,0xff3fd8,0x35f2ff,0x7aff3a].forEach((col,k)=>{tg.push(paintCol(new THREE.BoxGeometry(1.5,.8,1.4).translate(-2.6+k*1.75,-R+.75,0),C(col)));tg.push(paintCol(new THREE.SphereGeometry(.3,6,4).translate(-2.6+k*1.75,-R+1.35,0),C(0xffffff,2.4)));});
    train=new THREE.Mesh(merge(tg),new THREE.MeshStandardMaterial({vertexColors:true,roughness:.35,metalness:.25,emissive:0x221122,emissiveIntensity:.6}));train.position.set(f.x,cy,f.z);train.rotation.order='YXZ';train.rotation.y=f.ang;train.layers.set(1);S.add(train);}
   // funhouse tunnel mouths: big sign above each portal
-  for(const [e,k,dir] of[[925,6,1],[990,6,-1]]){sample(e,o);const sa=Math.atan2(o.tx*dir,o.tz*dir)+Math.PI;signs.push({raw:1,x:o.x,y:9.2,z:o.z,ang:sa,w:10,k});}
+  for(const [e,k,dir] of[[1352,6,1],[1417,6,-1]]){sample(e,o);const sa=Math.atan2(o.tx*dir,o.tz*dir)+Math.PI;signs.push({raw:1,x:o.x,y:9.2,z:o.z,ang:sa,w:10,k});}
   // a few beach-ball bunting lights along the shore lamps are the world's lamps; here: bunting flags over the start straight
   {const nfl=HIGH?18:10;for(let i=0;i<nfl;i++){const t=i/(nfl-1);sample(-2,o);const x=o.x-o.tz*(-W/2-1+t*(W+2)),z=o.z+o.tx*(-W/2-1+t*(W+2)),y=9.3-Math.sin(t*Math.PI)*1.3;glow(new THREE.ConeGeometry(.3,.6,3).rotateX(Math.PI),C([0xff4f7a,0xffd21a,0x35b8ff,0x7dd84a][i%4],1.6),M(x,y,z));}}
   // ---------- gulls (instanced, circling over the sea) ----------

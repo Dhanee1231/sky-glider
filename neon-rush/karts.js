@@ -178,19 +178,26 @@ export function buildRivals(kit,looks){K=kit;kitRB=kit.RoundedBoxGeometry;const 
     if(!g.attributes.color)g=K.paintCol(g,new THREE.Color(key==='paint'?lk.paint:base[key]??0x808080));op.push({g,slot:i});}
    const sg=new THREE.PlaneGeometry(1.6,2.4).rotateX(-Math.PI/2).translate(0,.012,0);sh.push({g:sg,slot:i});
    fx.push({g:tint(quadUV(new THREE.PlaneGeometry(1.8,2.6),0,0).rotateX(-Math.PI/2).translate(0,.02,0),lk.accent,.5),slot:i});});
+  for(let i=0;i<=looks.length;i++){const b3=3*looks.length+2+3*i;   // M6B: slowed-rival timer ring (bubble cell, shrinks as the slow runs out) + 2 blue fizz sparks
+   fx.push({g:tint(quadUV(new THREE.PlaneGeometry(2.4,2.4),1,0),0x5ac8ff,1.5),slot:b3});
+   fx.push({g:tint(quadUV(new THREE.PlaneGeometry(.9,.9),1,1),0x9ae8ff,1.6),slot:b3+1});fx.push({g:tint(quadUV(new THREE.PlaneGeometry(.7,.7),1,1),0xffffff,1.4),slot:b3+2});}
   const shieldCol=[0x9af6ff,0xff8ae0];
   for(let i=0;i<=N;i++){fx.push({g:tint(quadUV(new THREE.PlaneGeometry(2.9,2.9),1,0),shieldCol[i%2],.9),slot:N+i});
    fx.push({g:tint(quadUV(new THREE.PlaneGeometry(2.6,2.6),0,1),0xffd23a,1.2),slot:2*N+1+i});}
   const opM=palMesh(S,op,new THREE.MeshStandardMaterial({vertexColors:true,metalness:.35,roughness:.42,envMapIntensity:1.3}),N);
   const liM=palMesh(S,li,new THREE.MeshBasicMaterial({vertexColors:true}),N);
   const shM=palMesh(S,sh,new THREE.MeshBasicMaterial({map:kit.shadowT,transparent:true,depthWrite:false,opacity:.9}),N);shM.mesh.renderOrder=3;
-  const fxM=palMesh(S,fx,new THREE.MeshBasicMaterial({map:atlas(kit),vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}),3*N+2,'rgb');fxM.mesh.renderOrder=6;
-  const m4=new THREE.Matrix4(),q=new THREE.Quaternion(),qz=new THREE.Quaternion(),Z=new THREE.Vector3(0,0,1),one=new THREE.Vector3(1,1,1),v=new THREE.Vector3();
+  const fxM=palMesh(S,fx,new THREE.MeshBasicMaterial({map:atlas(kit),vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}),6*N+5,'rgb');fxM.mesh.renderOrder=6;
+  const m4=new THREE.Matrix4(),q=new THREE.Quaternion(),qz=new THREE.Quaternion(),Z=new THREE.Vector3(0,0,1),one=new THREE.Vector3(1,1,1),v=new THREE.Vector3(),v2=new THREE.Vector3();
   return {N,meshes:[opM.mesh,liM.mesh,shM.mesh,fxM.mesh],
    // kart body matrix (m) and ground shadow matrix (gm); null hides
    setKart(i,m,gm){if(!m){for(const P of[opM,liM,shM])hideSlot(P.M,i);hideSlot(fxM.M,i);return;}setSlotM(opM.M,i,m);setSlotM(liM.M,i,m);setSlotM(fxM.M,i,gm,1);setSlotM(shM.M,i,gm);},
    // camera-facing bubble / spinning star; who = 0..N (N = hero); pos = world point, a = brightness (0 hides)
    setShield(who,pos,a,camQ){if(!(a>0)){hideSlot(fxM.M,N+who);return;}m4.compose(pos,camQ,one);setSlotM(fxM.M,N+who,m4,a);},
+   setSlow(who,pos,frac,camQ,t){const b3=3*N+2+3*who;if(!(frac>0)){for(let j=0;j<3;j++)hideSlot(fxM.M,b3+j);return;}
+    const k=.55+.45*frac;m4.compose(pos,camQ,v.setScalar(k*(1+.05*Math.sin(t*16))));setSlotM(fxM.M,b3,m4,.55+.45*frac);   // ring: shrinks and dims as the slow runs out
+    for(let j=1;j<3;j++){const a=t*(j===1?5.2:-6.7)+j*2.1,r=.85*k,y=Math.sin(t*(7+j*2)+j)*.25;v2.set(Math.cos(a)*r,y+.1,Math.sin(a)*.2).applyQuaternion(camQ).add(pos);   // fizz: sparks orbiting the kart
+     m4.compose(v2,camQ,v.setScalar(.6+.5*Math.abs(Math.sin(t*13+j*3))));setSlotM(fxM.M,b3+j,m4,1.3);}},
    setStar(who,pos,a,camQ,t){if(!(a>0)){hideSlot(fxM.M,2*N+1+who);return;}q.copy(camQ).multiply(qz.setFromAxisAngle(Z,t*3));m4.compose(pos,q,v.setScalar(.9+.15*Math.sin(t*14)));setSlotM(fxM.M,2*N+1+who,m4,a);}};}
 
 // ---------- M4: customization glue ----------

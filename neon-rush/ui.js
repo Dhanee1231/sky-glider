@@ -7,7 +7,7 @@
 // burst(): small pop on the item button.   hideMenus(): hide select + garage.   isRolling() / garageOpen(): state for main.js.
 import * as THREE from 'three';
 import {ICONS,NAMES} from './items.js';
-import {getBest,KART_N} from './save.js';
+import {getBest,KART_N,getTrackDiff,setTrackDiff,DIFFS} from './save.js';
 import {EMB_ORDER,MARK_ORDER,EMB_NAMES,MARK_NAMES,FX_NAMES,NEON,NEON_NAMES,hexCss,markCss,svgIcon} from './emblems.js';
 import {paintMarker} from './minimap.js';
 import {PAINTS,FINISHES,WHEELS,BODIES,TRAILS,DECALS,applyKart,heroFx,heroFxReset,buildPreviewKart} from './karts.js';
@@ -50,12 +50,18 @@ const THUMBS={
   <path d="M0 120L82 78h36l82 42z" fill="#e8c088"/><path d="M82 78L0 120M118 78l82 42" stroke="#ffd23a" stroke-width="3"/><path d="M100 118V80" stroke="#fff" stroke-width="3" stroke-dasharray="7 7"/>
   <circle cx="30" cy="100" r="8" fill="#ff3f6a"/><path d="M30 92a8 8 0 0 1 0 16a4 8 0 0 0 0-16z" fill="#fff"/><path d="M22 100a8 8 0 0 1 8-8v16a8 8 0 0 1-8-8z" fill="#35b8ff"/><g fill="#ffd23a"><circle cx="170" cy="104" r="3"/><circle cx="184" cy="98" r="2.4"/></g></svg>`};
 const TROPHY='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v6a5 5 0 0 1-10 0z" fill="#ffd23a"/><path d="M7 5H3c0 4 2 6 4 6M17 5h4c0 4-2 6-4 6" fill="none" stroke="#ffd23a" stroke-width="2"/><path d="M12 14v4M8 21h8l-1-3H9z" fill="#ffd23a"/></svg>';
+// M6B: each track card has its own level chips (1/2/3 stars, flame = Extreme). Chips are real buttons (>= 48 px), so the card itself is a div.
+const STAR='<path d="M12 2l3 6.6 7.2.8-5.4 4.9 1.5 7.1L12 17.3l-6.3 3.1 1.5-7.1L1.8 9.4 9 8.6z" fill="#ffd23a"/>',FLAME='<path d="M12 1.5c1 4-3.5 5.7-3.5 10a3.5 3.5 0 0 0 7 0c0-1.3-.5-2.2-1.1-3 3.5 1.5 5.6 4.6 5.6 7.5a8 8 0 0 1-16 0C4 9 10 7 12 1.5z" fill="#ff4a3a" stroke="#ffd23a" stroke-width="1.4" stroke-linejoin="round"/>';
+const CHIP_NAME={easy:'Easy',medium:'Medium',hard:'Hard',extreme:'Extreme'};
+const chipSvg=d=>{const n=d==='easy'?1:d==='medium'?2:d==='hard'?3:0;if(!n)return `<svg viewBox="0 0 24 24" aria-hidden="true">${FLAME}</svg>`;return Array.from({length:n},()=>`<svg viewBox="0 0 24 24" aria-hidden="true">${STAR}</svg>`).join('');};
 function buildSelect(){const row=$('tsRow');row.innerHTML='';
- for(const t of tracks()){const b=document.createElement('button');b.className='tcard';b.dataset.id=t.id;b.setAttribute('role','radio');b.setAttribute('aria-label',t.name);
-  b.innerHTML=`<div class="th">${THUMBS[t.id]||''}</div><div class="ti"><b>${t.name}</b><span class="bt">${TROPHY}<span class="bv"></span></span></div>`;
-  b.addEventListener('click',()=>pick(t.id,true));row.appendChild(b);}}
-function refreshSelect(){const ST=C.ST;for(const b of $('tsRow').children){const id=b.dataset.id,best=getBest(ST,id);b.querySelector('.bv').textContent=best>0?fmt(best):'–:––';
-  b.setAttribute('aria-pressed',id===sel);b.setAttribute('aria-checked',id===sel);const had=b.querySelector('.nw');
+ for(const t of tracks()){const b=document.createElement('div');b.className='tcard';b.dataset.id=t.id;b.setAttribute('role','radio');b.setAttribute('tabindex','0');b.setAttribute('aria-label',t.name);
+  b.innerHTML=`<div class="th">${THUMBS[t.id]||''}</div><div class="ti"><b>${t.name}</b><span class="bt">${TROPHY}<span class="bv"></span></span></div><div class="chips" role="radiogroup" aria-label="Level">${DIFFS.map(d=>`<button class="chip" type="button" data-d="${d}" aria-label="${CHIP_NAME[d]}">${chipSvg(d)}</button>`).join('')}</div>`;
+  b.addEventListener('click',e=>{const c=e.target.closest&&e.target.closest('.chip');if(c){e.stopPropagation();setLevel(t.id,c.dataset.d);return;}pick(t.id,true);});
+  b.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target===b){e.preventDefault();pick(t.id,true);}});row.appendChild(b);}}
+function setLevel(id,d){if(!setTrackDiff(C.ST,id,d))return;try{C.save&&C.save();}catch(e){}if(sel!==id)pick(id,false);else refreshSelect();}
+function refreshSelect(){const ST=C.ST;for(const b of $('tsRow').children){const id=b.dataset.id,best=getBest(ST,id,getTrackDiff(ST,id)==='extreme'?4:3);b.querySelector('.bv').textContent=best>0?fmt(best):'–:––';
+  b.setAttribute('aria-pressed',id===sel);b.setAttribute('aria-checked',id===sel);const lv=getTrackDiff(ST,id);for(const c of b.querySelectorAll('.chip')){const on=c.dataset.d===lv;c.setAttribute('aria-pressed',on);c.setAttribute('aria-checked',on);}const had=b.querySelector('.nw');
   if(best<=0&&id!=='sky'&&!had){const n=document.createElement('span');n.className='nw';n.textContent='NEW!';b.appendChild(n);}else if((best>0||id==='sky')&&had)had.remove();}}
 function pick(id,voice){if(sel===id&&voice)return;sel=id;refreshSelect();if(voice){say(VOICE[id]);}try{C.Audio&&C.Audio.prepTrack&&C.Audio.prepTrack(id);}catch(e){}}
 export function showTrackSelect(){if(!C)return;const t=tracks();sel=t.some(x=>x.id===C.ST.track)?C.ST.track:t[0].id;buildSelect();refreshSelect();show('trackSel',true);show('garage',false);say('s_pick',8);try{C.Audio&&C.Audio.prepTrack&&C.Audio.prepTrack(sel);}catch(e){}}
@@ -163,8 +169,8 @@ function stopPreview(){if(!pv)return;const st=pv;pv=null;cancelAnimationFrame(st
  st.envRT.dispose();st.pm.dispose();st.r.dispose();try{st.r.forceContextLoss();}catch(e){}}
 
 // ---------- in-race HUD ----------
-const RING={shield:{ic:'shield',c:'#35f2ff'},boost:{ic:'speed',c:'#ffe14d'},rocket:{ic:'rocket',c:'#ffd23a'},hop:{ic:'hop',c:'#b07aff'}};
-const rs={shield:{v:0,max:1},boost:{v:0,max:1},rocket:{v:0,max:1},hop:{v:0,max:1}};let rings=null,lastKey='',lastP=null,hopT=0,rolling=null;
+const RING={shield:{ic:'shield',c:'#35f2ff'},boost:{ic:'speed',c:'#ffe14d'},rocket:{ic:'rocket',c:'#ffd23a'},mega:{ic:'mega',c:'#ff8a3a'},hop:{ic:'hop',c:'#b07aff'},emp:{ic:'emp',c:'#7dff6a'}};   // M6: Mega Kart ring + a 'slowed' ring (EMP / Wave Ring / Lightning Storm)
+const rs={shield:{v:0,max:1},boost:{v:0,max:1},rocket:{v:0,max:1},mega:{v:0,max:1},hop:{v:0,max:1},emp:{v:0,max:1}};let rings=null,lastKey='',lastP=null,hopT=0,rolling=null;
 function buildRings(){const box=$('puRings');rings={};for(const k in RING){const d=document.createElement('div');d.className='pu';d.style.setProperty('--c',RING[k].c);
   d.innerHTML=`<svg viewBox="0 0 48 48"><circle class="bg" cx="24" cy="24" r="21"/><circle class="fg" cx="24" cy="24" r="21" pathLength="100" stroke-dasharray="100" stroke-dashoffset="0"/><g transform="translate(13 13) scale(.92)">${ICONS[RING[k].ic]}</g></svg><b></b>`;
   box.appendChild(d);rings[k]={el:d,fg:d.querySelector('.fg'),b:d.querySelector('b'),on:false,off:100,num:-1,warn:false};}}
@@ -173,11 +179,11 @@ function setItemBtn(it){const b=$('btnItem'),k=(it||'')+(rolling?'|r':'');if(k==
 export function hud(dt,P){if(!C||!P)return;if(!rings)buildRings();
  setItemBtn(P.item);
  if(rolling){const b=$('btnItem');if(b.classList.contains('has'))b.classList.remove('has');const ic=$('itemIcon');if(ic.dataset.k!=='box'){ic.innerHTML=ICONS.box;ic.dataset.k='box';}}else if($('itemIcon').dataset.k==='box')delete $('itemIcon').dataset.k;
- const cur={shield:P.shield>0?P.shield:0,boost:P.boost>0?P.boost:0,rocket:P.rocket>0?P.rocket:0,hop:hopT>0?hopT:0};
+ const cur={shield:P.shield>0?P.shield:0,boost:P.boost>0?P.boost:0,rocket:P.rocket>0?P.rocket:0,mega:P.mega>0?P.mega:0,hop:hopT>0?hopT:0,emp:P.emp>0?P.emp:0};
  if(P.floaty&&!lastP?.floaty)hopT=2.1;else if(!P.floaty)hopT=0;else if(hopT>0)hopT=Math.max(.01,hopT-dt);cur.hop=hopT;
  const shown=[];
  for(const k in RING){const s=rs[k],v=cur[k];
-  if(v>s.v+.05||(s.v===0&&v>0))s.max=Math.max(v,k==='shield'?10:k==='rocket'?3.2:k==='hop'?2.1:.9);   // new activation: full ring
+  if(v>s.v+.05||(s.v===0&&v>0))s.max=Math.max(v,k==='shield'?22:k==='rocket'?4.8:k==='mega'?5.5:k==='hop'?2.1:k==='emp'?.2:.9);   // new activation: full ring
   if(v>0&&v>s.max)s.max=v;
   if(s.v>0&&v===0&&s.v<Math.max(.12,dt*3)&&(k!=='boost'||s.max>=.9)){sfx('end_'+k);}   // natural expiry (not consumed by a hit)
   s.v=v;const show=v>0&&(k!=='boost'||s.max>=.9);const r=rings[k];
@@ -186,7 +192,7 @@ export function hud(dt,P){if(!C||!P)return;if(!rings)buildRings();
  shown.sort((a,b)=>b[1]/b[2]-a[1]/a[2]);let n=0;
  for(const [k,v,mx] of shown){const r=rings[k];if(n++>=2){if(r.on){r.el.classList.remove('on');r.on=false;}continue;}
   if(!r.on){r.el.classList.add('on');r.on=true;}const off=Math.round((1-Math.max(0,Math.min(1,v/mx)))*100);if(off!==r.off){r.off=off;r.fg.setAttribute('stroke-dashoffset',off);}
-  const num=Math.ceil(v);if(num!==r.num){r.num=num;r.b.textContent=num;}const warn=v<1.5&&k==='shield';if(warn!==r.warn){r.warn=warn;r.el.classList.toggle('warn',warn);}}
+  const num=Math.ceil(v);if(num!==r.num){r.num=num;r.b.textContent=num;}const warn=v<2&&k==='shield';if(warn!==r.warn){r.warn=warn;r.el.classList.toggle('warn',warn);}}
  lastP={floaty:P.floaty};heroFx(P,dt);}
 export function resetHud(){lastKey='';hopT=0;for(const k in rs)rs[k].v=0;if(rings)for(const k in rings){rings[k].el.classList.remove('on','warn');rings[k].on=false;}heroFxReset();if(rolling)finishRoll(true);}
 export function burst(){const b=$('btnItem');b.classList.remove('ipop');void b.offsetWidth;b.classList.add('ipop');}

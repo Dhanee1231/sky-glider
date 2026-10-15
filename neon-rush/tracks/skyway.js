@@ -3,18 +3,24 @@
 // and a rich lower city (lit streets, moving light trails, rooftops with neon, signs).
 export default {
  id:'skyway',name:'Arcade Skyway',music:'skyway',pace:.992,seed:37,
- pts:[[0,120],[0,-60],[20,-130],[80,-160],[130,-120],[120,-60],[60,-50],[20,-90],[-20,-150],[-90,-190],[-170,-160],[-200,-80],[-180,10],[-200,90],[-150,170],[-70,190],[-20,170]],
+ pts:[[0,120],[0,-60],[20,-130],[80,-160],[130,-120],[120,-60],[60,-50],[20,-90],[-20,-150],[-90,-190],[-175,-250],[-285,-275],[-375,-215],[-410,-110],[-385,0],[-335,85],[-335,175],[-300,255],[-215,285],[-140,220],[-70,190],[-20,170]],
  elev:[[250,735,9.5,300,110]],                    // spiral ramp: climbs the loop, crosses over the start straight at s~592, back down
- tunnels:[[1190,1262,'arcade']],
+ tunnels:[[1767,1839,'arcade']],
  deck:true,ground:-36,mirror:false,walk:3,tunnelH:7.4,
- boost:[70,78,86],ramps:[{s0:25,len:7,h:1.1},{s0:160,len:7,h:1.1}],puddles:{s0:900,n:7,step:9},
- items:[205,780,1010,1290],
+ boost:[70,78,86,952,960,968,1372,1380,1388],ramps:[{s0:25,len:7,h:1.1},{s0:160,len:7,h:1.1}],puddles:{s0:1162,n:7,step:9},
+ items:[114,205,237,858,1136,1413,1637,1860],
  obstacles:[
-  {kind:'pixel',s:300,x:3},{kind:'gate',s:400,x:3},{kind:'cones',s:470,x:-3},{kind:'wheel',s:540,x:3.2},
-  {kind:'sign',s:660,x:-3.2},{kind:'sweeper',s:820,x:3},{kind:'gate',s:870,x:-3},{kind:'goo',s:975,x:2.8},
-  {kind:'pixel',s:1060,x:-3},{kind:'car',s:1100,x:3.5,len:70},{kind:'cones',s:1325,x:-3.1},
-  {kind:'bumper',s:600,x:3.2},{kind:'paddle',s:720,x:-3},{kind:'bumper',s:1150,x:-3}],   // M5: pinball bumpers + a sliding arcade paddle
- crowd:[[-46,34,0],[178,212,0],[760,800,0],[1000,1040,-1],[1278,1312,1]],party:[-14,195,780,1020,1296],
+   // M6B: 40-60% longer lap -> relocated out of the forks + new groups (lv = first level that has a mover: 0 Easy, 1 Medium, 2 Hard, 3 Extreme)
+  {kind:'rotor',s:125,x:-3.1,lv:2},{kind:'slidebar',s:220,x:2.55,lv:0},{kind:'sweeper',s:260,x:-3.2},{kind:'pixel',s:300,x:3},
+  {kind:'drone',s:355,x:-2.65,lv:3},{kind:'gate',s:400,x:3},{kind:'bumper',s:435,x:3.2},{kind:'cones',s:470,x:-3},
+  {kind:'drone',s:505,x:-2.65,lv:2},{kind:'wheel',s:540,x:3.2},{kind:'swinggate',s:570,x:3.35,lv:1},{kind:'bumper',s:600,x:3.2},
+  {kind:'slidebar',s:630,x:-2.55,lv:2},{kind:'sign',s:660,x:-3.2},{kind:'paddle',s:719,x:-3},{kind:'sweeper',s:958,x:3},
+  {kind:'rotor',s:995,x:3.1,lv:0},{kind:'cones',s:1041,x:3.2},{kind:'gate',s:1086,x:-3},{kind:'goo',s:1122,x:-3.2},
+  {kind:'pixel',s:1158,x:-3.2},{kind:'goo',s:1360,x:2.8},{kind:'rotor',s:1403,x:-3.1,lv:0},{kind:'drone',s:1445,x:-2.65,lv:3},
+  {kind:'slidebar',s:1483,x:2.55,lv:1},{kind:'pixel',s:1520,x:-3},{kind:'wheel',s:1562,x:3.2},{kind:'car',s:1603,x:3.5,len:70},
+  {kind:'bumper',s:1704,x:-3},{kind:'cones',s:1905,x:-3.1},{kind:'swinggate',s:1872,x:3.35,lv:1}],
+ forks:[[780,930],[1200,1350]],   // M6B: split sections (median island; risky branch = boost pads + hazards, safe branch = clear; sides swap per lap)
+ crowd:[[-46,34,0],[178,212,0],[808,848,0],[1391,1431,-1],[1848,1882,1]],party:[-14,195,858,1434,1866],
  signals:[],far:{n:70,h0:40,h1:120,y0:-36},
  pal:{fog:0x4a1a6a,fogD:.0035,env:[[0,'#160a30'],[.4,'#4a1a7a'],[.5,'#ff6a3a'],[.56,'#3a1a4a'],[1,'#0a0618']],neon:[0xff4fd8,0x35f2ff,0xffd23a,0x7dff6a],
   bg:[[0,'#0c0626'],[.34,'#3a1470'],[.56,'#a03aa0'],[.7,'#ff6a5a'],[.8,'#ffb06a'],[1,'#2a1040']],hemi:[0xa080e0,0x200c30,.62],key:[0xff9a70,1.15,[-60,40,-110]],rim:[0x70d8ff,.75],
@@ -66,7 +72,7 @@ export default {
      g.fillStyle='#ffd23a';g.fillRect(ox+38,10,4,4);g.fillRect(ox+46,10,4,4);g.fillRect(ox+54,10,4,4);g.fillStyle=f?'#7dff6a':'#ff8a2a';for(let i=0;i<4;i++)g.fillRect(ox+38+i*5,22+(i+f)%2*3,4,4);
      g.fillStyle='#ffffff';g.fillRect(ox+4,44,56,2);g.fillStyle='#ff4fd8';for(let i=0;i<7;i++)if((i+f)%2)g.fillRect(ox+4+i*8,50,6,6);}});
    const t=tex(pc,true,true);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;t.repeat.set(.5,1);
-   const gs=[];[[230,1],[690,-1],[960,1],[1110,-1],[1330,1]].forEach(([s,sd])=>{sample(s,o);const ang=Math.atan2(o.tx,o.tz),off=sd*(W/2+WALK+5),x=o.x-o.tz*off,z=o.z+o.tx*off;
+   const gs=[];[[230,1],[689,-1],[1300,1],[1623,-1],[1900,1]].forEach(([s,sd])=>{sample(s,o);const ang=Math.atan2(o.tx,o.tz),off=sd*(W/2+WALK+5),x=o.x-o.tz*off,z=o.z+o.tx*off;
      const g=new THREE.PlaneGeometry(11,5.5).rotateY(ang+Math.PI-sd*.45).translate(x,o.y+8.5,z);gs.push(g);
      solid.push(paintCol(new THREE.BoxGeometry(.5,9,.5).translate(x,o.y+3,z),C(0x2a1a40)),paintCol(new THREE.BoxGeometry(11.6,6.1,.3).rotateY(ang+Math.PI-sd*.45).translate(x-Math.sin(ang+Math.PI-sd*.45)*.2,o.y+8.5,z-Math.cos(ang+Math.PI-sd*.45)*.2),C(0x1a1030)));
      emit.push(paintCol(new THREE.BoxGeometry(11.8,.2,.34).rotateY(ang+Math.PI-sd*.45).translate(x,o.y+11.6,z),C(0x35f2ff,2.6)),paintCol(new THREE.BoxGeometry(11.8,.2,.34).rotateY(ang+Math.PI-sd*.45).translate(x,o.y+5.4,z),C(0xff4fd8,2.6)));});
