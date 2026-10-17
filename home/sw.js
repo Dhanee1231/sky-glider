@@ -1,5 +1,5 @@
 // Our Fun Zone service worker: only handles requests under /home/, only touches its own caches.
-const CACHE='home-v8';
+const CACHE='home-v12';
 const FILES=['./','./index.html','./learn.js','./funzone.js','./audio/manifest.json','./manifest.json','./icon.svg','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
 const SCOPE=new URL('./',self.location).pathname;
 // review fix 5: the hub's greeting clips (Kokoro af_heart, ~0.5 MB) are precached from audio/manifest.json (best effort), so the first offline visit has a voice

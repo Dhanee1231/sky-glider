@@ -1,4 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-LtPcu0BKjc4YGwZ4cD/G4vJiiyQnnwR4nvEq58sbwEk='; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self'; worker-src 'self'; manifest-src 'self'; connect-src 'self'; font-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ff5fb4"><title>Our Fun Zone</title>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon-192.png">
@@ -17,15 +18,15 @@ h1{font-size:clamp(24px,4.2vmin + 10px,48px);line-height:1;letter-spacing:1px;
 background:linear-gradient(90deg,#fff6c4,#f5c542,#fff,#e8e8f2,#f5c542,#fff6c4);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
 animation:shine 5s linear infinite;filter:drop-shadow(0 2px 0 #7a1066) drop-shadow(0 0 8px rgba(255,255,255,.4))}
 @keyframes shine{to{background-position:300% 0}}
-#greet{font-size:clamp(15px,2vmin + 8px,26px);margin-top:4px;cursor:pointer;display:inline-flex;gap:6px;align-items:center;background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.45);border-radius:99px;padding:2px 12px;max-width:100%;box-sizing:border-box;white-space:nowrap}
+#greet{font-size:clamp(15px,2vmin + 8px,26px);margin-top:4px;cursor:pointer;display:inline-flex;gap:6px;align-items:center;background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.45);border-radius:99px;padding:2px 12px;min-height:48px;max-width:100%;box-sizing:border-box;white-space:nowrap}
 #greet b{color:#fff3a8;min-width:0;overflow:hidden;text-overflow:ellipsis}
 #greet>span{flex:none}#greet b+span{margin-left:-5px}
 .btn{flex:0 0 auto;display:grid;place-items:center;width:48px;height:48px;border-radius:50%;border:3px solid #e9e9f5;background:linear-gradient(145deg,#fff,#d8d8e8);font-size:22px;cursor:pointer;box-shadow:0 3px 0 #9a8fb0}
 main{position:relative;z-index:1;flex:1;min-height:0;display:grid;gap:12px;margin-top:10px;grid-template-columns:1fr 1fr;grid-auto-rows:1fr}
-@media (min-aspect-ratio:4/3){main{grid-template-columns:repeat(6,1fr)}}
-a.card:nth-of-type(odd):last-of-type{grid-column:1/-1}@media (min-aspect-ratio:4/3){a.card:last-of-type{grid-column:auto}}
-/* Neon Rush tile: six cards in one landscape row, so long names (Sparkle Kingdom) stay on one line */
-@media (min-aspect-ratio:4/3){a.card .name{white-space:nowrap;font-size:min(clamp(17px,2.4vmin + 8px,30px),1.6vw)}}
+@media (min-aspect-ratio:4/3){main{grid-template-columns:repeat(8,1fr)}a.card{grid-column:span 2}a.card:nth-of-type(5){grid-column:2/span 2}}
+a.card:nth-of-type(odd):last-of-type{grid-column:1/-1}@media (min-aspect-ratio:4/3){a.card:nth-of-type(odd):last-of-type{grid-column:span 2}}
+/* Color Magic tile (7 cards): landscape is 4 + 3 cards (an 8-column grid, every card spans 2, the second row is centred), so names stay on one line */
+@media (min-aspect-ratio:4/3){a.card .name{white-space:nowrap;font-size:min(clamp(17px,2.4vmin + 8px,30px),2.3vw)}}
 a.card{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;text-decoration:none;color:#fff;
 border-radius:26px;padding:10px;min-height:0;overflow:hidden;
 border:4px solid transparent;background:var(--bg) padding-box,linear-gradient(135deg,#fff8d0,#f5c542,#fff,#c0c0d0,#f5c542) border-box;
@@ -60,11 +61,11 @@ box-shadow:0 4px 0 rgba(80,0,70,.4),inset 0 -6px 10px rgba(200,140,0,.25);positi
 .plq .v{display:flex;flex-direction:column;align-items:flex-start;line-height:1;font-weight:900;font-size:clamp(14px,1.6vmin + 8px,22px);white-space:nowrap;min-width:0}
 .plq .v span{display:block}
 .plq.dim{filter:saturate(.35);opacity:.8}
-#gear{flex:0 0 auto;width:44px;align-self:center;height:44px;border-radius:50%;border:3px solid #e9e9f5;background:linear-gradient(145deg,#fff,#c8c8d8);font-size:22px;display:grid;place-items:center;cursor:pointer;position:relative;touch-action:none;box-shadow:0 3px 0 #8a809e}
+#gear{flex:0 0 auto;width:48px;align-self:center;height:48px;border-radius:50%;border:3px solid #e9e9f5;background:linear-gradient(145deg,#fff,#c8c8d8);font-size:22px;display:grid;place-items:center;cursor:pointer;position:relative;touch-action:none;box-shadow:0 3px 0 #8a809e}
 #gear i{position:absolute;inset:-5px;border-radius:50%;border:4px solid #f5c542;clip-path:inset(0 100% 0 0);pointer-events:none}
 #gear.hold i{transition:clip-path 3s linear;clip-path:inset(0 0 0 0)}
 @media (max-width:430px){.plq{flex-direction:column;padding:2px;gap:1px}.plq svg{height:16px;max-width:none}.plq .v{font-size:14px;align-items:center}}
-@media (max-height:480px){#shelf{height:46px;margin-top:6px}main{margin-top:6px}.plq .v{flex-direction:row;gap:10px;font-size:19px;align-items:center}}
+@media (max-height:480px){#shelf{height:50px;margin-top:6px}main{margin-top:6px}.plq .v{flex-direction:row;gap:10px;font-size:19px;align-items:center}}
 #tdlg,#gdlg{width:min(94vw,460px);max-height:92vh;overflow-y:auto;text-align:left}
 #tdlg h2,#gdlg h2{text-align:center;font-size:24px;margin-bottom:6px}
 .trow{display:flex;align-items:center;gap:10px;padding:8px;border-radius:16px;background:#fff;border:2px solid #ffd1ec;margin:8px 0}
@@ -151,6 +152,13 @@ html.fz-calm :not(.speed>i),html.fz-calm ::before,html.fz-calm ::after{animation
 <circle cx="40" cy="86" r="9" fill="#2b1257" stroke="#3ff0ff" stroke-width="3"/><circle cx="80" cy="86" r="9" fill="#2b1257" stroke="#3ff0ff" stroke-width="3"/><circle cx="36" cy="70" r="4" fill="#fff3a8"/><circle cx="84" cy="70" r="4" fill="#fff3a8"/>
 <path d="M14 64H24M10 74H22M16 84H24" stroke="#3ff0ff" stroke-width="3" stroke-linecap="round" opacity=".85"/></svg></div>
 <div class="name">Neon Rush</div><div class="desc">Zoom your kart down glowing roads!</div></a>
+<a class="card" data-cp="color-magic-" href="../color/" style="--bg:linear-gradient(160deg,#6fe9c4,#2f86e6);--d:2.4s"><span class="off" aria-label="Ready offline" role="img">✔</span>
+<div class="icon"><svg viewBox="0 0 120 120"><defs><linearGradient id="cmg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd1ec"/><stop offset="1" stop-color="#ff4fa8"/></linearGradient></defs>
+<path d="M60 12C30 12 10 34 10 62c0 26 20 46 46 46 10 0 14-6 10-14-4-8 2-16 12-16h14c14 0 26-8 26-22C118 30 94 12 60 12Z" fill="#fff" stroke="#f5c542" stroke-width="4" stroke-linejoin="round"/>
+<circle cx="34" cy="58" r="9" fill="#ff5a7a" stroke="#fff" stroke-width="2"/><circle cx="48" cy="34" r="9" fill="#ffd23f" stroke="#fff" stroke-width="2"/><circle cx="76" cy="30" r="9" fill="#4cd964" stroke="#fff" stroke-width="2"/><circle cx="46" cy="84" r="9" fill="#3b9bff" stroke="#fff" stroke-width="2"/>
+<path d="M82 60L96 54L108 62L102 78L88 82L78 72Z" fill="url(#cmg)" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M96 54L88 82M82 60L102 78M78 72L108 62" stroke="#fff" stroke-width="1.5" opacity=".7" fill="none"/>
+<path d="M104 10 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3z" fill="#fff"/></svg></div>
+<div class="name">Color Magic</div><div class="desc">Color pictures and your photos!</div></a>
 </main>
 <dialog id="dlg"><div style="font-size:22px;font-weight:800">What's your name? 💎</div><input id="nmIn" maxlength="16" autocomplete="off"><div><button id="ok">Save</button><button id="cancel" style="background:#c0c0d0">Cancel</button></div></dialog>
 <dialog id="tdlg"><h2>🏆 My Treasures 🏆</h2><div id="tlist"></div><div style="text-align:center;margin-top:8px"><button id="tok">OK 💖</button></div></dialog>
@@ -297,6 +305,7 @@ async function grown(msg){let per='unknown';try{if(navigator.storage&&navigator.
  document.getElementById('bExp').onclick=()=>exportAll().then(n=>grown('Backup saved ✔ ('+n+')')).catch(e=>grown('Backup failed: '+esc(e&&e.message||e)));
  document.getElementById('bImp').onclick=()=>{const f=document.getElementById('rfile');f.value='';f.click();};}
 document.getElementById('rfile').onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;
+ if(f.size>RMAX){grown('Could not restore: that file is too big for a Fun Zone backup.');return;}   // #cm-2: whole-file cap before read/parse
  f.text().then(t=>importAll(JSON.parse(t))).then(r=>grown('Restored ✔ '+r)).catch(err=>grown('Could not restore: '+esc(err&&err.message||err)));};
 // --- backup format: {app:'funzone-backup',v:1,made,ls:{key:string},idb:{gemtiles:{songs:[…]}}}; typed arrays / blobs become tagged base64
 const b64=buf=>{const u=new Uint8Array(buf);let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s);};
@@ -317,18 +326,50 @@ const gtDB=()=>new Promise((res,rej)=>{const r=indexedDB.open('gemtiles',1);r.on
 const idbAll=db=>new Promise((res,rej)=>{const q=db.transaction('songs','readonly').objectStore('songs').getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>rej(q.error);});
 const idbHas=(db,id)=>new Promise(res=>{const q=db.transaction('songs','readonly').objectStore('songs').getKey(id);q.onsuccess=()=>res(q.result!==undefined);q.onerror=()=>res(true);});
 const idbPut=(db,o)=>new Promise((res,rej)=>{const t=db.transaction('songs','readwrite');t.objectStore('songs').add(o);t.oncomplete=()=>res();t.onerror=()=>rej(t.error);});
-async function exportAll(){const ls={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k!=null)ls[k]=localStorage.getItem(k);}
+// Color Magic's IndexedDB (M6): pack pictures only. Photo puzzles (ph:…) and their thumbs are never backed up. Opened like Color Magic opens it (name, version 2, same stores).
+const CMS=['puzzles','progress','gallery','pmeta'],CMPK='pk:[a-z0-9]+\\.[a-z0-9]+(?::px\\d+p\\d+s?)?',CMID=new RegExp('^'+CMPK+'(?::free)?$'),CMPID=new RegExp('^'+CMPK+'$'),CMMAX=600000;
+const cmOpen=create=>new Promise((res,rej)=>{let r;try{r=indexedDB.open('colormagic',create?2:undefined);}catch(e){rej(e);return;}
+ r.onupgradeneeded=()=>{if(!create){try{r.transaction.abort();}catch(e){}return;}for(const n of CMS)if(!r.result.objectStoreNames.contains(n))r.result.createObjectStore(n,{keyPath:'id'});};
+ r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);r.onblocked=()=>rej(new Error('blocked'));});
+const cmReq=q=>new Promise((res,rej)=>{q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});
+const cmKeep={puzzles:r=>CMID.test(r.id)&&!/:free$/.test(r.id),pmeta:r=>CMID.test(r.id)&&!/:free$/.test(r.id)&&r.src==='pack',progress:r=>CMID.test(r.id),gallery:r=>CMID.test(r.id)&&typeof r.pid==='string'&&CMPID.test(r.pid)};
+async function cmExport(){let db;try{if(!window.indexedDB)return null;db=await cmOpen(false);}catch(e){return null;}
+ try{const out={};for(const n of CMS){out[n]=[];if(!db.objectStoreNames.contains(n))continue;const rows=await cmReq(db.transaction(n,'readonly').objectStore(n).getAll());
+  for(const r of rows||[])if(isO(r)&&typeof r.id==='string'&&cmKeep[n](r))out[n].push(await enc(r));}
+  return out;}catch(e){return null;}finally{try{db.close();}catch(e){}}}
+// progress that exists on both sides: fills are OR-ed (order gains the backup's missing regions); this phone's camera, colour pick and name stay
+function cmMergeProg(a,b){if(!(a.fill instanceof Uint8Array)||!(b.fill instanceof Uint8Array)||a.n!==b.n||a.fill.length!==b.fill.length)return null;
+ const o=Object.assign({},a),fill=new Uint8Array(a.fill.length);let ch=false;for(let i=0;i<fill.length;i++){fill[i]=a.fill[i]|b.fill[i];if(fill[i]!==a.fill[i])ch=true;}o.fill=fill;
+ if(a.order instanceof Uint16Array&&b.order instanceof Uint16Array){const have=new Set(a.order),add=[];for(const i of b.order)if(!have.has(i)){have.add(i);add.push(i);}
+  if(add.length){const m=new Uint16Array(a.order.length+add.length);m.set(a.order);m.set(add,a.order.length);o.order=m;ch=true;}}
+ if(a.free instanceof Uint8Array&&b.free instanceof Uint8Array&&a.free.length===b.free.length){const f=a.free.slice();for(let i=0;i<f.length;i++)if(!f[i]&&b.free[i]){f[i]=b.free[i];ch=true;}o.free=f;}
+ else if(!(a.free instanceof Uint8Array)&&b.free instanceof Uint8Array){o.free=b.free;ch=true;}
+ if((+b.ms||0)>(+a.ms||0)){o.ms=b.ms;ch=true;}if((+b.t||0)>(+a.t||0)){o.t=b.t;ch=true;}
+ return ch?o:null;}
+function cmValid(n,r){if(!isO(r)||typeof r.id!=='string'||!cmKeep[n](r))return false;
+ if(n==='progress'){if(!(r.fill instanceof Uint8Array)||!(r.order instanceof Uint16Array)||!(r.n>0&&r.n<=65535)||r.fill.length<Math.ceil(r.n/8)||r.order.length>r.n)return false;const seen=new Set();for(const i of r.order){if(i>=r.n||seen.has(i)||!(r.fill[i>>3]>>(i&7)&1))return false;seen.add(i);}}
+ return true;}
+async function cmImport(cm){let added=0,merged=0,db;try{db=await cmOpen(true);}catch(e){try{db=await cmOpen(false);}catch(e2){return{added,merged};}}
+ try{for(const n of CMS){const list=Array.isArray(cm[n])?cm[n]:[];if(!list.length||!db.objectStoreNames.contains(n))continue;
+  for(const raw of list){try{if(!isO(raw)||typeof raw.id!=='string'||JSON.stringify(raw).length>CMMAX)continue;const r=dec(raw);if(!cmValid(n,r))continue;
+   const cur=await cmReq(db.transaction(n,'readonly').objectStore(n).get(r.id));
+   if(cur===undefined){await cmReq(db.transaction(n,'readwrite').objectStore(n).add(r));added++;continue;}
+   if(n==='progress'&&isO(cur)){const m=cmMergeProg(cur,r);if(m){await cmReq(db.transaction(n,'readwrite').objectStore(n).put(m));merged++;}}}catch(e){}}}
+ }finally{try{db.close();}catch(e){}}return{added,merged};}
+async function exportAll(){const ls={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k!=null&&!BADK.has(k)&&OURK.test(k))ls[k]=localStorage.getItem(k);}   // #cm-4: only the studio's own keys leave the device
  let songs=[];try{if(window.indexedDB){const db=await gtDB();songs=await enc(await idbAll(db));db.close();}}catch(e){}
  const out={app:'funzone-backup',v:1,made:new Date().toISOString(),ls,idb:{gemtiles:{songs}}};
+ const cm=await cmExport();let ncm=0;if(cm){out.idb.colormagic=cm;for(const n of CMS)ncm+=cm[n].length;}
  const blob=new Blob([JSON.stringify(out)],{type:'application/json'}),u=URL.createObjectURL(blob),a=document.createElement('a');
  const d=new Date(),ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
  a.href=u;a.download='funzone-backup-'+ds+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),30000);
- const ns=Object.keys(ls).length;return ns+(ns===1?' save, ':' saves, ')+songs.length+(songs.length===1?' custom song':' custom songs');}
+ const ns=Object.keys(ls).length;return ns+(ns===1?' save, ':' saves, ')+songs.length+(songs.length===1?' custom song':' custom songs')+(ncm?', '+ncm+' Color Magic records':'');}
 // additive merge of one save: missing fields are added, numbers keep the larger value, true wins, lists gain missing entries;
 // choices (settings, difficulty, name, outfit…) always stay as they are on this phone
 const KEEP=new Set(['v','set','settings','diff','muted','tilt','pad','name','lang','theme','active','eq','color','shape','pattern','trail','hat','decal','lastWorld','tut','sound','calm','fs','swr','parent','world','level','minutes','vol','big','lefty','shapes','vibe','nick']);
 // review fix 4: a backup can only restore our own apps' keys, never prototype keys, and every records run keeps a numeric score
-const BADK=new Set(['__proto__','constructor','prototype']),OURK=/^(skyglider\.|crystalcave\.|gemtiles[.-]|funzone[.-]|yogaCoach\.|sparkle-kingdom\.)/;
+const RMAX=50*1024*1024;   // #cm-2: max backup file size (50 MB)
+const BADK=new Set(['__proto__','constructor','prototype']),OURK=/^(skyglider\.|crystalcave\.|gemtiles[.-]|funzone[.-]|yogaCoach\.|sparkle-kingdom\.|colormagic\.)/;
 const cleanO=v=>{if(Array.isArray(v))return v.map(cleanO);if(!isO(v))return v;const o={};for(const k of Object.keys(v))if(!BADK.has(k))o[k]=cleanO(v[k]);return o;};
 const cleanRun=e=>isO(e)?Object.assign({},e,{s:Number.isFinite(+e.s)?+e.s:0}):null;
 const cleanRec=r=>{r=cleanO(r);if(!isO(r))return r;if(Array.isArray(r.runs))r.runs=r.runs.map(cleanRun).filter(Boolean);
@@ -343,6 +384,13 @@ function mergeVal(a,b,k){if(a===undefined)return b;if(KEEP.has(k))return a;
 function mergeRec(a,b){const o=Object.assign({},b,a);const seen=new Set((a.runs||[]).map(e=>JSON.stringify(e)));o.runs=(a.runs||[]).slice();
  for(const e of (b.runs||[]))if(!seen.has(JSON.stringify(e)))o.runs.push(e);o.runs.sort((x,y)=>(x.t||0)-(y.t||0));if(o.runs.length>200)o.runs=o.runs.slice(-200);
  o.top=Object.assign({},isO(b.top)?b.top:{},isO(a.top)?a.top:{});if(!isO(a.best))o.best=b.best;return o;}
+// #cm-6: after a merge the lifetime 'done' count follows the gallery's finished pictures (one per picture, like Color Magic counts them); never lowered
+async function cmFixDone(){let db;try{db=await cmOpen(false);}catch(e){return;}
+ try{if(!db.objectStoreNames.contains('gallery'))return;const rows=await cmReq(db.transaction('gallery','readonly').objectStore('gallery').getAll());
+  const pids=new Set();for(const r of rows||[])if(isO(r)&&typeof r.pid==='string'&&typeof r.id==='string'&&!/:free$/.test(r.id))pids.add(r.pid);
+  const raw=localStorage.getItem('colormagic.v1');if(raw==null)return;const o=JSON.parse(raw);if(!isO(o))return;if(!isO(o.stats))o.stats={};
+  const cur=typeof o.stats.done==='number'&&isFinite(o.stats.done)?o.stats.done:0;if(pids.size<=cur)return;o.stats.done=Math.min(pids.size,99999);localStorage.setItem('colormagic.v1',JSON.stringify(o));
+ }catch(e){}finally{try{db.close();}catch(e){}}}
 async function importAll(d){if(!isO(d)||d.app!=='funzone-backup'||!isO(d.ls))throw new Error('this is not a Fun Zone backup file');
  let added=0,merged=0,same=0,songs=0;
  for(const k of Object.keys(d.ls)){let bv=d.ls[k];if(typeof bv!=='string'||BADK.has(k)||!OURK.test(k))continue;if(/\.(pre-restore|bad\d*)$/.test(k)&&localStorage.getItem(k)!=null)continue;
@@ -360,6 +408,7 @@ async function importAll(d){if(!isO(d)||d.app!=='funzone-backup'||!isO(d.ls))thr
  const list=d.idb&&d.idb.gemtiles&&Array.isArray(d.idb.gemtiles.songs)?d.idb.gemtiles.songs:[];
  if(list.length&&window.indexedDB){const db=await gtDB();for(const s of list){if(!isO(s)||typeof s.id!=='string'&&typeof s.id!=='number')continue;
   if(await idbHas(db,s.id))continue;try{await idbPut(db,dec(s));songs++;}catch(e){}}db.close();}
+ if(d.idb&&isO(d.idb.colormagic)&&window.indexedDB){const r=await cmImport(d.idb.colormagic);added+=r.added;merged+=r.merged;if(r.added||r.merged)await cmFixDone();}
  shelf();return added+' added, '+merged+' merged, '+same+' already here, '+songs+(songs===1?' song':' songs')+' added';}
 // review fix 7: --vvh follows visualViewport (height + offset), so nothing sits under the browser bar or the Fold taskbar
 (function(){const v=window.visualViewport;if(!v)return;let raf=0;const set=()=>{raf=0;if(v.scale>1.01)return;document.body.style.setProperty('--vvh',Math.round(v.height+v.offsetTop)+'px');};
