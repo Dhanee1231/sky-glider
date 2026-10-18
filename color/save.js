@@ -8,12 +8,12 @@
   const num = (v, lo, hi, d) => (typeof v === 'number' && isFinite(v)) ? Math.max(lo, Math.min(hi, Math.round(v))) : d;
   const bool = (v, d) => typeof v === 'boolean' ? v : d;
   const ls = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } } };
-  const DEF = () => ({ v: 1, set: { vol: 100, mus: true, voice: true, nums: true, outl: 1, dragPaint: true, helpers: true, photo: true, bigGrid: false, music: false }, last: { pid: '', mode: 'shapes', diff: 1, pal: 0, grid: 0 }, stats: { done: 0, regions: 0, ms: 0 }, frames: { pink: 0, gold: 0, silver: 0, gem: 0 }, seen: {}, stk: {} });
+  const DEF = () => ({ v: 1, set: { vol: 100, mus: true, voice: true, nums: true, outl: 1, dragPaint: true, helpers: true, photo: true, bigGrid: false, music: false, allLevels: false }, last: { pid: '', mode: 'shapes', diff: 1, pal: 0, grid: 0 }, stats: { done: 0, regions: 0, ms: 0 }, frames: { pink: 0, gold: 0, silver: 0, gem: 0 }, seen: {}, stk: {} });
   function sanitize(d) {
     const o = DEF(); if (!isO(d)) return o; const keep = Object.assign({}, d);
     const s = isO(d.set) ? d.set : {};
-    o.set = Object.assign({}, isO(d.set) ? d.set : {}, { vol: num(s.vol, 0, 100, 100), mus: bool(s.mus, true), voice: bool(s.voice, true), nums: bool(s.nums, true), outl: num(s.outl, 0, 2, 1), dragPaint: bool(s.dragPaint, true), helpers: bool(s.helpers, true), photo: bool(s.photo, true), bigGrid: bool(s.bigGrid, false), music: bool(s.music, false) });
-    const l = isO(d.last) ? d.last : {}; o.last = Object.assign({}, l, { pid: typeof l.pid === 'string' ? l.pid.slice(0, 60) : '', mode: l.mode === 'pixel' ? 'pixel' : 'shapes', diff: num(l.diff, 1, 4, 1), pal: num(l.pal, 0, 24, 0), grid: num(l.grid, 0, 80, 0) });
+    o.set = Object.assign({}, isO(d.set) ? d.set : {}, { vol: num(s.vol, 0, 100, 100), mus: bool(s.mus, true), voice: bool(s.voice, true), nums: bool(s.nums, true), outl: num(s.outl, 0, 2, 1), dragPaint: bool(s.dragPaint, true), helpers: bool(s.helpers, true), photo: bool(s.photo, true), bigGrid: bool(s.bigGrid, false), music: bool(s.music, false), allLevels: bool(s.allLevels, false) });
+    const l = isO(d.last) ? d.last : {}; o.last = Object.assign({}, l, { pid: typeof l.pid === 'string' ? l.pid.slice(0, 60) : '', mode: l.mode === 'pixel' ? 'pixel' : 'shapes', diff: num(l.diff, 1, 6, 1), pal: num(l.pal, 0, 24, 0), grid: num(l.grid, 0, 80, 0) });
     const t = isO(d.stats) ? d.stats : {}; o.stats = Object.assign({}, t, { done: num(t.done, 0, 99999, 0), regions: num(t.regions, 0, 9999999, 0), ms: num(t.ms, 0, 9e12, 0) });
     const f = isO(d.frames) ? d.frames : {}; o.frames = Object.assign({}, f, { pink: num(f.pink, 0, 1, 0), gold: num(f.gold, 0, 1, 0), silver: num(f.silver, 0, 1, 0), gem: num(f.gem, 0, 1, 0) });
     o.seen = isO(d.seen) ? Object.assign({}, d.seen) : {}; o.stk = isO(d.stk) ? Object.assign({}, d.stk) : {};

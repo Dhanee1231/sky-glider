@@ -8,12 +8,14 @@
   const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
   function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 
-  // ---------- presets (K2 names; kid grid caps at 48, plan s4) ----------
+  // ---------- presets (levels 1-4 unchanged; 5-6 are the v9 harder levels; palette stays inside the 4-24 clamp) ----------
   const PRE = [null,
     { id: 1, name: 'Tiny sparkle', work: 512, pal: 6, minArea: 900, maxReg: 45, grid: 20, gpal: 6 },
     { id: 2, name: 'Pretty picture', work: 512, pal: 10, minArea: 350, maxReg: 110, grid: 32, gpal: 8 },
     { id: 3, name: 'Big adventure', work: 768, pal: 14, minArea: 220, maxReg: 220, grid: 48, gpal: 12 },
-    { id: 4, name: 'Giant quest', work: 1024, pal: 20, minArea: 140, maxReg: 400, grid: 48, gpal: 16 }];
+    { id: 4, name: 'Giant quest', work: 1024, pal: 20, minArea: 140, maxReg: 400, grid: 48, gpal: 16 },
+    { id: 5, name: 'Super star', work: 1024, pal: 22, minArea: 90, maxReg: 650, grid: 64, gpal: 20 },
+    { id: 6, name: 'Master artist', work: 1280, pal: 24, minArea: 60, maxReg: 900, grid: 80, gpal: 24 }];
   function cfgFor(o) {
     const p = PRE[o.diff | 0] || PRE[1], mode = o.mode === 'pixel' ? 'pixel' : 'shapes';
     const c = { mode, diff: p.id, seed: (o.seed >>> 0) || 1, sparkle: !!o.sparkle, preview: !!o.preview, eps: o.eps || 0.7 };
@@ -208,14 +210,15 @@
     return { tgt, pal, m: L.length };
   }
 
-  // 3x3 majority filter on a label map (ties keep the centre, then the lowest id)
-  function* modeFilter(ids, w, h, passes) {
+  // 3x3 majority filter on a label map (ties keep the centre, then the lowest id). protect[] pixels (eyes, brows, lips) stay put.
+  function* modeFilter(ids, w, h, passes, protect) {
     let src = ids, dst = new Uint8Array(w * h); const cnt = new Uint8Array(256), v = new Uint8Array(9);
     for (let ps = 0; ps < passes; ps++) {
       for (let y = 0; y < h; y++) {
         const ya = y > 0 ? y - 1 : 0, yb = y < h - 1 ? y + 1 : h - 1;
         for (let x = 0; x < w; x++) {
           const xa = x > 0 ? x - 1 : 0, xb = x < w - 1 ? x + 1 : w - 1, c = src[y * w + x];
+          if (protect && protect[y * w + x]) { dst[y * w + x] = c; continue; }
           v[0] = src[ya * w + xa]; v[1] = src[ya * w + x]; v[2] = src[ya * w + xb]; v[3] = src[y * w + xa]; v[4] = c; v[5] = src[y * w + xb]; v[6] = src[yb * w + xa]; v[7] = src[yb * w + x]; v[8] = src[yb * w + xb];
           for (let i = 0; i < 9; i++) cnt[v[i]]++;
           let best = c, bc = cnt[c]; for (let i = 0; i < 9; i++) { const q = v[i]; if (cnt[q] > bc || (cnt[q] === bc && q < best && q !== c)) { bc = cnt[q]; best = q; } }
@@ -247,8 +250,10 @@
     return { reg, n };
   }
 
-  // merge small regions into the neighbour with the longest border (ties: closest colour); same-colour neighbours fuse. Returns compact reg (ids 0..m-1), col per region
-  function* mergeRegions(reg, n, w, h, ids, tgt, minArea, maxReg) {
+  // merge small regions into the neighbour with the longest border (ties: closest colour); same-colour neighbours fuse. Returns compact reg (ids 0..m-1), col per region.
+  // minOf (optional, length n+1, 1-based) is a per-region area floor. Without it every region uses minArea, same as before.
+  function* mergeRegions(reg, n, w, h, ids, tgt, minArea, maxReg, minOf) {
+    const need = i => minOf ? minOf[i] : minArea;
     const area = new Int32Array(n + 1), col = new Uint8Array(n + 1), par = new Int32Array(n + 1), adj = new Array(n + 1);
     for (let i = 1; i <= n; i++) { par[i] = i; adj[i] = new Map(); }
     for (let p = 0; p < w * h; p++) { const r = reg[p]; area[r]++; col[r] = ids[p]; }
@@ -262,15 +267,20 @@
       adj[b].delete(a); adj[a] = null; area[b] += area[a]; dead[a] = 1; par[a] = b; live--; hpush(area[b] * K + b);
     };
     const colD = (a, b) => (tgt[a * 3] - tgt[b * 3]) ** 2 + (tgt[a * 3 + 1] - tgt[b * 3 + 1]) ** 2 + (tgt[a * 3 + 2] - tgt[b * 3 + 2]) ** 2;
+    let under = 0; for (let i = 1; i <= n; i++) if (area[i] < need(i)) under++;
+    const absorb = (a, b) => {   // a dies into b; keep the count of regions still under their own floor
+      const aU = area[a] < need(a), bU = area[b] < need(b); fuse(a, b); if (aU) under--; if (bU && area[b] >= need(b)) under--;
+    };
     let cycles = 0;
     while (heap.length) {
       const top = hpop(), a = top % K, ar = Math.floor(top / K); if (dead[a] || area[a] !== ar) continue;
-      if (ar >= minArea && live <= maxReg) break;
+      if (under === 0 && live <= maxReg) break;
       if (!adj[a].size) continue;   // nothing to merge into
+      if (ar >= need(a) && live <= maxReg) continue;   // this one is already big enough; a neighbour may still be under its own floor
       let bn = -1, bw = -1, bdist = 1e9;
       for (const [c, wgt] of adj[a]) { const d = colD(col[a], col[c]); if (wgt > bw || (wgt === bw && (d < bdist || (d === bdist && c < bn)))) { bw = wgt; bn = c; bdist = d; } }
-      fuse(a, bn);
-      for (let again = true; again;) { again = false; for (const c of [...adj[bn].keys()]) if (col[c] === col[bn]) { fuse(c, bn); again = true; break; } }
+      absorb(a, bn);
+      for (let again = true; again;) { again = false; for (const c of [...adj[bn].keys()]) if (col[c] === col[bn]) { absorb(c, bn); again = true; break; } }
       if ((++cycles & 63) === 0) yield;
     }
     const find = i => { while (par[i] !== i) { par[i] = par[par[i]]; i = par[i]; } return i; };
@@ -400,6 +410,326 @@
     return ids;
   }
 
+  // ---------- portrait (levels 3-6): skin mask in OKLab, edge-preserving smooth inside it, fewer skin tones, keep eyes / brows / lips ----------
+  function skinLab(L, a, b) {
+    if (L < 0.50 || L > 0.955) return false;
+    if (a < 0.015 || a > 0.125) return false;
+    const C = Math.hypot(a, b); if (C < 0.032 || C > 0.145) return false;
+    const h = Math.atan2(b, a); return h >= 0.40 && h <= 1.25;
+  }
+  function isSkinHex(h) {
+    if (typeof h !== 'string' || h.length < 7) return false;
+    const v = parseInt(h.slice(1), 16); if (!isFinite(v)) return false;
+    const o = new Float32Array(3); toLab((v >> 16) & 255, (v >> 8) & 255, v & 255, o, 0); return skinLab(o[0], o[1], o[2]);
+  }
+  function* dilateMask(m, w, h, r) {
+    const t = new Uint8Array(m.length), o = new Uint8Array(m.length);
+    for (let y = 0; y < h; y++) {
+      const row = y * w;
+      for (let x = 0; x < w; x++) { const a = x - r < 0 ? 0 : x - r, b = x + r >= w ? w - 1 : x + r; let v = 0; for (let k = a; k <= b; k++) if (m[row + k]) { v = 1; break; } t[row + x] = v; }
+      if ((y & 7) === 7) yield;
+    }
+    for (let x = 0; x < w; x++) for (let y = 0; y < h; y++) { const a = y - r < 0 ? 0 : y - r, b = y + r >= h ? h - 1 : y + r; let v = 0; for (let k = a; k <= b; k++) if (t[k * w + x]) { v = 1; break; } o[y * w + x] = v; }
+    return o;
+  }
+  function* erodeMask(m, w, h, r) {
+    const t = new Uint8Array(m.length), o = new Uint8Array(m.length);
+    for (let y = 0; y < h; y++) {
+      const row = y * w;
+      for (let x = 0; x < w; x++) { const a = x - r < 0 ? 0 : x - r, b = x + r >= w ? w - 1 : x + r; let v = 1; for (let k = a; k <= b; k++) if (!m[row + k]) { v = 0; break; } t[row + x] = v; }
+      if ((y & 7) === 7) yield;
+    }
+    for (let x = 0; x < w; x++) for (let y = 0; y < h; y++) { const a = y - r < 0 ? 0 : y - r, b = y + r >= h ? h - 1 : y + r; let v = 1; for (let k = a; k <= b; k++) if (!t[k * w + x]) { v = 0; break; } o[y * w + x] = v; }
+    return o;
+  }
+  function* largestMask(mask, w, h) {
+    const lab = new Int32Array(mask.length); let stack = new Int32Array(8192), sp = 0, comps = 0, steps = 0; const sizes = [0];
+    const push = p => { if (sp >= stack.length) { const s2 = new Int32Array(stack.length * 2); s2.set(stack); stack = s2; } stack[sp++] = p; };
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const p0 = y * w + x; if (!mask[p0] || lab[p0]) continue;
+        const id = ++comps; let sz = 0; lab[p0] = id; push(p0);
+        while (sp) {
+          const p = stack[--sp]; sz++; const px = p % w, py = (p / w) | 0;
+          if (px > 0 && mask[p - 1] && !lab[p - 1]) { lab[p - 1] = id; push(p - 1); }
+          if (px + 1 < w && mask[p + 1] && !lab[p + 1]) { lab[p + 1] = id; push(p + 1); }
+          if (py > 0 && mask[p - w] && !lab[p - w]) { lab[p - w] = id; push(p - w); }
+          if (py + 1 < h && mask[p + w] && !lab[p + w]) { lab[p + w] = id; push(p + w); }
+          if ((++steps & 32767) === 0) yield;
+        }
+        sizes[id] = sz;
+      }
+      if ((y & 15) === 15) yield;
+    }
+    let best = 0, bn = 0; for (let i = 1; i <= comps; i++) if (sizes[i] > bn) { bn = sizes[i]; best = i; }
+    if (!bn) return 0;
+    for (let p = 0; p < mask.length; p++) mask[p] = lab[p] === best ? 1 : 0;
+    return bn;
+  }
+  function* bilateral(rgba, w, h, mask, protect, rad, sigma, passes) {
+    const ker = [];
+    for (let dy = -rad; dy <= rad; dy++) for (let dx = -rad; dx <= rad; dx++) {
+      if (dx * dx + dy * dy > rad * rad) continue;
+      ker.push(dx, dy, Math.exp(-(dx * dx + dy * dy) / (rad * rad)));
+    }
+    const lim = sigma * sigma, src = new Uint8ClampedArray(rgba.length), kn = ker.length / 3;
+    for (let pass = 0; pass < passes; pass++) {
+      src.set(rgba);
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const p = y * w + x; if (!mask[p] || (protect && protect[p])) continue;
+          const o = p * 4, r0 = src[o], g0 = src[o + 1], b0 = src[o + 2]; let rs = 0, gs = 0, bs = 0, ws = 0;
+          for (let k = 0; k < kn; k++) {
+            const xx = x + ker[k * 3], yy = y + ker[k * 3 + 1]; if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue;
+            const q = yy * w + xx; if (!mask[q]) continue;
+            const qo = q * 4, dr = src[qo] - r0, dg = src[qo + 1] - g0, db = src[qo + 2] - b0;
+            if (dr * dr + dg * dg + db * db > lim) continue;
+            const wgt = ker[k * 3 + 2]; rs += src[qo] * wgt; gs += src[qo + 1] * wgt; bs += src[qo + 2] * wgt; ws += wgt;
+          }
+          if (ws > 0) { rgba[o] = rs / ws + 0.5; rgba[o + 1] = gs / ws + 0.5; rgba[o + 2] = bs / ws + 0.5; }
+        }
+        if ((y & 3) === 3) yield;
+      }
+    }
+  }
+  // Returns {mask, protect, edge, frac} when the picture has one face-sized skin region, else null. Smooths rgba in place.
+  function* prepFace(rgba, w, h, diff) {
+    const N = w * h, mask = new Uint8Array(N), lab = new Float32Array(3);
+    for (let p = 0; p < N; p++) {
+      const o = p * 4; toLab(rgba[o], rgba[o + 1], rgba[o + 2], lab, 0);
+      if (skinLab(lab[0], lab[1], lab[2])) mask[p] = 1;
+      if ((p & 16383) === 16383) yield;
+    }
+    const rad = diff >= 5 ? 3 : 2;
+    let closed = yield* dilateMask(mask, w, h, rad); closed = yield* erodeMask(closed, w, h, rad);
+    const bn = yield* largestMask(closed, w, h), frac = bn / N;
+    if (bn < 0.055 * N || bn > 0.80 * N) return null;
+    const edge = new Float32Array(N), lum = new Float32Array(N), protect = new Uint8Array(N);
+    for (let p = 0; p < N; p++) { const o = p * 4; lum[p] = (0.299 * rgba[o] + 0.587 * rgba[o + 1] + 0.114 * rgba[o + 2]) / 255; if ((p & 16383) === 16383) yield; }
+    for (let y = 1; y < h - 1; y++) {
+      for (let x = 1; x < w - 1; x++) { const p = y * w + x, gx = lum[p + 1] - lum[p - 1], gy = lum[p + w] - lum[p - w]; edge[p] = Math.abs(gx) + Math.abs(gy); }
+      if ((y & 7) === 7) yield;
+    }
+    let x0 = w, y0 = h, x1 = 0, y1 = 0;
+    for (let p = 0; p < N; p++) if (closed[p]) { const x = p % w, y = (p / w) | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    const padX = Math.round((x1 - x0) * 0.08), padY = Math.round((y1 - y0) * 0.08);
+    x0 = Math.max(0, x0 - padX); y0 = Math.max(0, y0 - padY); x1 = Math.min(w - 1, x1 + padX); y1 = Math.min(h - 1, y1 + padY);
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      const p = y * w + x;
+      if (closed[p]) { if (edge[p] > 0.20) protect[p] = 1; }
+      else if (edge[p] > 0.12 || lum[p] < 0.34) protect[p] = 1;
+    }
+    yield* bilateral(rgba, w, h, closed, protect, 2, diff >= 5 ? 42 : 24, diff >= 5 ? 2 : 1);
+    return { mask: closed, protect, edge, frac };
+  }
+  function* limitSkin(ids, w, h, mask, protect, td) {
+    const m = td.m, N = w * h, tgt = td.tgt, skin = [];
+    for (let k = 0; k < m; k++) if (skinLab(tgt[k * 3], tgt[k * 3 + 1], tgt[k * 3 + 2])) skin.push(k);
+    const dead = new Uint8Array(m); let live = skin.length;
+    while (live > 4) {
+      let bi = -1, bj = -1, bd = 1e9;
+      for (let a = 0; a < skin.length; a++) {
+        const i = skin[a]; if (dead[i]) continue;
+        for (let b = a + 1; b < skin.length; b++) {
+          const j = skin[b]; if (dead[j]) continue;
+          const d = (tgt[i * 3] - tgt[j * 3]) ** 2 + (tgt[i * 3 + 1] - tgt[j * 3 + 1]) ** 2 + (tgt[i * 3 + 2] - tgt[j * 3 + 2]) ** 2;
+          if (d < bd) { bd = d; bi = i; bj = j; }
+        }
+      }
+      if (bi < 0) break; dead[bj] = 1; live--; yield;
+    }
+    const liveSkin = []; for (const k of skin) if (!dead[k]) liveSkin.push(k);
+    const map = new Uint8Array(m); for (let k = 0; k < m; k++) map[k] = k;
+    for (const j of skin) if (dead[j]) {
+      let bd = 1e9, bk = liveSkin[0] || j;
+      for (const i of liveSkin) { const d = (tgt[i * 3] - tgt[j * 3]) ** 2 + (tgt[i * 3 + 1] - tgt[j * 3 + 1]) ** 2 + (tgt[i * 3 + 2] - tgt[j * 3 + 2]) ** 2; if (d < bd) { bd = d; bk = i; } }
+      map[j] = bk;
+    }
+    const skinSet = new Uint8Array(m); for (const k of liveSkin) skinSet[k] = 1;
+    const out = new Uint8Array(N);
+    for (let p = 0; p < N; p++) {
+      const orig = ids[p];
+      if (protect && protect[p]) { out[p] = orig; continue; }
+      let c = map[orig];
+      if (mask[p] && liveSkin.length && !skinSet[c]) {
+        let bd = 1e9, bk = c;
+        for (const i of liveSkin) { const d = (tgt[i * 3] - tgt[c * 3]) ** 2 + (tgt[i * 3 + 1] - tgt[c * 3 + 1]) ** 2 + (tgt[i * 3 + 2] - tgt[c * 3 + 2]) ** 2; if (d < bd) { bd = d; bk = i; } }
+        if (bd < 0.02) c = bk;
+      }
+      out[p] = c;
+      if ((p & 65535) === 65535) yield;
+    }
+    return out;
+  }
+  function regionMins(reg, n, w, h, mask, edge, baseMin, skinMin, featureMin) {
+    const minOf = new Uint32Array(n + 1), area = new Int32Array(n + 1), sk = new Int32Array(n + 1), es = new Float64Array(n + 1), N = w * h;
+    for (let p = 0; p < N; p++) { const r = reg[p]; area[r]++; if (mask[p]) sk[r]++; es[r] += edge[p]; }
+    for (let r = 1; r <= n; r++) {
+      const a = area[r] || 1, em = es[r] / a, sf = sk[r] / a;
+      if (em > 0.11 || (sf < 0.4 && em > 0.06)) minOf[r] = featureMin;
+      else if (sf >= 0.5) minOf[r] = skinMin;
+      else minOf[r] = baseMin;
+    }
+    return minOf;
+  }
+  function faceStats(reg, n, col, pal, mask, N, maskFrac, baseMin, skinMin, featureMin) {
+    const area = new Int32Array(n), sk = new Int32Array(n); let minArea = N;
+    for (let p = 0; p < N; p++) { const r = reg[p]; area[r]++; if (mask[p]) sk[r]++; }
+    const tones = new Set(); let skinRegions = 0;
+    for (let r = 0; r < n; r++) {
+      if (area[r] && area[r] < minArea) minArea = area[r];
+      if (area[r] && sk[r] * 2 >= area[r]) { skinRegions++; if (isSkinHex(pal[col[r]])) tones.add(col[r]); }
+    }
+    return { tones: tones.size, skinRegions, minArea: minArea === N ? 0 : minArea, regions: n, pal: pal.length, maskFrac: Math.round(maskFrac * 1000) / 1000, baseMin, skinMin, featureMin };
+  }
+
+  // ---------- Detail picker: deterministic clip-pattern splits of a pack picture (Hard d2 ~2-3x, Expert d3 ~4-6x), tint palette <= 24 ----------
+  function rasterShapes(pic, size, mk, P2D) {
+    const c = mk(size, size), g = c.getContext('2d', { willReadFrequently: true }), sw = pic.w || 2048, sh = pic.h || 2048;
+    g.setTransform(size / sw, 0, 0, size / sh, 0, 0);
+    const shapes = pic.shapes;
+    for (let i = 0; i < shapes.length; i++) {
+      const s = shapes[i], v = i + 1;
+      g.fillStyle = 'rgb(' + (v & 255) + ',' + ((v >> 8) & 255) + ',0)';
+      if (s[2]) { g.save(); g.clip(new P2D(s[2])); g.fill(new P2D(s[1])); g.restore(); }
+      else g.fill(new P2D(s[1]));
+    }
+    const d = g.getImageData(0, 0, size, size).data, ids = new Uint16Array(size * size);
+    for (let p = 0, o = 0; p < ids.length; p++, o += 4) { const v = d[o] | (d[o + 1] << 8); ids[p] = v ? v - 1 : 0; }
+    return { ids, w: size, h: size };
+  }
+  function tintHex(h, dL) {
+    if (!dL) return h;
+    const v = parseInt(h.slice(1), 16), o = new Float32Array(3);
+    toLab((v >> 16) & 255, (v >> 8) & 255, v & 255, o, 0);
+    return hex(fromLab(clamp(o[0] + dL, 0.15, 0.97), o[1], o[2]));
+  }
+  function patternAt(kind, k, bb, rnd) {
+    const cx = (bb.x0 + bb.x1) / 2, cy = (bb.y0 + bb.y1) / 2;
+    if (kind === 'facets') {
+      const rot = rnd() * Math.PI * 2;
+      return (x, y) => { let a = Math.atan2(y - cy, x - cx) + Math.PI + rot; a %= Math.PI * 2; if (a < 0) a += Math.PI * 2; return Math.min(k - 1, (a / (Math.PI * 2) * k) | 0); };
+    }
+    if (kind === 'stripes') {
+      const ang = rnd() * Math.PI, dx = Math.cos(ang), dy = Math.sin(ang), cs = [[bb.x0, bb.y0], [bb.x1, bb.y0], [bb.x0, bb.y1], [bb.x1, bb.y1]];
+      let mn = 1e9, mx = -1e9; for (const q of cs) { const t = q[0] * dx + q[1] * dy; if (t < mn) mn = t; if (t > mx) mx = t; }
+      const span = Math.max(1e-3, mx - mn);
+      return (x, y) => Math.min(k - 1, Math.max(0, (((x * dx + y * dy) - mn) / span * k) | 0));
+    }
+    if (kind === 'petals') {
+      const rot = rnd() * Math.PI * 2;
+      return (x, y) => { const a = Math.atan2(y - cy, x - cx) + rot, wob = 0.45 * Math.sin(a * k); let t = (a + Math.PI + wob) / (Math.PI * 2); t -= Math.floor(t); return Math.min(k - 1, (t * k) | 0); };
+    }
+    if (kind === 'scales') {
+      const s = Math.max(4, Math.sqrt((bb.w * bb.h) / Math.max(1, k)) * 0.92);
+      return (x, y) => { const row = Math.floor((y - bb.y0) / s), ox = (row & 1) ? s * 0.5 : 0, col = Math.floor((x - bb.x0 + ox) / s); return Math.abs((col * 3 + row * 5) % k); };
+    }
+    const sites = []; for (let i = 0; i < k; i++) sites.push(bb.x0 + rnd() * bb.w, bb.y0 + rnd() * bb.h);
+    return (x, y) => { let bi = 0, bd = 1e18; for (let i = 0; i < k; i++) { const dx = x - sites[i * 2], dy = y - sites[i * 2 + 1], d = dx * dx + dy * dy; if (d < bd) { bd = d; bi = i; } } return bi; };
+  }
+  function* foldTiny(ids, cell, splits, w, h, area) {
+    const shapesN = splits.length, ca = new Int32Array(shapesN * 16), remap = new Uint8Array(shapesN * 16);
+    for (let s = 0; s < shapesN; s++) for (let c = 0; c < 16; c++) remap[s * 16 + c] = c;
+    for (let p = 0; p < ids.length; p++) if (splits[ids[p]] > 1) ca[ids[p] * 16 + cell[p]]++;
+    const adj = new Array(shapesN * 16);
+    const touch = (s, a, b) => { if (a === b) return; const ia = s * 16 + a, ib = s * 16 + b; if (!adj[ia]) adj[ia] = new Map(); if (!adj[ib]) adj[ib] = new Map(); adj[ia].set(b, (adj[ia].get(b) || 0) + 1); adj[ib].set(a, (adj[ib].get(a) || 0) + 1); };
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const p = y * w + x, s = ids[p]; if (splits[s] <= 1) continue;
+        if (x + 1 < w && ids[p + 1] === s) touch(s, cell[p], cell[p + 1]);
+        if (y + 1 < h && ids[p + w] === s) touch(s, cell[p], cell[p + w]);
+      }
+      if ((y & 7) === 7) yield;
+    }
+    for (let s = 0; s < shapesN; s++) {
+      if (splits[s] <= 1) continue;
+      const thresh = Math.max(28, Math.round(area[s] * 0.05)); let guard = 0, again = true;
+      while (again && guard++ < 8) {
+        again = false;
+        for (let c = 0; c < splits[s]; c++) {
+          if (!ca[s * 16 + c] || ca[s * 16 + c] >= thresh) continue;
+          const nb = adj[s * 16 + c]; if (!nb || !nb.size) continue;
+          let best = -1, bw = -1; for (const [nc, wgt] of nb) if (wgt > bw && ca[s * 16 + nc]) { bw = wgt; best = nc; }
+          if (best < 0) for (const [nc, wgt] of nb) if (wgt > bw) { bw = wgt; best = nc; }
+          if (best < 0 || best === c) continue;
+          ca[s * 16 + best] += ca[s * 16 + c]; ca[s * 16 + c] = 0; remap[s * 16 + c] = best; again = true;
+        }
+      }
+    }
+    const find = (s, c) => { let g = 0; while (remap[s * 16 + c] !== c && g++ < 16) c = remap[s * 16 + c]; return c; };
+    for (let p = 0; p < ids.length; p++) { const s = ids[p]; if (splits[s] > 1) cell[p] = find(s, cell[p]); }
+  }
+  function* detailRun(rast, shapeCols, palIn, level, seed, hooks) {
+    const ctx = newCtx(hooks), ids = rast.ids, w = rast.w, h = rast.h, N = w * h, shapesN = shapeCols.length, rndRoot = (seed >>> 0) || 1;
+    if (!w || !h || !shapesN || !palIn || !palIn.length) throw E('bad');
+    ctx.begin('split', 0.08);
+    const area = new Int32Array(shapesN), x0 = new Int32Array(shapesN).fill(1e9), y0 = new Int32Array(shapesN).fill(1e9), x1 = new Int32Array(shapesN).fill(-1), y1 = new Int32Array(shapesN).fill(-1);
+    for (let p = 0; p < N; p++) {
+      const s = ids[p]; if (s >= shapesN) continue; area[s]++;
+      const x = p % w, y = (p / w) | 0;
+      if (x < x0[s]) x0[s] = x; if (x > x1[s]) x1[s] = x; if (y < y0[s]) y0[s] = y; if (y > y1[s]) y1[s] = y;
+      if ((p & 65535) === 65535) yield;
+    }
+    const lo = level >= 3 ? 4 : 2, hi = level >= 3 ? 6 : 3, mul = level >= 3 ? 5 : 2.5;
+    const target = Math.max(shapesN * lo, Math.min(shapesN * hi, Math.round(shapesN * mul)));
+    let extra = Math.max(0, target - shapesN);
+    const splits = new Uint8Array(shapesN).fill(1), order = [];
+    for (let i = 0; i < shapesN; i++) if (area[i] >= N * 0.005) order.push(i);
+    order.sort((a, b) => area[b] - area[a] || a - b);
+    const maxK = level >= 3 ? 8 : 4; let guard = 0;
+    while (extra > 0 && guard++ < shapesN * 12) {
+      let moved = false;
+      for (const i of order) { if (splits[i] >= maxK) continue; splits[i]++; extra--; moved = true; if (!extra) break; }
+      if (!moved) break;
+    }
+    const KINDS = ['facets', 'stripes', 'petals', 'scales', 'voronoi'], cell = new Uint8Array(N);
+    for (let s = 0; s < shapesN; s++) {
+      const k = splits[s]; if (k <= 1 || !area[s]) continue;
+      const sub = rng((rndRoot + Math.imul(s + 1, 997)) >>> 0), kind = KINDS[(sub() * KINDS.length) | 0];
+      const bb = { x0: x0[s], y0: y0[s], x1: x1[s], y1: y1[s], w: Math.max(1, x1[s] - x0[s] + 1), h: Math.max(1, y1[s] - y0[s] + 1) }, at = patternAt(kind, k, bb, sub);
+      for (let y = y0[s]; y <= y1[s]; y++) for (let x = x0[s]; x <= x1[s]; x++) { const p = y * w + x; if (ids[p] === s) cell[p] = at(x, y); }
+      yield;
+    }
+    yield* foldTiny(ids, cell, splits, w, h, area);
+    ctx.begin('regions', 0.4);
+    const keyOf = new Map(), reg = new Uint16Array(N), shapeOf = [], cellOf = []; let nReg = 0;
+    for (let p = 0; p < N; p++) {
+      const s = ids[p] < shapesN ? ids[p] : 0, c = splits[s] > 1 ? cell[p] : 0, key = s * 16 + c;
+      let id = keyOf.get(key);
+      if (id == null) { id = nReg++; if (nReg > 65000) throw E('busy'); keyOf.set(key, id); shapeOf.push(s); cellOf.push(c); }
+      reg[p] = id;
+      if ((p & 65535) === 65535) yield;
+    }
+    const STEP = level >= 3 ? [-0.09, 0, 0.10, 0.04] : [-0.08, 0.08], pal = [], used = new Map(), col = new Uint8Array(nReg);
+    const colorFor = (base, step) => {
+      const kk = base + ':' + (step || 0); if (used.has(kk)) return used.get(kk);
+      if (step && pal.length >= 24) return colorFor(base, 0);
+      if (pal.length >= 24) { for (const [key, idx] of used) if (key.startsWith(base + ':')) return idx; return 0; }
+      used.set(kk, pal.length); pal.push(step ? tintHex(palIn[base], step) : palIn[base]); return pal.length - 1;
+    };
+    for (let i = 0; i < nReg; i++) {
+      const s = shapeOf[i], base = Math.max(0, Math.min(palIn.length - 1, shapeCols[s] | 0));
+      col[i] = colorFor(base, splits[s] > 1 ? STEP[cellOf[i] % STEP.length] : 0);
+    }
+    const cfg = { diff: level >= 3 ? 6 : 5, pal: pal.length, seed: rndRoot, sparkle: false, eps: 0.85, detail: level >= 3 ? 3 : 2 };
+    const spz = yield* packShapePuzzle(reg, col, pal, w, h, nReg, cfg, ctx); spz.detail = { level: cfg.detail, regions: nReg, pal: pal.length, native: shapesN }; return spz;
+  }
+  function* packShapePuzzle(reg, col, pal, w, h, n, cfg, ctx) {
+    const N = w * h;
+    ctx.begin('spots', 0.62); ctx.alloc('dist', N * 2); const sp = yield* labelSpots(reg, n, w, h); ctx.free('dist');
+    ctx.begin('trace', 0.75); ctx.alloc('vis', N); const per = yield* trace(reg, n, w, h, cfg.eps || 0.7); ctx.free('vis');
+    ctx.begin('pack', 0.92);
+    const s = WORLD / Math.max(w, h), bb = new Int16Array(n * 4), labs = new Int16Array(n * 4);
+    for (let i = 0; i < n; i++) {
+      bb[i * 4] = Math.max(0, Math.floor(sp.x0[i] * s - 6)); bb[i * 4 + 1] = Math.max(0, Math.floor(sp.y0[i] * s - 6)); bb[i * 4 + 2] = Math.ceil((sp.x1[i] + 1) * s + 6); bb[i * 4 + 3] = Math.ceil((sp.y1[i] + 1) * s + 6);
+      const r = sp.best[i] / 3 * s; labs[i * 4] = Math.round((sp.bx[i] + 0.5) * s); labs[i * 4 + 1] = Math.round((sp.by[i] + 0.5) * s); labs[i * 4 + 2] = Math.round(Math.max(20, r)); labs[i * 4 + 3] = Math.round(clamp(1.6 * r, 16, 240));
+    }
+    const rings = encodeRings(per), rle = rleEnc(reg); ctx.end();
+    const stored = { diff: cfg.diff, pal: cfg.pal, seed: cfg.seed, sparkle: !!cfg.sparkle, eps: cfg.eps || 0.7 };
+    if (cfg.detail) stored.detail = cfg.detail;
+    return { pv: PV, mode: 'shapes', w, h, W: Math.round(w * s), H: Math.round(h * s), s, pal, n, cfg: stored, data: { col, bb, lab: labs, rings, rle }, T: ctx.T, memPeak: ctx.peak };
+  }
+
   // input src {rgba (Uint8ClampedArray), w, h}. Returns a puzzle object with typed arrays (transferable). Throws E(code).
   function* run(src, cfgIn, hooks) {
     const cfg = cfgIn.work ? cfgIn : cfgFor(cfgIn), ctx = newCtx(hooks), rnd = rng(cfg.seed);
@@ -410,21 +740,29 @@
     const k = Math.min(1, cfg.work / Math.max(w, h)); if (k < 1) { const tw = Math.max(1, Math.round(w * k)), th = Math.max(1, Math.round(h * k)); const o = yield* downscaleG(rgba, w, h, tw, th); rgba = o; w = tw; h = th; ctx.alloc('rgba', rgba.length); }
     const N = w * h; yield;
     ctx.begin('filter', 0.08); yield* smooth(rgba, w, h);
+    let mask = null, protect = null, edge = null, maskFrac = 0;
+    if ((cfg.diff | 0) >= 3) { ctx.begin('face', 0.12); const faceIn = yield* prepFace(rgba, w, h, cfg.diff | 0); if (faceIn) { mask = faceIn.mask; protect = faceIn.protect; edge = faceIn.edge; maskFrac = faceIn.frac; } }
     ctx.begin('kmeans', 0.2); const sm = yield* sampleLab(rgba, N, rnd); ctx.alloc('sample', sm.out.length * 4);
     const km = yield* kmeans(sm.out, sm.S, cfg.pal, rnd), td = tidy(km.C, km.cnt, km.k, cfg); ctx.free('sample');
-    ctx.begin('map', 0.32); let ids = yield* mapAll(rgba, N, td.tgt, td.m); ctx.alloc('ids', N); rgba = null; ctx.free('rgba');
-    ctx.begin('mode', 0.4); ids = yield* modeFilter(ids, w, h, 2);
+    ctx.begin('map', 0.32); let ids = yield* mapAll(rgba, N, td.tgt, td.m); ctx.alloc('ids', N);
+    if (mask) { ctx.begin('skin', 0.36); ids = yield* limitSkin(ids, w, h, mask, protect, td); }
+    rgba = null; ctx.free('rgba');
+    ctx.begin('mode', 0.4); ids = yield* modeFilter(ids, w, h, 2, protect);
     ctx.begin('regions', 0.5); let lab = null, reg = null, nn = 0, extra = 0;
     for (;;) {
       lab = yield* labelRegions(ids, w, h); if (lab) break;
-      ids = yield* modeFilter(ids, w, h, 2); if (++extra > 3) throw E('busy');
+      ids = yield* modeFilter(ids, w, h, 2, protect); if (++extra > 3) throw E('busy');
     }
     reg = lab.reg; nn = lab.n; ctx.alloc('reg', reg.length * 2);
-    const mg = yield* mergeRegions(reg, nn, w, h, ids, td.tgt, cfg.minArea, cfg.maxReg); ids = null; ctx.free('ids');
+    const tapF = [0, 0, 0, 0.00020, 0.00016, 0.00014, 0.00012][cfg.diff | 0] || 0;
+    const baseMin = Math.max(cfg.minArea, Math.round(tapF * N)), skinMin = Math.round(baseMin * 2.5), featureMin = Math.max(16, Math.round(baseMin * 0.34));
+    const minOf = mask ? regionMins(reg, nn, w, h, mask, edge, baseMin, skinMin, featureMin) : null;
+    const mg = yield* mergeRegions(reg, nn, w, h, ids, td.tgt, baseMin, cfg.maxReg, minOf); ids = null; ctx.free('ids'); edge = null; protect = null;
     // drop unused palette colours, renumber
     const used = new Uint8Array(td.m); for (const c of mg.col) used[c] = 1; const remap = new Int16Array(td.m), pal = []; let q = 0;
     for (let i = 0; i < td.m; i++) if (used[i]) { remap[i] = q++; pal.push(td.pal[i]); }
     const col = Uint8Array.from(mg.col, c => remap[c]), n = mg.n;
+    const face = mask ? faceStats(reg, n, col, pal, mask, N, maskFrac, baseMin, skinMin, featureMin) : null; mask = null;
     ctx.begin('spots', 0.62); ctx.alloc('dist', N * 2); const sp = yield* labelSpots(reg, n, w, h); ctx.free('dist');
     ctx.begin('trace', 0.75); ctx.alloc('vis', N); let eps = cfg.eps; let per = yield* trace(reg, n, w, h, eps); ctx.free('vis');
     ctx.begin('pack', 0.92);
@@ -434,7 +772,9 @@
       const r = sp.best[i] / 3 * s; labs[i * 4] = Math.round((sp.bx[i] + 0.5) * s); labs[i * 4 + 1] = Math.round((sp.by[i] + 0.5) * s); labs[i * 4 + 2] = Math.round(Math.max(20, r)); labs[i * 4 + 3] = Math.round(clamp(1.6 * r, 16, 240));
     }
     const rings = encodeRings(per), rle = rleEnc(reg); ctx.end();
-    return { pv: PV, mode: 'shapes', w, h, W: Math.round(w * s), H: Math.round(h * s), s, pal, n, cfg: { diff: cfg.diff, pal: cfg.pal, seed: cfg.seed, sparkle: cfg.sparkle, eps }, data: { col, bb, lab: labs, rings, rle }, T: ctx.T, memPeak: ctx.peak };
+    const out = { pv: PV, mode: 'shapes', w, h, W: Math.round(w * s), H: Math.round(h * s), s, pal, n, cfg: { diff: cfg.diff, pal: cfg.pal, seed: cfg.seed, sparkle: cfg.sparkle, eps }, data: { col, bb, lab: labs, rings, rle }, T: ctx.T, memPeak: ctx.peak };
+    if (face) out.face = face;
+    return out;
   }
 
   function* runPixel(rgba, w, h, cfg, ctx, rnd) {
@@ -506,5 +846,5 @@
     return true;
   }
 
-  g.CBN = { PV, WORLD, PRE, cfgFor, rng, sniff, decodeFile, downscale, smooth, kmeans, tidy, modeFilter, labelRegions, mergeRegions, labelSpots, trace, dpRing, encodeRings, decodeRings, resimplify, rleEnc, rleDec, run, drain, inflate, ringsToPath, drawThumb, check, toLab, fromLab, E, MAXB };
+  g.CBN = { PV, WORLD, PRE, cfgFor, rng, sniff, decodeFile, downscale, smooth, kmeans, tidy, modeFilter, labelRegions, mergeRegions, labelSpots, trace, dpRing, encodeRings, decodeRings, resimplify, rleEnc, rleDec, run, drain, inflate, ringsToPath, drawThumb, check, toLab, fromLab, E, MAXB, skinLab, isSkinHex, prepFace, rasterShapes, detailRun };
 })(typeof self !== 'undefined' ? self : this);

@@ -61,14 +61,22 @@
   }
   const picBy = (pk, id) => { const p = CM_PACKS[pk]; return p && p.pics.find(x => x.id === id); };
   const pidOf = (pk, id) => 'pk:' + pk + '.' + id;
-  const isCustom = id => typeof id === 'string' && (/^ph:[a-z0-9]+$/.test(id) || /^pk:[a-z0-9]+\.[a-z0-9]+:px\d+p\d+s?$/.test(id));
+  // Detail variants are pk:<pack>.<pic>d2 / d3. The base picture must exist and the full id must not itself be a real picture.
+  function isDetail(id) {
+    const m = /^pk:([a-z0-9]+)\.([a-z0-9]+)d([23])$/.exec(id);
+    if (!m) return null;
+    if (picBy(m[1], m[2] + 'd' + m[3])) return null;
+    if (!picBy(m[1], m[2])) return null;
+    return { pk: m[1], id: m[2], level: m[3] === '3' ? 3 : 2 };
+  }
+  const isCustom = id => typeof id === 'string' && (/^ph:[a-z0-9]+$/.test(id) || /^pk:[a-z0-9]+\.[a-z0-9]+:px\d+p\d+s?$/.test(id) || !!isDetail(id));
   async function loadMaps() {
     progMap.clear(); galMap.clear(); galFree.clear();
     for (const r of await SV.allProg()) {
-      const m = /^pk:([a-z0-9]+)\.([a-z0-9]+)$/.exec(r.id), pic = m && picBy(m[1], m[2]), v = pic ? SV.valid(r, pic.shapes.length) : (isCustom(r.id) && r.n > 0 ? SV.valid(r, r.n) : null);
+      const m = /^pk:([a-z0-9]+)\.([a-z0-9]+)$/.exec(r.id), pic = m && !isDetail(r.id) && picBy(m[1], m[2]), v = pic ? SV.valid(r, pic.shapes.length) : (isCustom(r.id) && r.n > 0 ? SV.valid(r, r.n) : null);
       if (v) progMap.set(r.id, v); else if (!/:free$/.test(r.id)) SV.quarantine.set('progress:' + r.id, r);   // bad records are hidden, never deleted
     }
-    for (const r of await SV.allGal()) { const m = /^pk:([a-z0-9]+)\.([a-z0-9]+)$/.exec(r.pid); if ((m && picBy(m[1], m[2])) || isCustom(r.pid)) (r.free ? galFree : galMap).set(r.pid, r); else SV.quarantine.set('gallery:' + r.id, r); }
+    for (const r of await SV.allGal()) { const m = /^pk:([a-z0-9]+)\.([a-z0-9]+)$/.exec(r.pid); if ((m && !isDetail(r.pid) && picBy(m[1], m[2])) || isCustom(r.pid)) (r.free ? galFree : galMap).set(r.pid, r); else SV.quarantine.set('gallery:' + r.id, r); }
   }
   const fracOf = (pk, pic) => { const r = progMap.get(pidOf(pk, pic.id)); return r && r.order ? Math.min(1, r.order.length / pic.shapes.length) : 0; };
   const fracRec = r => r && r.order && r.n ? Math.min(1, r.order.length / r.n) : 0;
@@ -468,7 +476,7 @@
 
   // ---------- viewer: re-renders the picture on demand from puzzle + fills (deterministic, no 2K blobs stored); time-lapse, frame, free paint, gated save/delete ----------
   let V = null;
-  async function picOfPid(pid) { const m = /^pk:([a-z0-9]+)\.([a-z0-9]+)$/.exec(pid); if (m) return picBy(m[1], m[2]); return API.loadPic ? API.loadPic(pid) : null; }
+  async function picOfPid(pid) { if (isDetail(pid) || isCustom(pid)) return API.loadPic ? API.loadPic(pid) : null; const m = /^pk:([a-z0-9]+)\.([a-z0-9]+)$/.exec(pid); if (m) return picBy(m[1], m[2]); return API.loadPic ? API.loadPic(pid) : null; }
   async function openView(pid, which) {
     const pic = await picOfPid(pid); if (!pic) { return; }   // unreadable puzzle: stay in the gallery (the record is kept)
     const n = pic.shapes.length, ro = await SV.getProg(pid, n), rf = await SV.getProg(pid + ':free', n), hasF = !!(rf && rf.free && galFree.has(pid)), hasO = galMap.has(pid);
@@ -568,7 +576,7 @@
     const bind = (id, k) => $('#' + id).onclick = e => { s[k] = !s[k]; e.currentTarget.classList.toggle('on', s[k]); SV.write(); applySettings(); };
     bind('sMus', 'mus'); bind('sVoice', 'voice'); bind('sMusic', 'music'); bind('sNums', 'nums');
     $$('#sOut button').forEach(b => b.onclick = () => { s.outl = +b.dataset.n; $$('#sOut button').forEach(x => x.classList.toggle('on', x === b)); SV.write(); });
-    $('#sLock').onclick = () => { const h = $('#guHost'); if (h.firstChild) return; AU.say('grown'); if (FZ && FZ.gate) FZ.gate(h, () => { h.innerHTML = tg('gHelp', 'Helpers', 'hint', s.helpers) + tg('gPhoto', 'My Photo', 'photo', s.photo) + tg('gGrid', 'Big grids', 'squares', s.bigGrid) + '<div class="set"><label><span id="gSt"></span></label></div><div id="gPh"></div>'; bind('gHelp', 'helpers'); bind('gPhoto', 'photo'); bind('gGrid', 'bigGrid'); stor(); if (API.storagePage) API.storagePage($('#gPh')); }, () => { }); };
+    $('#sLock').onclick = () => { const h = $('#guHost'); if (h.firstChild) return; AU.say('grown'); if (FZ && FZ.gate) FZ.gate(h, () => { h.innerHTML = tg('gHelp', 'Helpers', 'hint', s.helpers) + tg('gPhoto', 'My Photo', 'photo', s.photo) + tg('gGrid', 'Big grids', 'squares', s.bigGrid) + tg('gAll', 'All levels', 'gem', s.allLevels) + '<div class="set"><label><span id="gSt"></span></label></div><div id="gPh"></div>'; bind('gHelp', 'helpers'); bind('gPhoto', 'photo'); bind('gGrid', 'bigGrid'); bind('gAll', 'allLevels'); stor(); if (API.storagePage) API.storagePage($('#gPh')); }, () => { }); };
   }
   async function stor() { let t = 'Saved here'; try { const e = await navigator.storage.estimate(); t = Math.round((e.usage || 0) / 1048576 * 10) / 10 + ' MB'; } catch (e) { } if (SV.quarantine.size) t += ' - ' + SV.quarantine.size + ' unreadable'; if (SV.warn) t += ' - not saving!'; const e = $('#gSt'); if (e) e.textContent = t; }
 
@@ -581,7 +589,7 @@
   });
 
   // ---------- hooks for photo.js ----------
-  Object.assign(API, { galFree, go, nav, A, R, SV, AU, FZ, sd, toast, loadMaps, galMap, progMap, openGame, openPic, picBy, pidOf, isCustom, thumb, calm, applySettings, fracRec, stor });
+  Object.assign(API, { galFree, go, nav, A, R, SV, AU, FZ, sd, toast, loadMaps, galMap, progMap, openGame, openPic, picBy, pidOf, isCustom, isDetail, thumb, calm, applySettings, fracRec, stor });
   Object.defineProperties(API, { scr: { get: () => scr }, prev: { get: () => prev }, G: { get: () => G } });   // live views (Object.assign would copy the current value only)
   window.CMApp = { API, HOOK };
 

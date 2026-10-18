@@ -57,6 +57,23 @@
     }
     out.pz.T.total = Math.round(performance.now() - t0); out.T = out.pz.T; out.cfg = cfg; H.last = { where: out.where, T: out.T, memPeak: out.pz.memPeak, n: out.pz.n, mode: out.pz.mode }; return out;
   };
+  // Detail picker: split a pack picture in the worker (Hard = level 2, Expert = level 3). preview uses a 256 px raster.
+  H.detail = async function (pic, level, seed, onProg, preview) {
+    const t0 = performance.now(), slim = { w: pic.w, h: pic.h, pal: pic.pal, shapes: pic.shapes }, lv = level >= 3 ? 3 : 2;
+    let out = null;
+    if (canWorker()) {
+      try { const m = await wjob({ cmd: 'detail', pic: slim, level: lv, seed, preview: !!preview, thumb: 256 }, [], onProg); out = { pz: m.pz, thumb: m.thumb, where: 'worker' }; }
+      catch (e) { if (e.code !== 'worker') throw e; }
+    }
+    if (!out) {
+      cancel(); const g = gen, size = preview ? 256 : (lv >= 3 ? 768 : 512);
+      const rast = C.rasterShapes(slim, size, mkc, Path2D), cols = Uint8Array.from(slim.shapes, s => s[0] | 0);
+      const pz = await sliced(C.detailRun(rast, cols, slim.pal, lv, seed, { prog: onProg }), g, 12);
+      const cv = C.drawThumb(pz, C.inflate(pz, Path2D), 256, mkc), blob = await new Promise(r => cv.toBlob(b => r(b), 'image/webp', 0.8));
+      out = { pz, thumb: blob, where: 'main' };
+    }
+    out.pz.T.total = Math.round(performance.now() - t0); out.T = out.pz.T; H.last = { where: out.where, T: out.T, memPeak: out.pz.memPeak, n: out.pz.n, mode: out.pz.mode }; return out;
+  };
   H.cancel = cancel; H.canWorker = canWorker;
 
   // ---------- gzip helpers (CompressionStream when the browser has it; raw bytes otherwise) ----------

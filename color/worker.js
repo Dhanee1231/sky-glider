@@ -21,6 +21,16 @@ self.onmessage = async e => {
       pz.T.thumb = Math.round((performance.now() - t1) * 10) / 10; pz.T.total = Math.round(performance.now() - t0);
       const tr = []; for (const k in pz.data) tr.push(pz.data[k].buffer);
       post({ t: 'done', gen: m.gen, pz, thumb: blob }, tr);
+    } else if (m.cmd === 'detail') {
+      const t0 = performance.now(), size = m.preview ? 256 : (m.level >= 3 ? 768 : 512);
+      const rast = CBN.rasterShapes(m.pic, size, (w, h) => new OffscreenCanvas(w, h), Path2D);
+      const cols = new Uint8Array(m.pic.shapes.length); for (let i = 0; i < cols.length; i++) cols[i] = m.pic.shapes[i][0] | 0;
+      const pz = CBN.drain(CBN.detailRun(rast, cols, m.pic.pal, m.level >= 3 ? 3 : 2, m.seed, { prog: (f, s) => post({ t: 'prog', gen: m.gen, f, s }) }));
+      const t1 = performance.now(), inf = CBN.inflate(pz, Path2D), c = CBN.drawThumb(pz, inf, m.thumb || 256, (w, h) => new OffscreenCanvas(w, h));
+      const blob = await c.convertToBlob({ type: 'image/webp', quality: 0.8 });
+      pz.T.thumb = Math.round((performance.now() - t1) * 10) / 10; pz.T.total = Math.round(performance.now() - t0);
+      const tr = []; for (const k in pz.data) tr.push(pz.data[k].buffer);
+      post({ t: 'done', gen: m.gen, pz, thumb: blob }, tr);
     }
   } catch (err) { post({ t: 'err', gen: m.gen, code: err && err.code || 'decode' }); }
 };

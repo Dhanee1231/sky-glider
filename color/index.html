@@ -168,10 +168,12 @@ html.fz-calm #opBusy,html.fz-calm #opPics .mg{animation:none}
 .opRow{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:nowrap}
 .opRow .rb{width:var(--bb);height:var(--bb)}
 .opRow .tg2{position:relative}
-.dfb{position:relative;flex:1 1 0;min-width:0;max-width:96px;border-radius:16px;border:3px solid #fff;background:linear-gradient(150deg,#ff8fd0,#d6339f);padding:3px 2px 4px;color:#fff;font-weight:900;font-size:11px;line-height:1.05;text-shadow:0 1px 0 rgba(90,0,70,.5);display:flex;flex-direction:column;align-items:center;gap:2px;box-shadow:0 3px 0 rgba(120,0,90,.5)}
-.dfb svg.dv{width:30px;height:30px;display:block}
-.dfb.on{outline:4px solid #ffe27a}
-.dfb .gm{display:flex}.dfb .gm svg{width:12px;height:12px}
+#opDiff{flex:none;width:100%;flex-wrap:wrap;align-items:stretch;align-content:center}
+.dfb{position:relative;flex:1 1 48px;min-width:48px;min-height:48px;max-width:112px;height:auto;border-radius:16px;border:3px solid #fff;background:linear-gradient(150deg,#ff8fd0,#d6339f);padding:4px 3px 5px;color:#fff;font-weight:900;font-size:11px;line-height:1.05;text-shadow:0 1px 0 rgba(90,0,70,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:0 3px 0 rgba(120,0,90,.5);overflow:visible;white-space:normal;text-align:center}
+.dfb svg.dv{width:22px;height:22px;display:block;flex:none}
+.dfb.on{outline:none;border-color:#ffe27a;box-shadow:inset 0 0 0 2px #ffe27a,0 3px 0 rgba(120,0,90,.5)}
+.dfb .gm{display:flex;flex-wrap:wrap;justify-content:center;max-width:100%}.dfb .gm svg{width:11px;height:11px;flex:none}
+.dfb .nm{display:block;max-width:100%;white-space:normal;overflow-wrap:break-word;word-break:break-word;text-align:center}
 .dial{display:flex;align-items:center;gap:6px;justify-content:center;flex:1;min-width:0}
 .dial b{min-width:40px;text-align:center;color:#8a1270;font-size:clamp(18px,4vmin,26px)}
 #palDots{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;max-width:150px}#palDots i{width:14px;height:14px;border-radius:50%;border:2px solid #fff;display:block}
@@ -243,10 +245,10 @@ html.fz-calm #mkGem,html.fz-calm #mkSp svg{animation-duration:6s}
   <div id="opBody"><div id="opPics"><div class="cw"><canvas id="opSrc"></canvas></div><span class="mg" id="opMagic"></span><div class="cw"><canvas id="opPrev"></canvas><i id="opBusy"></i></div></div>
    <div id="opSide"><div id="opMore" hidden>
      <div class="opRow" id="opMode"><button class="rb" data-m="pixel" aria-label="Squares"></button><button class="rb" data-m="shapes" aria-label="Shapes"></button><button class="rb gold" id="opSpark" aria-label="Sparkle colors"></button></div>
-     <div class="opRow" id="opDiff"></div>
      <div class="opRow" id="opPalRow"><button class="rb si opBtn" id="palMinus" aria-label="Fewer colors"></button><div class="dial"><b id="palN"></b><div id="palDots"></div></div><button class="rb si opBtn" id="palPlus" aria-label="More colors"></button></div>
      <div class="opRow" id="opGridRow"><button class="rb si opBtn" id="grMinus" aria-label="Fewer squares"></button><div class="dial"><span id="grIc"></span><b id="grN"></b></div><button class="rb si opBtn" id="grPlus" aria-label="More squares"></button></div>
     </div>
+    <div class="opRow" id="opDiff"></div>
     <div id="opBar"><button class="rb si big" id="opMoreBtn" aria-label="More magic"></button><button class="mk" id="opMake" aria-label="Make"></button></div></div></div>
  </div></section>
  <section id="sc-make" class="screen"><div class="col">
