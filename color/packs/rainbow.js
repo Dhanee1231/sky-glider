@@ -9,6 +9,8 @@
   const RB = [0, 1, 2, 3, 4, 5];
   const sky = [6, rect(0, 0, 2048, 2048)];
   const arch = (cx, cy, R, t, a0, a1) => rbands(cx, cy, R, t, RB, a0 == null ? 180 : a0, a1 == null ? 360 : a1);
+  // opposite-wound circle, so a nonzero fill punches a hole (eye window on the head)
+  const eyeHole = (cx, cy, q) => 'M' + Math.round(cx - q) + ' ' + Math.round(cy) + 'a' + Math.round(q) + ' ' + Math.round(q) + ' 0 1 1 ' + Math.round(2 * q) + ' 0a' + Math.round(q) + ' ' + Math.round(q) + ' 0 1 1 ' + Math.round(-2 * q) + ' 0Z';
 
   // rh1: a wide rainbow resting on three hills, with big flowers along the front slope
   const rh1 = {
@@ -24,30 +26,34 @@
     line: []
   };
 
-  // rh2: side-view unicorn. Horse head (long skull, muzzle, one eye), two ears, horn, mane, four legs.
-  // Index 13 is a dark plum used only for the eye. Rainbow stays behind the body.
+  // rh2: side-view unicorn. Horse head, horn between the ears, one side eye, mane, flowing tail, four cream legs.
+  // Index 13 is a dark plum used only for the eye. The eye window is a hole in the skull so the visible eye stays small.
+  // Rainbow stays behind the body. Legs and tail paint first so the body covers their roots.
   const rh2 = {
     id: 'rh2', name: 'Unicorn with Rainbow', stars: 3, w: 2048, h: 2048, bg: '#bfe6ff',
     pal: ['#ff4b6e', '#ff8a2a', '#ffe14a', '#3ddc6e', '#3aa0ff', '#b56cff', '#bfe6ff', '#fff6ea', '#8ee88a', '#34c46a', '#ffd34d', '#ff5fa2', '#ffc2e2', '#4a2470'],
     shapes: [sky, [10, circ(300, 280, 180)],
-      [7, cloud(760, 210, 720)], [7, cloud(1620, 300, 700)],
+      [7, cloud(760, 210, 720)], [7, cloud(1180, 200, 620)],
       ...arch(1024, 1560, 1040, 84, 188, 352),
       [8, ell(380, 1900, 520, 280)], [9, ell(1024, 2120, 1400, 440)],
       [9, bush(200, 1880, 210)], [8, bush(1880, 1900, 210)],
-      [11, ell(340, 1160, 165, 230, 30)], [5, ell(280, 1320, 150, 185, 16)], [12, ell(430, 1040, 135, 175, 46)],
-      [10, rrect(500, 1380, 165, 470, 50)], [10, rrect(760, 1420, 165, 450, 50)],
-      [10, rrect(1060, 1420, 165, 450, 50)], [10, rrect(1320, 1360, 165, 500, 50)],
+      [12, ell(440, 1200, 210, 165, 18)], [11, ell(250, 1100, 175, 155, 38)], [5, ell(180, 980, 155, 145, 52)], [10, ell(260, 860, 145, 140, 68)],
+      [7, rrect(500, 1280, 165, 570, 50)], [7, rrect(760, 1320, 165, 550, 50)],
+      [7, rrect(1060, 1320, 165, 550, 50)], [7, rrect(1320, 1260, 165, 600, 50)],
       [7, ell(900, 1240, 520, 280)], [12, ell(940, 1350, 310, 155)],
       [7, ell(1280, 1040, 165, 280, 30)],
-      [7, ell(1540, 880, 310, 180, -8)], [7, ell(1780, 980, 180, 120)],
-      [5, ell(1360, 860, 130, 180, 26)], [11, ell(1240, 980, 140, 185, 16)],
-      [5, ell(1140, 1120, 145, 175, 6)], [11, ell(1060, 1260, 150, 165, -8)], [5, ell(1000, 1380, 135, 155, -20)],
-      [12, ell(1420, 660, 105, 190, -18)], [11, ell(1540, 620, 100, 195, 12)],
-      [11, ell(1600, 760, 125, 165, 14)],
-      [10, poly([1440, 750, 1580, 160, 1700, 770])],
-      [13, circ(1620, 850, 130)],
+      [12, ell(1240, 760, 100, 170, -30)], [11, ell(1760, 700, 95, 165, 20)],
+      [11, ell(1460, 610, 120, 140)],
+      [10, poly([1100, 1040, 1800, 1060, 1720, 280])],
+      [11, poly([1274, 827, 1768, 748, 1754, 608, 1385, 690])],
+      [5, poly([1422, 645, 1752, 592, 1726, 342, 1621, 402])],
+      [7, circ(1500, 860, 125)], [13, circ(1560, 900, 125)],
+      [7, ell(1540, 880, 310, 180, -8) + eyeHole(1500, 840, 66)], [7, ell(1780, 980, 180, 120)],
+      [5, ell(1260, 920, 125, 170, 28)], [11, ell(1180, 1040, 135, 175, 14)],
+      [5, ell(1120, 1160, 140, 170, 4)], [11, ell(1060, 1280, 145, 160, -10)], [5, ell(1000, 1380, 135, 155, -20)],
+      [11, ell(582, 1780, 155, 100)], [5, ell(842, 1800, 155, 100)], [1, ell(1142, 1800, 155, 100)], [10, ell(1402, 1790, 155, 100)],
       [11, heart(900, 1220, 170)],
-      spark(160, 150, 210, 2), spark(1920, 150, 210, 11), spark(1760, 480, 200, 10), spark(1080, 130, 200, 4)],
+      spark(160, 150, 210, 2), spark(1920, 140, 210, 11), spark(620, 460, 210, 10), spark(1080, 130, 200, 4)],
     line: ['M1680 1040Q1780 1120 1880 1040']
   };
 
