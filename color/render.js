@@ -14,10 +14,9 @@
   const GLW = P => Math.max(2.5, P.grid.cs * 0.05);   // pixel-mode grid line width (world px)
   const tiles = new Map(), fxPend = new Map(), pendTiles = new Set(), glow = new Set();
   let artFull = true, dr = null, flight = null, ring = null, hatch = null, sprites = null, lastBuild = 0;
-  let fxFull = true, hatchCv = null, hatchCtx = null, hatchKey = '', hatchPatches = null, fxDirtyTiles = null;
   const stats = { builds: 0, applies: 0, maxBuildMs: 0, lastLod: 0, visible: 0 };
   // ---------- particles (pooled, screen space) ----------
-  const NP = 150, pa = { x: new Float32Array(NP), y: new Float32Array(NP), ox: new Float32Array(NP), oy: new Float32Array(NP), vx: new Float32Array(NP), vy: new Float32Array(NP), l: new Float32Array(NP), s: new Float32Array(NP), k: new Uint8Array(NP), on: new Uint8Array(NP), was: new Uint8Array(NP) };
+  const NP = 150, pa = { x: new Float32Array(NP), y: new Float32Array(NP), vx: new Float32Array(NP), vy: new Float32Array(NP), l: new Float32Array(NP), s: new Float32Array(NP), k: new Uint8Array(NP), on: new Uint8Array(NP) };
   let pHead = 0, pLive = 0;
 
   // ---------- puzzle prep ----------
@@ -182,26 +181,17 @@
   }
   function drawArt() {
     const part = !artFull && dr; actx.setTransform(1, 0, 0, 1, 0, 0);
-    let box = null;
-    if (part) {
-      const x = Math.max(0, Math.floor(dr[0])), y = Math.max(0, Math.floor(dr[1]));
-      const x2 = Math.min(art.width, Math.ceil(dr[2])), y2 = Math.min(art.height, Math.ceil(dr[3]));
-      if (x2 <= x || y2 <= y) { artFull = false; dr = null; return; }
-      box = [x, y, x2, y2];
-      actx.save(); actx.beginPath(); actx.rect(x, y, x2 - x, y2 - y); actx.clip();
-      actx.fillStyle = PAPER; actx.fillRect(x, y, x2 - x, y2 - y);
-    } else { actx.fillStyle = PAPER; actx.fillRect(0, 0, art.width, art.height); }
+    if (part) { actx.save(); actx.beginPath(); const x = Math.floor(dr[0]), y = Math.floor(dr[1]); actx.rect(x, y, Math.ceil(dr[2]) - x, Math.ceil(dr[3]) - y); actx.clip(); }
+    actx.fillStyle = PAPER; actx.fillRect(0, 0, art.width, art.height);
     if (!S) { if (part) actx.restore(); artFull = false; dr = null; return; }
     const lod = LODS[curLi], v = viewRect(), sp = tileSpan(lod, v), size = TS * lod * cam.z * dpr; let vis = 0;
     for (let ty = sp[2]; ty <= sp[3]; ty++) for (let tx = sp[0]; tx <= sp[1]; tx++) {
-      const wx = tx * TS * lod, wy = ty * TS * lod, sx = w2sx(wx), sy = w2sy(wy);
-      if (box && (sx + size < box[0] || sx > box[2] || sy + size < box[1] || sy > box[3])) continue;
-      vis++; const t = tiles.get(tkey(curLi, tx, ty));
-      if (t) { t.last = frameNo; blitTile(t, sx, sy, size, 0, 0, TS, TS); continue; }
+      vis++; const t = tiles.get(tkey(curLi, tx, ty)), wx = tx * TS * lod, wy = ty * TS * lod;
+      if (t) { t.last = frameNo; blitTile(t, w2sx(wx), w2sy(wy), size, 0, 0, TS, TS); continue; }
       for (let li = curLi - 1; li >= 0; li--) {   // fall back to a coarser cached tile (always at least LOD 4)
         const L = LODS[li], w = TS * L, ax = Math.floor(wx / w), ay = Math.floor(wy / w), p = tiles.get(tkey(li, ax, ay));
         if (!p) continue; p.last = frameNo; const k = TS * lod / L;
-        blitTile(p, sx, sy, size, (wx - ax * w) / L, (wy - ay * w) / L, k, k); break;
+        blitTile(p, w2sx(wx), w2sy(wy), size, (wx - ax * w) / L, (wy - ay * w) / L, k, k); break;
       }
     }
     stats.visible = vis;
@@ -250,48 +240,27 @@
     if (!sprites) buildSprites(); n = Math.min(n, QS[q].maxP, calm ? 4 : 99); const sx = w2sx(wx) / dpr, sy = w2sy(wy) / dpr;
     for (let j = 0; j < n; j++) {
       const i = pHead; pHead = (pHead + 1) % NP; if (!pa.on[i]) pLive++; const a = Math.random() * 6.283, sp = 60 + Math.random() * 150;
-      pa.on[i] = 1; pa.was[i] = 1; pa.x[i] = pa.ox[i] = sx; pa.y[i] = pa.oy[i] = sy; pa.vx[i] = Math.cos(a) * sp; pa.vy[i] = Math.sin(a) * sp - 70; pa.l[i] = 0.55 + Math.random() * 0.4; pa.s[i] = 10 + Math.random() * 14; pa.k[i] = (Math.random() * 4) | 0;
+      pa.on[i] = 1; pa.x[i] = sx; pa.y[i] = sy; pa.vx[i] = Math.cos(a) * sp; pa.vy[i] = Math.sin(a) * sp - 70; pa.l[i] = 0.55 + Math.random() * 0.4; pa.s[i] = 10 + Math.random() * 14; pa.k[i] = (Math.random() * 4) | 0;
     }
     fxDirty = true;
   }
   function stepParticles(dt) {
     for (let i = 0; i < NP; i++) if (pa.on[i]) { pa.l[i] -= dt; if (pa.l[i] <= 0) { pa.on[i] = 0; pLive--; continue; } pa.x[i] += pa.vx[i] * dt; pa.y[i] += pa.vy[i] * dt; pa.vy[i] += 220 * dt; }
   }
-  const FTS = 256;
-  function markFxScreen(x0, y0, x1, y1) {
-    if (!fx || !(x1 > x0) || !(y1 > y0)) return;
-    const cols = Math.max(1, Math.ceil(fx.width / FTS)), rows = Math.max(1, Math.ceil(fx.height / FTS));
-    if (!fxDirtyTiles) fxDirtyTiles = new Set();
-    const tx0 = Math.max(0, Math.floor(x0 / FTS)), tx1 = Math.min(cols - 1, Math.floor((x1 - 1) / FTS));
-    const ty0 = Math.max(0, Math.floor(y0 / FTS)), ty1 = Math.min(rows - 1, Math.floor((y1 - 1) / FTS));
-    for (let ty = ty0; ty <= ty1; ty++) for (let tx = tx0; tx <= tx1; tx++) fxDirtyTiles.add(ty * cols + tx);
-  }
-  function regionFxBox(i) {
-    const b = S.P.bb[i];
-    const x0 = w2sx(b[0]) / dpr, y0 = w2sy(b[1]) / dpr, x1 = w2sx(b[2]) / dpr, y1 = w2sy(b[3]) / dpr;
-    return [Math.min(x0, x1) - 16, Math.min(y0, y1) - 48, Math.max(x0, x1) + 16, Math.max(y0, y1) + 16];
-  }
-  function paintHatch(c, only) {
-    if (!S || !(S.sel > 0 && S.hl)) return;
-    const P = S.P, v = viewRect(), T = FXD * cam.z;
-    c.setTransform(T, 0, 0, T, (cssW / 2 - cam.x * cam.z) * FXD, (cssH / 2 - cam.y * cam.z) * FXD);
-    c.fillStyle = 'rgba(120,90,150,.26)';
-    if (P.grid) { const G = P.grid, cs = G.cs, x0 = Math.max(0, Math.floor(v[0] / cs)), x1 = Math.min(G.gw - 1, Math.floor(v[2] / cs)), y0 = Math.max(0, Math.floor(v[1] / cs)), y1 = Math.min(G.gh - 1, Math.floor(v[3] / cs)); for (let gy = y0; gy <= y1; gy++) for (let gx = x0; gx <= x1; gx++) { const i = gy * G.gw + gx; if (!S.fc[i] && P.col[i] === S.sel - 1) c.fillRect(gx * cs, gy * cs, cs, cs); } }
-    else for (let i = 0; i < P.n; i++) if (!S.fc[i] && P.col[i] === S.sel - 1 && ov(P.bb[i], v) && (!only || ov(P.bb[i], only))) fillShape(c, i);
-  }
-  function hatchSignature() {
-    if (!S) return '0';
-    return S.sel + ':' + (S.hl ? 1 : 0) + ':' + Math.round(cam.x * 2) + ':' + Math.round(cam.y * 2) + ':' + Math.round(cam.z * 1000) + ':' + fx.width + ':' + fx.height;
-  }
-  function markAllFx() {
-    const cols = Math.max(1, Math.ceil(fx.width / FTS)), rows = Math.max(1, Math.ceil(fx.height / FTS));
-    fxDirtyTiles = new Set(); for (let i = 0; i < cols * rows; i++) fxDirtyTiles.add(i);
-  }
-  function drawDynamics(now) {
+  function drawFx(now) {
+    fctx.setTransform(1, 0, 0, 1, 0, 0); fctx.clearRect(0, 0, fx.width, fx.height);
     if (!S) return; if (!sprites) buildSprites();
     const P = S.P, v = viewRect(), T = FXD * cam.z;
     fctx.setTransform(T, 0, 0, T, (cssW / 2 - cam.x * cam.z) * FXD, (cssH / 2 - cam.y * cam.z) * FXD);
+    // freshly filled regions (their tiles are still catching up) are painted as vectors so a tap feels instant
     for (const i of fxPend.keys()) if (ov(P.bb[i], v)) paintAround(fctx, i, true);
+    // gray hatch on the unfilled spots of the picked number
+    if (S.sel > 0 && S.hl) {
+      fctx.fillStyle = 'rgba(120,90,150,.26)';
+      if (P.grid) { const G = P.grid, cs = G.cs, x0 = Math.max(0, Math.floor(v[0] / cs)), x1 = Math.min(G.gw - 1, Math.floor(v[2] / cs)), y0 = Math.max(0, Math.floor(v[1] / cs)), y1 = Math.min(G.gh - 1, Math.floor(v[3] / cs)); for (let gy = y0; gy <= y1; gy++) for (let gx = x0; gx <= x1; gx++) { const i = gy * G.gw + gx; if (!S.fc[i] && P.col[i] === S.sel - 1) fctx.fillRect(gx * cs, gy * cs, cs, cs); } }
+      else for (let i = 0; i < P.n; i++) if (!S.fc[i] && P.col[i] === S.sel - 1 && ov(P.bb[i], v)) fillShape(fctx, i);
+    }
+    // soft heart glow on the last few spots (and the guided first spot)
     if (glow.size) {
       const a = S.calm ? 0.4 : 0.3 + 0.25 * Math.sin(now / 260);
       for (const i of glow) if (!S.fc[i]) { fctx.fillStyle = 'rgba(255,70,170,' + a.toFixed(3) + ')'; fillShape(fctx, i); }
@@ -299,54 +268,12 @@
     fctx.setTransform(FXD, 0, 0, FXD, 0, 0);
     if (glow.size) { const bob = S.calm ? 0 : Math.sin(now / 200) * 3; for (const i of glow) if (!S.fc[i]) { const L = P.lab[i], x = w2sx(L[0]) / dpr, y = w2sy(L[1]) / dpr - Math.max(26, L[3] * cam.z * 0.8) + bob; fctx.drawImage(sprites[3], x - 12, y - 12, 24, 24); } }
     if (ring) {
-      const age = (now - ring.t0) / 1000, x = w2sx(ring.x) / dpr, y = w2sy(ring.y) / dpr;
-      if (age > 2.2) ring = null; else { for (let j = 0; j < 2; j++) { const ph = (age * 1.2 + j * 0.5) % 1, r = 20 + ph * 70; fctx.strokeStyle = 'rgba(255,80,170,' + (1 - ph).toFixed(2) + ')'; fctx.lineWidth = 6 * (1 - ph) + 2; fctx.beginPath(); fctx.arc(x, y, r, 0, 6.283); fctx.stroke(); } }
+      const age = (now - ring.t0) / 1000; if (age > 2.2) ring = null; else {
+        const x = w2sx(ring.x) / dpr, y = w2sy(ring.y) / dpr; for (let j = 0; j < 2; j++) { const ph = (age * 1.2 + j * 0.5) % 1, r = 20 + ph * 70; fctx.strokeStyle = 'rgba(255,80,170,' + (1 - ph).toFixed(2) + ')'; fctx.lineWidth = 6 * (1 - ph) + 2; fctx.beginPath(); fctx.arc(x, y, r, 0, 6.283); fctx.stroke(); }
+      }
     }
     for (let i = 0; i < NP; i++) if (pa.on[i]) { const s = pa.s[i], a = Math.min(1, pa.l[i] * 2.5); fctx.globalAlpha = a; fctx.drawImage(sprites[pa.k[i]], pa.x[i] - s / 2, pa.y[i] - s / 2, s, s); }
     fctx.globalAlpha = 1;
-  }
-  function drawFx(now) {
-    if (!fx.width || !fx.height) return;
-    const w = fx.width, h = fx.height;
-    if (!hatchCv || hatchCv.width !== w || hatchCv.height !== h) { hatchCv = mk(w, h); hatchCtx = hatchCv.getContext('2d'); hatchKey = ''; fxFull = true; }
-    const key = hatchSignature();
-    if (!S) {
-      if (fxFull || hatchKey) { fctx.setTransform(1, 0, 0, 1, 0, 0); fctx.clearRect(0, 0, w, h); hatchKey = ''; fxFull = false; hatchPatches = null; fxDirtyTiles = null; }
-      return;
-    }
-    if (fxFull || key !== hatchKey) {
-      hatchCtx.setTransform(1, 0, 0, 1, 0, 0); hatchCtx.clearRect(0, 0, w, h); paintHatch(hatchCtx);
-      hatchKey = key; hatchPatches = null; fxFull = false; markAllFx();
-    } else if (hatchPatches && hatchPatches.length) {
-      for (const i of hatchPatches) {
-        const b = regionFxBox(i), wb = S.P.bb[i], only = [wb[0] - 8, wb[1] - 8, wb[2] + 8, wb[3] + 8];
-        hatchCtx.save(); hatchCtx.beginPath(); hatchCtx.rect(b[0], b[1], b[2] - b[0], b[3] - b[1]); hatchCtx.clip();
-        hatchCtx.setTransform(1, 0, 0, 1, 0, 0); hatchCtx.clearRect(b[0], b[1], b[2] - b[0], b[3] - b[1]); paintHatch(hatchCtx, only); hatchCtx.restore();
-        markFxScreen(b[0], b[1], b[2], b[3]);
-      }
-      hatchPatches = null;
-    }
-    if (glow.size && S) for (const i of glow) if (!S.fc[i]) { const b = regionFxBox(i); markFxScreen(b[0], b[1], b[2], b[3]); }
-    if (fxPend.size && S) for (const i of fxPend.keys()) { const b = regionFxBox(i); markFxScreen(b[0], b[1], b[2], b[3]); }
-    if (ring) { const x = w2sx(ring.x) / dpr, y = w2sy(ring.y) / dpr; markFxScreen(x - 100, y - 100, x + 100, y + 100); }
-    for (let i = 0; i < NP; i++) if (pa.on[i] || pa.was[i]) {
-      const s = (pa.s[i] || 16) + 4, x0 = Math.min(pa.x[i], pa.ox[i]) - s, y0 = Math.min(pa.y[i], pa.oy[i]) - s, x1 = Math.max(pa.x[i], pa.ox[i]) + s, y1 = Math.max(pa.y[i], pa.oy[i]) + s;
-      markFxScreen(x0, y0, x1, y1);
-    }
-    if (!fxDirtyTiles || !fxDirtyTiles.size) { for (let i = 0; i < NP; i++) { pa.ox[i] = pa.x[i]; pa.oy[i] = pa.y[i]; pa.was[i] = pa.on[i]; } return; }
-    const cols = Math.max(1, Math.ceil(w / FTS));
-    fctx.setTransform(1, 0, 0, 1, 0, 0);
-    fctx.save(); fctx.beginPath();
-    for (const id of fxDirtyTiles) { const tx = id % cols, ty = (id / cols) | 0, x = tx * FTS, y = ty * FTS; fctx.rect(x, y, Math.min(FTS, w - x), Math.min(FTS, h - y)); }
-    fctx.clip();
-    for (const id of fxDirtyTiles) {
-      const tx = id % cols, ty = (id / cols) | 0, x = tx * FTS, y = ty * FTS, tw = Math.min(FTS, w - x), th = Math.min(FTS, h - y);
-      fctx.clearRect(x, y, tw, th); if (hatchCv) fctx.drawImage(hatchCv, x, y, tw, th, x, y, tw, th);
-    }
-    drawDynamics(now);
-    fctx.restore();
-    fxDirtyTiles = null;
-    for (let i = 0; i < NP; i++) { pa.ox[i] = pa.x[i]; pa.oy[i] = pa.y[i]; pa.was[i] = pa.on[i]; }
   }
 
   // ---------- camera ----------
@@ -357,7 +284,7 @@
     }
     cam.z = Math.max(fit * 0.8, Math.min(fit * 12, cam.z));
   }
-  function moved() { lastCam = performance.now(); artDirty = fxDirty = artFull = fxFull = true; }
+  function moved() { lastCam = performance.now(); artDirty = fxDirty = artFull = true; }
   function layout(w, h, ratio) {
     cssW = Math.max(1, w); cssH = Math.max(1, h); dpr = Math.min(ratio || 1, QS[q].dpr);
     const rel = fit > 0 && cam.z > 0 ? cam.z / fit : 1;
@@ -394,7 +321,7 @@
   function setFill(i, c) {
     S.fc[i] = c; const b = S.P.bb[i];
     for (const t of tiles.values()) if (ov(b, tileRect(t))) { if (t.pend.indexOf(i) < 0) { t.pend.push(i); fxPend.set(i, (fxPend.get(i) || 0) + 1); } pendTiles.add(t); }
-    markW(b); if (!hatchPatches) hatchPatches = []; hatchPatches.push(i); fxDirty = true;
+    markW(b); fxDirty = true;
   }
   function rebuildAll() { for (const t of tiles.values()) if (t.li === 0) renderTile(t); else dropTile(t); fxPend.clear(); pendTiles.clear(); artDirty = fxDirty = artFull = true; }
   // returns true while it needs another frame
