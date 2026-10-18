@@ -252,7 +252,7 @@
 
   // merge small regions into the neighbour with the longest border (ties: closest colour); same-colour neighbours fuse. Returns compact reg (ids 0..m-1), col per region.
   // minOf (optional, length n+1, 1-based) is a per-region area floor. Without it every region uses minArea, same as before.
-  function* mergeRegions(reg, n, w, h, ids, tgt, minArea, maxReg, minOf) {
+  function* mergeRegions(reg, n, w, h, ids, tgt, minArea, maxReg, minOf, skinOf) {
     const need = i => minOf ? minOf[i] : minArea;
     const area = new Int32Array(n + 1), col = new Uint8Array(n + 1), par = new Int32Array(n + 1), adj = new Array(n + 1);
     for (let i = 1; i <= n; i++) { par[i] = i; adj[i] = new Map(); }
@@ -271,6 +271,21 @@
     const absorb = (a, b) => {   // a dies into b; keep the count of regions still under their own floor
       const aU = area[a] < need(a), bU = area[b] < need(b); fuse(a, b); if (aU) under--; if (bU && area[b] >= need(b)) under--;
     };
+    if (skinOf) {   // adjacent skin whose OKLab dE is under about 6 becomes one region, whatever its size
+      const lim = 0.06; let guard = 0, changed = true;
+      while (changed && guard++ < 8) {
+        changed = false;
+        for (let a = 1; a <= n; a++) {
+          if (dead[a] || !skinOf[a] || !adj[a]) continue;
+          for (const c of [...adj[a].keys()]) {
+            if (!skinOf[c] || dead[c]) continue;
+            const ia = col[a] * 3, ib = col[c] * 3;
+            if (Math.hypot(tgt[ia] - tgt[ib], tgt[ia + 1] - tgt[ib + 1], tgt[ia + 2] - tgt[ib + 2]) < lim) { absorb(a, c); changed = true; break; }
+          }
+        }
+        yield;
+      }
+    }
     let cycles = 0;
     while (heap.length) {
       const top = hpop(), a = top % K, ar = Math.floor(top / K); if (dead[a] || area[a] !== ar) continue;
@@ -526,7 +541,8 @@
     const m = td.m, N = w * h, tgt = td.tgt, skin = [];
     for (let k = 0; k < m; k++) if (skinLab(tgt[k * 3], tgt[k * 3 + 1], tgt[k * 3 + 2])) skin.push(k);
     const dead = new Uint8Array(m); let live = skin.length;
-    while (live > 4) {
+    const near = 0.06 * 0.06;   // OKLab dE about 6: keep a third tone only when it is actually different
+    while (live > 2) {
       let bi = -1, bj = -1, bd = 1e9;
       for (let a = 0; a < skin.length; a++) {
         const i = skin[a]; if (dead[i]) continue;
@@ -536,7 +552,9 @@
           if (d < bd) { bd = d; bi = i; bj = j; }
         }
       }
-      if (bi < 0) break; dead[bj] = 1; live--; yield;
+      if (bi < 0) break;
+      if (live <= 3 && bd >= near) break;
+      dead[bj] = 1; live--; yield;
     }
     const liveSkin = []; for (const k of skin) if (!dead[k]) liveSkin.push(k);
     const map = new Uint8Array(m); for (let k = 0; k < m; k++) map[k] = k;
@@ -549,7 +567,7 @@
     const out = new Uint8Array(N);
     for (let p = 0; p < N; p++) {
       const orig = ids[p];
-      if (protect && protect[p]) { out[p] = orig; continue; }
+      if (protect && protect[p]) { out[p] = dead[orig] ? map[orig] : orig; continue; }
       let c = map[orig];
       if (mask[p] && liveSkin.length && !skinSet[c]) {
         let bd = 1e9, bk = c;
@@ -560,6 +578,117 @@
       if ((p & 65535) === 65535) yield;
     }
     return out;
+  }
+  // Wide blur of skin lightness. A slow ramp (forehead to chin) is flat after
+  // the blur, so it no longer quantizes into horizontal stripes. Cheek and
+  // nose shading is smaller than the blur and stays in the residual.
+  function* blurSkinL(src, mask, w, h, R) {
+    const tmp = new Float32Array(w * h), out = new Float32Array(w * h), ok = new Uint8Array(w * h);
+    const preS = new Float64Array(Math.max(w, h) + 1), preC = new Float64Array(Math.max(w, h) + 1);
+    const need = Math.max(6, Math.round(R * 0.7));
+    for (let y = 0; y < h; y++) {
+      const row = y * w; preS[0] = 0; preC[0] = 0;
+      for (let x = 0; x < w; x++) { const p = row + x, m = mask[p] ? 1 : 0; preS[x + 1] = preS[x] + (m ? src[p] : 0); preC[x + 1] = preC[x] + m; }
+      for (let x = 0; x < w; x++) {
+        const p = row + x; if (!mask[p]) continue;
+        const a = Math.max(0, x - R), b = Math.min(w - 1, x + R), c = preC[b + 1] - preC[a];
+        tmp[p] = c >= need ? (preS[b + 1] - preS[a]) / c : src[p];
+      }
+      if ((y & 7) === 7) yield;
+    }
+    for (let x = 0; x < w; x++) {
+      preS[0] = 0; preC[0] = 0;
+      for (let y = 0; y < h; y++) { const p = y * w + x, m = mask[p] ? 1 : 0; preS[y + 1] = preS[y] + (m ? tmp[p] : 0); preC[y + 1] = preC[y] + m; }
+      for (let y = 0; y < h; y++) {
+        const p = y * w + x; if (!mask[p]) continue;
+        const a = Math.max(0, y - R), b = Math.min(h - 1, y + R), c = preC[b + 1] - preC[a];
+        if (c >= need) { out[p] = (preS[b + 1] - preS[a]) / c; ok[p] = 1; } else out[p] = src[p];
+      }
+      if ((x & 15) === 15) yield;
+    }
+    return { blur: out, ok };
+  }
+  // Reassign unprotected skin by the residual of that blur. A threshold on the
+  // residual is a contour of the cheek or the nose, not a line of constant y.
+  function* contourSkin(rgba, ids, w, h, mask, protect, td) {
+    const N = w * h, tgt = td.tgt, m = td.m, used = new Uint8Array(m);
+    let x0 = w, y0 = h, x1 = 0, y1 = 0;
+    for (let p = 0; p < N; p++) {
+      if (!mask[p]) continue;
+      const x = p % w, y = (p / w) | 0;
+      if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+      if (!(protect && protect[p])) used[ids[p]] = 1;
+    }
+    const skin = [];
+    for (let k = 0; k < m; k++) if (used[k] && skinLab(tgt[k * 3], tgt[k * 3 + 1], tgt[k * 3 + 2])) skin.push(k);
+    if (skin.length < 2) return ids;
+    skin.sort((a, b) => tgt[a * 3] - tgt[b * 3] || a - b);
+    const face = Math.max(1, Math.min(x1 - x0, y1 - y0));
+    const R = Math.max(10, Math.min(64, Math.round(face * 0.16)));
+    const L = new Float32Array(N), lab = new Float32Array(3);
+    for (let p = 0; p < N; p++) {
+      if (!mask[p]) continue;
+      const o = p * 4; toLab(rgba[o], rgba[o + 1], rgba[o + 2], lab, 0); L[p] = lab[0];
+      if ((p & 16383) === 16383) yield;
+    }
+    const blurred = yield* blurSkinL(L, mask, w, h, R), blur = blurred.blur, ok = blurred.ok;
+    const SH = 0.03;
+    let dark = 0, lite = 0, nOk = 0;
+    for (let p = 0; p < N; p++) {
+      if (!ok[p] || (protect && protect[p])) continue;
+      const r = L[p] - blur[p]; nOk++;
+      if (r < -SH) dark++; else if (r > SH) lite++;
+    }
+    let tones = 1;
+    if (nOk && dark > nOk * 0.025 && lite > nOk * 0.025) tones = 3;
+    else if (nOk && (dark > nOk * 0.02 || lite > nOk * 0.02)) tones = 2;
+    tones = Math.min(tones, skin.length);
+    const chosen = tones <= 1 ? [skin[(skin.length - 1) >> 1]] : tones === 2 ? [skin[0], skin[skin.length - 1]] : [skin[0], skin[(skin.length / 2) | 0], skin[skin.length - 1]];
+    const preferDark = dark >= lite, out = new Uint8Array(ids);
+    for (let p = 0; p < N; p++) {
+      if (!mask[p] || (protect && protect[p]) || tones < 2) continue;
+      if (!ok[p]) { out[p] = chosen[tones === 3 ? 1 : (preferDark ? 1 : 0)]; continue; }
+      const r = L[p] - blur[p];
+      if (tones === 2) out[p] = chosen[(preferDark ? r < -SH : r > SH) ? (preferDark ? 0 : 1) : (preferDark ? 1 : 0)];
+      else out[p] = chosen[r < -SH ? 0 : r > SH ? 2 : 1];
+      if ((p & 65535) === 65535) yield;
+    }
+    return out;
+  }
+  // 3x3 median of skin-tone rank, inside the mask only. Jagged tone edges
+  // close up; eyes, brows, lips and everything outside the mask stay put.
+  function* skinMedian(ids, w, h, mask, protect, td) {
+    const tgt = td.tgt, m = td.m, used = new Uint8Array(m);
+    for (let p = 0; p < ids.length; p++) if (mask[p]) used[ids[p]] = 1;
+    const chosen = [];
+    for (let k = 0; k < m; k++) if (used[k] && skinLab(tgt[k * 3], tgt[k * 3 + 1], tgt[k * 3 + 2])) chosen.push(k);
+    chosen.sort((a, b) => tgt[a * 3] - tgt[b * 3] || a - b);
+    if (chosen.length < 2) return ids;
+    const rank = new Int16Array(256).fill(-1);
+    for (let i = 0; i < chosen.length; i++) rank[chosen[i]] = i;
+    let src = ids, dst = new Uint8Array(ids.length); const win = new Uint8Array(9);
+    for (let pass = 0; pass < 2; pass++) {
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const p = y * w + x;
+          if (!mask[p] || (protect && protect[p])) { dst[p] = src[p]; continue; }
+          let n = 0;
+          for (let dy = -1; dy <= 1; dy++) {
+            const yy = y + dy; if (yy < 0 || yy >= h) continue;
+            for (let dx = -1; dx <= 1; dx++) {
+              const xx = x + dx; if (xx < 0 || xx >= w) continue;
+              const r = rank[src[yy * w + xx]]; if (r >= 0 && mask[yy * w + xx]) win[n++] = r;
+            }
+          }
+          if (n < 3) { dst[p] = src[p]; continue; }
+          for (let i = 1; i < n; i++) { const v = win[i]; let j = i; while (j > 0 && win[j - 1] > v) { win[j] = win[j - 1]; j--; } win[j] = v; }
+          dst[p] = chosen[win[n >> 1]];
+        }
+        if ((y & 3) === 3) yield;
+      }
+      const t = src; src = dst; dst = (t === ids) ? new Uint8Array(ids.length) : t;
+    }
+    return src;
   }
   function regionMins(reg, n, w, h, mask, edge, baseMin, skinMin, featureMin) {
     const minOf = new Uint32Array(n + 1), area = new Int32Array(n + 1), sk = new Int32Array(n + 1), es = new Float64Array(n + 1), N = w * h;
@@ -751,19 +880,30 @@
     ctx.begin('kmeans', 0.2); const sm = yield* sampleLab(rgba, N, rnd); ctx.alloc('sample', sm.out.length * 4);
     const km = yield* kmeans(sm.out, sm.S, cfg.pal, rnd), td = tidy(km.C, km.cnt, km.k, cfg); ctx.free('sample');
     ctx.begin('map', 0.32); let ids = yield* mapAll(rgba, N, td.tgt, td.m); ctx.alloc('ids', N);
-    if (mask) { ctx.begin('skin', 0.36); ids = yield* limitSkin(ids, w, h, mask, protect, td); }
+    if (mask) { ctx.begin('skin', 0.36); ids = yield* limitSkin(ids, w, h, mask, protect, td); ids = yield* contourSkin(rgba, ids, w, h, mask, protect, td); }
     rgba = null; ctx.free('rgba');
     ctx.begin('mode', 0.4); ids = yield* modeFilter(ids, w, h, 2, protect);
+    if (mask) ids = yield* skinMedian(ids, w, h, mask, protect, td);
     ctx.begin('regions', 0.5); let lab = null, reg = null, nn = 0, extra = 0;
     for (;;) {
       lab = yield* labelRegions(ids, w, h); if (lab) break;
       ids = yield* modeFilter(ids, w, h, 2, protect); if (++extra > 3) throw E('busy');
     }
     reg = lab.reg; nn = lab.n; ctx.alloc('reg', reg.length * 2);
-    const tapF = [0, 0, 0, 0.00020, 0.00016, 0.00014, 0.00012][cfg.diff | 0] || 0;
-    const baseMin = Math.max(cfg.minArea, Math.round(tapF * N)), skinMin = Math.round(baseMin * 2.5), featureMin = Math.max(16, Math.round(baseMin * 0.34));
+    const diff = cfg.diff | 0, tapF = [0, 0, 0, 0.00020, 0.00016, 0.00014, 0.00012][diff] || 0;
+    // Levels 1-4 keep the old floor (preset minArea, or a fraction of this picture).
+    // Levels 5-6 stay on the preset minArea. The old fraction times the level-6
+    // work image (1280) raised that floor above level 5, so a harder level
+    // came out with fewer regions.
+    const baseMin = diff >= 5 ? cfg.minArea : Math.max(cfg.minArea, Math.round(tapF * N)), skinMin = Math.round(baseMin * 2.5), featureMin = Math.max(16, Math.round(baseMin * 0.34));
     const minOf = mask ? regionMins(reg, nn, w, h, mask, edge, baseMin, skinMin, featureMin) : null;
-    const mg = yield* mergeRegions(reg, nn, w, h, ids, td.tgt, baseMin, cfg.maxReg, minOf); ids = null; ctx.free('ids'); edge = null; protect = null;
+    let skinOf = null;
+    if (mask) {
+      skinOf = new Uint8Array(nn + 1); const area = new Int32Array(nn + 1), sk = new Int32Array(nn + 1), seen = new Uint8Array(nn + 1), colr = new Uint8Array(nn + 1);
+      for (let p = 0; p < N; p++) { const r = reg[p]; area[r]++; if (mask[p]) sk[r]++; if (!seen[r]) { seen[r] = 1; colr[r] = ids[p]; } }
+      for (let r = 1; r <= nn; r++) if (area[r] && sk[r] * 2 >= area[r] && skinLab(td.tgt[colr[r] * 3], td.tgt[colr[r] * 3 + 1], td.tgt[colr[r] * 3 + 2])) skinOf[r] = 1;
+    }
+    const mg = yield* mergeRegions(reg, nn, w, h, ids, td.tgt, baseMin, cfg.maxReg, minOf, skinOf); ids = null; ctx.free('ids'); edge = null; protect = null;
     // drop unused palette colours, renumber
     const used = new Uint8Array(td.m); for (const c of mg.col) used[c] = 1; const remap = new Int16Array(td.m), pal = []; let q = 0;
     for (let i = 0; i < td.m; i++) if (used[i]) { remap[i] = q++; pal.push(td.pal[i]); }
