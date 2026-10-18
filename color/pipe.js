@@ -8,7 +8,7 @@
   const canWorker = () => typeof Worker !== 'undefined' && typeof OffscreenCanvas !== 'undefined' && !H.forceMain && !/[?&]nw=1/.test(location.search);
   const cancelErr = () => Object.assign(new Error('cancel'), { code: 'cancel' });
   let gen = 0, wk = null, cur = null;
-  const H = { forceMain: false, last: null, WORK: 1024, CAP: 180 * 1024, stat: { maxSlice: 0, slices: 0, maxBand: 0 } };
+  const H = { forceMain: false, last: null, WORK: 1280, CAP: 180 * 1024, stat: { maxSlice: 0, slices: 0, maxBand: 0 } };
 
   function cancel() { gen++; if (wk) { try { wk.terminate(); } catch (e) { } wk = null; } if (cur) { const c = cur; cur = null; c.rej(cancelErr()); } }
   function wjob(msg, tr, onProg) {
@@ -32,7 +32,7 @@
     }
   }
 
-  // ---------- decode: File -> {rgba,w,h} at <= WORK 1024 (the original is never kept) ----------
+  // ---------- decode: File -> {rgba,w,h} at <= WORK 1280 (the original is never kept; 1280 covers Master artist) ----------
   H.decode = async function (file) {
     const t0 = performance.now(); let out; H.stat.decStart = t0;
     if (canWorker()) {

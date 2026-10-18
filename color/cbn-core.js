@@ -643,7 +643,7 @@
     }
     for (let s = 0; s < shapesN; s++) {
       if (splits[s] <= 1) continue;
-      const thresh = Math.max(28, Math.round(area[s] * 0.05)); let guard = 0, again = true;
+      const thresh = Math.max(18, Math.round(area[s] * 0.025)); let guard = 0, again = true;
       while (again && guard++ < 8) {
         again = false;
         for (let c = 0; c < splits[s]; c++) {
@@ -674,13 +674,19 @@
     const target = Math.max(shapesN * lo, Math.min(shapesN * hi, Math.round(shapesN * mul)));
     let extra = Math.max(0, target - shapesN);
     const splits = new Uint8Array(shapesN).fill(1), order = [];
-    for (let i = 0; i < shapesN; i++) if (area[i] >= N * 0.005) order.push(i);
+    const cut = level >= 3 ? 0.002 : 0.003;
+    for (let i = 0; i < shapesN; i++) if (area[i] >= N * cut) order.push(i);
+    if (order.length < 4) { order.length = 0; for (let i = 0; i < shapesN; i++) if (area[i] >= Math.max(48, N * 0.0008)) order.push(i); }
     order.sort((a, b) => area[b] - area[a] || a - b);
-    const maxK = level >= 3 ? 8 : 4; let guard = 0;
-    while (extra > 0 && guard++ < shapesN * 12) {
+    let maxK = level >= 3 ? 8 : 4;
+    const maxCap = level >= 3 ? 16 : 6;
+    let guard = 0;
+    while (extra > 0 && guard++ < shapesN * 24) {
       let moved = false;
       for (const i of order) { if (splits[i] >= maxK) continue; splits[i]++; extra--; moved = true; if (!extra) break; }
-      if (!moved) break;
+      if (moved) continue;
+      if (maxK < maxCap && order.length) { maxK++; continue; }
+      break;
     }
     const KINDS = ['facets', 'stripes', 'petals', 'scales', 'voronoi'], cell = new Uint8Array(N);
     for (let s = 0; s < shapesN; s++) {

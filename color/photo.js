@@ -1,5 +1,5 @@
 // Color Magic M2: My Photo flow (file picker only), Options, Making, Error card, Squares for pack pictures, photo puzzle storage + gated storage page.
-// The picked file is decoded once to a <=1024 px pixel buffer (worker, or main-thread slices); the original is never kept, named or stored (S4).
+// The picked file is decoded once to a <=1280 px pixel buffer (worker, or main-thread slices); the original is never kept, named or stored (S4).
 (function () {
   'use strict';
   const CA = window.CMApp, API = CA.API, HOOK = CA.HOOK, C = window.CBN, H = window.CBNHost;
