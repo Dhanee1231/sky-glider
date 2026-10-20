@@ -28,9 +28,9 @@ let HERO=null,MK=null;   // the main-scene hero kart + the main kit (set by buil
 export const PAINTS=[{n:'Pink',hex:0xe8287a},{n:'Red',hex:0xe8204a},{n:'Orange',hex:0xff7a1a},{n:'Gold',hex:0xe8b020},{n:'Lime',hex:0x7aff3a},{n:'Teal',hex:0x20c0a0},{n:'Sky',hex:0x35c8ff},{n:'Blue',hex:0x2a5bff},{n:'Purple',hex:0x8a3aff},{n:'Silver',hex:0xc8d0e0}];
 export const FINISHES=[{n:'Gloss',metal:.55,rough:.38,coat:1,env:1.5,glow:0},{n:'Metallic',metal:1,rough:.16,coat:.7,env:2.3,glow:0},{n:'Neon glow',metal:.12,rough:.45,coat:.6,env:1,glow:.9}];
 export const WHEELS=[{n:'Chrome',col:0xd8d8e4,metal:1,rough:.15,glow:0,spokes:5},{n:'Gold',col:0xffc83a,metal:1,rough:.22,glow:0,spokes:5},{n:'Pink glow',col:0x3a1030,metal:.4,rough:.4,glow:0xff3fd8,spokes:8},{n:'Cyan glow',col:0x0a2a34,metal:.4,rough:.4,glow:0x35f2ff,spokes:6}];
-export const BODIES=['Classic','Racer','Buggy','Rocket'],TRAILS=['None','Sparkles','Hearts','Rainbow','Flames'],DECALS=['None','Star','Heart','Bolt','Stripes'];
+export const BODIES=['Classic','Racer','Buggy','Rocket','Candy Cruiser','Heart Racer','Star Comet','Dragon Jet'],TRAILS=['None','Sparkles','Hearts','Rainbow','Flames'],DECALS=['None','Star','Heart','Bolt','Stripes'];
 const lum=h=>{const c=new THREE.Color(h);return .2126*c.r+.7152*c.g+.0722*c.b;};
-const normCustom=c=>{const o={body:0,paint:0,finish:0,wheels:0,trail:0,decal:0,emblem:0,emblemColor:0},lim={body:BODIES.length,paint:PAINTS.length,finish:FINISHES.length,wheels:WHEELS.length,trail:TRAILS.length,decal:DECALS.length,emblem:9,emblemColor:8};
+const normCustom=c=>{const o={body:0,paint:0,finish:0,wheels:0,trail:0,decal:0,emblem:0,emblemColor:0,racer:0},lim={body:BODIES.length,paint:PAINTS.length,finish:FINISHES.length,wheels:WHEELS.length,trail:TRAILS.length,decal:DECALS.length,emblem:9,emblemColor:8,racer:11};
   for(const k in o){const n=Math.round(+(c&&c[k]));o[k]=Number.isFinite(n)&&n>=0&&n<lim[k]?n:0;}return o;};
 // extra bodywork per style (paint parts, so no extra draw calls). The camera sees the kart from behind: the rear reads most.
 function bodyExtras(add,style,seg,s2){const RB=kitRB||K.RoundedBoxGeometry;
@@ -45,7 +45,39 @@ function bodyExtras(add,style,seg,s2){const RB=kitRB||K.RoundedBoxGeometry;
   else if(style===3){   // Rocket: dorsal fin, twin tail fins, nose cone
     add('paint',new RB(.06,.5,.55,s2,.025),0,.78,.78,.2);
     for(const s of[-1,1])add('paint',new RB(.05,.3,.4,s2,.02),s*.5,.42,.98,0,0,s*.35);
-    add('paint',new THREE.ConeGeometry(.16,.5,10).rotateX(-Math.PI/2),0,.2,-1.38);add('lights',new THREE.SphereGeometry(.05,8,6),0,.2,-1.66,0,0,0,new THREE.Color(0xfff2a0).multiplyScalar(3));}}
+    add('paint',new THREE.ConeGeometry(.16,.5,10).rotateX(-Math.PI/2),0,.2,-1.38);add('lights',new THREE.SphereGeometry(.05,8,6),0,.2,-1.66,0,0,0,new THREE.Color(0xfff2a0).multiplyScalar(3));}
+  else if(style===4){   // Candy Cruiser: white candy stripes, gumdrop sprinkles, big lollipop on the back
+    const wh=new THREE.Color(0xfff4fb);
+    for(let i=0;i<4;i++)add('paint',new RB(1.06,.012,.08,1,.004),0,.248,-.76-i*.12,0,0,0,wh);
+    for(const x of[-.53,.53])for(let i=0;i<4;i++)add('paint',new RB(.205,.012,.06,1,.004),x,.285,-.16+i*.17,0,0,0,wh);
+    [[-.25,-1.0,0xffe14d],[.1,-.9,0x35c8ff],[.3,-1.08,0x5af08a],[-.05,-1.15,0xb07aff]].forEach(([x,z,c])=>add('paint',new THREE.SphereGeometry(.04,8,6),x,.27,z,0,0,0,new THREE.Color(c)));
+    add('chrome',new THREE.CylinderGeometry(.016,.016,.56,6),.42,.78,.96);
+    add('paint',new THREE.CylinderGeometry(.2,.2,.05,18).rotateX(Math.PI/2),.42,1.12,.96,0,0,0,new THREE.Color(0xff5fb0));
+    add('paint',new THREE.TorusGeometry(.12,.025,5,16),.42,1.12,1.0,0,0,0,wh);add('paint',new THREE.SphereGeometry(.04,8,6),.42,1.12,1.02,0,0,0,wh);}
+  else if(style===5){   // Heart Racer: a big heart wing at the back, a small white heart on the nose
+    add('paint',heartGeo(.27,.06,seg),0,.9,1.08,0,0,0);
+    for(const x of[-.12,.12])add('dark',new THREE.BoxGeometry(.04,.34,.06),x,.55,1.02);
+    add('paint',heartGeo(.17,.025,1),0,.256,-.95,-Math.PI/2,0,0,new THREE.Color(0xfff4fb));
+    for(const s of[-1,1])add('paint',heartGeo(.1,.03,1),s*.54,.31,.0,-Math.PI/2,0,0,new THREE.Color(0xfff4fb));
+    add('lights',heartGeo(.19,.01,1),0,.91,1.15,0,0,0,new THREE.Color(0xff9ad0).multiplyScalar(1.6));}
+  else if(style===6){   // Star Comet: gold star wing + swept side fins + a spark tail
+    add('paint',starGeo(.3,.06),0,.92,1.08,0,0,0,new THREE.Color(0xffd23a));
+    for(const x of[-.1,.1])add('dark',new THREE.BoxGeometry(.04,.34,.06),x,.55,1.02);
+    for(const s of[-1,1]){add('paint',new RB(.05,.12,.8,s2,.02),s*.62,.3,.5,0,s*.28,0);add('paint',new RB(.05,.1,.5,s2,.02),s*.5,.28,-.9,0,-s*.3,0);}
+    add('paint',new THREE.ConeGeometry(.14,.4,8).rotateX(-Math.PI/2),0,.2,-1.3);
+    [[0,.32,1.28,.07],[.07,.36,1.46,.055],[-.06,.4,1.62,.04]].forEach(([x,y,z,r])=>add('lights',new THREE.SphereGeometry(r,8,6),x,y,z,0,0,0,new THREE.Color(0xffe97a).multiplyScalar(3)));}
+  else if(style===7){   // Dragon Jet: wings, a spiky spine, horned snout, flame exhausts
+    const org=new THREE.Color(0xff8a2a);
+    for(const s of[-1,1]){const w=new THREE.ConeGeometry(.2,.7,3);w.scale(1,1,.2);add('paint',w,s*.5,.5,.85,.25,0,-s*.8,org);
+     add('paint',new THREE.ConeGeometry(.04,.2,6),s*.14,.28,-1.5,-1.0,0,-s*.3,new THREE.Color(0xffe9a0));
+     add('lights',new THREE.ConeGeometry(.07,.28,8).rotateX(Math.PI/2),s*.3,.2,1.3,0,0,0,new THREE.Color(0xff7a1a).multiplyScalar(3));}
+    for(let i=0;i<5;i++)add('paint',new THREE.ConeGeometry(.06-i*.006,.2,6),0,.62-i*.015,-.1+i*.22,0,0,0,org);
+    add('paint',new RB(.5,.1,.5,seg,.04),0,.24,-1.12,.1);add('paint',new THREE.ConeGeometry(.08,.2,6).rotateX(-Math.PI/2),0,.2,-1.5);
+    add('paint',new THREE.ConeGeometry(.12,.45,4),0,.5,.95,-.35,0,0,org);}}
+function heartGeo(sz,depth,seg){const sh=new THREE.Shape();sh.moveTo(0,-1);sh.bezierCurveTo(-1.25,-.1,-.85,.95,0,.4);sh.bezierCurveTo(.85,.95,1.25,-.1,0,-1);
+  const g=new THREE.ExtrudeGeometry(sh,{depth:depth/sz,bevelEnabled:seg>1,bevelThickness:.12,bevelSize:.08,bevelSegments:1,curveSegments:seg>1?10:6});g.translate(0,0,-depth/sz/2);g.scale(sz,sz,sz);return g;}
+function starGeo(sz,depth){const sh=new THREE.Shape();for(let i=0;i<10;i++){const a=i/10*Math.PI*2+Math.PI/2,r=i%2?.45:1;(i?sh.lineTo:sh.moveTo).call(sh,Math.cos(a)*r,Math.sin(a)*r);}sh.closePath();
+  const g=new THREE.ExtrudeGeometry(sh,{depth:depth/sz,bevelEnabled:false});g.translate(0,0,-depth/sz/2);g.scale(sz,sz,sz);return g;}
 // flat decals (star/heart/bolt/stripes), drawn on the nose plate and the rear wing top so they read from behind
 function shape(kind){const sh=new THREE.Shape();
   if(kind===1){for(let i=0;i<10;i++){const a=i/10*Math.PI*2-Math.PI/2,r=i%2?.45:1;(i?sh.lineTo:sh.moveTo).call(sh,Math.cos(a)*r,Math.sin(a)*r);}sh.closePath();}
@@ -81,7 +113,7 @@ export function kart(kit,paint,accent,driverFn,custom){K=kit;kitRB=kit.RoundedBo
   const meshes=[];
   function restyle(c){c=normCustom(c);const pc=PAINTS[c.paint].hex,fin=FINISHES[c.finish],wh=WHEELS[c.wheels];
     for(const m of meshes){body.remove(m);m.geometry.dispose();}meshes.length=0;
-    const parts=kartParts(kit,accent,driverFn,false,{body:c.body,spokes:wh.spokes,decal:c.decal,decalCol:c.decal?decalCol(pc):null,emblem:emblemName(c.emblem),emblemCol:new THREE.Color(NEON[c.emblemColor]).multiplyScalar(2.2)});
+    const parts=kartParts(kit,accent,RACER_DRV[c.racer]||driverFn,false,{body:c.body,spokes:wh.spokes,decal:c.decal,decalCol:c.decal?decalCol(pc):null,emblem:emblemName(c.emblem),emblemCol:new THREE.Color(NEON[c.emblemColor]).multiplyScalar(2.2)});
     for(const key in parts){let gs=parts[key];if(key==='paint'){const col=new THREE.Color(pc);gs=gs.map(g=>g.attributes.color?g:kit.paintCol(g,col));}
       const m=new THREE.Mesh(merge(gs),mats[key]);if(!['paint','lights'].includes(key))m.layers.set(1);body.add(m);meshes.push(m);}   // small detail skipped in puddle reflections
     const P=mats.paint;P.metalness=fin.metal;P.roughness=fin.rough;P.clearcoat=fin.coat;P.envMapIntensity=fin.env;P.emissive.set(fin.glow?pc:0x000000);P.emissiveIntensity=fin.glow;
@@ -148,6 +180,45 @@ const turtleD=add=>{const g=C(0x6ad86a),dg=C(0x2a7a4a),gold=C(0xffc02a),cream=C(
   add('helmet',new THREE.TorusGeometry(.25,.03,5,18),0,.45,.5,-1.3+Math.PI/2,0,0,cream);for(const [x,y] of[[0,0],[-.1,.09],[.1,.09],[-.1,-.09],[.1,-.09]])add('helmet',new THREE.CircleGeometry(.05,6),x,.47+y*.3,.73+y*.15,-.3,0,0,C(0x8ad86a));
   const cap=new THREE.SphereGeometry(.15,14,8,0,Math.PI*2,0,Math.PI/2.2);add('helmet',cap,0,.88,.18,0,0,0,gold);add('helmet',new THREE.BoxGeometry(.18,.02,.1),0,.89,.03,0,0,0,gold);};
   // RoundedBoxGeometry class (set from kit)
+// M7-6: four unlockable racers on the same bodyD rig (same part keys as the rivals, so no new draw calls)
+const unicornD=add=>{const w=C(0xfff4fb),pink=C(0xff9ad0),gold=C(0xffd23a),rb=[0xff4f7a,0xffb02a,0xffe14d,0x5af08a,0x35c8ff,0xb07aff];bodyD(add,C(0xff7ac8),w,C(0xff7ac8));
+  const head=new THREE.SphereGeometry(.15,14,10);head.scale(1,.95,1.05);add('fur',head,0,.86,.2,0,0,0,w);eyes(add,.89,.07,.062,.03);
+  add('fur',new THREE.SphereGeometry(.07,10,7).scale(1.25,.8,1),0,.8,.06,0,0,0,pink);for(const s of[-1,1])add('fur',new THREE.SphereGeometry(.012,5,4),s*.025,.8,-.002,0,0,0,C(0xd05a98));
+  add('fur',new THREE.ConeGeometry(.036,.22,8),0,1.07,.13,-.35,0,0,gold);
+  for(const s of[-1,1]){add('fur',new THREE.ConeGeometry(.05,.12,4).scale(1,1,.5),s*.1,1.0,.24,0,0,-s*.35,w);add('fur',new THREE.ConeGeometry(.025,.07,4).scale(1,1,.4),s*.1,.99,.225,0,0,-s*.35,pink);}
+  rb.forEach((c,i)=>add('fur',new THREE.SphereGeometry(.05-i*.002,8,6),(i%2?.035:-.035),.98-i*.055,.33+i*.012,0,0,0,C(c)));
+  add('helmet',new THREE.TorusGeometry(.15,.015,5,18),0,.94,.2,Math.PI/2,0,0,C(0xffd23a,1.1));
+  add('fur',new THREE.CapsuleGeometry(.03,.3,3,6),0,.4,.62,.7,0,0,C(rb[0]));add('fur',new THREE.SphereGeometry(.06,8,6),0,.3,.8,0,0,0,C(rb[4]));};
+const dragonD=add=>{const gr=C(0x2fa868),lt=C(0x5adc90),cream=C(0xffe9a0),horn=C(0xffd23a),org=C(0xff8a2a);bodyD(add,gr,cream,gr);
+  const head=new THREE.SphereGeometry(.15,14,10);head.scale(1.05,.9,1.1);add('fur',head,0,.86,.2,0,0,0,gr);eyes(add,.9,.065,.066,.03);
+  add('fur',new THREE.SphereGeometry(.085,10,7).scale(1.1,.75,1),0,.8,.05,0,0,0,lt);for(const s of[-1,1])add('fur',new THREE.SphereGeometry(.014,5,4),s*.03,.81,-.03,0,0,0,C(0x1a5a3a));
+  for(const s of[-1,1]){add('fur',new THREE.ConeGeometry(.036,.15,6),s*.075,1.03,.19,-.4,0,-s*.3,horn);
+   const wing=new THREE.ConeGeometry(.12,.32,3);wing.scale(1,1,.2);add('fur',wing,s*.2,.72,.5,.3,0,-s*1.0,org);}
+  for(let i=0;i<3;i++)add('fur',new THREE.ConeGeometry(.035-i*.006,.09,5),0,1.0-i*.06,.31+i*.05,.9,0,0,org);
+  add('fur',new THREE.CapsuleGeometry(.04,.3,3,6),0,.4,.66,.75,0,0,gr);add('fur',new THREE.ConeGeometry(.06,.12,4),0,.3,.88,2.2,0,0,org);
+  add('helmet',new THREE.TorusGeometry(.15,.015,5,18),0,.92,.2,Math.PI/2,0,0,C(0xff8a2a,1.1));};
+const penguinD=add=>{const navy=C(0x25306a),wh=C(0xf6f8ff),org=C(0xff9a1a),pink=C(0xff7ac8);bodyD(add,navy,navy,org);
+  add('fur',new THREE.SphereGeometry(.12,10,8).scale(1,1.1,.6),0,.5,.17,0,0,0,wh);
+  const head=new THREE.SphereGeometry(.155,14,10);head.scale(1,.95,1);add('fur',head,0,.87,.2,0,0,0,navy);
+  add('fur',new THREE.SphereGeometry(.11,10,8).scale(1.15,.9,.55),0,.85,.1,0,0,0,wh);eyes(add,.89,.045,.06,.026);
+  add('fur',new THREE.ConeGeometry(.04,.1,6).rotateX(-Math.PI/2),0,.83,-.02,0,0,0,org);
+  const cap=new THREE.SphereGeometry(.16,14,8,0,Math.PI*2,0,Math.PI/2.3);add('helmet',cap,0,.9,.2,0,0,0,pink);add('helmet',new THREE.TorusGeometry(.155,.02,5,18),0,.91,.2,Math.PI/2,0,0,wh);
+  add('helmet',new THREE.SphereGeometry(.05,8,6),0,1.08,.2,0,0,0,wh);
+  add('fur',new THREE.ConeGeometry(.06,.14,5),0,.38,.62,1.9,0,0,navy);};
+const owlD=add=>{const br=C(0x8a5a3a),dk=C(0x5a3a2a),cream=C(0xf8e8c8),org=C(0xffb02a),gold=C(0xffd23a);bodyD(add,br,cream,br);
+  const head=new THREE.SphereGeometry(.16,14,10);head.scale(1.12,.9,1);add('fur',head,0,.87,.2,0,0,0,br);
+  for(const s of[-1,1]){add('fur',new THREE.SphereGeometry(.068,10,8).scale(1,1,.5),s*.068,.89,.075,0,0,0,cream);add('fur',new THREE.ConeGeometry(.04,.13,5),s*.1,1.04,.22,0,0,-s*.35,dk);
+   const wing=new THREE.CapsuleGeometry(.04,.2,3,6);wing.scale(1,1,.5);add('fur',wing,s*.19,.6,.5,.3,0,-s*.25,dk);}
+  eyes(add,.89,.045,.068,.042);add('fur',new THREE.ConeGeometry(.026,.07,5).rotateX(-Math.PI/2),0,.83,.01,0,0,0,org);
+  add('helmet',new THREE.TorusGeometry(.15,.014,5,18),0,.97,.2,Math.PI/2,0,0,gold);add('lights',new THREE.OctahedronGeometry(.04),0,1.0,.04,0,0,0,C(0xffe14d,2.6));
+  add('fur',new THREE.ConeGeometry(.06,.14,5),0,.38,.62,1.9,0,0,dk);};
+// racer index (save.js RACERS) -> driver; 0 = You (the default rider passed to kart())
+const RACER_DRV=[null,pipDriver,bunnyD,robotD,catD,pandaD,turtleD,unicornD,dragonD,penguinD,owlD];
+export const NEW_LOOKS=[
+ {name:'Sprinkle',css:'#ff7ac8',svg:'<path d="M12 1l1.4 5h-2.8z" fill="#ffd23a"/><circle cx="12" cy="14" r="7.5" fill="#fff4fb"/><path d="M4.5 13a7.5 7.5 0 0 1 3-6" stroke="#ff4f7a" stroke-width="2" fill="none"/><path d="M5 17a7.5 7.5 0 0 1-.4-3" stroke="#35c8ff" stroke-width="2" fill="none"/><circle cx="9.3" cy="13.5" r="1.2" fill="#2b1055"/><circle cx="14.7" cy="13.5" r="1.2" fill="#2b1055"/><ellipse cx="12" cy="17.5" rx="2.6" ry="1.6" fill="#ff9ad0"/>'},
+ {name:'Ember',css:'#2fa868',svg:'<path d="M7 7L5 2l5 3zM17 7l2-5-5 3z" fill="#ffd23a"/><circle cx="12" cy="13.5" r="7.5" fill="#2fa868"/><ellipse cx="12" cy="17" rx="4" ry="3" fill="#5adc90"/><circle cx="9" cy="12.5" r="1.3" fill="#2b1055"/><circle cx="15" cy="12.5" r="1.3" fill="#2b1055"/><circle cx="10.8" cy="17" r=".7" fill="#1a5a3a"/><circle cx="13.2" cy="17" r=".7" fill="#1a5a3a"/>'},
+ {name:'Pebble',css:'#25306a',svg:'<circle cx="12" cy="13" r="8" fill="#25306a"/><ellipse cx="12" cy="14.5" rx="5.5" ry="5" fill="#f6f8ff"/><path d="M5 9a7 7 0 0 1 14 0z" fill="#ff7ac8"/><circle cx="12" cy="3" r="1.8" fill="#fff"/><circle cx="9.7" cy="13" r="1.1" fill="#25306a"/><circle cx="14.3" cy="13" r="1.1" fill="#25306a"/><path d="M10.4 15.4h3.2L12 17.6z" fill="#ff9a1a"/>'},
+ {name:'Twinkle',css:'#b08060',svg:'<path d="M4.5 4l4 4.5h7l4-4.5v9a7.5 7.5 0 0 1-15 0z" fill="#8a5a3a"/><circle cx="8.8" cy="13" r="3.6" fill="#f8e8c8"/><circle cx="15.2" cy="13" r="3.6" fill="#f8e8c8"/><circle cx="8.8" cy="13" r="1.8" fill="#2b1055"/><circle cx="15.2" cy="13" r="1.8" fill="#2b1055"/><path d="M10.8 15.5h2.4L12 17.5z" fill="#ffb02a"/><path d="M12 1l.9 2.2 2.3.2-1.8 1.5.6 2.3L12 6l-2 1.2.6-2.3L8.800 3.400l2.300-.2z" fill="#ffe14d"/>'}];
 // look of each racer (style lives in racers.js). portrait = inner SVG (viewBox 0 0 24 24) for the HUD.
 export const RIVAL_LOOKS=[
  {name:'Pip',paint:0xff7a1a,accent:0x7dff6a,css:'#ff7a1a',drv:pipDriver,svg:'<path d="M4 3l5 6h6l5-6-1 10-7 8-7-8z" fill="#fff"/><circle cx="9.5" cy="12" r="1.3" fill="#1a1214"/><circle cx="14.5" cy="12" r="1.3" fill="#1a1214"/>'},
@@ -158,6 +229,7 @@ export const RIVAL_LOOKS=[
  {name:'Shelly',paint:0xffc02a,accent:0x7dff6a,css:'#e0a010',drv:turtleD,svg:'<circle cx="12" cy="13" r="7" fill="#6ad86a"/><path d="M5 11a7 7 0 0 1 14 0z" fill="#ffc02a"/><circle cx="9.5" cy="14" r="1.2" fill="#1a1214"/><circle cx="14.5" cy="14" r="1.2" fill="#1a1214"/><path d="M10 17q2 1.5 4 0" stroke="#2a7a4a" stroke-width="1.2" fill="none"/>'}];
 const HERO_SVG='<circle cx="12" cy="11" r="8" fill="#fff"/><rect x="5" y="9" width="14" height="5" rx="2.5" fill="#101828"/>';
 export const HERO_LOOK={name:'You',css:'#e8287a',svg:HERO_SVG};
+export function racerLook(name){return name==='You'?{name,css:'#e8287a',svg:HERO_SVG}:RIVAL_LOOKS.find(l=>l.name===name)||NEW_LOOKS.find(l=>l.name===name)||null;}   // portrait for the garage
 // fx atlas: [glow | bubble] / [star | spark]
 let fxAtlas=null;
 function atlas(kit){if(fxAtlas)return fxAtlas;fxAtlas=kit.tex(kit.cv(256,256,(g)=>{
