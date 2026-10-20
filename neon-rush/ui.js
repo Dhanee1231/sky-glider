@@ -7,7 +7,8 @@
 // burst(): small pop on the item button.   hideMenus(): hide select + garage.   isRolling() / garageOpen(): state for main.js.
 import * as THREE from 'three';
 import {ICONS,NAMES} from './items.js';
-import {getBest,KART_N,getTrackDiff,setTrackDiff,DIFFS} from './save.js';
+import {getBest,KART_N,getTrackDiff,setTrackDiff,DIFFS,RACERS,OWN_KARTS} from './save.js';
+import {isNew,ownsRacer,ownsKart,heartProgress,noteViewed} from './unlocks.js';
 import {EMB_ORDER,MARK_ORDER,EMB_NAMES,MARK_NAMES,FX_NAMES,NEON,NEON_NAMES,hexCss,markCss,svgIcon} from './emblems.js';
 import {paintMarker} from './minimap.js';
 import {PAINTS,FINISHES,WHEELS,BODIES,TRAILS,DECALS,applyKart,heroFx,heroFxReset,buildPreviewKart} from './karts.js';
@@ -66,11 +67,17 @@ function refreshSelect(){const ST=C.ST;for(const b of $('tsRow').children){const
 function pick(id,voice){if(sel===id&&voice)return;sel=id;refreshSelect();if(voice){say(VOICE[id]);}try{C.Audio&&C.Audio.prepTrack&&C.Audio.prepTrack(id);}catch(e){}}
 export function showTrackSelect(){if(!C)return;const t=tracks();sel=t.some(x=>x.id===C.ST.track)?C.ST.track:t[0].id;buildSelect();refreshSelect();show('trackSel',true);show('garage',false);say('s_pick',8);try{C.Audio&&C.Audio.prepTrack&&C.Audio.prepTrack(sel);}catch(e){}}
 export function newBest(){say('s_newbest');}
+export function showUnlocks(list){const el=$('finUnlock');if(!el)return;el.replaceChildren();
+ if(!list||!list.length){el.hidden=true;return;}
+ el.hidden=false;const said=new Set();
+ for(const u of list){const p=document.createElement('p');p.textContent=(u.pop||'New!')+' '+(u.id||'');el.appendChild(p);
+  for(const id of u.voice||[]){if(!id||said.has(id))continue;said.add(id);say(id);}}}
 export function hideMenus(){show('trackSel',false);closeGarage(true);}
 
 // ---------- garage ----------
 const TABS=[
  {k:'body',n:'Body',ic:svg('0 0 24 24','<path d="M2 15l2-5a2 2 0 0 1 2-1.4h6.6a2 2 0 0 1 1.7 1l2.2 3.4 2 .6A1.6 1.6 0 0 1 22 15v1.5a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" fill="#fff"/><circle cx="7" cy="18" r="2.2" fill="#35f2ff"/><circle cx="17" cy="18" r="2.2" fill="#35f2ff"/>')},
+ {k:'racer',n:'Racer',ic:svg('0 0 24 24','<circle cx="12" cy="8" r="4" fill="#fff"/><path d="M4 20c1.2-4 4-6 8-6s6.8 2 8 6" fill="#ff4fd8"/>')},
  {k:'paint',n:'Paint',ic:svg('0 0 24 24','<path d="M12 2c3 4 7 7.5 7 12a7 7 0 0 1-14 0c0-4.5 4-8 7-12z" fill="#ff4fd8" stroke="#fff" stroke-width="1.6"/><path d="M8.5 14a3.5 3.5 0 0 0 3 3.4" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/>')},
  {k:'wheels',n:'Wheels',ic:svg('0 0 24 24','<circle cx="12" cy="12" r="9.5" fill="#222" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="#d8d8e4"/><path d="M12 7v10M7 12h10M8.5 8.5l7 7M15.5 8.5l-7 7" stroke="#555" stroke-width="1.4"/>')},
  {k:'trail',n:'Trail',ic:svg('0 0 24 24','<path d="M12 2l2.2 6.3L21 9l-5 4 1.6 6.6L12 16l-5.6 3.6L8 13 3 9l6.8-.7z" fill="#ffe14d" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/>')},
@@ -83,7 +90,11 @@ const OPT={
  body:i=>[svg('0 0 48 32','<rect x="6" y="14" width="36" height="9" rx="4" fill="#ff4fd8"/><rect x="18" y="8" width="12" height="9" rx="4" fill="#fff"/><circle cx="12" cy="25" r="5" fill="#222" stroke="#fff" stroke-width="2"/><circle cx="36" cy="25" r="5" fill="#222" stroke="#fff" stroke-width="2"/>'),
    svg('0 0 48 32','<path d="M3 22l8-7h26l8 7v2H3z" fill="#ff4fd8"/><rect x="32" y="6" width="14" height="3" rx="1" fill="#fff"/><path d="M36 9v8M42 9v8" stroke="#fff" stroke-width="2"/><circle cx="12" cy="25" r="5" fill="#222" stroke="#fff" stroke-width="2"/><circle cx="36" cy="25" r="5" fill="#222" stroke="#fff" stroke-width="2"/>'),
    svg('0 0 48 32','<rect x="6" y="14" width="36" height="9" rx="4" fill="#ff4fd8"/><path d="M16 15v-6a8 8 0 0 1 16 0v6" fill="none" stroke="#fff" stroke-width="2.4"/><ellipse cx="38" cy="22" rx="7" ry="7" fill="#ff4fd8" stroke="#fff" stroke-width="1.6"/><circle cx="12" cy="25" r="5" fill="#222" stroke="#fff" stroke-width="2"/><circle cx="36" cy="25" r="5" fill="#222" stroke="#fff" stroke-width="2"/>'),
-   svg('0 0 48 32','<rect x="8" y="14" width="34" height="9" rx="4" fill="#ff4fd8"/><path d="M4 18l8-3v6z" fill="#ffe14d"/><path d="M28 14l8-10v10z" fill="#fff"/><circle cx="12" cy="25" r="5" fill="#222" stroke="#fff" stroke-width="2"/><circle cx="36" cy="25" r="5" fill="#222" stroke="#fff" stroke-width="2"/>')][i],
+   svg('0 0 48 32','<rect x="8" y="14" width="34" height="9" rx="4" fill="#ff4fd8"/><path d="M4 18l8-3v6z" fill="#ffe14d"/><path d="M28 14l8-10v10z" fill="#fff"/><circle cx="12" cy="25" r="5" fill="#222" stroke="#fff" stroke-width="2"/><circle cx="36" cy="25" r="5" fill="#222" stroke="#fff" stroke-width="2"/>'),
+   svg('0 0 48 32','<rect x="6" y="14" width="36" height="9" rx="4" fill="#ff7ac8"/><circle cx="16" cy="10" r="3" fill="#fff"/><circle cx="24" cy="8" r="3.4" fill="#ffe14d"/><circle cx="32" cy="10" r="3" fill="#35f2ff"/><circle cx="12" cy="25" r="5" fill="#222" stroke="#fff" stroke-width="2"/><circle cx="36" cy="25" r="5" fill="#222" stroke="#fff" stroke-width="2"/>'),
+   svg('0 0 48 32','<rect x="6" y="14" width="36" height="9" rx="4" fill="#ff4f7a"/><path d="M24 4c3 3 6 5 6 8a6 6 0 0 1-12 0c0-3 3-5 6-8z" fill="#ff7ac8"/><circle cx="12" cy="25" r="5" fill="#222" stroke="#fff" stroke-width="2"/><circle cx="36" cy="25" r="5" fill="#222" stroke="#fff" stroke-width="2"/>'),
+   svg('0 0 48 32','<path d="M4 20l10-6h20l10 6v3H4z" fill="#35f2ff"/><path d="M24 3l2.4 5 5.4.6-4 3.6.9 5.2L24 15l-4.7 2.4.9-5.2-4-3.6 5.4-.6z" fill="#ffe14d"/><circle cx="12" cy="25" r="5" fill="#222" stroke="#fff" stroke-width="2"/><circle cx="36" cy="25" r="5" fill="#222" stroke="#fff" stroke-width="2"/>'),
+   svg('0 0 48 32','<path d="M6 22l12-12h12l12 12v3H6z" fill="#7dff6a"/><path d="M18 10l4-7 4 7" fill="#ff7a1a"/><path d="M30 10l3-5 3 5" fill="#ff7a1a"/><circle cx="12" cy="25" r="5" fill="#222" stroke="#fff" stroke-width="2"/><circle cx="36" cy="25" r="5" fill="#222" stroke="#fff" stroke-width="2"/>')][i],
  wheels:i=>{const w=WHEELS[i],c=hex(w.glow||w.col),n=w.spokes;let sp='';for(let k=0;k<n;k++){const a=k/n*Math.PI*2;sp+=`<path d="M12 12L${(12+Math.sin(a)*6.5).toFixed(1)} ${(12-Math.cos(a)*6.5).toFixed(1)}" stroke="${c}" stroke-width="1.6"/>`;}
    return svg('0 0 24 24',`<circle cx="12" cy="12" r="10.5" fill="#1a191c" stroke="#fff" stroke-width="1.4"/><circle cx="12" cy="12" r="7" fill="none" stroke="${c}" stroke-width="2"/>${sp}<circle cx="12" cy="12" r="1.8" fill="${c}"/>`);},
  trail:i=>[svg('0 0 24 24','<circle cx="12" cy="12" r="8" fill="none" stroke="#fff" stroke-width="2.4"/><path d="M6.5 17.5l11-11" stroke="#fff" stroke-width="2.4"/>'),
@@ -98,7 +109,7 @@ const OPT={
    svg('0 0 24 24','<rect x="7" y="2" width="4" height="20" fill="#fff"/><rect x="13" y="2" width="4" height="20" fill="#fff"/>')][i]};
 let tab='paint',draft=null,pv=null;
 const lim=k=>KART_N[k];
-function buildGarage(){const tb=$('gTabs');tb.innerHTML='';for(const t of TABS){const b=document.createElement('button');b.className='gtab';b.setAttribute('role','tab');b.setAttribute('aria-label',t.n);b.dataset.k=t.k;b.innerHTML=t.ic+'<span>'+t.n+'</span>';b.addEventListener('click',()=>{tab=t.k;renderTab();});tb.appendChild(b);}
+function buildGarage(){const tb=$('gTabs');tb.innerHTML='';for(const t of TABS){const b=document.createElement('button');b.className='gtab';b.setAttribute('role','tab');b.setAttribute('aria-label',t.n);b.dataset.k=t.k;b.innerHTML=t.ic+'<span>'+t.n+'</span>';b.addEventListener('click',()=>{if(tab!==t.k)noteTab(tab);tab=t.k;renderTab();});tb.appendChild(b);}
  const fin=$('gFin');fin.innerHTML='';FINISHES.forEach((f,i)=>{const b=document.createElement('button');b.className='gopt';b.dataset.i=i;b.setAttribute('aria-label',f.n);
   const bg=i===0?'linear-gradient(135deg,#ff8ae0,#e8287a)':i===1?'linear-gradient(135deg,#fff,#9aa4b8 45%,#fff 60%,#7a8498)':'radial-gradient(circle,#fff,#ff4fd8 55%,#ff4fd8)';
   b.innerHTML=`<i style="background:${bg};${i===2?'box-shadow:0 0 10px #ff4fd8':''}"></i>${f.n.replace(' glow','')}`;b.addEventListener('click',()=>choose('finish',i));fin.appendChild(b);});}
@@ -107,7 +118,17 @@ const SECTIONS={emblem:['emblem','emblemColor'],marker:['marker','markerColor','
 const swatch=(c,rb)=>`<span class="sw${rb?' rb7':''}" style="${rb?'':'background:'+hexCss(c)}"></span>`;
 const FXI=[svg('0 0 24 24','<circle cx="12" cy="12" r="6" fill="#fff"/>'),svg('0 0 24 24','<circle cx="12" cy="12" r="10" fill="#35f2ff" opacity=".3"/><circle cx="12" cy="12" r="7" fill="#35f2ff" opacity=".5"/><circle cx="12" cy="12" r="4" fill="#fff"/>'),
  svg('0 0 24 24','<path d="M5 18l2-1.2M9 14l1.6-.9" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><path d="M16 8l1.1 2.7 2.9.2-2.2 1.9.7 2.8L16 14l-2.5 1.6.7-2.8L12 10.900l2.900-.2z" fill="#ffe97a"/><circle cx="6" cy="9" r="1.4" fill="#ff7ac8"/><circle cx="11" cy="19" r="1.2" fill="#35f2ff"/>')];
+const RCOL=['#fff27a','#7dff6a','#ff7ac8','#ffe14d','#b07aff','#ffb070','#35f2ff','#fff6c8','#ff7a1a','#9ad7ff','#d7c6ff'];
+function racerIcon(i){const name=RACERS[i]||'?',ch=name.slice(0,name==='You'?1:2);return svg('0 0 48 48',`<circle cx="24" cy="24" r="22" fill="${RCOL[i]||'#fff'}" stroke="#fff" stroke-width="3"/><text x="24" y="30" text-anchor="middle" font-size="${ch.length>1?16:22}" font-family="Arial,sans-serif" font-weight="700" fill="#2b1055">${ch}</text>`);}
+function optOwned(k,i){if(!C||!C.ST)return k!=='racer'||i===0;if(k==='racer')return i===0||ownsRacer(C.ST,RACERS[i]);if(k==='body'&&i>=4)return ownsKart(C.ST,OWN_KARTS[i-4]);return true;}
+function optBadge(k,i){if(!C||!C.ST)return '';
+ if(k==='racer'&&i>0&&isNew(C.ST,'racer',RACERS[i]))return '<span class="nw">NEW</span>';
+ if(k==='body'&&i>=4&&isNew(C.ST,'kart',OWN_KARTS[i-4]))return '<span class="nw">NEW</span>';
+ if(k==='body'&&OWN_KARTS[i-4]==='Heart Racer'&&!ownsKart(C.ST,'Heart Racer')){const h=heartProgress(C.ST);return `<span class="dots" aria-label="${h.have} of ${h.need} wins">${[0,1,2,3,4].map(n=>'<i'+(n<h.have?' class="on"':'')+'></i>').join('')}</span>`;}
+ return '';}
+function noteTab(k){if(!C||!C.ST)return;const kind=k==='racer'?'racer':k==='body'?'kart':'';if(!kind)return;if(noteViewed(C.ST,kind).length)try{C.save&&C.save();}catch(e){}}
 function optHtml(k,i){const d=draft||{};
+ if(k==='racer')return racerIcon(i);
  if(k==='emblem')return i===0?OPT.decal(0):svgIcon(EMB_ORDER[i-1],hexCss(NEON[d.emblemColor|0]));
  if(k==='emblemColor')return swatch(NEON[i]);
  if(k==='marker')return svgIcon(MARK_ORDER[i],markCss(d.markerColor|0,0));
@@ -115,15 +136,16 @@ function optHtml(k,i){const d=draft||{};
  if(k==='markerFx')return FXI[i];
  if(k==='paint')return `<span class="sw" style="background:${hex(PAINTS[i].hex)}"></span>`;
  return OPT[k](i);}
-const optName=(k,i)=>k==='paint'?PAINTS[i].n:k==='emblem'?EMB_NAMES[i]:k==='marker'?MARK_NAMES[i]:k==='emblemColor'?NEON_NAMES[i]:k==='markerColor'?(NEON_NAMES[i]||'Rainbow'):k==='markerFx'?FX_NAMES[i]:({body:BODIES,wheels:WHEELS.map(w=>w.n),trail:TRAILS,decal:DECALS})[k][i];
+const optName=(k,i)=>k==='racer'?RACERS[i]:k==='paint'?PAINTS[i].n:k==='emblem'?EMB_NAMES[i]:k==='marker'?MARK_NAMES[i]:k==='emblemColor'?NEON_NAMES[i]:k==='markerColor'?(NEON_NAMES[i]||'Rainbow'):k==='markerFx'?FX_NAMES[i]:({body:BODIES,wheels:WHEELS.map(w=>w.n),trail:TRAILS,decal:DECALS})[k][i];
 function renderTab(){for(const b of $('gTabs').children)b.setAttribute('aria-selected',b.dataset.k===tab);$('gFin').hidden=tab!=='paint';
  const g=$('gGrid'),keep=g.scrollTop;g.innerHTML='';g.classList.toggle('sz64',tab==='marker'||tab==='emblem');
  (SECTIONS[tab]||[tab]).forEach((k,si)=>{if(si){const sp=document.createElement('div');sp.className='gsec';g.appendChild(sp);}
-  for(let i=0;i<lim(k);i++){const b=document.createElement('button');b.className='gopt';b.dataset.i=i;b.dataset.k=k;b.setAttribute('aria-label',optName(k,i));b.innerHTML=optHtml(k,i);
+  for(let i=0;i<lim(k);i++){const b=document.createElement('button');b.className='gopt';b.dataset.i=i;b.dataset.k=k;b.setAttribute('aria-label',optName(k,i)+(optBadge(k,i).includes('NEW')?' NEW':''));b.innerHTML=optHtml(k,i)+optBadge(k,i);
+   if(!optOwned(k,i))b.setAttribute('aria-disabled','true');
    b.addEventListener('click',()=>choose(k,i));g.appendChild(b);}});
  g.scrollTop=keep;syncPressed();$('mkPrev').classList.toggle('show',tab==='marker');if(tab==='marker')mkLoop();}
 function syncPressed(){if(!draft)return;for(const b of $('gGrid').children)if(b.dataset.k)b.setAttribute('aria-pressed',+b.dataset.i===draft[b.dataset.k]);for(const b of $('gFin').children)b.setAttribute('aria-pressed',+b.dataset.i===draft.finish);}
-function choose(k,i){if(!draft||draft[k]===i)return;draft[k]=i;if(k==='emblemColor'||k==='markerColor')renderTab();else{syncPressed();if(k==='emblem')renderTab();}if(pv)pv.kart.userData.restyle(draft);}
+function choose(k,i){if(!draft||draft[k]===i||!optOwned(k,i))return;draft[k]=i;if(k==='emblemColor'||k==='markerColor'||k==='racer'||k==='body')renderTab();else{syncPressed();if(k==='emblem')renderTab();}if(pv)pv.kart.userData.restyle(draft);}
 // live preview of the map marker: it loops round a little circle so glow / sparkle trail show
 let mkRaf=0,mkT=0,mkTrail=[];
 function mkLoop(){if(mkRaf)return;const cv=$('mkPrev');cv.width=cv.height=160;const g=cv.getContext('2d');let last=performance.now(),tt=0;
@@ -137,7 +159,7 @@ function mkLoop(){if(mkRaf)return;const cv=$('mkPrev');cv.width=cv.height=160;co
 export function showGarage(){if(!C)return;draft=Object.assign({},C.ST.kart||{});for(const k in KART_N)if(!(draft[k]>=0&&draft[k]<KART_N[k]))draft[k]=0;
  if(!$('gTabs').children.length)buildGarage();renderTab();show('trackSel',false);show('garage',true);startPreview();say('s_garage',8);}
 export const garageOpen=()=>$('garage').classList.contains('show');
-function closeGarage(silent){if(!garageOpen())return;show('garage',false);stopPreview();}
+function closeGarage(silent){if(!garageOpen())return;noteTab(tab);show('garage',false);stopPreview();}
 function garageBack(){closeGarage();show('trackSel',true);refreshSelect();}
 function garageDone(){const c=Object.assign({},C.ST.kart||{},draft);C.ST.kart=c;try{C.save&&C.save();}catch(e){}applyKart(null,c);try{C.onGarageDone&&C.onGarageDone(c);}catch(e){}garageBack();}
 

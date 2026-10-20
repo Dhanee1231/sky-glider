@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import {buildWorld,setTrack,sample,pointAt,wrap,rampAt,heightAt,inTunnel,tunnelCover,L,W,FEAT} from './world.js';
 import {load,save,getBest,setBest,getTrackDiff} from './save.js';
+import {checkRaceEnd,checkCupEnd,VOICE_IDS} from './unlocks.js';
 import * as Audio from './audio.js';
 import * as UI from './ui.js';
 import {getLaps,VMAX,VBOOST,ACC,BOOST_ACC,STEER_RATE,YAW_MAX,BEND,AIR_G,HOP_G,HOP_VY,TRICK_T,TRICK_BOOST,DRAFT_GAP,DRAFT_MAX,DRAFT_RAMP,setDifficulty,getDiff,DIFF} from './tuning.js';
@@ -43,7 +44,7 @@ function dropToLow(){if(lowRuntime||!HIGH)return;lowRuntime=true;lowTweaks();toa
 const say=Audio.say,blip=Audio.sfx,engineSet=Audio.engine,applyMute=()=>Audio.applySettings(ST.settings),initAudio=()=>Audio.init(ST.settings);
 const RNAMES=['mochi','bolt','kiki','coco','shelly'];   // Track B voice clips (audio/b_*.ogg|mp3, Kokoro af_heart)
 Audio.registerVoice(['b_hi','b_got','b_shield','b_rocket','b_hop','b_mystery','b_saved','b_spin','b_crate','b_barrel','b_pass','b_zoom','b_finish','b_rival_win','b_first',...RNAMES.flatMap(n=>['b_pass_'+n,'b_zoom_'+n]),
- 't_tunnel','t_bridge','t_goo','t_honk','t_next','t_wheel','t_bonk','t_sky_hi','t_harbor_hi','t_skyway_hi','t_beach_hi','s_beach','b_watch','b_zap','b_splash','b_triple','b_homing','b_comet','b_mega','b_storm']);
+ 't_tunnel','t_bridge','t_goo','t_honk','t_next','t_wheel','t_bonk','t_sky_hi','t_harbor_hi','t_skyway_hi','t_beach_hi','s_beach','b_watch','b_zap','b_splash','b_triple','b_homing','b_comet','b_mega','b_storm',...VOICE_IDS]);
 // ---------- game state ----------
 const PFRESH=()=>({s:GRID_PLAYER[0],x:GRID_PLAYER[1],yaw:0,v:0,y:0,vy:0,air:0,boost:0,shield:0,rocket:0,hop:0,floaty:0,spin:0,bounce:0,item:null,itemFx:0,immune:0,spunLast:false,obCd:0,drift:0,driftT:0,driftDir:0,wiggle:0,slow:0,emp:0,empF:1,mega:0,storm:0,wallCd:0,trick:0,trickA:0,lapStart:0,finished:false,time:0,place:4});
 const P=Object.assign({isPlayer:true,name:'You',bestLap:0},PFRESH());
@@ -256,10 +257,15 @@ UI.init({ST,save:()=>save(ST),Audio,say,TRACKS:TRACKS.map(t=>({id:t.id,name:t.na
  onGarageDone:c=>{try{applyKart(hero,c);}catch(e){}try{world.setEmblem(c.emblem,c.emblemColor);}catch(e){}buildLadder();}});
 // finish
 function finishRace(){mode='finish';$('pop').classList.remove('show');popT=0;Audio.music('finish',curTrack);show('count',false);$('tapPrompt').classList.remove('show');P.finished=true;P.time=raceT;engineSet(0,false);releaseWake();const fst=racers.standings(P);const won=fst.place===1;
- const ms=Math.round(raceT*1000),lt=raceT-P.lapStart;P.bestLap=P.bestLap?Math.min(P.bestLap,lt):lt;ST.races++;if(won)ST.wins++;const newBest=raceT>20&&setBest(ST,curTrack,raceT,getLaps());save(ST);
+ const ms=Math.round(raceT*1000),lt=raceT-P.lapStart;P.bestLap=P.bestLap?Math.min(P.bestLap,lt):lt;ST.races++;if(won)ST.wins++;
+ const at=fst.order.findIndex(a=>a.me),ahead=fst.order.slice(at<0?fst.order.length:at+1).map(a=>a.name).filter(Boolean);
+ const unlocked=checkRaceEnd(ST,{trackId:curTrack,level:getTrackDiff(ST,curTrack),place:fst.place,ahead,won});
+ if(ST.cupRun&&typeof ST.cupRun==='object'&&ST.cupRun.race>=2){const run=ST.cupRun;unlocked.push(...checkCupEnd(ST,{cup:run.cup,level:run.level,place:fst.place}));}
+ else if(ST.cupRun&&typeof ST.cupRun==='object'&&Number.isInteger(ST.cupRun.race))ST.cupRun.race=Math.min(2,ST.cupRun.race+1);
+ const newBest=raceT>20&&setBest(ST,curTrack,raceT,getLaps());save(ST);
  const winner=fst.order[0];$('finTitle').innerHTML=ord(fst.place)+' place!';const cheer=getDiff().cheer;$('finSub').textContent=won?'You won the race!':cheer?'You did it! Great racing!':fst.place<=3?`Great racing! ${winner.name} won this time.`:`Great racing! ${winner.name} won. Try again!`;
  $('finPod').innerHTML=fst.order.slice(0,3).map((a,i)=>`<div class="pt${a.me?' me':''}" style="background:${a.me?HERO_LOOK.css:a.css};color:${a.me?HERO_LOOK.css:a.css}"><svg viewBox="0 0 24 24">${a.me?HERO_LOOK.svg:a.svg}</svg><b>${i+1}</b></div>`).join('');
- $('finTime').textContent=fmt(ms);$('finBest').textContent=fmt(Math.round(P.bestLap*1000));P.item=null;UI.resetHud();show('finish',true);say(won?'win':fst.place<=3?'second':'b_finish');
+ $('finTime').textContent=fmt(ms);$('finBest').textContent=fmt(Math.round(P.bestLap*1000));P.item=null;UI.resetHud();show('finish',true);say(won?'win':fst.place<=3?'second':'b_finish');UI.showUnlocks(unlocked);
  if(newBest)setTimeout(()=>{if(mode==='finish'){popup('New best time!');UI.newBest();}},2400);
  else if(!won&&!cheer)setTimeout(()=>{if(mode==='finish')say(winner.name==='Pip'?'pip_win':'b_rival_win');},2600);}
 
@@ -299,4 +305,5 @@ window.__nr={DIFF,get _dbg(){return {world,R,S,cam};},get racers(){return racers
  startRace:(id)=>{if(id)loadTrack(id);UI.hideMenus();show('title',false);show('finish',false);show('pauseMenu',false);resetRace();mode='race';show('count',false);},
  loadTrack,startTrack,get track(){return curTrack;},TRACKS:TRACKS.map(t=>t.id),
  snap:()=>{placeKarts(0);updateCam(0,true);},dbg:()=>({cam:cam.position.toArray(),hero:hero.position.toArray(),fov:cam.fov,look:camLook.toArray()}),P,get F(){return F;},get mode(){return mode},set mode(m){mode=m},get L(){return L;},input,finishRace,useItem,giveItem:it=>{P.item=it;UI.hud(0,P);},
+ finishCup:(ev)=>{const fresh=checkCupEnd(ST,ev||{});save(ST);try{UI.showUnlocks(fresh);}catch(e){}return fresh;},
  stats:()=>({calls:R.info.render.calls,tris:R.info.render.triangles,high:HIGH&&!lowRuntime,mem:{...R.info.memory},programs:R.info.programs?.length})};
