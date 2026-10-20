@@ -55,20 +55,36 @@
   if (FZ && FZ.onChange) FZ.onChange(applySettings);
 
   // ---------- thumbs ----------
+  // E: thumbnails only need the shapes, not the boxes and number spots R.prep measures with one raster pass per shape (that made every pack tap freeze ~1-2 s at 4x CPU)
+  const liteMap = new WeakMap();
+  function liteP(pic) {
+    if (pic.pre) return R.prep(pic); let P = liteMap.get(pic); if (P) return P;
+    const n = pic.shapes.length; P = { pic, n, path: [], clip: [], col: new Uint8Array(n), bb: [], lab: [], line: pic.line.map(d => new Path2D(d)) };
+    for (let i = 0; i < n; i++) { const s = pic.shapes[i]; P.path[i] = new Path2D(s[1]); P.clip[i] = s[2] ? new Path2D(s[2]) : null; P.col[i] = s[0]; }
+    liteMap.set(pic, P); return P;
+  }
   function thumb(pic, fc, size) {
     const W = pic.w || 2048, H = pic.h || 2048, k = size / Math.max(W, H), c = document.createElement('canvas'); c.width = Math.max(1, Math.round(W * k)); c.height = Math.max(1, Math.round(H * k)); const g = c.getContext('2d'); g.scale(k, k);
-    const P = R.prep(pic); const f = new Uint8Array(P.n); if (fc) f.set(fc.subarray ? fc.subarray(0, P.n) : fc); R.drawFlat(g, { P, pal: pic.pal, fc: f }, {}); return c;
+    const P = liteP(pic); const f = new Uint8Array(P.n); if (fc) f.set(fc.subarray ? fc.subarray(0, P.n) : fc); R.drawFlat(g, { P, pal: pic.pal, fc: f }, {}); return c;
   }
   const picBy = (pk, id) => { const p = CM_PACKS[pk]; return p && p.pics.find(x => x.id === id); };
   const pidOf = (pk, id) => 'pk:' + pk + '.' + id;
-  const isCustom = id => typeof id === 'string' && (/^ph:[a-z0-9]+$/.test(id) || /^pk:[a-z0-9]+\.[a-z0-9]+:px\d+p\d+s?$/.test(id));
+  // Detail variants are pk:<pack>.<pic>d2 / d3. The base picture must exist and the full id must not itself be a real picture.
+  function isDetail(id) {
+    const m = /^pk:([a-z0-9]+)\.([a-z0-9]+)d([23])$/.exec(id);
+    if (!m) return null;
+    if (picBy(m[1], m[2] + 'd' + m[3])) return null;
+    if (!picBy(m[1], m[2])) return null;
+    return { pk: m[1], id: m[2], level: m[3] === '3' ? 3 : 2 };
+  }
+  const isCustom = id => typeof id === 'string' && (/^ph:[a-z0-9]+$/.test(id) || /^pk:[a-z0-9]+\.[a-z0-9]+:px\d+p\d+s?$/.test(id) || !!isDetail(id));
   async function loadMaps() {
     progMap.clear(); galMap.clear(); galFree.clear();
     for (const r of await SV.allProg()) {
-      const m = /^pk:([a-z0-9]+)\.([a-z0-9]+)$/.exec(r.id), pic = m && picBy(m[1], m[2]), v = pic ? SV.valid(r, pic.shapes.length) : (isCustom(r.id) && r.n > 0 ? SV.valid(r, r.n) : null);
+      const m = /^pk:([a-z0-9]+)\.([a-z0-9]+)$/.exec(r.id), pic = m && !isDetail(r.id) && picBy(m[1], m[2]), v = pic ? SV.valid(r, pic.shapes.length) : (isCustom(r.id) && r.n > 0 ? SV.valid(r, r.n) : null);
       if (v) progMap.set(r.id, v); else if (!/:free$/.test(r.id)) SV.quarantine.set('progress:' + r.id, r);   // bad records are hidden, never deleted
     }
-    for (const r of await SV.allGal()) { const m = /^pk:([a-z0-9]+)\.([a-z0-9]+)$/.exec(r.pid); if ((m && picBy(m[1], m[2])) || isCustom(r.pid)) (r.free ? galFree : galMap).set(r.pid, r); else SV.quarantine.set('gallery:' + r.id, r); }
+    for (const r of await SV.allGal()) { const m = /^pk:([a-z0-9]+)\.([a-z0-9]+)$/.exec(r.pid); if ((m && !isDetail(r.pid) && picBy(m[1], m[2])) || isCustom(r.pid)) (r.free ? galFree : galMap).set(r.pid, r); else SV.quarantine.set('gallery:' + r.id, r); }
   }
   const fracOf = (pk, pic) => { const r = progMap.get(pidOf(pk, pic.id)); return r && r.order ? Math.min(1, r.order.length / pic.shapes.length) : 0; };
   const fracRec = r => r && r.order && r.n ? Math.min(1, r.order.length / r.n) : 0;
@@ -93,15 +109,20 @@
   $('#pBack').onclick = () => go('start'); $('#gBack').onclick = () => go('start'); $('#sBack').onclick = () => go(prev && prev !== 'set' ? prev : 'start');
 
   // ---------- packs ----------
+  const covers = new Map();   // pack id -> finished cover canvas (never changes)
   async function showPacks() {
     await loadMaps(); const row = $('#packRow'); row.innerHTML = '';
     PACKS.forEach((p, i) => {
       const b = document.createElement('button'); b.className = 'pcov' + (i === selPack ? ' sel' : ''); const done = p.pics.filter(x => fracOf(p.id, x) >= 1).length;
-      b.appendChild(thumb(p.pics[0], fcFromOrder(p.pics[0], p.pics[0].shapes.map((s, k) => k)), 200)); const t = document.createElement('div'); t.textContent = p.name + ' ' + done + '/' + p.pics.length; b.appendChild(t);
-      b.onclick = () => { selPack = i; showPacks(); AU.tick(); }; row.appendChild(b);
+      let cv = covers.get(p.id); if (!cv) { cv = thumb(p.pics[0], fcFromOrder(p.pics[0], p.pics[0].shapes.map((s, k) => k)), 200); covers.set(p.id, cv); }
+      b.appendChild(cv); const t = document.createElement('div'); t.textContent = p.name + ' ' + done + '/' + p.pics.length; b.appendChild(t);
+      b.onclick = () => { if (selPack === i) return; selPack = i; $$('#packRow .pcov').forEach((e, k) => e.classList.toggle('sel', k === i)); showGrid(); AU.tick(); }; row.appendChild(b);
     });
     $('#chev').hidden = PACKS.length < 2;
-    const grid = $('#picGrid'); grid.innerHTML = ''; const p = PACKS[selPack];
+    showGrid();
+  }
+  function showGrid() {
+    const grid = $('#picGrid'); grid.innerHTML = ''; grid.scrollTop = 0; const p = PACKS[selPack];
     for (const pic of p.pics) {
       const b = document.createElement('button'); b.className = 'pic'; const f = fracOf(p.id, pic), r = progMap.get(pidOf(p.id, pic.id));
       b.appendChild(thumb(pic, r ? fcFromOrder(pic, r.order) : null, 200));
@@ -117,7 +138,7 @@
   async function openGame(pk, pic, pid, o) {
     o = o || {}; await loadMaps();
     const free = !!o.free;
-    go('play', { force: true }); layoutNow(true);
+    go('play', { force: true }); layoutNow(true); pickQ();
     const n = pic.shapes.length; let rec = await SV.getProg(free ? pid + ':free' : pid, n);
     const done = !free && galMap.has(pid) && rec && rec.order.length >= n;
     if (done && !o.restart) { G = null; buildGame(pk, pic, pid, rec, free); finishView(true); return; }
@@ -130,6 +151,8 @@
     const n = pic.shapes.length, fc = new Uint8Array(n), order = [];
     if (rec) { if (free && rec.free) { for (let i = 0; i < n; i++) fc[i] = rec.free[i] || 0; } else if (!free) for (const i of rec.order) { fc[i] = pic.shapes[i][0] + 1; order.push(i); } }
     const S = R.setPuzzle(pic, pic.pal, fc, { nums: !free && sd().set.nums, calm: calm() });
+    // D 6: a pack shape that later shapes cover completely has no spot at all (lab [.., 0]) and could never be tapped: count it as coloured
+    if (!free && !pic.pre) for (let i = 0; i < n; i++) if (!fc[i] && S.P.lab[i][2] <= 0) { fc[i] = S.P.col[i] + 1; order.push(i); }
     G = { pk, pic, pid, free, n, custom: !!pic.custom, fc, order, ops: [], rem: [], tot: [], sel: 0, t0: performance.now(), ms: rec ? rec.ms : 0, step: 0, P: S.P, done: false, guide: -1 };
     const used = new Set(); for (let i = 0; i < n; i++) used.add(S.P.col[i]); G.used = [...used].sort((a, b) => a - b);
     for (const c of G.used) { G.rem[c] = 0; G.tot[c] = 0; }
@@ -157,12 +180,13 @@
       b.innerHTML = '<span>' + (c + 1) + '</span><svg class="pr" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18.5" stroke-dasharray="116.2" stroke-dashoffset="116.2"/></svg>';
       b.onclick = () => { selectSwatch(c + 1); AU.tick(); }; pal.appendChild(b);
     }
-    refreshRings();
+    ringQ.clear(); refreshRings();
   }
-  function refreshRings() { for (const c of G.used) { const b = $('.sw[data-c="' + (c + 1) + '"]'); if (!b) continue; const f = G.free ? 0 : 1 - G.rem[c] / G.tot[c]; b.querySelector('circle').style.strokeDashoffset = (116.2 * (1 - f)).toFixed(1); b.classList.toggle('done', !G.free && G.rem[c] === 0); } }
+  const ringQ = new Set();   // colours whose ring changed since the last refresh (empty = all)
+  function refreshRings() { const list = ringQ.size ? [...ringQ] : G.used; ringQ.clear(); for (const c of list) { const b = $('.sw[data-c="' + (c + 1) + '"]'); if (!b) continue; const f = G.free ? 0 : 1 - G.rem[c] / G.tot[c]; b.querySelector('circle').style.strokeDashoffset = (116.2 * (1 - f)).toFixed(1); b.classList.toggle('done', !G.free && G.rem[c] === 0); } }
   function selectSwatch(num, quiet) {
     G.sel = num; R.S.sel = num; $$('.sw').forEach(b => { b.classList.toggle('sel', +b.dataset.c === num); b.classList.remove('bounce'); });
-    const b = $('.sw[data-c="' + num + '"]'); if (b && b.scrollIntoView) nav(() => b.scrollIntoView({ block: 'nearest', inline: 'center' })); R.invalidate(); kick();
+    const b = $('.sw[data-c="' + num + '"]'); if (b && b.scrollIntoView) nav(() => b.scrollIntoView({ block: 'nearest', inline: 'center' })); R.invalidateFx(); kick();
   }
   function updateMeter() { const f = G.free ? 0 : 1 - G.left / G.n; $('#meter i').style.width = (f * 100).toFixed(1) + '%'; $('#meter').style.visibility = G.free ? 'hidden' : 'visible'; }
   function updateGlow() {
@@ -175,7 +199,7 @@
   // ---------- fill / undo / helpers ----------
   function fillRegion(i, o) {
     o = o || {}; const col = G.free ? G.sel : G.P.col[i] + 1, prevC = G.fc[i]; G.fc[i] = col; R.setFill(i, col);
-    if (!G.free) { G.order.push(i); G.rem[G.P.col[i]]--; G.left--; }
+    if (!G.free) { ringQ.add(G.P.col[i]); G.order.push(i); G.rem[G.P.col[i]]--; G.left--; }
     const L = G.P.lab[i]; if (!o.quiet) R.burst(L[0], L[1], 7, calm());
     return prevC;
   }
@@ -190,23 +214,34 @@
     kick();
   }
   const pushOp = op => { G.ops.push(op); if (G.ops.length > 200) G.ops.shift(); };   // §5: at most 200 undo ops; a wand or burst is one op
+  // Tiny spots (D 6): a tap that does not land on a right-colour spot snaps to the nearest unfilled spot of the picked colour that is
+  // smaller than a fingertip on screen (inradius < SNAP_R) and within SNAP_D css px of the finger. Big spots never steal a tap.
+  const SNAP_R = 12, SNAP_D = 24;
+  function snapTap(w, i) {
+    if (G.free || G.sel < 1 || G.P.grid) return i;
+    const c = G.sel - 1; if (i >= 0 && !G.fc[i] && G.P.col[i] === c) return i;
+    const z = R.zoom, lab = G.P.lab; let best = i, bd = (SNAP_D / z) ** 2;
+    for (let j = 0; j < G.n; j++) { if (G.fc[j] || G.P.col[j] !== c || lab[j][2] * z >= SNAP_R) continue; const d = (lab[j][0] - w[0]) ** 2 + (lab[j][1] - w[1]) ** 2; if (d < bd) { bd = d; best = j; } }
+    return best;
+  }
   function tapAt(sx, sy) {
-    if (!G || paused) return; const w = R.s2w(sx, sy), i = R.hit(w[0], w[1]); if (i < 0) return; AU.unlock();
+    if (!G || paused) return; const w = R.s2w(sx, sy), i = snapTap(w, R.hit(w[0], w[1])); if (i < 0) return; AU.unlock();
     if (G.free) { if (G.fc[i] === G.sel) return; const p = G.fc[i]; pushOp([[i, p]]); fillRegion(i); AU.pop(G.step++); afterFill(false); return; }
     if (burstArmed) { burstArmed = false; if (burstAt(i)) return; syncWand(); }
     if (G.fc[i]) { AU.tick(); return; }
     const c = G.P.col[i];
-    if (c + 1 !== G.sel) { AU.boop(); AU.say('look'); const b = $('.sw[data-c="' + (c + 1) + '"]'); if (b) { b.classList.remove('nudge'); void b.offsetWidth; b.classList.add('nudge'); setTimeout(() => b.classList.remove('nudge'), 1900); } return; }
+    if (c + 1 !== G.sel) { AU.boop(); AU.say('look'); const b = $('.sw[data-c="' + (c + 1) + '"]'); if (b) { b.classList.remove('nudge'); void b.offsetWidth; b.classList.add('nudge'); nav(() => b.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: calm() ? 'auto' : 'smooth' })); setTimeout(() => b.classList.remove('nudge'), 1900); } return; }
     pushOp([[i, 0]]); fillRegion(i); AU.pop(G.tot[c] - G.rem[c] - 1); afterFill(false, c);
   }
   function undo() {
     if (!G || paused || !G.ops.length) return; const op = G.ops.pop();
-    for (const [i, p] of op) { G.fc[i] = p; R.setFill(i, p); if (!G.free) { G.order.pop(); G.rem[G.P.col[i]]++; G.left++; } }
+    for (const [i, p] of op) { G.fc[i] = p; R.setFill(i, p); if (!G.free) { ringQ.add(G.P.col[i]); G.order.pop(); G.rem[G.P.col[i]]++; G.left++; } }
     if (!G.free) { const c = G.P.col[op[0][0]]; selectSwatch(c + 1); } AU.tick(); G.fewSaid = 0; afterFill(true); G.done = false;
   }
   function hint() {
     if (!G || paused || G.free) return; let best = -1, bd = 1e18; const cx = R.cam.x, cy = R.cam.y;
-    for (const pass of [1, 0]) { for (let i = 0; i < G.n; i++) { if (G.fc[i] || (pass && G.P.col[i] !== G.sel - 1)) continue; const L = G.P.lab[i]; if (L[2] < 20) continue; const d = (L[0] - cx) ** 2 + (L[1] - cy) ** 2; if (d < bd) { bd = d; best = i; } } if (best >= 0) break; }
+    // passes: picked colour (roomy spot), any colour (roomy), then (E) small spots too: when only small spots were left the hint did nothing (25 of 92 pictures)
+    for (const pass of [3, 2, 1, 0]) { for (let i = 0; i < G.n; i++) { if (G.fc[i] || ((pass & 1) && G.P.col[i] !== G.sel - 1)) continue; const L = G.P.lab[i]; if (pass > 1 && L[2] < 20) continue; const d = (L[0] - cx) ** 2 + (L[1] - cy) ** 2; if (d < bd) { bd = d; best = i; } } if (best >= 0) break; }
     if (best < 0) return; selectSwatch(G.P.col[best] + 1); const L = G.P.lab[best];
     R.flyTo(L[0], L[1], Math.max(R.cam.z, 32 / L[3]), calm() ? 0 : 400, calm()); R.setRing(L[0], L[1]); AU.say('hint'); AU.tick(); kick();
   }
@@ -320,9 +355,14 @@
     if (G) { const more = R.frame(t, dt); watchQ(ms, more); fpsN++; if (t - fpsT > 1000) { fps = Math.round(fpsN * 1000 / (t - fpsT)); fpsN = 0; fpsT = t; } if (more) raf = requestAnimationFrame(tick); else last = 0; }
   }
   function watchQ(ms, busy) {
-    if (lockQ || ms > 250 || ms < 1) return;
-    if (ms > 20) { if (++slow >= 3 && R.q < 2) { slow = 0; fastT = 0; R.setQuality(R.q + 1); layoutNow(); } } else { slow = 0; if (ms < 12) { fastT += ms; if (fastT > 10000 && R.q > 0) { fastT = 0; R.setQuality(R.q - 1); layoutNow(); } } else fastT = 0; }
+    if (lockQ || ms > 250 || ms < 1 || R.warming) return;   // frames that build a new puzzle's first view say nothing about the phone's speed (CC 8)
+    if (ms > 20) { if (++slow >= 3 && R.q < 2) { slow = 0; fastT = 0; if (qUp) { qUp = false; qNoUp = true; } R.setQuality(R.q + 1); layoutNow(); } } else { slow = 0; if (ms < 12) { fastT += ms; if (fastT > 10000 && R.q > 0 && !qNoUp) { fastT = 0; qUp = true; R.setQuality(R.q - 1); layoutNow(); } } else fastT = 0; }
   }
+  // v9 QA P2: a big canvas (Fold inner screen, tablets: over 2.2M device px at the 2x cap) starts at the lowest quality step instead
+  // of stepping down during the first fills (100-225 ms tasks at 4x); a fast device steps back up after 10 s of quick frames as
+  // before. qUp: it did step up; a later step down then stops further step-ups for this visit (no back and forth).
+  let qUp = false, qNoUp = false;
+  function pickQ() { if (lockQ || qUp || R.q >= 2) return; const s = R.size, k = Math.min(dpr(), 2); if (s[0] * s[1] * k * k > 2.2e6) R.setQuality(2); }
   {
     const lowMem = (navigator.deviceMemory && navigator.deviceMemory <= 4); if (lowMem) R.setQuality(2);
   }
@@ -351,9 +391,9 @@
     for (let i = 0; i < NPC; i++) if (PC.on[i]) { PC.l[i] -= dt; if (PC.l[i] <= 0 || PC.y[i] > 6000) { PC.on[i] = 0; pcLive--; continue; } PC.x[i] += PC.vx[i] * dt; PC.y[i] += PC.vy[i] * dt; PC.r[i] += PC.vr[i] * dt; if (PC.g[i]) PC.vy[i] += 160 * dt; }
   }
   function pcDraw(cv, under) {
-    const g = cv.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv.width, cv.height); if (!pcSpr) pcBuild(); if (under) under(g);
+    const g = cv.getContext('2d'), z = cv._s || 1; g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv.width, cv.height); if (!pcSpr) pcBuild(); if (under) { g.setTransform(z, 0, 0, z, 0, 0); under(g); }   // drawn in CSS px; z < 1 on big boxes (overlay capped at 0.4 M px)
     for (let i = 0; i < NPC; i++) if (PC.on[i]) {
-      const sc = PC.s[i] / 64, c = Math.cos(PC.r[i]) * sc, sn = Math.sin(PC.r[i]) * sc; g.setTransform(c, sn, -sn, c, PC.x[i], PC.y[i]); g.globalAlpha = PC.g[i] ? Math.min(1, PC.l[i] * 3) : 1; g.drawImage(pcSpr[PC.k[i]], -32, -32);
+      const sc = PC.s[i] / 64, c = Math.cos(PC.r[i]) * sc, sn = Math.sin(PC.r[i]) * sc; g.setTransform(c * z, sn * z, -sn * z, c * z, PC.x[i] * z, PC.y[i] * z); g.globalAlpha = PC.g[i] ? Math.min(1, PC.l[i] * 3) : 1; g.drawImage(pcSpr[PC.k[i]], -32, -32);
     }
     g.globalAlpha = 1; g.setTransform(1, 0, 0, 1, 0, 0);
   }
@@ -364,21 +404,30 @@
     if (first) {
       const st = sd().stats; st.done++; st.regions += G.n; st.ms += G.ms; const f = A.FRAMES.find(x => x.n === st.done); if (f) { sd().frames[f.id] = 1; earned = true; }
       fr = A.frameFor(st.done); sd().stk[G.pid] = Object.keys(sd().stk).length % 4;
-      const t = thumb(G.pic, G.fc, 256), blob = await new Promise(r => t.toBlob(b => r(b), 'image/webp', 0.8));
+      await new Promise(r => setTimeout(r, 0));   // v9 QA P2 round 2: the thumb gets a task of its own (not the last fill's)
+      const t = finThumb(256), blob = await new Promise(r => t.toBlob(b => r(b), 'image/webp', 0.8));
       const rec = { id: G.pid, v: 1, pid: G.pid, done: Date.now(), ms: Math.round(G.ms), frame: fr.id, thumb: blob }; galMap.set(G.pid, rec); SV.put('gallery', rec); SV.write();
     }
     FC.earned = earned; FC.then = earned ? 'frame' : (first ? 'saved' : null); AU.fanfare(); setTimeout(() => finishView(false), 100);
+  }
+  // v9 QA P2: the gallery thumb of a just-finished picture comes from the base tiles of play (4 blits) instead of painting every
+  // region again (86 ms at 4x on an Expert picture); same flat look. Falls back to the full paint when there are no tiles.
+  function finThumb(size) {
+    const pic = G.pic, W = pic.w || 2048, H = pic.h || 2048, k = size / Math.max(W, H);
+    if (!R.S || R.S.P !== G.P) return thumb(pic, G.fc, size);
+    const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(W * k)); c.height = Math.max(1, Math.round(H * k)); const g = c.getContext('2d'); g.imageSmoothingQuality = 'high';
+    return R.drawBase(g, c.width, c.height) ? c : thumb(pic, G.fc, size);
   }
   function finishView(fromGallery) { FC.fromGal = fromGallery; go('fin', { force: true }); }
   function fitCanvas(boxEl, canvas, conf, WW, WH) {   // shared by the Finished screen and the viewer: art canvas fitted to its box at DPR <= 2, overlay canvas = whole box
     const r = boxEl.getBoundingClientRect(), d = Math.min(dpr(), 2);
     let cw = Math.floor(Math.min(r.width - 8, (r.height - 8) * WW / WH)), ch = Math.floor(cw * WH / WW); if (ch > r.height - 8) { ch = Math.floor(r.height - 8); cw = Math.floor(ch * WW / WH); } cw = Math.max(120, cw); ch = Math.max(Math.round(120 * WH / WW), ch);
-    canvas.style.width = cw + 'px'; canvas.style.height = ch + 'px'; canvas.width = Math.round(cw * d); canvas.height = Math.round(ch * d); conf.width = Math.max(1, Math.round(r.width)); conf.height = Math.max(1, Math.round(r.height));   // the sparkle overlay runs at 1x (soft by design, saves fill rate on the Fold)
+    canvas.style.width = cw + 'px'; canvas.style.height = ch + 'px'; canvas.width = Math.round(cw * d); canvas.height = Math.round(ch * d); const cs = Math.min(1, Math.sqrt(4e5 / Math.max(1, r.width * r.height))); conf.width = Math.max(1, Math.round(r.width * cs)); conf.height = Math.max(1, Math.round(r.height * cs)); conf._s = conf.width / Math.max(1, r.width);   // the sparkle overlay runs at <= 1x, capped at 0.4 M px (soft by design; v9 QA P2 round 2: saves fill rate on the Fold)
     return { d, r };
   }
   function finLayout() {
     const WW = G.pic.w || 2048, WH = G.pic.h || 2048, f = fitCanvas($('#finArt'), $('#fc'), $('#fconf'), WW, WH); FC.d = 1; FC.r = f.r; FC.px = $('#fc').width; FC.py = $('#fc').height; FC.WW = WW; FC.WH = WH;
-    FC.fin = null; FC.specks = []; for (let i = 0; i < (calm() ? 30 : [90, 60, 30][Math.min(2, R.q)]); i++) FC.specks.push([Math.random() * WW, Math.random() * WH, 18 + Math.random() * 40, Math.random() * 6.28]);
+    if (FC.fin && FC.fin.close) FC.fin.close(); FC.fin = null; FC.job = null; FC.tl = false; FC.specks = []; for (let i = 0; i < (calm() ? 30 : [90, 60, 30][Math.min(2, R.q)]); i++) FC.specks.push([Math.random() * WW, Math.random() * WH, 18 + Math.random() * 40, Math.random() * 6.28]);
     drawFin(0); FC.map = mapOf($('#fc'), $('#fconf'), 1, WW, WH); const k = $('#fconf'); pcClear(); pcDraw(k, g => glitter(g, 0));
   }
   function stFor(m) { const f = new Uint8Array(G.n); for (let j = 0; j < m; j++) { const i = G.order[j]; f[i] = G.P.col[i] + 1; } return { P: G.P, pal: G.pic.pal, fc: f }; }
@@ -386,21 +435,60 @@
     const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); g.fillStyle = '#fff'; g.translate(32, 32); g.beginPath(); for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, r = i % 2 ? 6 : 30; g[i ? 'lineTo' : 'moveTo'](Math.cos(a) * r, Math.sin(a) * r); } g.closePath(); g.fill(); return c;
   }
   // finished art (flat colors + sheen + frame) is painted once per layout; each frame is one blit + sprite specks + the sweep (t = ms since the glitter started)
+  // v9 QA P2: the sharp finished art took one 500-780 ms page task on the Fold at 4x (Expert). It is now painted in the worker (same
+  // renderArt as the 2K export) while the base tiles from play stand in, then swaps in. Without a worker: a few regions per frame.
   function drawFin(t) {
-    const px = FC.px, py = FC.py, WW = FC.WW, WH = FC.WH, o = $('#fc').getContext('2d');
+    const px = FC.px, py = FC.py, o = $('#fc').getContext('2d');
     const fr = G.free ? null : A.frameFor(sd().stats.done), fra = galMap.has(G.pid) ? A.FRAMES.find(f => f.id === galMap.get(G.pid).frame) : fr, key = fra && fra.id;
-    if (!FC.fin || FC.finKey !== key) {
-      const f = document.createElement('canvas'); f.width = px; f.height = py; const fg = f.getContext('2d'); fg.setTransform(px / WW, 0, 0, py / WH, 0, 0); R.drawFlat(fg, stFor(G.order.length), { sheen: true });
-      fg.setTransform(1, 0, 0, 1, 0, 0); if (fra && fra.a) A.drawFrame(fg, px, py, fra); FC.fin = f; FC.finKey = key;
-      const sg = o.createLinearGradient(0, 0, 500, 500); sg.addColorStop(0, 'rgba(255,255,255,0)'); sg.addColorStop(0.5, 'rgba(255,255,255,.55)'); sg.addColorStop(1, 'rgba(255,255,255,0)'); FC.sg = sg;
-    }
-    o.setTransform(1, 0, 0, 1, 0, 0); o.drawImage(FC.fin, 0, 0);
+    if (!FC.sg) { const sg = o.createLinearGradient(0, 0, 500, 500); sg.addColorStop(0, 'rgba(255,255,255,0)'); sg.addColorStop(0.5, 'rgba(255,255,255,.55)'); sg.addColorStop(1, 'rgba(255,255,255,0)'); FC.sg = sg; }
+    const c = $('#fc'); if (FC.fin && FC.finKey === key) { finSize(c, px, py); o.setTransform(1, 0, 0, 1, 0, 0); o.drawImage(FC.fin, 0, 0, px, py); return; }
+    if (!(FC.job && FC.job.key === key && FC.job.px === px && FC.job.py === py)) finBuild(key, fra);
+    // v9 QA P2 round 2: the stand-in is painted at <= 640 px (the base tiles are 512 px) and the browser scales it up (CSS size is fixed);
+    // painting it into the full 2x canvas was a 100-170 ms raster at 4x on the Fold. The sharp art brings the full size back.
+    const k = Math.min(1, 640 / Math.max(px, py)), sw = Math.max(1, Math.round(px * k)), sh = Math.max(1, Math.round(py * k)); finSize(c, sw, sh);
+    o.setTransform(1, 0, 0, 1, 0, 0); o.clearRect(0, 0, sw, sh); R.drawBase(o, sw, sh); if (fra && fra.a) A.drawFrame(o, sw, sh, fra);   // stand-in with its frame: only the gloss arrives later
+  }
+  function finSize(c, w, h) { if (c.width !== w) c.width = w; if (c.height !== h) c.height = h; }
+  function finShow(f, px, py) {   // swap the finished art in over the stand-in (a fade cost two more full-canvas blends per frame)
+    const c = $('#fc'); if (FC.tl || FC.px !== px || FC.py !== py) return;   // the time-lapse owns the canvas; its done() draws the finished art
+    // v9 QA P2 round 2: painted in a task of its own (the 1 px read makes the canvas paint now), so the next frame only hands it over
+    setTimeout(() => { if (FC.fin !== f || FC.tl || scr !== 'fin' || FC.px !== px || FC.py !== py) return; finSize(c, px, py); const o = c.getContext('2d'); o.setTransform(1, 0, 0, 1, 0, 0); o.drawImage(f, 0, 0, px, py); finFlush(c); }, 0);
+  }
+  let flc = null;
+  function finFlush(c) { if (!flc) { flc = document.createElement('canvas'); flc.width = flc.height = 1; } flc.getContext('2d').drawImage(c, 0, 0, 1, 1, 0, 0, 1, 1); }
+  function finBuild(key, fra) {
+    const px = FC.px, py = FC.py, job = FC.job = { key, px, py, i: 0 }, g0 = G, pic = G.pic;
+    if (noWorker || !window.Worker || typeof OffscreenCanvas === 'undefined' || typeof ImageBitmap === 'undefined') { finSlices(job, fra); return; }
+    (async () => {
+      const m = { cmd: 'export', gen: 1, fc: stFor(G.order.length).fc, frame: fra && fra.a ? { id: fra.id, a: fra.a, b: fra.b } : null, long: Math.max(px, py), sheen: true, bitmap: true };
+      if (pic.custom) { m.pz = await API.loadPz(G.pid); if (!m.pz) throw new Error('nopz'); } else m.pic = { w: pic.w, h: pic.h, pal: pic.pal, bg: pic.bg, shapes: pic.shapes, line: pic.line, lab: pic.lab };
+      if (FC.job !== job) return null;
+      return await new Promise((res, rej) => {
+        const w = new Worker('worker.js'), to = setTimeout(() => { w.terminate(); rej(new Error('timeout')); }, 40000);
+        w.onmessage = e => { clearTimeout(to); w.terminate(); e.data.t === 'bmp' ? res(e.data.bm) : rej(new Error('worker')); }; w.onerror = () => { clearTimeout(to); w.terminate(); rej(new Error('worker')); }; w.postMessage(m);
+      });
+    })().then(bm => {
+      if (!bm) return; if (FC.job !== job || G !== g0) { bm.close(); return; }
+      FC.fin = bm; FC.finKey = key; FC.job = null; finShow(bm, px, py);
+    }, () => { if (FC.job === job && G === g0 && scr === 'fin') finSlices(job, fra); });
+  }
+  function finSlices(job, fra) {
+    const px = FC.px, py = FC.py, f = document.createElement('canvas'); f.width = px; f.height = py; const fg = f.getContext('2d'); fg.setTransform(px / FC.WW, 0, 0, py / FC.WH, 0, 0);
+    const st = stFor(G.order.length), n = G.P.n, all = !!G.P.grid, g0 = G, key = job.key, per = Math.max(3, Math.ceil(n / 30));   // ~30 frames; canvas paints later than the call, so count, not time
+    const step = () => {
+      if (FC.job !== job) return; if (G !== g0 || scr !== 'fin') { FC.job = null; return; }   // left the screen: the next Finished screen starts again
+      const to = all ? n : Math.min(n, job.i + per); R.drawFlat(fg, st, { sheen: true, from: job.i, to }); job.i = to;
+      if (job.i < n) { requestAnimationFrame(step); return; }
+      fg.setTransform(1, 0, 0, 1, 0, 0); if (fra && fra.a) A.drawFrame(fg, px, py, fra);
+      FC.fin = f; FC.finKey = key; FC.job = null; finShow(f, px, py);
+    };
+    requestAnimationFrame(step);
   }
   // glitter specks + the shine sweep live on the 1x overlay (world coordinates mapped through FC.map), so the sharp art canvas is only painted once
   function glitter(g, t) {
     if (!FC.spk) FC.spk = mkSpk(); const m = FC.map, k = m[2];
     for (const s of FC.specks) { g.globalAlpha = 0.25 + 0.75 * Math.abs(Math.sin(t / 500 + s[3])); const r = s[2] * k; g.drawImage(FC.spk, m[0] + s[0] * k - r, m[1] + s[1] * k - r, r * 2, r * 2); } g.globalAlpha = 1;
-    if (t > 0 && t < 5200 && !calm()) { const WW = FC.WW, WH = FC.WH, x = -600 + ((t % 2600) / 2600) * (WW + 1200); g.save(); g.beginPath(); g.rect(m[0], m[1], WW * k, WH * m[3]); g.clip(); g.setTransform(k, 0, 0, m[3], m[0] + x * k, m[1]); g.fillStyle = FC.sg; g.fillRect(-x, 0, WW, WH); g.restore(); }
+    if (t > 0 && t < 5200 && !calm()) { const WW = FC.WW, WH = FC.WH, x = -600 + ((t % 2600) / 2600) * (WW + 1200); g.save(); g.beginPath(); g.rect(m[0], m[1], WW * k, WH * m[3]); g.clip(); g.transform(k, 0, 0, m[3], m[0] + x * k, m[1]); g.fillStyle = FC.sg; g.beginPath(); g.moveTo(0, 0); g.lineTo(1000, 0); g.lineTo(1000 - WH, WH); g.lineTo(-WH, WH); g.closePath(); g.fill(); g.restore(); }   // only the shine band (the gradient is clear outside it): same pixels, ~half the fill
   }
   function showFin() {
     if (!G) { go('start'); return; } stopLoop(); setTimeout(() => {
@@ -412,7 +500,7 @@
   }
   // finish celebration: pooled confetti + sparkles over the glittering art; the sweep and specks run for ~5 s, then it rests (loop stops)
   function celebrate() {
-    if (!FC.map) return; cancelAnimationFrame(FC.anim); const k = $('#fconf'), t0 = performance.now(), d = 1, W = k.width, H = k.height; pcClear(); if (!pcSpr) pcBuild(); AU.say('finish', { delay: 650, then: FC.then }); FC.then = null;
+    if (!FC.map) return; cancelAnimationFrame(FC.anim); const k = $('#fconf'), t0 = performance.now(), d = 1, W = k.width / (k._s || 1), H = k.height / (k._s || 1); pcClear(); if (!pcSpr) pcBuild(); AU.say('finish', { delay: 650, then: FC.then }); FC.then = null;
     if (!calm()) for (let i = 0, n = pcCap(); i < n; i++) pcSpawn(0, Math.random() * W, -Math.random() * H * 0.6, (Math.random() - 0.5) * 60, 60 + Math.random() * 140, 22 + Math.random() * 26, (Math.random() * 8) | 0, 5);
     const m = FC.map; let lastT = t0, acc = 0, tt = 0; const under = g => glitter(g, tt);
     const step = t => {
@@ -445,7 +533,7 @@
   function mapOf(canvas, conf, d, W, H) { const a = canvas.getBoundingClientRect(), b = conf.getBoundingClientRect(); return [(a.left - b.left) * d, (a.top - b.top) * d, a.width * d / W, a.height * d / H]; }
   function replay() {
     if (!G || scr !== 'fin') return;
-    timelapse({ P: G.P, pic: G.pic, order: G.order, can: $('#fc'), conf: $('#fconf'), W: FC.WW, H: FC.WH, map: FC.map, done: () => { const c = $('#fc'); c.width = FC.px; c.height = FC.py; drawFin(0); celebrate(); } });
+    FC.tl = true; timelapse({ P: G.P, pic: G.pic, order: G.order, can: $('#fc'), conf: $('#fconf'), W: FC.WW, H: FC.WH, map: FC.map, done: () => { FC.tl = false; const c = $('#fc'); c.width = FC.px; c.height = FC.py; drawFin(0); celebrate(); } });
   }
   $('#fReplay').onclick = replay; $('#fc').onclick = replay;
   $('#fGal').onclick = () => go('gal');
@@ -468,7 +556,7 @@
 
   // ---------- viewer: re-renders the picture on demand from puzzle + fills (deterministic, no 2K blobs stored); time-lapse, frame, free paint, gated save/delete ----------
   let V = null;
-  async function picOfPid(pid) { const m = /^pk:([a-z0-9]+)\.([a-z0-9]+)$/.exec(pid); if (m) return picBy(m[1], m[2]); return API.loadPic ? API.loadPic(pid) : null; }
+  async function picOfPid(pid) { if (isDetail(pid) || isCustom(pid)) return API.loadPic ? API.loadPic(pid) : null; const m = /^pk:([a-z0-9]+)\.([a-z0-9]+)$/.exec(pid); if (m) return picBy(m[1], m[2]); return API.loadPic ? API.loadPic(pid) : null; }
   async function openView(pid, which) {
     const pic = await picOfPid(pid); if (!pic) { return; }   // unreadable puzzle: stay in the gallery (the record is kept)
     const n = pic.shapes.length, ro = await SV.getProg(pid, n), rf = await SV.getProg(pid + ':free', n), hasF = !!(rf && rf.free && galFree.has(pid)), hasO = galMap.has(pid);
@@ -520,7 +608,7 @@
         if (pic.custom) job.pz = await API.loadPz(V.pid); else job.pic = { w: pic.w, h: pic.h, pal: pic.pal, bg: pic.bg, shapes: pic.shapes, line: pic.line, lab: pic.lab };
         if (pic.custom && !job.pz) throw new Error('nopz');
         const r = await new Promise((res, rej) => {
-          const w = new Worker('worker.js'), to = setTimeout(() => { w.terminate(); rej(new Error('timeout')); }, 40000);
+          const w = new Worker('worker.js'), to = setTimeout(() => { w.terminate(); rej(new Error('timeout')); }, long > 2048 ? 90000 : 40000);
           w.onmessage = e => { clearTimeout(to); w.terminate(); e.data.t === 'png' ? res(e.data) : rej(new Error('worker')); }; w.onerror = () => { clearTimeout(to); w.terminate(); rej(new Error('worker')); }; w.postMessage(job);
         });
         return { blob: r.blob, w: r.w, h: r.h, via: 'worker' };
@@ -541,7 +629,8 @@
     if (!V || V.busy) return;
     askGate('Saved pictures may copy to the cloud if phone backup is on.', async () => {
       if (!V) return; V.busy = true; $('#vSave').classList.add('busy'); AU.say('export');
-      try { const r = await renderPng(2048); if (r && r.blob) await deliver(r.blob); } catch (e) { toast('sparkle'); }
+      // 4K puzzle + Super sharp switch on: 3840 px PNG (2K if that fails); everything else stays 2048
+      try { const big = V.pic.k4 && SV.data.set.sharp; let r = null; if (big) r = await renderPng(3840).catch(() => null); if (!r || !r.blob) r = await renderPng(2048); if (r && r.blob) await deliver(r.blob); } catch (e) { toast('sparkle'); }
       finally { if (V) V.busy = false; $('#vSave').classList.remove('busy'); }
     });
   };
@@ -568,7 +657,7 @@
     const bind = (id, k) => $('#' + id).onclick = e => { s[k] = !s[k]; e.currentTarget.classList.toggle('on', s[k]); SV.write(); applySettings(); };
     bind('sMus', 'mus'); bind('sVoice', 'voice'); bind('sMusic', 'music'); bind('sNums', 'nums');
     $$('#sOut button').forEach(b => b.onclick = () => { s.outl = +b.dataset.n; $$('#sOut button').forEach(x => x.classList.toggle('on', x === b)); SV.write(); });
-    $('#sLock').onclick = () => { const h = $('#guHost'); if (h.firstChild) return; AU.say('grown'); if (FZ && FZ.gate) FZ.gate(h, () => { h.innerHTML = tg('gHelp', 'Helpers', 'hint', s.helpers) + tg('gPhoto', 'My Photo', 'photo', s.photo) + tg('gGrid', 'Big grids', 'squares', s.bigGrid) + '<div class="set"><label><span id="gSt"></span></label></div><div id="gPh"></div>'; bind('gHelp', 'helpers'); bind('gPhoto', 'photo'); bind('gGrid', 'bigGrid'); stor(); if (API.storagePage) API.storagePage($('#gPh')); }, () => { }); };
+    $('#sLock').onclick = () => { const h = $('#guHost'); if (h.firstChild) return; AU.say('grown'); if (FZ && FZ.gate) FZ.gate(h, () => { h.innerHTML = tg('gHelp', 'Helpers', 'hint', s.helpers) + tg('gPhoto', 'My Photo', 'photo', s.photo) + tg('gGrid', 'Big grids', 'squares', s.bigGrid) + tg('gAll', 'All levels', 'gem', s.allLevels) + tg('gSharp', '4K Super sharp', 'photo', s.sharp) + '<div class="set"><label><span id="gSt"></span></label></div><div id="gPh"></div>'; bind('gHelp', 'helpers'); bind('gPhoto', 'photo'); bind('gGrid', 'bigGrid'); bind('gAll', 'allLevels'); bind('gSharp', 'sharp'); stor(); if (API.storagePage) API.storagePage($('#gPh')); }, () => { }); };
   }
   async function stor() { let t = 'Saved here'; try { const e = await navigator.storage.estimate(); t = Math.round((e.usage || 0) / 1048576 * 10) / 10 + ' MB'; } catch (e) { } if (SV.quarantine.size) t += ' - ' + SV.quarantine.size + ' unreadable'; if (SV.warn) t += ' - not saving!'; const e = $('#gSt'); if (e) e.textContent = t; }
 
@@ -581,7 +670,7 @@
   });
 
   // ---------- hooks for photo.js ----------
-  Object.assign(API, { galFree, go, nav, A, R, SV, AU, FZ, sd, toast, loadMaps, galMap, progMap, openGame, openPic, picBy, pidOf, isCustom, thumb, calm, applySettings, fracRec, stor });
+  Object.assign(API, { galFree, go, nav, A, R, SV, AU, FZ, sd, toast, loadMaps, galMap, progMap, openGame, openPic, picBy, pidOf, isCustom, isDetail, thumb, calm, applySettings, fracRec, stor });
   Object.defineProperties(API, { scr: { get: () => scr }, prev: { get: () => prev }, G: { get: () => G } });   // live views (Object.assign would copy the current value only)
   window.CMApp = { API, HOOK };
 

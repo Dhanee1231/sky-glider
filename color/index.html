@@ -37,23 +37,25 @@ html.fz-lefty .tb{flex-direction:row-reverse}
 html.fz-calm #logo{animation:none}
 @media (prefers-reduced-motion:reduce){#logo{animation:none}}
 .tiles{display:flex;gap:min(3vmin,18px);flex-wrap:wrap;justify-content:center}
-.tile{width:min(26vmin,150px);aspect-ratio:1;border-radius:28px;display:grid;place-items:center;align-content:center;gap:4px;background:linear-gradient(150deg,#ff8fd0,#d6339f);box-shadow:0 5px 0 rgba(120,0,90,.5);font-weight:900;font-size:clamp(14px,3.2vmin,22px);text-shadow:0 2px 0 rgba(90,0,70,.5);position:relative}
-.tile svg{width:46%;height:46%}
+.tile{--tw:min(26vmin,150px);width:var(--tw);aspect-ratio:1;border-radius:28px;display:grid;place-items:center;align-content:center;gap:4px;background:linear-gradient(150deg,#ff8fd0,#d6339f);box-shadow:0 5px 0 rgba(120,0,90,.5);font-weight:900;font-size:clamp(14px,3.2vmin,22px);text-shadow:0 2px 0 rgba(90,0,70,.5);position:relative}
+.tile svg{width:calc(var(--tw)*.46);height:calc(var(--tw)*.46)}
 .tile.a{background:linear-gradient(150deg,#c9a3ff,#7d4bd8)}.tile.b{background:linear-gradient(150deg,#ffe27a,#e0a000)}
 .tile:active{transform:scale(.95)}
 #keep{display:flex;align-items:center;gap:12px;border-radius:24px;padding:8px 18px 8px 8px;background:linear-gradient(150deg,#8ff0c0,#2fb877);box-shadow:0 5px 0 rgba(0,90,50,.5);font-weight:900;font-size:clamp(16px,3.4vmin,24px)}
 #keep canvas{width:min(14vmin,84px);aspect-ratio:1;border-radius:16px;border:3px solid #fff;background:#fff1ee}
 #keep svg{width:34px;height:34px}
 /* ---- packs ---- */
-#packRow{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;width:100%;padding:6px 4px 10px;flex:none}
+#packRow{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;flex:1 1 auto;min-width:0;padding:6px 4px 10px}
+#sc-packs .pad{overflow-x:hidden}
 .pcov{scroll-snap-align:center;flex:none;width:min(40vmin,220px);border-radius:26px;border:4px solid #fff;background:#fff1ee;box-shadow:0 5px 0 rgba(120,0,90,.4);padding:6px;color:#8a1270;text-align:center;font-weight:900;font-size:clamp(13px,2.8vmin,20px)}
 .pcov.sel{outline:5px solid #ffe27a}
+@media (orientation:landscape) and (max-height:500px){.pcov{width:min(30vmin,220px)}}
 .pcov canvas{width:100%;aspect-ratio:1;border-radius:18px;display:block}
 .chev{position:relative;flex:none;align-self:center;width:52px;height:52px;color:#d6339f;animation:nudge 1.2s ease-in-out infinite}
 .chev svg{width:100%;height:100%}
 @keyframes nudge{50%{transform:translateX(8px)}}
 html.fz-calm .chev{animation:none}
-#picGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(26vmin,150px),1fr));gap:12px;width:100%;overflow-y:auto;align-content:start;flex:1;min-height:0;padding:4px 2px 8px}
+#picGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(26vmin,150px),1fr));gap:12px;grid-auto-rows:max-content;width:100%;overflow-y:auto;align-content:start;flex:1;min-height:0;padding:4px 2px 8px}
 .pic{position:relative;border-radius:22px;border:4px solid #fff;background:#fff1ee;box-shadow:0 4px 0 rgba(120,0,90,.35);padding:0;overflow:hidden;color:#fff;aspect-ratio:1}
 .pic canvas{width:100%;height:100%;display:block}
 .pic .hs{display:inline-block;width:20px;height:20px}.pic .hs svg{width:100%;height:100%}
@@ -152,8 +154,8 @@ input[type=range]{width:min(40vw,220px);height:48px;accent-color:#d6339f}
 #gu{border-top:3px dashed #ffc0e0;padding-top:10px;display:flex;flex-direction:column;gap:10px}
 .fzB{font:inherit}
 /* ---- my photo / options / making / error (M2) ---- */
-.pickBig{width:min(48vmin,230px);flex:none}
-#phGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(26vmin,140px),1fr));gap:12px;width:100%;overflow-y:auto;align-content:start;flex:1;min-height:0;padding:4px 2px 8px}
+.pickBig{--tw:min(48vmin,230px);flex:none}
+#phGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(26vmin,140px),1fr));gap:12px;grid-auto-rows:max-content;width:100%;overflow-y:auto;align-content:start;flex:1;min-height:0;padding:4px 2px 8px}
 #phGrid .pic .ring,#phGrid .pic .crown{top:4px;right:4px}
 #opBody{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;align-items:stretch}
 #opPics{flex:1;min-height:0;display:flex;gap:8px;align-items:center;justify-content:center}
@@ -168,10 +170,13 @@ html.fz-calm #opBusy,html.fz-calm #opPics .mg{animation:none}
 .opRow{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:nowrap}
 .opRow .rb{width:var(--bb);height:var(--bb)}
 .opRow .tg2{position:relative}
-.dfb{position:relative;flex:1 1 0;min-width:0;max-width:96px;border-radius:16px;border:3px solid #fff;background:linear-gradient(150deg,#ff8fd0,#d6339f);padding:3px 2px 4px;color:#fff;font-weight:900;font-size:11px;line-height:1.05;text-shadow:0 1px 0 rgba(90,0,70,.5);display:flex;flex-direction:column;align-items:center;gap:2px;box-shadow:0 3px 0 rgba(120,0,90,.5)}
-.dfb svg.dv{width:30px;height:30px;display:block}
-.dfb.on{outline:4px solid #ffe27a}
-.dfb .gm{display:flex}.dfb .gm svg{width:12px;height:12px}
+#opDiff{flex:none;width:100%;flex-wrap:wrap;align-items:stretch;align-content:center}
+.dfb{position:relative;flex:1 1 96px;min-width:96px;min-height:48px;max-width:148px;height:auto;border-radius:16px;border:3px solid #fff;background:linear-gradient(150deg,#ff8fd0,#d6339f);padding:4px 4px 5px;color:#fff;font-weight:900;font-size:11px;line-height:1.05;text-shadow:0 1px 0 rgba(90,0,70,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:0 3px 0 rgba(120,0,90,.5);overflow:visible;white-space:normal;text-align:center}
+.dfb svg.dv{width:22px;height:22px;display:block;flex:none}
+.dfb.k4{background:linear-gradient(150deg,#c48bff,#7d4bd8)}
+.dfb.on{outline:none;border-color:#ffe27a;box-shadow:inset 0 0 0 2px #ffe27a,0 3px 0 rgba(120,0,90,.5)}
+.dfb .gm{display:flex;flex-wrap:wrap;justify-content:center;max-width:100%}.dfb .gm svg{width:11px;height:11px;flex:none}
+.dfb .nm{display:block;width:100%;max-width:100%;white-space:normal;overflow-wrap:break-word;word-break:normal;text-align:center}
 .dial{display:flex;align-items:center;gap:6px;justify-content:center;flex:1;min-width:0}
 .dial b{min-width:40px;text-align:center;color:#8a1270;font-size:clamp(18px,4vmin,26px)}
 #palDots{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;max-width:150px}#palDots i{width:14px;height:14px;border-radius:50%;border:2px solid #fff;display:block}
@@ -185,13 +190,17 @@ html.fz-calm #opBusy,html.fz-calm #opPics .mg{animation:none}
 #mkSp{position:relative;display:flex;gap:14px;color:#ffc400}#mkSp svg{width:34px;height:34px;animation:bob 1.2s ease-in-out infinite}#mkSp svg:nth-child(2){animation-delay:.2s}#mkSp svg:nth-child(3){animation-delay:.4s}
 html.fz-calm #mkGem,html.fz-calm #mkSp svg{animation-duration:6s}
 #mkBar{width:min(70vw,360px);height:20px;border-radius:12px;background:rgba(255,255,255,.55);border:3px solid #fff;overflow:hidden}#mkBar i{display:block;height:100%;width:6%;border-radius:9px;background:linear-gradient(90deg,#ffe27a,#ff8fcf);transition:width .25s}
+#mkBar i{position:relative;overflow:hidden;min-width:22px}#mkBar i::before{content:"";position:absolute;top:0;bottom:0;left:0;width:200%;background:repeating-linear-gradient(115deg,transparent 0 14px,rgba(255,255,255,.6) 14px 18px,transparent 18px 30px);animation:mkGl 1.1s linear infinite}
+#mkBar i b{position:absolute;right:2px;top:50%;width:16px;height:16px;color:#fff;transform:translateY(-50%);animation:mkTw .9s ease-in-out infinite;filter:drop-shadow(0 0 3px #ff5fa2)}#mkBar i b svg{width:100%;height:100%;display:block}
+@keyframes mkGl{from{transform:translateX(-33.1px)}to{transform:translateX(0)}}@keyframes mkTw{0%,100%{transform:translateY(-50%) scale(.8) rotate(0)}50%{transform:translateY(-50%) scale(1.15) rotate(20deg)}}
+html.fz-calm #mkBar i::before,html.fz-calm #mkBar i b{animation-duration:4s}@media (prefers-reduced-motion:reduce){#mkBar i::before,#mkBar i b{animation:none}}
 #sc-err .card{margin:auto}
 #errMsg{font-size:clamp(18px,4vmin,26px);display:flex;align-items:center;gap:8px;flex-direction:column}
 #errIc{width:90px;height:90px;color:#ffc400}#errIc svg{width:100%;height:100%}
 .hs2{display:flex;align-items:center;gap:8px;min-height:52px}
 .hs2 img{width:44px;height:44px;border-radius:8px;object-fit:cover;border:2px solid #fff;background:#fff1ee}
 .hs2 span{flex:1;font-size:15px}
-.rb.sm{width:44px;height:44px}.rb.warn{background:linear-gradient(145deg,#ff9a7a,#d6332f)}
+.rb.sm{width:48px;height:48px;flex:none}.rb.warn{background:linear-gradient(145deg,#ff9a7a,#d6332f)}
 #toast{position:absolute;left:50%;top:70px;transform:translateX(-50%);z-index:30;background:rgba(255,255,255,.95);color:#d6339f;border-radius:99px;padding:6px 16px;font-weight:900;display:none;align-items:center;gap:8px;border:3px solid #ffd34d}#toast.on{display:flex}#toast svg{width:24px;height:24px}
 </style></head><body>
 <div id="app">
@@ -243,10 +252,10 @@ html.fz-calm #mkGem,html.fz-calm #mkSp svg{animation-duration:6s}
   <div id="opBody"><div id="opPics"><div class="cw"><canvas id="opSrc"></canvas></div><span class="mg" id="opMagic"></span><div class="cw"><canvas id="opPrev"></canvas><i id="opBusy"></i></div></div>
    <div id="opSide"><div id="opMore" hidden>
      <div class="opRow" id="opMode"><button class="rb" data-m="pixel" aria-label="Squares"></button><button class="rb" data-m="shapes" aria-label="Shapes"></button><button class="rb gold" id="opSpark" aria-label="Sparkle colors"></button></div>
-     <div class="opRow" id="opDiff"></div>
      <div class="opRow" id="opPalRow"><button class="rb si opBtn" id="palMinus" aria-label="Fewer colors"></button><div class="dial"><b id="palN"></b><div id="palDots"></div></div><button class="rb si opBtn" id="palPlus" aria-label="More colors"></button></div>
      <div class="opRow" id="opGridRow"><button class="rb si opBtn" id="grMinus" aria-label="Fewer squares"></button><div class="dial"><span id="grIc"></span><b id="grN"></b></div><button class="rb si opBtn" id="grPlus" aria-label="More squares"></button></div>
     </div>
+    <div class="opRow" id="opDiff"></div>
     <div id="opBar"><button class="rb si big" id="opMoreBtn" aria-label="More magic"></button><button class="mk" id="opMake" aria-label="Make"></button></div></div></div>
  </div></section>
  <section id="sc-make" class="screen"><div class="col">
@@ -261,6 +270,6 @@ html.fz-calm #mkGem,html.fz-calm #mkSp svg{animation-duration:6s}
 </div>
 <script src="funzone.js"></script>
 <script src="cbn-core.js"></script><script src="art.js"></script><script src="audio.js"></script><script src="save.js"></script>
-<script src="packs/kit.js"></script><script src="packs/gems.js"></script><script src="packs/meadow.js"></script><script src="packs/ocean.js"></script><script src="packs/treats.js"></script><script src="packs/pets.js"></script><script src="packs/friends.js"></script>
+<script src="packs/kit.js"></script><script src="packs/kit2.js"></script><script src="packs/kit3.js"></script><script src="packs/gems.js"></script><script src="packs/meadow.js"></script><script src="packs/ocean.js"></script><script src="packs/treats.js"></script><script src="packs/pets.js"></script><script src="packs/friends.js"></script><script src="packs/rainbow.js"></script><script src="packs/garden.js"></script><script src="packs/space.js"></script><script src="packs/farm.js"></script><script src="packs/dino.js"></script><script src="packs/seasons.js"></script>
 <script src="pipe.js"></script><script src="render.js"></script><script src="app.js"></script><script src="photo.js"></script>
 </body></html>

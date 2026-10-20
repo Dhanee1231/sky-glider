@@ -1,0 +1,132 @@
+Color Magic - credits (v9, Oct 2026)
+
+All 92 pictures are original vector art drawn in code (SVG path strings in packs/*.js) for Dhanee's Playground.
+No third-party images, fonts, icon sets, characters, logos or traced art are used anywhere in this app.
+License: original work, all rights reserved by the family. Not for reuse.
+
+Voice: Kokoro af_heart, clips generated ahead of time (audio/*.ogg). No live speech service.
+Sound effects and music: made in code with WebAudio at play time.
+Number labels: computed by code (not drawn).
+
+Packs 1-6 (42 pictures, v8): drawn in code by Claude; review: Studio Lead.
+Packs 7-9 (25 pictures, v9): original art drawn in code by Grok 4.7 (paths only), Oct 2026; review: Studio Lead.
+Packs 10-12 (25 pictures, v9): original art drawn in code by Grok 4.7 (paths only), Oct 2026; review: Studio Lead.
+Redrawn by Claude Opus 5.5, Oct 2026: dn1, dn3, dn5, dn6, sw2, sw4, fm8 (marked * below).
+
+Pack 1: Hearts & Gems (7 pictures) - Claude (paths only), Oct 16 2026
+  hg1   Heart Gem
+  hg2   Royal Crown
+  hg3   Treasure Chest
+  hg4   Gem Ring
+  hg5   Diamond Butterfly
+  hg6   Heart Balloons
+  hg7   Jewel Castle
+
+Pack 2: Unicorn Meadow (7 pictures) - Claude (paths only), Oct 16 2026
+  um1   Unicorn
+  um2   Rainbow
+  um3   Mushroom House
+  um4   Flower Field
+  um5   Butterfly
+  um6   Fairy Door
+  um7   Starry Unicorn
+
+Pack 3: Ocean Sparkles (7 pictures) - Claude Sonnet 5.5 (paths only), Oct 17 2026
+  os1   Seashell
+  os2   Smiling Fish
+  os3   Octopus
+  os4   Seahorse
+  os5   Jellyfish
+  os6   Mermaid Tail
+  os7   Coral Reef
+
+Pack 4: Sweet Treats (7 pictures) - Claude Sonnet 5.5 (paths only), Oct 17 2026
+  st1   Cupcake
+  st2   Ice Cream
+  st3   Donut
+  st4   Lollipops
+  st5   Macarons
+  st6   Birthday Cake
+  st7   Candy Shop
+
+Pack 5: Cuddly Pets (7 pictures) - Claude Sonnet 5.5 (paths only), Oct 17 2026
+  cp1   Kitten
+  cp2   Puppy
+  cp3   Bunny
+  cp4   Hedgehog
+  cp5   Ladybug
+  cp6   Bird in Nest
+  cp7   Kitten in a Teacup
+
+Pack 6: Fun Zone Friends (7 pictures) - Claude Sonnet 5.5 (paths only), Oct 17 2026
+  ff1   Zippy
+  ff2   Glimmer
+  ff3   Sky Glider Racers
+  ff4   Piano Gems
+  ff5   Sparkle Castle
+  ff6   Neon Kart
+  ff7   Fun Zone Hearts
+
+Pack 7: Rainbow Skies (10 pictures) - Grok 4.7 (paths only), Oct 2026
+  rh1   Rainbow Over Hills
+  rh2   Unicorn with Rainbow
+  rh3   Rainbow with Clouds
+  rh4   Rainbow Bridge Castle
+  rh5   Rainbow Waterfall
+  rh6   Rainbow Balloon
+  rh7   Rainbow Kite Day
+  rh8   Double Rainbow Lake
+  rh9   Rainbow Butterfly
+  rh10  Rainbow Cake
+
+Pack 8: Magic Garden (8 pictures) - Grok 4.7 (paths only), Oct 2026
+  gd1   Flower Gate
+  gd2   Tulip Fountain
+  gd3   Mushroom Parade
+  gd4   Sunflower Friends
+  gd5   Rose Arch
+  gd6   Lily Pond
+  gd7   Watering Day
+  gd8   Lantern Garden
+
+Pack 9: Space Party (7 pictures) - Grok 4.7 (paths only), Oct 2026
+  sp1   Rocket Parade
+  sp2   Planet Party
+  sp3   Alien Dance
+  sp4   Moon Picnic
+  sp5   Comet Friends
+  sp6   Star Balloon
+  sp7   Galaxy Cupcakes
+
+Pack 10: Farm Friends (8 pictures) - Grok 4.7 (paths only), Oct 2026
+  fm1   Barn Morning
+  fm2   Happy Cow
+  fm3   Tractor Ride
+  fm4   Muddy Pig
+  fm5   Hen and Chicks
+  fm6   Woolly Sheep
+  fm7   Market Day
+  fm8   Pond Duck  *redraw: Claude Opus 5.5
+
+Pack 11: Dino Pals (8 pictures) - Grok 4.7 (paths only), Oct 2026
+  dn1   Coral Rex  *redraw: Claude Opus 5.5
+  dn2   Tall Neck
+  dn3   Plate Parade  *redraw: Claude Opus 5.5
+  dn4   Egg Nest
+  dn5   Wing Soar  *redraw: Claude Opus 5.5
+  dn6   Frill Friend  *redraw: Claude Opus 5.5
+  dn7   Hatchling
+  dn8   Jungle Picnic
+
+Pack 12: Seasons & Weather (9 pictures) - Grok 4.7 (paths only), Oct 2026
+  sw1   Blossom Tree
+  sw2   Summer Sun  *redraw: Claude Opus 5.5
+  sw3   Leaf Fall
+  sw4   Snow Cottage  *redraw: Claude Opus 5.5
+  sw5   Rainy Walk
+  sw6   Rainbow After Rain
+  sw7   Snowy Rainbow
+  sw8   Kite Breeze
+  sw9   Thunder Boom
+
+Total: 92 pictures in 12 packs.

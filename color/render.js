@@ -9,7 +9,7 @@
   const mk = (w, h) => (typeof OffscreenCanvas !== 'undefined') ? new OffscreenCanvas(w, h) : Object.assign(document.createElement('canvas'), { width: w, height: h });
   const hx = mk(1, 1).getContext('2d');
   const FXD = 1;   // the fx overlay (hatch, glow, sparkles) is soft by design, so it runs at 1x to save fill rate on big screens
-  let WW = WORLD, WH = WORLD, art, fx, actx, fctx, cssW = 0, cssH = 0, dpr = 1, q = 0, fit = 0.2, S = null, curLi = 4, lastCam = 0, artDirty = true, fxDirty = true, frameNo = 0, tileCount = 0;
+  let WW = WORLD, WH = WORLD, art, fx, actx, fctx, cssW = 0, cssH = 0, dpr = 1, q = 0, fit = 0.2, S = null, curLi = 4, lastCam = 0, artDirty = true, fxDirty = true, frameNo = 0, tileCount = 0, quiet = 0, warmTo = 0;
   const cam = { x: WORLD / 2, y: WORLD / 2, z: 0.2 };
   const GLW = P => Math.max(2.5, P.grid.cs * 0.05);   // pixel-mode grid line width (world px)
   const tiles = new Map(), fxPend = new Map(), pendTiles = new Set(), glow = new Set();
@@ -31,6 +31,22 @@
     }
     return P;
   }
+  // D 6: a thin sliver that packprep found no spot for (lab [2,2,0,0]) still has to be tapped to finish the picture. Find its visible pixels
+  // at full size (painter's order, only the shapes over its box) and put the spot on the one deepest inside; the tap snap does the rest.
+  function thinSpot(P, i) {
+    const b = P.bb[i], w = Math.max(3, Math.ceil(b[2] - b[0])), h = Math.max(3, Math.ceil(b[3] - b[1])), c = mk(w, h), g = c.getContext('2d', { willReadFrequently: true });
+    g.fillStyle = '#0f0'; g.fillRect(0, 0, w, h); g.translate(-b[0], -b[1]);
+    for (let j = i; j < P.n; j++) { const q = P.bb[j]; if (j > i && (q[0] > b[2] || q[2] < b[0] || q[1] > b[3] || q[3] < b[1])) continue; g.fillStyle = j === i ? '#f00' : '#00f'; g.save(); if (P.clip[j]) g.clip(P.clip[j]); g.fill(P.path[j]); g.restore(); }
+    const d = g.getImageData(0, 0, w, h).data, on = new Uint8Array(w * h);
+    for (let p = 0; p < w * h; p++) on[p] = d[p * 4] > d[p * 4 + 1] && d[p * 4] > d[p * 4 + 2] ? 1 : 0;
+    let best = 0, bp = -1;
+    for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {   // depth = steps to the edge along the 4 axes (enough for a sliver)
+      const p = y * w + x; if (!on[p]) continue; let k = 1; while (k < 8 && x - k >= 0 && x + k < w && y - k >= 0 && y + k < h && on[p - k] && on[p + k] && on[p - k * w] && on[p + k * w]) k++;
+      if (k > best) { best = k; bp = p; }
+    }
+    if (bp < 0) return null;
+    return [b[0] + bp % w + 0.5, b[1] + ((bp / w) | 0) + 0.5, best, Math.min(2 * best, 240)];
+  }
   function prep(pic) {
     if (pic.pre) return prepPre(pic);
     const n = pic.shapes.length, P = { pic, n, path: [], clip: [], col: new Uint8Array(n), bb: [], lab: [], line: pic.line.map(d => new Path2D(d)), vis: new Int32Array(n) };
@@ -44,7 +60,7 @@
       for (let p = 0; p < 65536; p++) if (d[p * 4 + 3]) { const px = p & 255, py = p >> 8; if (px < x0) x0 = px; if (px > x1) x1 = px; if (py < y0) y0 = py; if (py > y1) y1 = py; }
       P.bb[i] = x1 < 0 ? [0, 0, 0, 0] : [Math.max(0, (x0 - 2) * 8), Math.max(0, (y0 - 2) * 8), Math.min(WORLD, (x1 + 3) * 8), Math.min(WORLD, (y1 + 3) * 8)];
     }
-    if (pic.lab && pic.lab.length === n) { for (let i = 0; i < n; i++) P.lab[i] = pic.lab[i]; return P; }   // spots precomputed by cbn-packprep
+    if (pic.lab && pic.lab.length === n) { for (let i = 0; i < n; i++) P.lab[i] = pic.lab[i][2] > 0 ? pic.lab[i] : thinSpot(P, i) || pic.lab[i]; return P; }   // spots precomputed by cbn-packprep
     // number spots: visible-area id map at 512, chamfer distance transform, pole of inaccessibility per shape
     const W = 512, c2 = mk(W, W), g = c2.getContext('2d', { willReadFrequently: true });
     g.setTransform(W / WORLD, 0, 0, W / WORLD, 0, 0);
@@ -61,6 +77,7 @@
     for (let p = 0; p < W * W; p++) { const id = ids[p]; if (id < 0) continue; P.vis[id]++; if (dist[p] > best[id]) { best[id] = dist[p]; bx[id] = p % W; by[id] = (p / W) | 0; } }
     const k = WORLD / W;
     for (let i = 0; i < n; i++) { const dw = best[i] / 3 * k; P.lab[i] = [bx[i] * k + k / 2, by[i] * k + k / 2, dw, Math.min(2 * dw, 240)]; }   // x, y, inradius (world), digit font size (world)
+    for (let i = 0; i < n; i++) if (!best[i]) P.lab[i] = thinSpot(P, i) || P.lab[i];   // thinner than one 512 pixel
     return P;
   }
 
@@ -110,13 +127,26 @@
   function drawFlat(c, st, opts) {
     const keep = S; S = st; const P = st.P; opts = opts || {}; setStroke(c);
     if (P.grid) { for (let i = 0; i < P.n; i++) { c.fillStyle = colorOf(i); fillShape(c, i); } const G = P.grid; c.strokeStyle = 'rgba(178,52,111,.5)'; c.lineWidth = GLW(P); c.beginPath(); for (let x = 0; x <= G.gw; x++) { c.moveTo(x * G.cs, 0); c.lineTo(x * G.cs, G.gh * G.cs); } for (let y = 0; y <= G.gh; y++) { c.moveTo(0, y * G.cs); c.lineTo(G.gw * G.cs, y * G.cs); } c.stroke(); S = keep; return; }
-    for (let i = 0; i < P.n; i++) {
+    const i0 = opts.from > 0 ? opts.from : 0, i1 = opts.to >= 0 && opts.to < P.n ? opts.to : P.n;   // from/to: a slice, so the finished art can be painted a little per frame (v9 QA P2)
+    for (let i = i0; i < i1; i++) {
       c.fillStyle = colorOf(i); fillShape(c, i);
       if (opts.sheen && st.fc[i]) sheen(c, i);
       strokeShape(c, i);
     }
-    for (const l of P.line) c.stroke(l);
+    if (i1 >= P.n) for (const l of P.line) c.stroke(l);
     S = keep;
+  }
+  // v9 QA P2: the whole picture from the pinned base tiles (LOD 4, already painted during play) into c at px x py: a quick
+  // stand-in for the finished art while the sharp one is painted in short steps. Pending fills on those tiles are applied first.
+  function drawBase(c, px, py) {
+    if (!S) return false; const sp = tileSpan(LODS[0], [0, 0, WW, WH]);
+    c.setTransform(px / WW, 0, 0, py / WH, 0, 0);
+    for (let ty = sp[2]; ty <= sp[3]; ty++) for (let tx = sp[0]; tx <= sp[1]; tx++) {
+      const t = getTile(0, tx, ty, true);
+      if (t.pend.length) { const f = t.fc.getContext('2d'); tileXf(f, t); for (const i of t.pend) { paintAround(f, i, false); decPend(i); } for (const i of t.pend) markW(S.P.bb[i]); t.pend.length = 0; pendTiles.delete(t); }
+      const w = TS * t.lod; c.drawImage(t.fc, tx * w, ty * w, w, w); c.drawImage(t.sc, tx * w, ty * w, w, w);
+    }
+    c.setTransform(1, 0, 0, 1, 0, 0); return true;
   }
 
   // ---------- tiles ----------
@@ -142,11 +172,15 @@
     for (const l of P.line) s.stroke(l);
     t.pend.length = 0;
   }
+  // canvas 2D only records draws; the real painting waits for the first drawImage of the tile. Do it now, so the frame budget sees
+  // its cost (CC 8: up to ~10 new Super sharp tiles were painted inside one drawArt = a 250 ms task at 4x throttle on a phone).
+  let flc = null;
+  function settle(t) { if (!flc) flc = mk(1, 1).getContext('2d'); flc.clearRect(0, 0, 1, 1); flc.drawImage(t.fc, 0, 0, 1, 1); flc.drawImage(t.sc, 0, 0, 1, 1); }
   function getTile(li, tx, ty, create) {
     const k = tkey(li, tx, ty); let t = tiles.get(k);
     if (!t && create) {
       const t0 = performance.now(); t = { k, li, lod: LODS[li], tx, ty, fc: mk(TS, TS), sc: mk(TS, TS), last: frameNo, pend: [], pin: li === 0 };
-      renderTile(t); tiles.set(k, t); stats.builds++; stats.maxBuildMs = Math.max(stats.maxBuildMs, performance.now() - t0);
+      renderTile(t); settle(t); tiles.set(k, t); stats.builds++; stats.maxBuildMs = Math.max(stats.maxBuildMs, performance.now() - t0);
     }
     return t;
   }
@@ -154,7 +188,9 @@
   function decPend(i) { const n = (fxPend.get(i) || 0) - 1; if (n <= 0) fxPend.delete(i); else fxPend.set(i, n); }
   function evict() {
     const maxT = Math.floor(QS[q].cap * 1048576 / TB); if (tiles.size <= maxT) return;
-    const arr = [...tiles.values()].filter(t => !t.pin && t.last < frameNo - 1).sort((a, b) => a.last - b.last);
+    // never drop a tile of the current view: `last` is only stamped when the art is redrawn, and a still picture can go many frames without that
+    const sp = tileSpan(LODS[curLi], viewRect()), inView = t => t.li === curLi && t.tx >= sp[0] && t.tx <= sp[1] && t.ty >= sp[2] && t.ty <= sp[3];
+    const arr = [...tiles.values()].filter(t => !t.pin && t.last < frameNo - 1 && !inView(t)).sort((a, b) => a.last - b.last);
     for (const t of arr) { if (tiles.size <= maxT) break; dropTile(t); }
   }
   function viewRect() { const hw = cssW / (2 * cam.z), hh = cssH / (2 * cam.z); return [cam.x - hw, cam.y - hh, cam.x + hw, cam.y + hh]; }
@@ -199,17 +235,20 @@
     if (part) actx.restore(); artFull = false; dr = null;
   }
   // ---------- digit atlas (built once, no fillText during play) ----------
-  const BUCKET = [40, 80, 160], NDIG = 24; let atlas = null;
-  function buildAtlas() {
-    atlas = BUCKET.map(b => {
+  const BUCKET = [40, 80, 160], NDIG = 32; let atlas = null;
+  let atlasPart = [];
+  function buildAtlas() {   // one size per call; `atlas` is set once all sizes exist (CC 8: the three at once = 30+ ms of text at 4x)
+    atlasPart.push([BUCKET[atlasPart.length]].map(b => {
       const cw = Math.ceil(b * 1.3), ch = Math.ceil(b * 1.1), c = document.createElement('canvas'); c.width = cw * NDIG; c.height = ch; const g = c.getContext('2d');
       g.font = '900 ' + b + 'px "Baloo 2","Trebuchet MS",system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round'; g.lineWidth = b * 0.2;
       for (let n = 1; n <= NDIG; n++) { g.strokeStyle = '#fff'; g.strokeText(String(n), (n - 0.5) * cw, ch / 2 + b * 0.04); g.fillStyle = '#7a1a55'; g.fillText(String(n), (n - 0.5) * cw, ch / 2 + b * 0.04); }
       return { c, cw, ch, b };
-    });
+    })[0]);
+    if (!flc) flc = mk(1, 1).getContext('2d'); flc.clearRect(0, 0, 1, 1); flc.drawImage(atlasPart[atlasPart.length - 1].c, 0, 0, 1, 1);   // paint the text now, not in the picture frame
+    if (atlasPart.length === BUCKET.length) atlas = atlasPart;
   }
   function drawDigits() {
-    if (!atlas) buildAtlas(); const P = S.P, v = viewRect(); actx.setTransform(1, 0, 0, 1, 0, 0);
+    if (!atlas) return; const P = S.P, v = viewRect(); actx.setTransform(1, 0, 0, 1, 0, 0);   // frame() builds the atlas in a frame of its own
     if (P.grid) {
       const G = P.grid, cs = G.cs, size = cs * 0.72; if (size * cam.z < HIDE_PX) return;
       const x0 = Math.max(0, Math.floor(v[0] / cs)), x1 = Math.min(G.gw - 1, Math.floor(v[2] / cs)), y0 = Math.max(0, Math.floor(v[1] / cs)), y1 = Math.min(G.gh - 1, Math.floor(v[3] / cs));
@@ -218,7 +257,7 @@
       return;
     }
     for (let i = 0; i < P.n; i++) {
-      if (S.fc[i]) continue; const L = P.lab[i], size = L[3]; if (size * cam.z < HIDE_PX || L[2] < 20) continue;
+      if (S.fc[i]) continue; const L = P.lab[i], size = L[3]; if (size * cam.z < HIDE_PX || (L[2] < 20 && size * cam.z < 2 * HIDE_PX)) continue;   // E: small spots show their number once zoomed in enough to read it (they never did)
       if (L[0] < v[0] - size || L[0] > v[2] + size || L[1] < v[1] - size || L[1] > v[3] + size) continue;
       const num = P.col[i] + 1; if (num > NDIG) continue; const d = size * cam.z * dpr; let a = atlas[atlas.length - 1];
       for (const A of atlas) if (A.b >= d) { a = A; break; }
@@ -315,7 +354,7 @@
     const P = prep(pic);
     S = { P, pal: pal || pic.pal, fc: fc || new Uint8Array(P.n), sel: 0, hl: true, nums: true, calm: false };
     Object.assign(S, opts || {});
-    fitView(); curLi = pickLod(); for (let ty = 0; ty < 2; ty++) for (let tx = 0; tx < 2; tx++) getTile(0, tx, ty, true);   // pinned LOD 4 base (2 MB) = always something to show
+    fitView(); curLi = pickLod(); quiet = 1; warmTo = performance.now() + 4000;   // the pinned LOD 4 base (2 MB, always something to show) is built by frame(), first, within the budget (CC 8: 4 at once = 120 ms at 4x)
     artDirty = fxDirty = artFull = true; return S;
   }
   function setFill(i, c) {
@@ -327,15 +366,17 @@
   // returns true while it needs another frame
   function frame(now, dt) {
     frameNo++; let more = false, T0 = performance.now(), budget = (now - lastCam < 120 ? 4 : 9);
+    if (quiet) { quiet--; budget = 0; more = true; }   // a new puzzle's first frame shares its task with the screen change: no tile work in it (CC 8)
     if (stepFlight(now)) more = true;
     if (S) {
       if (now - lastCam >= 120) { const li = pickLod(); if (li !== curLi) { curLi = li; artDirty = artFull = true; } stats.lastLod = LODS[curLi]; }
+      for (let ty = 0; ty < 2; ty++) for (let tx = 0; tx < 2; tx++) if (!tiles.has(tkey(0, tx, ty))) { if (performance.now() - T0 < budget) markW(tileRect(getTile(0, tx, ty, true))); more = true; }
       // apply pending region paints (<= budget)
       for (const t of pendTiles) {
         if (performance.now() - T0 >= budget) { more = true; break; }
         const f = t.fc.getContext('2d'); tileXf(f, t);
         for (const i of t.pend) { paintAround(f, i, false); decPend(i); stats.applies++; }   // outlines live in the other layer and never change
-        for (const i of t.pend) markW(S.P.bb[i]); t.pend.length = 0; pendTiles.delete(t);
+        for (const i of t.pend) markW(S.P.bb[i]); t.pend.length = 0; pendTiles.delete(t); settle(t);
       }
       if (pendTiles.size) more = true;
       // build missing tiles for the current view, nearest the centre first
@@ -344,11 +385,13 @@
       miss.sort((a, b) => a[2] - b[2]);
       for (const m of miss) { if (performance.now() - T0 >= budget) break; const nt = getTile(curLi, m[0], m[1], true); markW(tileRect(nt)); }
       if (miss.length) more = true; else if (frameNo % 8 === 0) evict();
+      if (warmTo && !miss.length && !pendTiles.size && tiles.size >= 4 && (atlas || !S.nums)) warmTo = 0;   // first view complete
       if (now - lastCam < 120) more = true;   // wait for the LOD to settle
     }
     if (stepSweep(now)) more = true;
     if (pLive > 0) { stepParticles(dt); fxDirty = true; more = true; }
     if (ring || glow.size) { fxDirty = true; more = more || !S.calm || !!ring; }
+    if (S && S.nums && !atlas) { if (performance.now() - T0 < budget) { buildAtlas(); if (atlas) artDirty = artFull = true; } more = true; }   // CC 8: the digit text is built in frames of its own, not in the first picture frame
     let tArt = 0, tFx = 0, tt = performance.now();
     if (artDirty) { drawArt(); artDirty = false; tArt = performance.now() - tt; tt = performance.now(); }
     if (fxDirty) { drawFx(now); fxDirty = false; tFx = performance.now() - tt; }
@@ -384,11 +427,14 @@
     for (const t of tiles.values()) dropTile(t); tiles.clear(); fxPend.clear(); pendTiles.clear(); glow.clear(); ring = null; S = null; pa.on.fill(0); pLive = 0; sw.n = sw.i = 0;
   }
   self.CMR = {
-    TS, LODS, QS, PAPER, prep, sweep, renderArt, release, get world() { return [WW, WH]; }, hit, drawFlat, setPuzzle, setFill, rebuildAll, frame, layout, fitView, panBy, zoomAt, s2w, flyTo, cam, burst, stats, glow,
-    init(a, f) { art = a; fx = f; actx = a.getContext('2d', { alpha: false }); fctx = f.getContext('2d'); },
+    TS, LODS, QS, PAPER, prep, sweep, renderArt, release, get world() { return [WW, WH]; }, get zoom() { return cam.z; }, get warming() { return performance.now() < warmTo; }, hit, drawFlat, drawBase, setPuzzle, setFill, rebuildAll, frame, layout, fitView, panBy, zoomAt, s2w, flyTo, cam, burst, stats, glow,
+    init(a, f) { art = a; fx = f; actx = a.getContext('2d', { alpha: false }); fctx = f.getContext('2d');
+      const idle = window.requestIdleCallback || (cb => setTimeout(cb, 200)), early = () => idle(() => { if (atlas) return; buildAtlas(); if (atlas) artDirty = artFull = true; else early(); }); early();   // digit sizes made one per idle moment, long before a puzzle opens (CC 8)
+    },
     get S() { return S; }, get fit() { return fit; }, get q() { return q; }, get dpr() { return dpr; }, get tiles() { return tileCount; }, get size() { return [cssW, cssH]; },
-    setQuality(n) { q = Math.max(0, Math.min(2, n)); if (cssW) { layout(cssW, cssH, window.devicePixelRatio || 1); rebuildAll(); } },
+    setQuality(n) { q = Math.max(0, Math.min(2, n)); if (cssW) { layout(cssW, cssH, window.devicePixelRatio || 1); evict(); artDirty = fxDirty = artFull = true; } },   // tiles do not depend on quality: keep them, only trim to the new cap (v9 QA P2: dropping them meant 100-160 ms rebuilds at 4x on the Fold)
     invalidate() { artDirty = fxDirty = artFull = true; },
+    invalidateFx() { fxDirty = true; },   // the picked colour only changes the overlay (hatch), not the picture: no full art redraw
     setRing(x, y) { ring = { x, y, t0: performance.now() }; fxDirty = true; },
     pending: () => fxPend.size, camMoving: () => performance.now() - lastCam < 120 || !!flight, particles: () => pLive,
     labelPx: (i, cssMin) => { const L = S.P.lab[i]; return L[3] * cssMin / WORLD; }
