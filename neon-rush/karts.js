@@ -28,7 +28,7 @@ let HERO=null,MK=null;   // the main-scene hero kart + the main kit (set by buil
 export const PAINTS=[{n:'Pink',hex:0xe8287a},{n:'Red',hex:0xe8204a},{n:'Orange',hex:0xff7a1a},{n:'Gold',hex:0xe8b020},{n:'Lime',hex:0x7aff3a},{n:'Teal',hex:0x20c0a0},{n:'Sky',hex:0x35c8ff},{n:'Blue',hex:0x2a5bff},{n:'Purple',hex:0x8a3aff},{n:'Silver',hex:0xc8d0e0}];
 export const FINISHES=[{n:'Gloss',metal:.55,rough:.38,coat:1,env:1.5,glow:0},{n:'Metallic',metal:1,rough:.16,coat:.7,env:2.3,glow:0},{n:'Neon glow',metal:.12,rough:.45,coat:.6,env:1,glow:.9}];
 export const WHEELS=[{n:'Chrome',col:0xd8d8e4,metal:1,rough:.15,glow:0,spokes:5},{n:'Gold',col:0xffc83a,metal:1,rough:.22,glow:0,spokes:5},{n:'Pink glow',col:0x3a1030,metal:.4,rough:.4,glow:0xff3fd8,spokes:8},{n:'Cyan glow',col:0x0a2a34,metal:.4,rough:.4,glow:0x35f2ff,spokes:6}];
-export const BODIES=['Classic','Racer','Buggy','Rocket'],TRAILS=['None','Sparkles','Hearts','Rainbow','Flames'],DECALS=['None','Star','Heart','Bolt','Stripes'];
+export const BODIES=['Classic','Racer','Buggy','Rocket','Candy Cruiser','Heart Racer','Star Comet','Dragon Jet'],TRAILS=['None','Sparkles','Hearts','Rainbow','Flames'],DECALS=['None','Star','Heart','Bolt','Stripes'];
 const lum=h=>{const c=new THREE.Color(h);return .2126*c.r+.7152*c.g+.0722*c.b;};
 const normCustom=c=>{const o={body:0,paint:0,finish:0,wheels:0,trail:0,decal:0,emblem:0,emblemColor:0},lim={body:BODIES.length,paint:PAINTS.length,finish:FINISHES.length,wheels:WHEELS.length,trail:TRAILS.length,decal:DECALS.length,emblem:9,emblemColor:8};
   for(const k in o){const n=Math.round(+(c&&c[k]));o[k]=Number.isFinite(n)&&n>=0&&n<lim[k]?n:0;}return o;};
