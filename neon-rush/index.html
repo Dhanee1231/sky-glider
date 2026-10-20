@@ -180,13 +180,24 @@ body:has(#title.show,#trackSel.show,#garage.show,#settings.show,#finish.show) #r
 .gfin .gopt{aspect-ratio:auto;flex:1;min-height:52px;font-size:clamp(13px,calc(var(--u)*3),17px);font-weight:800;gap:6px;display:flex;align-items:center;justify-content:center;border-radius:16px}
 .gfin .gopt i{width:1.5em;height:1.5em;border-radius:50%;border:2px solid #fff;flex:none}
 @media (max-aspect-ratio:1/1){.gar{flex-direction:column}.gar-view{flex:none;height:36%;min-height:150px}.gtab{min-height:52px}}
-@media (max-width:520px){.gtabs{flex-wrap:wrap}.gtab{flex:1 1 calc(25% - 6px);min-height:60px}}   /* M5a fix: 7 tabs in 2 rows (4+3) on narrow phones -> >=64 px wide, 60 px tall */
+@media (max-width:520px){.gtabs{flex-wrap:wrap}.gtab{flex:1 1 calc(25% - 6px);min-height:60px}}   /* M7: 8 tabs in 2 rows (4+4) on narrow phones -> >=64 px wide, 60 px tall */
 /* M4 Track B: settings fit (the Look row used to overflow at 360-412 px) */
 .seg{flex-wrap:nowrap;min-width:0}.seg .tg{flex:1 1 0;min-width:0;justify-content:center;padding:8px 6px;font-size:clamp(15px,calc(var(--u)*4),22px)}
 @media (max-width:560px){.setgrid{grid-template-columns:minmax(0,1fr);width:100%}.setgrid .lbl{text-align:left}.tg{min-width:0;width:100%}.seg .tg{width:auto}.setgrid .big{width:100%;justify-content:center}}
 @media (max-width:560px) and (min-aspect-ratio:1/1){.setgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-height:430px){.setgrid{gap:6px 12px}.tg{min-height:52px}#settings .card{gap:6px}}
 #finish .row{gap:clamp(8px,calc(var(--u)*2.4),18px)}
+.fin-unlock{display:flex;flex-wrap:wrap;gap:4px 6px;justify-content:center;max-width:min(920px,100%)}
+.fin-unlock[hidden]{display:none}
+.fin-unlock p{margin:0;font-size:clamp(13px,calc(var(--u)*3.2),18px);font-weight:900;color:#ffe14d;background:rgba(90,20,80,.72);border:2px solid #fff;border-radius:999px;padding:2px 10px;line-height:1.2}
+.gopt .nw{position:absolute;top:2px;right:2px;z-index:1;background:#ff3fd8;border:2px solid #fff;border-radius:8px;padding:0 4px;font-size:11px;font-weight:900;line-height:1.2;color:#fff}
+.gopt .dots{position:absolute;left:0;right:0;bottom:4px;display:flex;gap:3px;justify-content:center;pointer-events:none}
+.gopt .dots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.35);display:block}
+.gopt .dots i.on{background:#ff4fd8;box-shadow:0 0 6px #ff4fd8}
+.gopt[aria-disabled="true"]{opacity:.55}
+.gopt:has(.dots) svg{height:62%}
+@media (max-height:430px){#finish .card{gap:4px}#finish h2{font-size:clamp(22px,6vh,32px)}#finish .podium .pt{width:32px;height:32px}#finish .podium .pt:first-child{width:40px;height:40px}#finish .sub{font-size:14px}#finish .stats{font-size:14px;gap:8px}#finish .big{min-height:48px;font-size:16px;padding:4px 12px}#finish .lbtn .rb{width:48px;height:48px}#finish .fin-unlock p{font-size:13px}}
+@media (max-width:430px){#finish .big{min-height:48px;font-size:18px;padding:6px 12px}}
 /* /B:css */
 /* A:css (Track A adds styles below, if any) */
 .vol{pointer-events:auto;display:flex;align-items:center;gap:10px;font-size:clamp(18px,calc(var(--u)*4.4),24px);font-weight:800;color:#fff;background:rgba(255,255,255,.1);border:3px solid rgba(255,255,255,.5);border-radius:18px;padding:6px 14px;min-height:60px;min-width:0;width:100%}
@@ -241,6 +252,7 @@ body:has(#title.show,#trackSel.show,#garage.show,#settings.show,#finish.show) #r
 
 <div class="layer panel" id="finish"><div class="card">
  <h2 id="finTitle">1<sup>st</sup> place!</h2><div class="podium" id="finPod"></div><div class="sub" id="finSub">You won the race!</div>
+ <div id="finUnlock" class="fin-unlock" hidden></div>
  <div class="stats"><span>Time <b id="finTime">0:00.0</b></span><span>Fastest lap <b id="finBest">0:00.0</b></span></div>
  <div class="row">
   <button class="big" id="btnAgain"><svg viewBox="0 0 24 24"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z" fill="#2b1055"/></svg>Race again</button>
