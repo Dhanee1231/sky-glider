@@ -66,7 +66,7 @@ h2 sup{font-size:.5em}
 .lbl{font-size:clamp(16px,calc(var(--u)*4),22px);font-weight:800;text-align:right;opacity:.9}
 #rotate{z-index:9;flex-direction:column;gap:16px;font-size:clamp(26px,7vw,40px);font-weight:900}
 #rotate svg{width:min(40vw,170px);height:min(40vw,170px)}
-body:has(#title.show,#trackSel.show,#garage.show,#settings.show,#finish.show) #rotate{display:none!important}   /* M4: portrait menus never ask to rotate; only the race does */
+body:has(#title.show,#trackSel.show,#garage.show,#settings.show,#finish.show,#cupSel.show,#cupEnd.show,#cupShelf.show) #rotate{display:none!important}   /* M4: portrait menus never ask to rotate; only the race does */
 #fps{position:fixed;left:4px;bottom:4px;z-index:8;white-space:pre;font:12px/1.3 ui-monospace,monospace;color:#7dff6a;background:rgba(0,0,0,.6);padding:3px 6px;border-radius:6px;display:none;pointer-events:none}
 #fps.show{display:block}
 #title .card{gap:clamp(10px,calc(var(--u)*3),26px)}
@@ -212,6 +212,90 @@ body:has(#title.show,#trackSel.show,#garage.show,#settings.show,#finish.show) #r
 #engVol:focus-visible{outline:3px solid #35f2ff;outline-offset:2px;border-radius:12px}
 @media (max-width:520px){.vol{grid-column:1/-1}#engVol{min-width:60px}}
 /* /A:css */
+/* M7 cups: select, between-race standings, podium, ribbon, trophy shelf. DOM/SVG only. */
+#cupSel,#cupShelf{background:radial-gradient(circle at 50% 120%,#5a2a80,#12082a 70%);backdrop-filter:none}
+#cupEnd{background:rgba(16,6,34,.72);backdrop-filter:blur(3px)}
+#cupSel,#cupEnd,#cupShelf{overflow:hidden;align-items:stretch}
+#cupSel>.mn,#cupEnd>.mn,#cupShelf>.mn{align-self:stretch;height:100%;max-height:100%;min-height:0;overflow:hidden}
+.cup-actions,.mn-bar{flex-shrink:0}
+.cup-title{flex:none;font-size:clamp(22px,calc(var(--u)*6),40px)}
+#cupEnd h2,#cupShelf h2,#cupSel h2{font-size:clamp(22px,calc(var(--u)*6),40px)}
+.cup-body{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:6px;align-items:center;width:100%}
+.cup-levels{display:flex;gap:6px;justify-content:center;flex:none;width:100%}
+.cup-levels .chip{flex:1 1 0;max-width:140px}
+#cupCont:empty{display:none}
+#cupCont .big{width:100%;white-space:normal;text-align:center;min-height:48px;justify-content:center}
+.cup-row{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:8px;width:100%;align-items:stretch}
+.cup-card{width:100%;min-height:48px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px 12px;border-radius:20px;border:4px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#fff;font:inherit;text-align:left;cursor:pointer;touch-action:manipulation}
+.cup-card .cup-ic{width:32px;height:32px;flex:none}
+.cup-card .cup-ic svg{width:32px;height:32px;display:block}
+.cup-card .nm,.cup-card .tr,.cup-hint{min-width:0;max-width:100%;overflow-wrap:break-word}
+.cup-card .nm{font-size:clamp(18px,4.8vw,28px);font-weight:900;line-height:1.1}
+.cup-card .tr,.cup-meta{font-size:clamp(13px,3.2vw,16px);font-weight:700;line-height:1.25;opacity:.95;margin:0;white-space:normal}
+.cup-card .tb{display:flex;align-items:center;gap:6px;font-size:clamp(14px,3.4vw,18px);font-weight:900}
+.cup-card .tb svg,.shelf-cell svg{width:28px;height:28px}
+.trophy-art svg.trophy-svg{width:clamp(64px,16vh,110px);height:auto}
+.trophy-art svg.ribbon-svg{width:clamp(88px,24vw,150px);height:auto}
+.cup-hint{font-size:clamp(14px,3.4vw,18px);font-weight:800;color:#fff27a;line-height:1.25;text-align:left}
+.cup-card.locked{border-color:rgba(255,242,122,.55)}
+.cup-actions{flex:none;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;width:100%}
+.cup-actions .big{flex:1 1 140px;max-width:280px;min-width:48px;min-height:48px;justify-content:center;white-space:normal;text-align:center;line-height:1.05;font-size:clamp(16px,4vw,28px);padding:8px 14px}
+.cup-actions .lbtn .rb{width:48px;height:48px;min-width:48px;min-height:48px}
+.cup-stand{width:min(520px,100%);display:flex;flex-direction:column;gap:3px}
+.cup-h3{margin:0;font-size:clamp(16px,3.8vw,22px);font-weight:900}
+.cup-line{display:flex;align-items:center;gap:8px;min-height:28px;font-size:clamp(14px,3.6vw,20px);font-weight:800;padding:1px 6px;border-radius:12px}
+.cup-line.me{background:rgba(255,242,122,.18)}
+.cup-line .rk{min-width:2.4em;text-align:left}
+.cup-line .nm{flex:1;text-align:left;min-width:0}
+.cup-line .pts{color:#35f2ff}
+.cf{width:36px;height:36px;border-radius:50%;border:2px solid #fff;display:grid;place-items:center;flex:none;box-shadow:0 0 8px currentColor}
+.cf svg{width:62%;height:62%;display:block}
+.cf.big{width:clamp(48px,12vw,72px);height:clamp(48px,12vw,72px)}
+.cf.big svg{width:34px;height:34px}
+.cup-pod{display:flex;justify-content:center;align-items:flex-end;gap:clamp(8px,3vw,18px);width:100%}
+.cup-pod .slot{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:64px;font-weight:900;font-size:clamp(13px,3.2vw,18px)}
+.trophy-art svg.trophy-svg{width:clamp(64px,16vh,110px);height:auto}
+.ribbon-svg{width:clamp(96px,28vw,160px);height:auto;display:block}
+.cup-best{margin:0;font-size:clamp(16px,4vw,22px);font-weight:900;color:#fff27a}
+.shelf-cup{width:min(640px,100%);display:flex;flex-direction:column;gap:4px}
+.shelf-grid{display:grid;grid-template-columns:repeat(4,minmax(48px,1fr));gap:6px;width:100%}
+.shelf-cell{min-width:48px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:4px;border-radius:16px;border:3px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;font:inherit;font-weight:800;font-size:clamp(12px,2.8vw,15px);line-height:1.1;cursor:pointer;touch-action:manipulation}
+.shelf-cell span{max-width:100%;text-align:center}
+.shelf-cell[aria-pressed="true"]{border-color:#ffd23a;box-shadow:0 0 12px #ffd23a}
+#trackSel .mn-bar{gap:8px}
+#trackSel .mn-bar .big{flex:1 1 0;min-width:48px;min-height:48px;justify-content:center;white-space:normal;text-align:center;line-height:1.05}
+#btnCups.has-run{box-shadow:0 0 16px #ffd23a,0 5px 0 #a35a00}
+.toast{max-width:min(92vw,520px);white-space:normal;text-align:center}
+@media (min-aspect-ratio:1/1){
+ .cup-row{flex-direction:row;align-items:stretch}
+ .cup-card{width:auto;flex:1 1 0;min-width:0}
+}
+@media (max-width:520px){
+ #trackSel .mn-bar .big{flex-direction:column;font-size:15px;padding:6px 4px;min-height:52px;gap:0}
+ #trackSel .mn-bar .big svg{width:22px;height:22px}
+}
+@media (max-height:430px){
+ #cupEnd h2,#cupShelf h2,#cupSel h2,.cup-title{font-size:20px}
+ .cup-actions{gap:6px}
+ .cup-actions .big{min-height:48px;font-size:16px;padding:4px 10px}
+ .cup-card{padding:6px 8px}
+ .trophy-art svg.trophy-svg{width:64px}
+ .trophy-art svg.ribbon-svg{width:84px}
+ .mn-head h2{font-size:22px}
+ .shelf-cell{min-height:48px;font-size:12px;padding:2px 1px}
+ .shelf-cup{gap:2px}
+ .cup-body{gap:3px}
+ .cup-h3{font-size:16px}
+ #cupShelfBody{flex-direction:row;align-items:flex-start;justify-content:center;gap:8px}
+ .shelf-cup{flex:1 1 0;width:auto;min-width:0}
+ .shelf-cup .cup-hint{order:2}
+ .shelf-grid{order:1}
+ .cup-line{min-height:24px;font-size:14px}
+ .cf{width:28px;height:28px}
+ .cf.big{width:48px;height:48px}
+ .cf.big svg{width:28px;height:28px}
+}
+/* /M7 cups */
 </style></head><body>
 <div id="stage"></div>
 <div id="tapLayer" class="layer"></div>
@@ -283,8 +367,9 @@ body:has(#title.show,#trackSel.show,#garage.show,#settings.show,#finish.show) #r
   <h2>Pick a track!</h2>
   <button class="ib" id="btnSetSel" aria-label="Settings"><svg viewBox="0 0 24 24"><path fill="#fff" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1L11 21h4l.4-2.9a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button></div>
  <div class="ts-row" id="tsRow" role="radiogroup" aria-label="Tracks"></div>
- <div class="mn-bar"><button class="big alt" id="btnGarage"><svg viewBox="0 0 24 24"><path d="M3 15l2-5a2 2 0 0 1 2-1.4h6.6a2 2 0 0 1 1.7 1l2.2 3.4 2 .6A1.6 1.6 0 0 1 21 15v1.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" fill="#fff"/><circle cx="7.5" cy="17.5" r="2.3" fill="#35f2ff"/><circle cx="16.5" cy="17.5" r="2.3" fill="#35f2ff"/></svg>Garage</button>
-  <button class="big" id="btnGo"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" fill="#2b1055"/></svg>Race!</button></div>
+ <div class="mn-bar"><button class="big alt" id="btnGarage" type="button"><svg viewBox="0 0 24 24"><path d="M3 15l2-5a2 2 0 0 1 2-1.4h6.6a2 2 0 0 1 1.7 1l2.2 3.4 2 .6A1.6 1.6 0 0 1 21 15v1.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" fill="#fff"/><circle cx="7.5" cy="17.5" r="2.3" fill="#35f2ff"/><circle cx="16.5" cy="17.5" r="2.3" fill="#35f2ff"/></svg>Garage</button>
+  <button class="big alt" id="btnCups" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v6a5 5 0 0 1-10 0z" fill="#ffd23a"/><path d="M7 5H3.5A4.5 4.5 0 0 0 8 10M17 5h3.5A4.5 4.5 0 0 1 16 10" fill="none" stroke="#fff" stroke-width="2"/><path d="M12 14v3M8.5 21h7L14 17h-4z" fill="#ffd23a"/></svg>Cups</button>
+  <button class="big" id="btnGo" type="button"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" fill="#2b1055"/></svg>Race!</button></div>
 </div></div>
 
 <div class="layer panel" id="garage"><div class="mn">
@@ -296,6 +381,38 @@ body:has(#title.show,#trackSel.show,#garage.show,#settings.show,#finish.show) #r
   <div class="gar-opt"><div class="gtabs" id="gTabs" role="tablist"></div><div class="gfin" id="gFin" hidden></div><div class="ggrid" id="gGrid"></div></div>
  </div>
  <div class="mn-bar"><button class="big" id="btnGarDone"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10" stroke="#2b1055" stroke-width="3.4" fill="none" stroke-linecap="round"/></svg>Ride it!</button></div>
+</div></div>
+
+<div class="layer panel" id="cupSel" aria-label="Cups"><div class="mn">
+ <div class="mn-head"><button class="ib" id="btnCupBack" type="button" aria-label="Tracks"><svg viewBox="0 0 24 24"><path d="M15 4l-8 8 8 8" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  <h2>Cups</h2>
+  <a class="ib" href="../home/" id="btnHomeCup" aria-label="Home"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" fill="#fff"/></svg></a>
+  <button class="ib" id="btnSetCup" type="button" aria-label="Settings"><svg viewBox="0 0 24 24"><path fill="#fff" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1L11 21h4l.4-2.9a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button></div>
+ <div class="cup-levels" id="cupLevels" role="radiogroup" aria-label="Level"></div>
+ <div id="cupCont"></div>
+ <div class="cup-row" id="cupRow"></div>
+ <div class="mn-bar"><button class="big alt" id="btnShelf" type="button">Trophy Shelf</button></div>
+</div></div>
+
+<div class="layer panel" id="cupEnd" data-screen="between" aria-label="Cup result"><div class="mn">
+ <div class="cup-body" id="cupEndBody"></div>
+ <div class="cup-actions">
+  <button class="big" id="btnCupAgain" type="button">Race again</button>
+  <button class="big alt" id="btnCupNext" type="button">Next</button>
+  <a class="lbtn" href="../home/" id="btnHomeCupEnd"><span class="rb"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" fill="#fff"/></svg></span>Home</a>
+  <div class="lbtn"><button class="rb" id="btnSetCupEnd" type="button" aria-label="Settings"><svg viewBox="0 0 24 24"><path fill="#fff" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1L11 21h4l.4-2.9a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>Settings</div>
+ </div>
+</div></div>
+
+<div class="layer panel" id="cupShelf" aria-label="Trophy Shelf"><div class="mn">
+ <h2 class="cup-title">Trophy Shelf</h2>
+ <div class="cup-body" id="cupShelfBody"></div>
+ <div class="cup-actions">
+  <button class="big" id="btnShelfAgain" type="button">Race again</button>
+  <button class="big alt" id="btnShelfNext" type="button">Next</button>
+  <a class="lbtn" href="../home/" id="btnHomeShelf"><span class="rb"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" fill="#fff"/></svg></span>Home</a>
+  <div class="lbtn"><button class="rb" id="btnSetShelf" type="button" aria-label="Settings"><svg viewBox="0 0 24 24"><path fill="#fff" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1L11 21h4l.4-2.9a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>Settings</div>
+ </div>
 </div></div>
 
 <div class="layer panel" id="rotate"><svg viewBox="0 0 100 100"><rect x="30" y="14" width="40" height="72" rx="8" fill="none" stroke="#35f2ff" stroke-width="6"/><path d="M80 40a30 30 0 0 1-10 34" fill="none" stroke="#ff3fd8" stroke-width="6"/><path d="M64 70l8 6 2-10z" fill="#ff3fd8"/></svg>Turn your phone sideways!</div>

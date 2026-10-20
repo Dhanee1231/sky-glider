@@ -9,9 +9,10 @@ import * as THREE from 'three';
 import {ICONS,NAMES} from './items.js';
 import {getBest,KART_N,getTrackDiff,setTrackDiff,DIFFS,RACERS,OWN_KARTS} from './save.js';
 import {isNew,ownsRacer,ownsKart,heartProgress,noteViewed} from './unlocks.js';
+import {currentRace,listCups,shelfRows,trophyLabel} from './cups.js';
 import {EMB_ORDER,MARK_ORDER,EMB_NAMES,MARK_NAMES,FX_NAMES,NEON,NEON_NAMES,hexCss,markCss,svgIcon} from './emblems.js';
 import {paintMarker} from './minimap.js';
-import {PAINTS,FINISHES,WHEELS,BODIES,TRAILS,DECALS,applyKart,heroFx,heroFxReset,buildPreviewKart} from './karts.js';
+import {PAINTS,FINISHES,WHEELS,BODIES,TRAILS,DECALS,applyKart,heroFx,heroFxReset,buildPreviewKart,HERO_LOOK,RIVAL_LOOKS} from './karts.js';
 
 const $=id=>document.getElementById(id);
 let C=null,sel='sky',from='select';
@@ -65,14 +66,14 @@ function refreshSelect(){const ST=C.ST;for(const b of $('tsRow').children){const
   b.setAttribute('aria-pressed',id===sel);b.setAttribute('aria-checked',id===sel);const lv=getTrackDiff(ST,id);for(const c of b.querySelectorAll('.chip')){const on=c.dataset.d===lv;c.setAttribute('aria-pressed',on);c.setAttribute('aria-checked',on);}const had=b.querySelector('.nw');
   if(best<=0&&id!=='sky'&&!had){const n=document.createElement('span');n.className='nw';n.textContent='NEW!';b.appendChild(n);}else if((best>0||id==='sky')&&had)had.remove();}}
 function pick(id,voice){if(sel===id&&voice)return;sel=id;refreshSelect();if(voice){say(VOICE[id]);}try{C.Audio&&C.Audio.prepTrack&&C.Audio.prepTrack(id);}catch(e){}}
-export function showTrackSelect(){if(!C)return;const t=tracks();sel=t.some(x=>x.id===C.ST.track)?C.ST.track:t[0].id;buildSelect();refreshSelect();show('trackSel',true);show('garage',false);say('s_pick',8);try{C.Audio&&C.Audio.prepTrack&&C.Audio.prepTrack(sel);}catch(e){}}
+export function showTrackSelect(){if(!C)return;const t=tracks();sel=t.some(x=>x.id===C.ST.track)?C.ST.track:t[0].id;buildSelect();refreshSelect();hideCupScreens();show('trackSel',true);show('garage',false);markCups();say('s_pick',8);try{C.Audio&&C.Audio.prepTrack&&C.Audio.prepTrack(sel);}catch(e){}}
 export function newBest(){say('s_newbest');}
 export function showUnlocks(list){const el=$('finUnlock');if(!el)return;el.replaceChildren();
  if(!list||!list.length){el.hidden=true;return;}
  el.hidden=false;const said=new Set();
  for(const u of list){const p=document.createElement('p');p.textContent=(u.pop||'New!')+' '+(u.id||'');el.appendChild(p);
   for(const id of u.voice||[]){if(!id||said.has(id))continue;said.add(id);say(id);}}}
-export function hideMenus(){show('trackSel',false);closeGarage(true);}
+export function hideMenus(){show('trackSel',false);closeGarage(true);hideCupScreens();}
 
 // ---------- garage ----------
 const TABS=[
@@ -235,6 +236,101 @@ export function roulette(id,done){if(rolling)finishRoll(true);if(!C||!ICONS[id])
  rolling.raf=requestAnimationFrame(step);rolling.to=setTimeout(()=>{if(rolling&&rolling.done===done)finishRoll();},2600);   // never leave the item locked (background tab etc.)
 }
 
+// ---------- cups (M7) ----------
+let cupLevel='easy',cupLevelSet=false,cupPhase='between',shelfPick=null;
+const placeWord=n=>{const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);};
+function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!=null)n.textContent=text;return n;}
+function faceOf(name){if(name==='You')return {css:HERO_LOOK.css,svg:HERO_LOOK.svg};const r=RIVAL_LOOKS.find(x=>x.name===name);return r?{css:r.css,svg:r.svg}:{css:'#c8b6ff',svg:''};}
+function trophySvg(n){const fill=n>=3?'#ffd23a':n===2?'#e4e7f2':n===1?'#e3944f':'#fff27a';
+ if((n|0)<1)return `<svg viewBox="0 0 24 24" class="trophy-svg" aria-hidden="true"><path d="M12 3l2.4 5.2 5.6.6-4.2 3.8 1.2 5.6L12 15.8 7 18.2l1.2-5.6L4 8.8l5.6-.6z" fill="none" stroke="${fill}" stroke-width="1.7" stroke-linejoin="round"/></svg>`;
+ return `<svg viewBox="0 0 24 24" class="trophy-svg" aria-hidden="true"><path d="M7 3h10v6a5 5 0 0 1-10 0z" fill="${fill}"/><path d="M7 5H3.5A4.5 4.5 0 0 0 8 10M17 5h3.5A4.5 4.5 0 0 1 16 10" fill="none" stroke="${fill}" stroke-width="2"/><path d="M12 14v3M8.5 21h7L14 17h-4z" fill="${fill}"/></svg>`;}
+function ribbonSvg(){return `<svg viewBox="0 0 88 72" class="ribbon-svg" aria-hidden="true"><path d="M10 12h68v30H10z" fill="#ff4fd8" stroke="#fff" stroke-width="3"/><path d="M10 12h68v8H10z" fill="#ffd23a"/><path d="M44 42l-12 24 12-7 12 7z" fill="#ffd23a" stroke="#fff" stroke-width="2"/><path d="M44 20l3.2 7.2h7.6l-6 4.6 2.2 7.4L44 35l-7 4.2 2.2-7.4-6-4.6h7.6z" fill="#fff"/></svg>`;}
+function cupIcon(id){
+ if(id==='heart')return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-9a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 4.6-7 9-7 9z" fill="#ff4fd8"/></svg>`;
+ if(id==='rainbow')return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17a9 9 0 0 1 18 0" fill="none" stroke="#ff4a6a" stroke-width="2.2"/><path d="M6.5 17a5.5 5.5 0 0 1 11 0" fill="none" stroke="#ffd23a" stroke-width="2.2"/><path d="M10 17a2 2 0 0 1 4 0" fill="none" stroke="#35f2ff" stroke-width="2.2"/></svg>`;
+ return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.6 6.2L21 9l-4.8 4.2L17.5 20 12 16.8 6.5 20l1.3-6.8L3 9l6.4-.8z" fill="#ffd23a"/></svg>`;}
+function awardVoice(n){return n>=3?'c_gold':n===2?'c_silver':n===1?'c_bronze':null;}
+function hideCupScreens(){show('cupSel',false);show('cupEnd',false);show('cupShelf',false);}
+function markCups(){const b=$('btnCups');if(!b||!C)return;const on=!!(C.ST&&C.ST.cupRun);b.classList.toggle('has-run',on);b.setAttribute('aria-label',on?'Cups, a cup is waiting':'Cups');}
+function ensureLevel(){if(cupLevelSet)return;const d=C&&C.ST&&C.ST.settings&&C.ST.settings.difficulty;if(DIFFS.includes(d))cupLevel=d;cupLevelSet=true;}
+function faceNode(name,big){const f=faceOf(name),pv=el('span','cf'+(big?' big':''));pv.style.background=f.css;pv.style.color=f.css;pv.innerHTML=`<svg viewBox="0 0 24 24">${f.svg}</svg>`;return pv;}
+function standingsCard(table){const box=el('section','cup-stand');box.dataset.part='standings';box.appendChild(el('h3','cup-h3','Standings'));
+ for(const row of (Array.isArray(table)?table:[])){const line=el('div','cup-line'+(row.name==='You'?' me':''));
+  line.append(faceNode(row.name,false),el('span','rk',placeWord(row.rank)),el('span','nm',row.name),el('b','pts',String(row.points|0)));box.appendChild(line);}
+ return box;}
+function podiumRow(table){const row=el('div','cup-pod');
+ for(const r of (table||[]).filter(x=>x.rank<=3)){const slot=el('div','slot'+(r.name==='You'?' me':''));slot.style.order=String(r.rank===1?2:r.rank===2?1:3);
+  slot.append(faceNode(r.name,true),el('b',null,placeWord(r.rank)),el('span',null,r.name));row.appendChild(slot);}
+ return row;}
+function mountUnlocks(parent,list){if(!list||!list.length)return;const box=el('div','fin-unlock');
+ for(const u of list)box.appendChild(el('p',null,(u.pop||'New!')+' '+(u.id||'')));
+ parent.appendChild(box);}
+function sayUnlocks(list){const said=new Set();for(const u of list||[])for(const id of u.voice||[]){if(!id||said.has(id))continue;said.add(id);say(id);}}
+function speakResult(view,kind){const o=view&&view.outcome;if(kind==='between'){if(o&&o.voice)say(o.voice);else if(view.racePlace===1)say('win');else if((view.racePlace|0)<=3)say('second');}
+ else if(o&&o.voice)say(o.voice);if(view&&view.newBest)say('s_newbest');}
+function fillBetween(view){const body=$('cupEndBody');body.replaceChildren();const fin=el('section','cup-part');fin.dataset.part='finish';
+ fin.append(el('h2',null,view.outcome?view.outcome.title:'Cup Racer'),el('p','sub',view.outcome?view.outcome.cheer:'Cup Racer! Great racing!'),el('p','cup-meta',`Race ${view.raceNo||1} of 3 · ${view.trackName||''}`));
+ if(view.outcome&&view.outcome.ribbon){const art=el('div','trophy-art');art.innerHTML=ribbonSvg();fin.appendChild(art);}
+ fin.appendChild(el('p','cup-meta',`${placeWord(view.place||1)} in the ${view.cupName||'cup'}`));
+ body.append(fin,standingsCard(view.table));
+ if(view.nextName)body.appendChild(el('p','cup-meta','Next up: '+view.nextName));
+ if(view.time)body.appendChild(el('p','cup-meta',`Time ${view.time} · Fastest lap ${view.best||''}`));
+ if(view.newBest)body.appendChild(el('p','cup-best','New best time!'));
+ mountUnlocks(body,view.unlocks);}
+function fillPodium(view){const body=$('cupEndBody');body.replaceChildren();
+ body.append(el('h2',null,view.outcome?view.outcome.title:'Gold trophy!'),el('p','sub',view.outcome?view.outcome.cheer:'Gold trophy!'));
+ const art=el('div','trophy-art');art.innerHTML=trophySvg(view.outcome?view.outcome.trophy:3);body.appendChild(art);
+ body.append(podiumRow(view.table),el('p','cup-meta',`${placeWord(view.place||1)} in the ${view.cupName||'cup'}`),standingsCard(view.table));
+ if(view.newBest)body.appendChild(el('p','cup-best','New best time!'));
+ mountUnlocks(body,view.unlocks);}
+function fillRibbon(view){const body=$('cupEndBody');body.replaceChildren();const art=el('div','trophy-art');art.innerHTML=ribbonSvg();
+ body.append(art,el('h2',null,'Cup Racer'),el('p','sub',view.outcome?view.outcome.cheer:'Cup Racer! Great racing!'),el('p','cup-meta',`${placeWord(view.place||4)} in the ${view.cupName||'cup'}`),standingsCard(view.table));
+ if(view.newBest)body.appendChild(el('p','cup-best','New best time!'));
+ mountUnlocks(body,view.unlocks);}
+function openCupEnd(kind,view){cupPhase=kind;view=view||{};if(kind==='between')fillBetween(view);else if(kind==='ribbon')fillRibbon(view);else fillPodium(view);
+ const next=$('btnCupNext');if(next){next.textContent=kind==='between'?'Next race':'Next';next.setAttribute('aria-label',kind==='between'?'Next race':'Back to cups');}
+ const panel=$('cupEnd');if(panel)panel.dataset.screen=kind;
+ show('trackSel',false);show('garage',false);show('cupSel',false);show('cupShelf',false);show('finish',false);show('title',false);show('pauseMenu',false);show('cupEnd',true);
+ speakResult(view,kind);const unlocks=view.unlocks;if(unlocks&&unlocks.length)setTimeout(()=>sayUnlocks(unlocks),1600);}
+export function showCupBetween(v){openCupEnd('between',v);}
+export function showCupPodium(v){openCupEnd('podium',v);}
+export function showCupRibbon(v){openCupEnd('ribbon',v);}
+function renderLevels(){const box=$('cupLevels');if(!box)return;box.replaceChildren();
+ for(const d of DIFFS){const b=document.createElement('button');b.type='button';b.className='chip';b.dataset.d=d;b.setAttribute('aria-label',CHIP_NAME[d]);b.setAttribute('aria-pressed',d===cupLevel?'true':'false');b.innerHTML=chipSvg(d);
+  b.addEventListener('click',()=>{cupLevel=d;cupLevelSet=true;renderLevels();renderCupCards();});box.appendChild(b);}}
+function renderCupCards(){const row=$('cupRow'),cont=$('cupCont');if(!row||!C)return;row.replaceChildren();if(cont)cont.replaceChildren();
+ const run=currentRace(C.ST);
+ if(run&&cont){const b=document.createElement('button');b.type='button';b.className='big cup-cont';b.textContent=`Keep going · ${run.cupName} · race ${run.index+1} of 3`;
+  b.addEventListener('click',()=>{say(run.voice);try{C.onCupContinue&&C.onCupContinue();}catch(e){console.error(e);}});cont.appendChild(b);}
+ for(const c of listCups(C.ST,cupLevel)){const b=document.createElement('button');b.type='button';b.className='cup-card'+(c.open?'':' locked');
+  b.innerHTML=`<span class="cup-ic">${cupIcon(c.id)}</span><span class="nm"></span><span class="tr"></span><span class="tb"></span>`;
+  b.querySelector('.nm').textContent=c.name;b.querySelector('.tr').textContent=c.races.map(r=>r.name).join(' · ');
+  const tb=b.querySelector('.tb');tb.innerHTML=trophySvg(c.trophy);tb.appendChild(el('span',null,trophyLabel(c.trophy)));
+  if(!c.open){b.setAttribute('aria-disabled','true');b.appendChild(el('span','cup-hint',c.lockLine));}
+  b.setAttribute('aria-label',c.open?`${c.name}, ${trophyLabel(c.trophy)}`:`${c.name}. ${c.lockLine}`);
+  b.addEventListener('click',()=>{if(!c.open){say(c.lockVoice||'c_rainbow_lock');return;}say(c.voice);try{C.onCupStart&&C.onCupStart(c.id,cupLevel);}catch(e){console.error(e);}});
+  row.appendChild(b);}}
+export function showCupSelect(){if(!C)return;ensureLevel();renderLevels();renderCupCards();show('cupEnd',false);show('cupShelf',false);show('trackSel',false);show('garage',false);show('finish',false);show('title',false);show('pauseMenu',false);show('cupSel',true);}
+function renderShelf(){const body=$('cupShelfBody');if(!body||!C)return;body.replaceChildren();shelfPick=null;
+ for(const row of shelfRows(C.ST)){const sec=el('section','shelf-cup');sec.appendChild(el('h3','cup-h3',row.name));
+  if(!row.open&&row.lockLine)sec.appendChild(el('p','cup-hint',row.lockLine));
+  const grid=el('div','shelf-grid');
+  for(const lv of row.levels){const b=document.createElement('button');b.type='button';b.className='shelf-cell';b.dataset.cup=row.id;b.dataset.level=lv.level;
+   b.innerHTML=`${trophySvg(lv.trophy)}<span>${CHIP_NAME[lv.level]}</span><span>${lv.label}</span>`;
+   b.setAttribute('aria-label',`${row.name} ${CHIP_NAME[lv.level]} ${lv.label}`);
+   b.addEventListener('click',()=>{shelfPick={cup:row.id,level:lv.level,open:row.open,lockVoice:row.lockVoice||'c_rainbow_lock'};
+    for(const q of body.querySelectorAll('.shelf-cell'))q.setAttribute('aria-pressed',q===b?'true':'false');
+    const v=awardVoice(lv.trophy);if(v)say(v);else if(!row.open)say(row.lockVoice);});
+   grid.appendChild(b);}
+  sec.appendChild(grid);body.appendChild(sec);
+  if(!shelfPick&&row.open)shelfPick={cup:row.id,level:cupLevel,open:true,lockVoice:''};}
+ if(!shelfPick)shelfPick={cup:'star',level:cupLevel,open:true,lockVoice:''};}
+export function showCupShelf(){if(!C)return;renderShelf();show('cupSel',false);show('cupEnd',false);show('trackSel',false);show('finish',false);show('title',false);show('pauseMenu',false);show('cupShelf',true);say('c_cup_star',8);}
+function wireEnd(again,next,set,phaseFn){const a=$(again),n=$(next),s=$(set);
+ if(a)a.addEventListener('click',()=>{const phase=phaseFn();try{C.onCupAgain&&C.onCupAgain(phase,phase==='shelf'?shelfPick:null);}catch(e){console.error(e);}});
+ if(n)n.addEventListener('click',()=>{const phase=phaseFn();try{C.onCupNext&&C.onCupNext(phase);}catch(e){console.error(e);}});
+ if(s)s.addEventListener('click',()=>{$('btnSetTitle').click();});}
+
 // ---------- init ----------
 export function init(ctx){C=ctx;if(!C.ST.kart)C.ST.kart={};
  try{applyKart(null,C.ST.kart);}catch(e){}   // the saved garage look on the hero (no-op until the hero exists)
@@ -246,4 +342,10 @@ export function init(ctx){C=ctx;if(!C.ST.kart)C.ST.kart={};
  $('btnItem').addEventListener('pointerdown',e=>{if(rolling){e.preventDefault();e.stopImmediatePropagation();}},true);
  addEventListener('keydown',e=>{if(rolling&&(e.key==='x'||e.key==='X'||e.key==='Enter')){e.stopImmediatePropagation();}},true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&rolling)finishRoll();});
+ const cupBack=$('btnCupBack');if(cupBack)cupBack.addEventListener('click',()=>showTrackSelect());
+ const cupSet=$('btnSetCup');if(cupSet)cupSet.addEventListener('click',()=>$('btnSetTitle').click());
+ const shelfBtn=$('btnShelf');if(shelfBtn)shelfBtn.addEventListener('click',()=>showCupShelf());
+ const cupsBtn=$('btnCups');if(cupsBtn)cupsBtn.addEventListener('click',()=>{show('trackSel',false);showCupSelect();});
+ wireEnd('btnCupAgain','btnCupNext','btnSetCupEnd',()=>cupPhase);
+ wireEnd('btnShelfAgain','btnShelfNext','btnSetShelf',()=>'shelf');
  buildSelect();}
