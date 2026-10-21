@@ -8,7 +8,7 @@
   const canWorker = () => typeof Worker !== 'undefined' && typeof OffscreenCanvas !== 'undefined' && !H.forceMain && !/[?&]nw=1/.test(location.search);
   const cancelErr = () => Object.assign(new Error('cancel'), { code: 'cancel' });
   let gen = 0, wk = null, cur = null;
-  const H = { forceMain: false, last: null, WORK: 1280, WORK4K: 3840, CAP: 180 * 1024, CAP4K: 1536 * 1024, stat: { maxSlice: 0, slices: 0, maxBand: 0 } };
+  const H = { forceMain: false, last: null, WORK: 1280, WORK4K: 3840, CAP: 300 * 1024, CAP4K: 1536 * 1024, stat: { maxSlice: 0, slices: 0, maxBand: 0 } };
 
   function cancel() { gen++; if (wk) { try { wk.terminate(); } catch (e) { } wk = null; } if (cur) { const c = cur; cur = null; c.rej(cancelErr()); } }
   function wjob(msg, tr, onProg) {
@@ -58,12 +58,12 @@
   H.make = async function (img, opt, onProg) {
     const t0 = performance.now(), cfg = C.cfgFor(opt), copy = await copyOf(img.rgba); let out = null;
     if (canWorker()) {
-      try { const m = await wjob({ cmd: 'make', rgba: copy.buffer, w: img.w, h: img.h, cfg, thumb: 256 }, [copy.buffer], onProg); out = { pz: m.pz, thumb: m.thumb, where: 'worker' }; }
+      try { const m = await wjob({ cmd: 'make', rgba: copy.buffer, w: img.w, h: img.h, cfg, thumb: 512 }, [copy.buffer], onProg); out = { pz: m.pz, thumb: m.thumb, where: 'worker' }; }
       catch (e) { if (e.code !== 'worker') throw e; }
     }
     if (!out) {
       cancel(); const g = gen, c2 = await copyOf(img.rgba), cp = onProg ? C.creep(onProg) : null, pz = await sliced(C.run({ rgba: c2, w: img.w, h: img.h }, cfg, { prog: cp ? cp.prog : null }), g, 12, cp && cp.tick);
-      const t1 = performance.now(), cv = C.drawThumb(pz, C.inflate(pz, Path2D), 256, mkc), blob = await new Promise(r => cv.toBlob(b => r(b), 'image/webp', 0.8));
+      const t1 = performance.now(), cv = C.drawThumb(pz, C.inflate(pz, Path2D), 512, mkc), blob = await new Promise(r => cv.toBlob(b => r(b), 'image/webp', 0.85));
       pz.T.thumb = Math.round((performance.now() - t1) * 10) / 10; out = { pz, thumb: blob, where: 'main' };
     }
     out.pz.T.total = Math.round(performance.now() - t0); out.T = out.pz.T; out.cfg = cfg; H.last = { where: out.where, T: out.T, memPeak: out.pz.memPeak, n: out.pz.n, mode: out.pz.mode }; return out;
@@ -102,7 +102,8 @@
   const gunzip = async u8 => typeof DecompressionStream === 'undefined' ? u8 : pipeThrough(u8, DecompressionStream);
   H.zOK = () => typeof CompressionStream !== 'undefined' && typeof DecompressionStream !== 'undefined';
 
-  // ---------- record <-> puzzle (P3: record <= 180 KB incl. the thumb, <= 1.5 MB for a Super sharp (k4) puzzle; raise the Douglas-Peucker epsilon and rebuild when over) ----------
+  // ---------- record <-> puzzle (record <= 300 KB incl. the thumb, <= 1.5 MB for a Super sharp (k4) puzzle).
+  // The first two eps x1.5 bumps chase the 300 KB cap. If the record is still over, the same x1.5 steps continue up to 6 tries so it is never unbounded. ----------
   const bytesOf = (...a) => a.reduce((s, x) => s + (x ? (x.byteLength != null ? x.byteLength : x.size || 0) : 0), 0);
   H.pack = async function (pz, thumb, id, src) {
     const z = H.zOK() ? 1 : 0, d = pz.data; let rings = d.rings, eps = pz.cfg.eps || 0.7, tries = 0, rec;
@@ -112,7 +113,8 @@
       rec = { id, v: 1, pv: pz.pv, src, mode: pz.mode, w: pz.w, h: pz.h, W: pz.W, H: pz.H, s: pz.s, n: pz.n, pal: pz.pal, cfg: pz.cfg, z, made: Date.now() };
       if (pz.mode === 'shapes') Object.assign(rec, { col: d.col, bb: d.bb, lab: d.lab, rg, rl }); else rec.cells = d.cells;
       const bytes = bytesOf(rec.col, rec.bb, rec.lab, rec.rg, rec.rl, rec.cells, thumb);
-      if (bytes <= (pz.cfg.k4 ? H.CAP4K : H.CAP) || pz.mode !== 'shapes' || tries >= 6) { const meta = { id, v: 1, src, mode: pz.mode, n: pz.n, w: pz.W, h: pz.H, bytes, thumb, made: rec.made, diff: pz.cfg.diff }; return { rec, meta, bytes, eps, tries }; }
+      const cap = pz.cfg.k4 ? H.CAP4K : H.CAP;
+      if (bytes <= cap || pz.mode !== 'shapes' || tries >= 6) { const meta = { id, v: 1, src, mode: pz.mode, n: pz.n, w: pz.W, h: pz.H, bytes, thumb, made: rec.made, diff: pz.cfg.diff }; return { rec, meta, bytes, eps, tries }; }
       eps *= 1.5; tries++; rings = C.resimplify(rings, pz.n, eps); pz.cfg.eps = eps;
     }
   };

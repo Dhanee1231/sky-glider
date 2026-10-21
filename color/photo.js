@@ -123,7 +123,18 @@
     if (!ST.img && !(ST.src === 'pack' && ST.pack)) { go('photo'); return; }
     drawSrc(); refreshOpt(); $('#palDots').innerHTML = ''; clearPrev(); schedulePreview(0);
   };
-  function clearPrev() { const c = $('#opPrev'), g = c.getContext('2d'); g.clearRect(0, 0, c.width, c.height); }
+  function clearPrev() { const c = $('#opPrev'); c.style.width = ''; c.style.height = ''; const g = c.getContext('2d'); g.clearRect(0, 0, c.width, c.height); }
+  // The preview keeps the CSS box the bitmap lays out in, and the backing store is that box times min(DPR, 2.5).
+  function paintPrev(src) {
+    const c = $('#opPrev'); c.style.width = ''; c.style.height = '';
+    c.width = src.width; c.height = src.height;
+    const r = c.getBoundingClientRect(), s = Math.min(window.devicePixelRatio || 1, 2.5);
+    if (r.width >= 2 && r.height >= 2) {
+      c.style.width = r.width + 'px'; c.style.height = r.height + 'px';
+      c.width = Math.max(1, Math.ceil(r.width * s - 1e-4)); c.height = Math.max(1, Math.ceil(r.height * s - 1e-4));
+    }
+    const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, c.width, c.height);
+  }
   $('#opBack').onclick = () => go(ST.src === 'pack' ? 'packs' : 'photo');
   $('#opMoreBtn').onclick = () => { ST.more = !ST.more; API.AU.tick(); refreshOpt(); };
   $$('#opMode button[data-m]').forEach(b => b.onclick = () => { ST.mode = b.dataset.m; API.AU.tick(); AU(ST.mode === 'pixel' ? 'sq' : 'sh'); refreshOpt(); schedulePreview(0); });
@@ -140,13 +151,13 @@
   }
   async function runPreview(n) {
     try {
-      if (ST.src === 'pack' && ST.mode === 'shapes' && ST.detail <= 1) { const t = API.thumb(ST.pack.pic, null, 256), c = $('#opPrev'); c.width = t.width; c.height = t.height; c.getContext('2d').drawImage(t, 0, 0); $('#palDots').innerHTML = ''; $('#opBusy').classList.remove('on'); return; }
+      if (ST.src === 'pack' && ST.mode === 'shapes' && ST.detail <= 1) { paintPrev(API.thumb(ST.pack.pic, null, 256)); $('#palDots').innerHTML = ''; $('#opBusy').classList.remove('on'); return; }
       const r = (ST.src === 'pack' && ST.mode === 'shapes')
         ? await H.detail(ST.pack.pic, ST.detail, hash(ST.pack.pic.id), null, true)
         : await H.make(ST.img, { mode: ST.mode, diff: ST.diff, pal: ST.pal, grid: ST.grid, sparkle: ST.sparkle, seed: ST.seed, preview: true });
       if (n !== ST.prevN) return;
       const bm = await createImageBitmap(r.thumb); if (n !== ST.prevN) { bm.close(); return; }
-      const c = $('#opPrev'); c.width = bm.width; c.height = bm.height; c.getContext('2d').drawImage(bm, 0, 0); bm.close();
+      paintPrev(bm); bm.close();
       $('#palDots').innerHTML = r.pz.pal.map(h => '<i style="background:' + h + '"></i>').join(''); $('#opBusy').classList.remove('on');
     } catch (e) { if (e.code !== 'cancel' && n === ST.prevN) { $('#opBusy').classList.remove('on'); if (scrIs('opt')) fail(e.code); } }
   }

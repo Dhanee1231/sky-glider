@@ -24,7 +24,7 @@
     const c = { mode, diff: p.id, seed: (o.seed >>> 0) || 1, sparkle: !!o.sparkle, preview: !!o.preview, eps: o.eps || 0.7 };
     if (mode === 'pixel') { c.grid = clamp(o.grid | 0 || p.grid, 8, 80); c.pal = clamp(o.pal | 0 || p.gpal, 4, 24); c.work = 512; }
     else { c.work = p.work; c.pal = clamp(o.pal | 0 || p.pal, 4, p.k4 ? 32 : 24); c.minArea = p.minArea; c.maxReg = p.maxReg; if (p.k4) c.k4 = 1; }
-    if (c.preview) { const k = 256 / c.work; c.work = 256; if (c.minArea) c.minArea = Math.max(12, Math.round(c.minArea * k * k)); }
+    if (c.preview) { const pv = 512, k = pv / c.work; c.work = pv; if (c.minArea) c.minArea = Math.max(12, Math.round(c.minArea * k * k)); }
     return c;
   }
 

@@ -325,7 +325,10 @@
   }
   function moved() { lastCam = performance.now(); artDirty = fxDirty = artFull = true; }
   function layout(w, h, ratio) {
-    cssW = Math.max(1, w); cssH = Math.max(1, h); dpr = Math.min(ratio || 1, QS[q].dpr);
+    cssW = Math.max(1, w); cssH = Math.max(1, h);
+    const dev = ratio || 1;
+    if (cssW >= 800) dpr = 2;   // wide screens: tile cap sheds first (pickQ). Art stays at 2, not the old 1.5 and not min(DPR, 2.5) — that lost ~4.8 fps vs v9 at 884x982 4x CPU.
+    else dpr = Math.min(dev, QS[q].dpr);   // phones narrower than 800 CSS px keep the v9 caps
     const rel = fit > 0 && cam.z > 0 ? cam.z / fit : 1;
     fit = Math.min(cssW / WW, cssH / WH); cam.z = fit * rel;
     for (const c of [art, fx]) { const k = c === fx ? FXD : dpr; c.width = Math.round(cssW * k); c.height = Math.round(cssH * k); c.style.width = cssW + 'px'; c.style.height = cssH + 'px'; }

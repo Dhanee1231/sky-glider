@@ -18,8 +18,8 @@ self.onmessage = async e => {
     } else if (m.cmd === 'make') {
       const t0 = performance.now(), src = { rgba: new Uint8ClampedArray(m.rgba), w: m.w, h: m.h }; m.rgba = null;   // run() lets go of the pixels mid-way (CC 8)
       const cp = CBN.creep((f, s) => post({ t: 'prog', gen: m.gen, f, s })), pz = CBN.drainTick(CBN.run(src, m.cfg, { prog: cp.prog }), cp.tick);
-      const t1 = performance.now(), inf = CBN.inflate(pz, Path2D), c = CBN.drawThumb(pz, inf, m.thumb || 256, (w, h) => new OffscreenCanvas(w, h));
-      const blob = await c.convertToBlob({ type: 'image/webp', quality: 0.8 });
+      const t1 = performance.now(), inf = CBN.inflate(pz, Path2D), c = CBN.drawThumb(pz, inf, m.thumb || 512, (w, h) => new OffscreenCanvas(w, h));
+      const blob = await c.convertToBlob({ type: 'image/webp', quality: 0.85 });
       pz.T.thumb = Math.round((performance.now() - t1) * 10) / 10; pz.T.total = Math.round(performance.now() - t0);
       const tr = []; for (const k in pz.data) tr.push(pz.data[k].buffer);
       post({ t: 'done', gen: m.gen, pz, thumb: blob }, tr);

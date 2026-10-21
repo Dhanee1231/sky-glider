@@ -63,9 +63,21 @@
     for (let i = 0; i < n; i++) { const s = pic.shapes[i]; P.path[i] = new Path2D(s[1]); P.clip[i] = s[2] ? new Path2D(s[2]) : null; P.col[i] = s[0]; }
     liteMap.set(pic, P); return P;
   }
-  function thumb(pic, fc, size) {
-    const W = pic.w || 2048, H = pic.h || 2048, k = size / Math.max(W, H), c = document.createElement('canvas'); c.width = Math.max(1, Math.round(W * k)); c.height = Math.max(1, Math.round(H * k)); const g = c.getContext('2d'); g.scale(k, k);
+  // Display thumbs keep their CSS box and paint the backing store at size * min(DPR, 2.5). Saved blobs pass scale 1.
+  const pxScale = () => Math.min(dpr(), 2.5);
+  function thumb(pic, fc, size, scale) {
+    const W = pic.w || 2048, H = pic.h || 2048, k = size / Math.max(W, H), sc = scale > 0 ? scale : 1, c = document.createElement('canvas');
+    c.width = Math.max(1, Math.ceil(W * k * sc - 1e-6)); c.height = Math.max(1, Math.ceil(H * k * sc - 1e-6));
+    const g = c.getContext('2d'); g.setTransform(c.width / W, 0, 0, c.height / H, 0, 0);
     const P = liteP(pic); const f = new Uint8Array(P.n); if (fc) f.set(fc.subarray ? fc.subarray(0, P.n) : fc); R.drawFlat(g, { P, pal: pic.pal, fc: f }, {}); return c;
+  }
+  function mountThumb(parent, pic, fc, size) {
+    const s = pxScale(); let c = thumb(pic, fc, size, s); parent.appendChild(c);
+    const r = c.getBoundingClientRect();
+    if (r.width >= 2 && r.height >= 2 && (c.width < Math.ceil(r.width * s - 1e-4) || c.height < Math.ceil(r.height * s - 1e-4))) {
+      const n = thumb(pic, fc, Math.max(r.width, r.height), s); parent.replaceChild(n, c); c = n;
+    }
+    return c;
   }
   const picBy = (pk, id) => { const p = CM_PACKS[pk]; return p && p.pics.find(x => x.id === id); };
   const pidOf = (pk, id) => 'pk:' + pk + '.' + id;
@@ -95,9 +107,11 @@
     for (const p of PACKS) for (const pic of p.pics) { const r = progMap.get(pidOf(p.id, pic.id)); if (r && r.order.length && r.order.length < pic.shapes.length && (!best || r.t > best.r.t)) best = { p, pic, r }; }
     for (const [id, r] of progMap) if (isCustom(id) && r.order.length && r.order.length < r.n && (!best || r.t > best.r.t)) best = { cid: id, r };
     k.hidden = !best; if (best) {
-      const c = k.querySelector('canvas'), cx = c.getContext('2d'); cx.clearRect(0, 0, 96, 96); k.querySelector('span').innerHTML = A.icon('play');
-      if (best.cid) { k.onclick = () => API.openByPid(best.cid); if (API.thumbOf) API.thumbOf(best.cid).then(im => { if (im && !k.hidden) { const q = 96 / Math.max(im.width, im.height); cx.drawImage(im, 0, 0, im.width * q, im.height * q); } }); }
-      else { const t = thumb(best.pic, fcFromOrder(best.pic, best.r.order), 96); cx.drawImage(t, 0, 0); k.onclick = () => openPic(best.p.id, best.pic.id); }
+      const c = k.querySelector('canvas'), s = pxScale(), rect = c.getBoundingClientRect(), cssW = rect.width >= 2 ? rect.width : 96, cssH = rect.height >= 2 ? rect.height : cssW;
+      c.width = Math.max(1, Math.ceil(cssW * s - 1e-4)); c.height = Math.max(1, Math.ceil(cssH * s - 1e-4));
+      const cx = c.getContext('2d'); cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, c.width, c.height); k.querySelector('span').innerHTML = A.icon('play');
+      if (best.cid) { k.onclick = () => API.openByPid(best.cid); if (API.thumbOf) API.thumbOf(best.cid).then(im => { if (im && !k.hidden) { cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, c.width, c.height); const q = Math.min(c.width / im.width, c.height / im.height); cx.imageSmoothingQuality = 'high'; cx.drawImage(im, 0, 0, im.width * q, im.height * q); } }); }
+      else { const t = thumb(best.pic, fcFromOrder(best.pic, best.r.order), Math.max(cssW, cssH), s); cx.drawImage(t, 0, 0, c.width, c.height); k.onclick = () => openPic(best.p.id, best.pic.id); }
     }
     applySettings();
     const day = ymd(); if (sd().seen.hd !== day && sd().seen.first) { sd().seen.hd = day; SV.write(); AU.say('hello', { defer: true }); }
@@ -114,23 +128,26 @@
     await loadMaps(); const row = $('#packRow'); row.innerHTML = '';
     PACKS.forEach((p, i) => {
       const b = document.createElement('button'); b.className = 'pcov' + (i === selPack ? ' sel' : ''); const done = p.pics.filter(x => fracOf(p.id, x) >= 1).length;
-      let cv = covers.get(p.id); if (!cv) { cv = thumb(p.pics[0], fcFromOrder(p.pics[0], p.pics[0].shapes.map((s, k) => k)), 200); covers.set(p.id, cv); }
-      b.appendChild(cv); const t = document.createElement('div'); t.textContent = p.name + ' ' + done + '/' + p.pics.length; b.appendChild(t);
-      b.onclick = () => { if (selPack === i) return; selPack = i; $$('#packRow .pcov').forEach((e, k) => e.classList.toggle('sel', k === i)); showGrid(); AU.tick(); }; row.appendChild(b);
+      row.appendChild(b);
+      let cv = covers.get(p.id); if (!cv) { cv = mountThumb(b, p.pics[0], fcFromOrder(p.pics[0], p.pics[0].shapes.map((s, k) => k)), 200); covers.set(p.id, cv); } else b.appendChild(cv);
+      const t = document.createElement('div'); t.textContent = p.name + ' ' + done + '/' + p.pics.length; b.appendChild(t);
+      b.onclick = () => { if (selPack === i) return; selPack = i; $$('#packRow .pcov').forEach((e, k) => e.classList.toggle('sel', k === i)); showGrid(); AU.tick(); };
     });
     $('#chev').hidden = PACKS.length < 2;
     showGrid();
   }
   function showGrid() {
-    const grid = $('#picGrid'); grid.innerHTML = ''; grid.scrollTop = 0; const p = PACKS[selPack];
+    const grid = $('#picGrid'); grid.innerHTML = ''; grid.scrollTop = 0; const p = PACKS[selPack]; const jobs = [];
     for (const pic of p.pics) {
       const b = document.createElement('button'); b.className = 'pic'; const f = fracOf(p.id, pic), r = progMap.get(pidOf(p.id, pic.id));
-      b.appendChild(thumb(pic, r ? fcFromOrder(pic, r.order) : null, 200));
+      grid.appendChild(b);
       const st = document.createElement('div'); st.className = 'st'; st.innerHTML = A.hearts(pic.stars); b.appendChild(st);
       const ring = document.createElement('div'); if (f >= 1) { ring.className = 'crown'; ring.innerHTML = A.icon('gem'); } else if (f > 0) { ring.className = 'ring'; ring.innerHTML = '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="14" fill="none" stroke="#ffd0ea" stroke-width="6"/><circle cx="20" cy="20" r="14" fill="none" stroke="#d6339f" stroke-width="6" stroke-dasharray="' + (88 * f).toFixed(1) + ' 88" transform="rotate(-90 20 20)" stroke-linecap="round"/></svg>'; }
       if (ring.className) b.appendChild(ring);
-      b.onclick = () => { if (API.pickPack && !r && !galMap.has(pidOf(p.id, pic.id))) API.pickPack(p.id, pic.id); else openPic(p.id, pic.id); }; grid.appendChild(b);
+      b.onclick = () => { if (API.pickPack && !r && !galMap.has(pidOf(p.id, pic.id))) API.pickPack(p.id, pic.id); else openPic(p.id, pic.id); };
+      jobs.push([b, pic, r ? fcFromOrder(pic, r.order) : null]);
     }
+    for (const j of jobs) mountThumb(j[0], j[1], j[2], 200);   // after the grid has its columns, so the backing store matches the CSS box
   }
 
   // ---------- opening a picture ----------
@@ -358,9 +375,10 @@
     if (lockQ || ms > 250 || ms < 1 || R.warming) return;   // frames that build a new puzzle's first view say nothing about the phone's speed (CC 8)
     if (ms > 20) { if (++slow >= 3 && R.q < 2) { slow = 0; fastT = 0; if (qUp) { qUp = false; qNoUp = true; } R.setQuality(R.q + 1); layoutNow(); } } else { slow = 0; if (ms < 12) { fastT += ms; if (fastT > 10000 && R.q > 0 && !qNoUp) { fastT = 0; qUp = true; R.setQuality(R.q - 1); layoutNow(); } } else fastT = 0; }
   }
-  // v9 QA P2: a big canvas (Fold inner screen, tablets: over 2.2M device px at the 2x cap) starts at the lowest quality step instead
-  // of stepping down during the first fills (100-225 ms tasks at 4x); a fast device steps back up after 10 s of quick frames as
-  // before. qUp: it did step up; a later step down then stops further step-ups for this visit (no back and forth).
+  // v9 QA P2: a big canvas (Fold inner screen, tablets: over 2.2M device px at the 2x cap) starts at the lowest tile step
+  // (cap / LOD / sparkles) instead of stepping down during the first fills. On a canvas >= 800 CSS px the art layer stays at
+  // 2x rather than the old 1.5 step: min(DPR, 2.5) was 4.8 fps slower than v9 here at 4x CPU. Phones keep the v9 dpr caps.
+  // qUp: it did step up; a later step down then stops further step-ups for this visit (no back and forth).
   let qUp = false, qNoUp = false;
   function pickQ() { if (lockQ || qUp || R.q >= 2) return; const s = R.size, k = Math.min(dpr(), 2); if (s[0] * s[1] * k * k > 2.2e6) R.setQuality(2); }
   {
@@ -405,7 +423,7 @@
       const st = sd().stats; st.done++; st.regions += G.n; st.ms += G.ms; const f = A.FRAMES.find(x => x.n === st.done); if (f) { sd().frames[f.id] = 1; earned = true; }
       fr = A.frameFor(st.done); sd().stk[G.pid] = Object.keys(sd().stk).length % 4;
       await new Promise(r => setTimeout(r, 0));   // v9 QA P2 round 2: the thumb gets a task of its own (not the last fill's)
-      const t = finThumb(256), blob = await new Promise(r => t.toBlob(b => r(b), 'image/webp', 0.8));
+      const t = finThumb(512), blob = await new Promise(r => t.toBlob(b => r(b), 'image/webp', 0.85));
       const rec = { id: G.pid, v: 1, pid: G.pid, done: Date.now(), ms: Math.round(G.ms), frame: fr.id, thumb: blob }; galMap.set(G.pid, rec); SV.put('gallery', rec); SV.write();
     }
     FC.earned = earned; FC.then = earned ? 'frame' : (first ? 'saved' : null); AU.fanfare(); setTimeout(() => finishView(false), 100);
