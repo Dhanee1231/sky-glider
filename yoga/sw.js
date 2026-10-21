@@ -1,6 +1,6 @@
 // Yoga Coach service worker. Scope: this yoga/ folder only. Touches only its own 'yoga-coach-*' caches.
-const CACHE = 'yoga-coach-v3';
-const SHELL = ['./', './index.html', './style.css', './app.js', './poses.js', './figure.js', './store.js', './coach.js', './voice.js', './speechtext.js', './lines.js', './media.js', './body.js', './rules.js', './camera.js', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './voice-kid.json', './media/voice/af_heart/index.json', './media/voice/am_michael/index.json'];
+const CACHE = 'yoga-coach-v3a';
+const SHELL = ['./', './index.html', './fsbtn.js', './style.css', './app.js', './poses.js', './figure.js', './store.js', './coach.js', './voice.js', './speechtext.js', './lines.js', './media.js', './body.js', './rules.js', './camera.js', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './voice-kid.json', './media/voice/af_heart/index.json', './media/voice/am_michael/index.json'];
 const MODEL = ['./vendor/vision_bundle.mjs', './vendor/vision_wasm_internal.js', './vendor/vision_wasm_internal.wasm', './vendor/pose_landmarker_lite.task'];
 const VOICE_LIST = './voice-kid.json';
 const SCOPE = new URL('./', self.location).pathname;
@@ -21,7 +21,7 @@ self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(async c => {
     await c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })));
     // camera coach files (~19 MB): reuse the copies saved by v1 if present, else download (best effort)
-    const olds = []; for (const n of ['yoga-coach-v2b', 'yoga-coach-v2', 'yoga-coach-v1']) if (await caches.has(n)) olds.push(await caches.open(n));
+    const olds = []; for (const n of ['yoga-coach-v3', 'yoga-coach-v2b', 'yoga-coach-v2', 'yoga-coach-v1']) if (await caches.has(n)) olds.push(await caches.open(n));
     await Promise.all(MODEL.map(async u => { const href = new URL(u, self.location).href; let hit = null; for (const o of olds) { hit = await o.match(href); if (hit) break; } if (hit) return c.put(u, hit); return c.add(u).catch(() => { }); }));
     await precacheVoice(c, 'af_heart');   // kid voice clips for offline use; best effort, never fails the install
   }).then(() => self.skipWaiting()));
