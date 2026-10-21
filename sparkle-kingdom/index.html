@@ -1,7 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#ff5fae"><title>Sparkle Kingdom</title>
-<link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="../home/manifest.json"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon-192.png">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;overscroll-behavior:none}
@@ -146,4 +146,5 @@ if('serviceWorker' in navigator){addEventListener('load',()=>{
   const go=()=>{if(window.SKTest&&(SKTest.state==='map')){if(Date.now()-(+sessionStorage.getItem('sk.swr')||0)<30000)return;try{sessionStorage.setItem('sk.swr',Date.now());}catch(e){}reloaded=true;location.reload();}else setTimeout(go,1500);};go();});
 });}
 </script>
+<script src="fsbtn.js" defer data-pos="tr" data-dx="8" data-dy="72"></script>
 </body></html>
