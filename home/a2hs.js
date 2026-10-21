@@ -23,8 +23,8 @@
   }
 
   var css = document.createElement('style');
-  css.textContent = '#fzA2hsChip{display:flex;align-items:center;gap:4px;margin:6px 0 0;width:max-content;max-width:100%;min-height:32px;padding:2px 6px 2px 8px;border-radius:99px;border:2px solid #fff;background:rgba(255,255,255,.94);color:#8a1270;font:800 13px/1.15 "Trebuchet MS",system-ui,sans-serif;box-shadow:0 2px 0 rgba(80,0,70,.25);cursor:pointer;touch-action:manipulation}' +
-    '#fzA2hsChip i{font-style:normal;width:22px;height:22px;border-radius:50%;background:#e9d5f5;display:grid;place-items:center;font-size:13px}' +
+  css.textContent = '#fzA2hsChip{display:flex;align-items:center;gap:4px;margin:6px 0 0;width:max-content;max-width:100%;min-height:48px;padding:0 0 0 12px;border-radius:99px;border:2px solid #fff;background:rgba(255,255,255,.94);color:#8a1270;font:800 14px/1.15 "Trebuchet MS",system-ui,sans-serif;box-shadow:0 2px 0 rgba(80,0,70,.25);cursor:pointer;touch-action:manipulation}' +
+    '#fzA2hsChip i{font-style:normal;width:48px;height:48px;flex:0 0 48px;border-radius:50%;background:#e9d5f5;display:grid;place-items:center;font-size:13px}' +
     '#fzA2hs .steps{display:flex;flex-direction:column;gap:8px;margin:8px 0}' +
     '#fzA2hs .step{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:14px;font-weight:700}' +
     '#fzA2hs .ico{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:10px;background:#2a0a2e;color:#fff;font-size:20px;font-weight:900;box-shadow:0 0 0 2px #f5c542}' +
