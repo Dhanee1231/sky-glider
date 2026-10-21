@@ -348,7 +348,8 @@ body:has(#title.show,#trackSel.show,#garage.show,#settings.show,#finish.show,#cu
  <h1>Neon Rush</h1><div class="sub">Race six friends through the neon city!</div><div class="rivals" id="titleRivals" aria-hidden="true"></div>
  <button class="big" id="btnStart"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" fill="#2b1055"/></svg>Tap to race!</button>
  <div class="row"><a class="lbtn" href="../home/" id="btnHomeTitle"><span class="rb"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" fill="#fff"/></svg></span>Home</a>
-  <div class="lbtn"><button class="rb" id="btnSetTitle" aria-label="Settings"><svg viewBox="0 0 24 24"><path fill="#fff" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1L11 21h4l.4-2.9a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>Settings</div></div>
+  <div class="lbtn"><button class="rb" id="btnSetTitle" aria-label="Settings"><svg viewBox="0 0 24 24"><path fill="#fff" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1L11 21h4l.4-2.9a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>Settings</div>
+  <div class="lbtn" id="fsTitleWrap"><button class="rb" id="btnFsTitle" aria-label="Full screen"><svg viewBox="0 0 24 24"><path fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>Full screen</div></div>
 </div></div>
 
 <div class="layer panel" id="pauseMenu"><div class="card">
@@ -445,5 +446,5 @@ body:has(#title.show,#trackSel.show,#garage.show,#settings.show,#finish.show,#cu
 <div id="fps"></div>
 <script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js"}}</script>
 <script type="module" src="main.js"></script>
-<script src="fsbtn.js" defer data-pos="tl" data-dx="14" data-dy="14"></script>
+<style>html.fz-installed #fsTitleWrap,html.fz-nofull #fsTitleWrap{display:none}</style><script src="fsbtn.js" defer data-own="#btnFsTitle"></script>
 </body></html>

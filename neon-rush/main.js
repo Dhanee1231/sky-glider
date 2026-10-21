@@ -247,6 +247,7 @@ on('btnPause',()=>pause());on('btnResume',()=>resume());
 on('btnRestart',()=>{show('pauseMenu',false);resetRace();updateCam(0,true);startCountdown('race');});
 on('btnAgain',()=>{cupLive=false;forceNight=0;say('again');show('finish',false);resetRace();updateCam(0,true);startCountdown('race');});
 on('btnNext',()=>{cupLive=false;forceNight=0;say('t_next');const i=TRACKS.findIndex(t=>t.id===curTrack);startTrack(TRACKS[(i+1)%TRACKS.length].id);});
+on('btnFsTitle',()=>{if(window.FZFS)FZFS.toggle();});
 for(const id of['btnSetTitle','btnSetPause','btnSetFinish'])on(id,()=>{say('settings');openSettings();});
 on('btnSetClose',()=>show('settings',false));
 function openSettings(){show('settings',true);syncSettings();}
