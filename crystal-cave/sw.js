@@ -1,7 +1,7 @@
 // Crystal Cave Quest service worker: offline support for /crystal-cave/ only. No network calls beyond its own files.
-const CACHE='crystal-cave-v11j';
+const CACHE='crystal-cave-v12';
 const PREFIX='crystal-cave-';
-const FILES=['./','./index.html','./manifest.json','./audio/manifest.json',
+const FILES=['./','./index.html','./fsbtn.js','./manifest.json','./audio/manifest.json',
   // the NEW RECORD cheers are precached so the party has its voice offline too
   './audio/548beca9.ogg','./audio/cb07e4ed.ogg','./audio/21f15e94.ogg','./audio/7e56e9f5.ogg','./audio/2587fe25.ogg','./audio/d34e3a57.ogg',
   './icon.svg','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
