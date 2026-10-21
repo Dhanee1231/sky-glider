@@ -1,6 +1,6 @@
 // Our Fun Zone service worker: only handles requests under /home/, only touches its own caches.
-const CACHE='home-v12';
-const FILES=['./','./index.html','./learn.js','./funzone.js','./audio/manifest.json','./manifest.json','./icon.svg','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
+const CACHE='home-v13';
+const FILES=['./','./index.html','./learn.js','./funzone.js','./fsbtn.js','./a2hs.js','./audio/manifest.json','./manifest.json','./icon.svg','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
 const SCOPE=new URL('./',self.location).pathname;
 // review fix 5: the hub's greeting clips (Kokoro af_heart, ~0.5 MB) are precached from audio/manifest.json (best effort), so the first offline visit has a voice
 const CLIPS=c=>fetch('./audio/manifest.json',{cache:'reload'}).then(r=>r.ok?r.json():null).then(j=>j&&j.clips&&typeof j.clips==='object'?Promise.all(Object.keys(j.clips).filter(k=>/^[0-9a-f]{8}$/.test(k)).map(k=>c.add(new Request('./audio/'+k+'.ogg',{cache:'reload'})).catch(()=>{}))):0).catch(()=>{});

@@ -425,4 +425,4 @@ if('serviceWorker' in navigator&&location.protocol!=='file:'){const sw=navigator
   return Promise.all(ks.filter(k=>k.indexOf(pre)===0).map(k=>caches.open(k).then(c=>Promise.all([c.match(u,{ignoreSearch:true}),c.match(u+'index.html',{ignoreSearch:true})]).then(r=>!!(r[0]||r[1]))).catch(()=>false)))
    .then(r=>{const t=r.some(Boolean),b=a.querySelector('.off');if(b)b.classList.toggle('on',t);});}))).catch(()=>{});
  check();addEventListener('pageshow',check);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check();});})();
-</script></body></html>
+</script><script src="fsbtn.js" defer data-own="#fs"></script><script src="a2hs.js" defer></script></body></html>
