@@ -20,7 +20,7 @@ export default {
   {kind:'crane',s:1571,x:3.2},{kind:'barrel',s:1638,x:-3.3},{kind:'swinggate',s:1673,x:3.35,lv:1},{kind:'barrier',s:1703,x:3.3}],
  forks:[[1080,1230]],   // M6B: split sections (median island; risky branch = boost pads + hazards, safe branch = clear; sides swap per lap)
  crowd:[[-53,27,0],[235,299,0],[733,813,1],[1145,1215,-1],[1587,1647,0]],party:[-16,261,753,1212,1621],
- city:{sides:[-1,1],f0:4,f1:14,dp0:10,dpR:6},
+ city:{sides:[-1,1],f0:4,f1:14,dp0:10,dpR:6,chunks:1},
  pal:{fog:0x6a3a78,fogD:.0048,env:[[0,'#1a0c34'],[.42,'#5a2a80'],[.5,'#ff8a7a'],[.56,'#3a2040'],[1,'#120a18']],neon:[0xff3fd8,0x35f2ff,0xffb060,0x8a6bff],
   bg:[[0,'#140a2c'],[.38,'#3c1a66'],[.6,'#a8407e'],[.75,'#e8787a'],[1,'#f0a888']],hemi:[0x9a80d0,0x281830,.6],key:[0xffa080,1.2,[-40,25,-90]],rim:[0x70d8ff,.7],
   edge:0x35f2ff,edge2:0xff4fd8,tunnel:[0xff4fd8,0x35f2ff,0xffd23a],tunnelLight:0xff6ad8,mirror:0xa098b8},

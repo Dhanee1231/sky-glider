@@ -12,7 +12,7 @@ import {isNew,ownsRacer,ownsKart,heartProgress,noteViewed,newBadges,nameClipId} 
 import {currentRace,listCups,shelfRows,trophyLabel} from './cups.js';
 import {EMB_ORDER,MARK_ORDER,EMB_NAMES,MARK_NAMES,FX_NAMES,NEON,NEON_NAMES,hexCss,markCss,svgIcon} from './emblems.js';
 import {paintMarker} from './minimap.js';
-import {PAINTS,FINISHES,WHEELS,BODIES,TRAILS,DECALS,applyKart,heroFx,heroFxReset,buildPreviewKart,racerLook,HERO_LOOK,RIVAL_LOOKS} from './karts.js';
+import {PAINTS,FINISHES,WHEELS,BODIES,TRAILS,DECALS,applyKart,heroFx,heroFxReset,buildPreviewKart,racerLook,HERO_LOOK} from './karts.js';
 
 const $=id=>document.getElementById(id);
 let C=null,sel='sky',from='select';
@@ -282,8 +282,8 @@ let cupLevel='easy',cupLevelSet=false,cupPhase='between',shelfPick=null;
 const placeWord=n=>{const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);};
 function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!=null)n.textContent=text;return n;}
 // #5: 'You' wears her chosen racer's face when she owns it (else the default hero). The row still says "You".
-function youLook(){const st=C&&C.ST,i=st&&st.kart?st.kart.racer|0:0,name=RACERS[i];if(i>0&&name&&ownsRacer(st,name)){const L=racerLook(name);if(L)return {css:L.css,svg:L.svg};}return {css:HERO_LOOK.css,svg:HERO_LOOK.svg};}
-function faceOf(name){if(name==='You')return youLook();const r=RIVAL_LOOKS.find(x=>x.name===name);return r?{css:r.css,svg:r.svg}:{css:'#c8b6ff',svg:''};}
+export function youLook(){const st=C&&C.ST,i=st&&st.kart?st.kart.racer|0:0,name=RACERS[i];if(i>0&&name&&ownsRacer(st,name)){const L=racerLook(name);if(L)return {css:L.css,svg:L.svg};}return {css:HERO_LOOK.css,svg:HERO_LOOK.svg};}
+function faceOf(name){if(name==='You')return youLook();const L=racerLook(name);return L?{css:L.css,svg:L.svg}:{css:'#c8b6ff',svg:''};}
 function trophySvg(n){const fill=n>=3?'#ffd23a':n===2?'#e4e7f2':n===1?'#e3944f':'#fff27a';
  if((n|0)<1)return `<svg viewBox="0 0 24 24" class="trophy-svg" aria-hidden="true"><path d="M12 3l2.4 5.2 5.6.6-4.2 3.8 1.2 5.6L12 15.8 7 18.2l1.2-5.6L4 8.8l5.6-.6z" fill="none" stroke="${fill}" stroke-width="1.7" stroke-linejoin="round"/></svg>`;
  return `<svg viewBox="0 0 24 24" class="trophy-svg" aria-hidden="true"><path d="M7 3h10v6a5 5 0 0 1-10 0z" fill="${fill}"/><path d="M7 5H3.5A4.5 4.5 0 0 0 8 10M17 5h3.5A4.5 4.5 0 0 1 16 10" fill="none" stroke="${fill}" stroke-width="2"/><path d="M12 14v3M8.5 21h7L14 17h-4z" fill="${fill}"/></svg>`;}

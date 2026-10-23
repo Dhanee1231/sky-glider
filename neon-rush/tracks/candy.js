@@ -2,7 +2,7 @@
 // a rainbow taffy arch over the start, a Sprinkle Tunnel and a Gem Bridge (the two forks), a mountain-pass climb with a Gem Jump ramp.
 // Data + landmarks only (world.js builds the road / bridge / tunnel kit). Original shapes and names only.
 export default {
- id:'candy',name:'Candy Crystal Peaks',music:'candy',pace:1.006,seed:67,
+ id:'candy',name:'Candy Crystal Peaks',music:'candy',pace:1.006,easyPace:1.008,seed:67,
  pts:[[0,141],[0,28],[-26,-40],[-10,-110],[42,-190],[132,-237],[244,-242],[357,-237],[442,-190],[470,-103],[451,-24],[404,42],[423,118],[470,188],[442,268],[357,301],[235,306],[122,301],[38,282],[-9,235]],
  elev:[[780,1010,3.6,50,50]],                      // the mountain pass: a gentle climb, a plateau and a drop on the right side
  tunnels:[[285,355,'sprinkle']],                    // Sprinkle Tunnel after the left-hand chicane

@@ -2,7 +2,7 @@
 // over the start straight; neon hoops, a claw-machine tower inside the spiral, pixel billboards, a glowing arcade tunnel,
 // and a rich lower city (lit streets, moving light trails, rooftops with neon, signs).
 export default {
- id:'skyway',name:'Arcade Skyway',music:'skyway',pace:.992,seed:37,
+ id:'skyway',name:'Arcade Skyway',music:'skyway',pace:.992,seed:37,chunks:1,
  pts:[[0,120],[0,-60],[20,-130],[80,-160],[130,-120],[120,-60],[60,-50],[20,-90],[-20,-150],[-90,-190],[-175,-250],[-285,-275],[-375,-215],[-410,-110],[-385,0],[-335,85],[-335,175],[-300,255],[-215,285],[-140,220],[-70,190],[-20,170]],
  elev:[[250,735,9.5,300,110]],                    // spiral ramp: climbs the loop, crosses over the start straight at s~592, back down
  tunnels:[[1767,1839,'arcade']],

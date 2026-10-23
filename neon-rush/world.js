@@ -235,7 +235,8 @@ export function buildWorld(R,S,cam,HIGH,custom){let bannerRef=null;
  const facadeN=cvk('facadeN',()=>normalFrom(cv(512,512,(g)=>{g.fillStyle='#909090';g.fillRect(0,0,512,512);noise(g,512,512,8000,110,150,1);for(let r=0;r<8;r++)for(let c=0;c<8;c++){g.fillStyle='#303030';g.fillRect(c*64+10,r*64+10,44,40);g.fillStyle='#e0e0e0';g.fillRect(c*64+8,r*64+50,48,3);}}),3));
  seed=(T.seed||11)*57+3;
  const bMat=new THREE.MeshStandardMaterial({map:tex(facadeAlb),emissiveMap:tex(facadeEm),emissive:0xffffff,emissiveIntensity:1.5,roughnessMap:tex(facadeRough,false),roughness:1,metalness:.1,normalMap:tex(facadeN,false),vertexColors:true,envMapIntensity:1});
- const CH=8;const bG=[...Array(CH)].map(()=>[]);const acM=[],balM=[],signs=[],wires=[];const tints=PAL.tints??[[1,.92,1],[.85,.88,1],[1,.85,.85],[.9,.85,.95],[1,1,.95],[.8,.78,.85]];
+ // Sky City asks for one chunk: every facade shares bMat, and at the draw-call peak all 8 sectors are in frame (mirror + main). One mesh draws the same windows.
+const CH=Math.max(1,T.chunks||(T.city&&T.city.chunks)||8);const bG=[...Array(CH)].map(()=>[]);const acM=[],balM=[],signs=[],wires=[];const tints=PAL.tints??[[1,.92,1],[.85,.88,1],[1,.85,.85],[.9,.85,.95],[1,1,.95],[.8,.78,.85]];
  // a facade block: centre (x,z), yaw ang, w along / dp across, height h from y0
  function addBuilding(x,z,ang,w,dp,h,y0=0,tint){const g=new THREE.BoxGeometry(dp,h,w),uv=g.attributes.uv;for(let f=0;f<6;f++)for(let k=0;k<4;k++){const i=f*4+k;const su=f<2?w/24:dp/24,sv=f===2||f===3?w/24:h/25.6;uv.setXY(i,uv.getX(i)*su+(f*.37%1),uv.getY(i)*sv);}
   g.rotateY(ang);g.translate(x,y0+h/2,z);const ch=Math.floor(((Math.atan2(z-CZ,x-CX)/(2*Math.PI))+1)*CH)%CH;bG[ch].push(paintCol(g,new THREE.Color(...(tint||tints[Math.floor(rnd()*tints.length)]))));}
@@ -313,8 +314,8 @@ export function buildWorld(R,S,cam,HIGH,custom){let bannerRef=null;
 
  let composer=null,bloom=null,mb=null;
  if(HIGH){composer=new EffectComposer(R);composer.addPass(new RenderPass(S,cam));bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth*DPR/2,innerHeight*DPR/2),PAL.bloom??0.38,0.35,0.9);composer.addPass(bloom);
-  mb=new ShaderPass({uniforms:{tDiffuse:{value:null},center:{value:new THREE.Vector2(.5,.56)},strength:{value:.0}},vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-   fragmentShader:`uniform sampler2D tDiffuse;uniform vec2 center;uniform float strength;varying vec2 vUv;void main(){vec2 d=vUv-center;float m=smoothstep(.32,.85,length(d*vec2(1.3,1.)));vec4 c=vec4(0.);for(int i=0;i<6;i++){c+=texture2D(tDiffuse,vUv-d*strength*m*float(i)/5.);}gl_FragColor=c/6.;}`});
+  mb=new ShaderPass({uniforms:{tDiffuse:{value:null},center:{value:new THREE.Vector2(.5,.56)},strength:{value:.0},vig:{value:0},vigC:{value:new THREE.Color(0x1a0638)}},vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+   fragmentShader:`uniform sampler2D tDiffuse;uniform vec2 center;uniform float strength;uniform float vig;uniform vec3 vigC;varying vec2 vUv;void main(){vec2 d=vUv-center;float r=length(d*vec2(1.3,1.));float m=smoothstep(.32,.85,r);vec4 c=vec4(0.);for(int i=0;i<6;i++){c+=texture2D(tDiffuse,vUv-d*strength*m*float(i)/5.);}c/=6.;c.rgb=mix(c.rgb,vigC,vig*smoothstep(.34,.95,r));gl_FragColor=c;}`});
   composer.addPass(mb);composer.addPass(new OutputPass());}
  function resize(){const w=innerWidth,h=innerHeight;R.setSize(w,h);cam.aspect=w/h;cam.fov=w<h?70:58;cam.updateProjectionMatrix();
   if(composer){composer.setSize(w,h);bloom.resolution.set(w*DPR/2,h*DPR/2);}if(mirror)mirror.getRenderTarget().setSize(Math.round(w*DPR/2),Math.round(h*DPR/2));}
@@ -326,7 +327,7 @@ export function buildWorld(R,S,cam,HIGH,custom){let bannerRef=null;
   qq.setFromAxisAngle(Yax,Math.atan2(cam.position.x-hero.position.x,cam.position.z-hero.position.z));
   const dl=g.drift;sparkCol.setHex(dl>=3?0xff3fd8:dl>=2?0xff9a2a:0x35f2ff).multiplyScalar(3);
   for(let i=0;i<SP;i++){let a=sv[i]+dt*2.2;if(a>1)a-=1;sv[i]=a;const s=i%2?1:-1;const on=dl>0&&g.air<=0;hero.localToWorld(v.set(s*(.62+a*.4),.08+a*.45-a*a*.55,.75+a*1.1));sc.setScalar(on?1.4*(1-a):0);M4.compose(v,q2.identity(),sc);sparks.setMatrixAt(i,M4);sparks.setColorAt(i,sparkCol);}
-  sparks.instanceMatrix.needsUpdate=true;sparks.instanceColor.needsUpdate=true;
+  sparks.instanceMatrix.needsUpdate=true;sparks.instanceColor.needsUpdate=true;sparks.visible=dl>0&&g.air<=0;   // v8 DC: no drift sparks = no draw call
   for(let i=0;i<SPR;i++){let a=spv[i]+dt*1.6;if(a>1)a-=1;spv[i]=a;const s=i%2?1:-1;hero.localToWorld(v.set(s*(.62+a*.3),.15+a*.4,.85+a*1.6));sc.setScalar((.3+a*.9)*g.speed01*(1-cover));M4.compose(v,cam.quaternion,sc);spray.setMatrixAt(i,M4);}spray.instanceMatrix.needsUpdate=true;
   const showSL=(!HIGH||g.boost>0)&&g.speed01>.5;sl.visible=showSL;
   if(showSL){for(let i=0;i<SLN;i++){let z=slp[i*3+2]-dt*50;if(z<0)z+=20;slp[i*3+2]=z;cam.localToWorld(v.set(slp[i*3],slp[i*3+1]-1,-z-2));q2.copy(cam.quaternion).multiply(qx90);M4.compose(v,q2,one);sl.setMatrixAt(i,M4);}sl.instanceMatrix.needsUpdate=true;}
@@ -343,10 +344,10 @@ export function buildWorld(R,S,cam,HIGH,custom){let bannerRef=null;
  function dispose(){const texs=new Set(),mats=new Set(),geos=new Set();
   S.traverse(o=>{if(o.geometry)geos.add(o.geometry);const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];for(const m of ms){mats.add(m);for(const k in m){const v=m[k];if(v&&v.isTexture)texs.add(v);}if(m.uniforms)for(const k in m.uniforms){const v=m.uniforms[k].value;if(v&&v.isTexture)texs.add(v);}}});
   if(mirror)mirror.dispose();for(const g of geos)g.dispose();for(const m of mats)m.dispose();for(const t of texs)t.dispose();
-  envRT&&envRT.dispose();if(S.background&&S.background.isTexture)S.background.dispose();for(const t of[bMat.emissiveMap])t&&t.dispose();
+  envRT&&envRT.dispose();{const bg=S.userData.nlbg||S.background;if(bg&&bg.isTexture)bg.dispose();S.userData.nlbg=null;}for(const t of[bMat.emissiveMap])t&&t.dispose();
   if(composer){for(const p of composer.passes)p.dispose&&p.dispose();composer.dispose();}
   S.clear();S.environment=null;S.background=null;S.fog=null;}
  const setEmblem=(emb,ecol)=>{if(!bannerRef)return;bannerRef.drawBanner(bannerRef.scr.getContext('2d'),emb,ecol);bannerRef.bannerTex.needsUpdate=true;};
- return {setEmblem,hero,kit,resize,render,updateFx,mirror,composer,lampPos,dispose,land,get cover(){return cover;}};
+ return {setEmblem,hero,kit,resize,render,updateFx,mirror,composer,lampPos,dispose,land,fx:{mb,bloom,sl,spray,BLOOM0,FD0,FOG0,roadMat},get cover(){return cover;}};
 }
 const _v=new THREE.Vector3();

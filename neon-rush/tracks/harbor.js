@@ -20,7 +20,7 @@ export default {
   {kind:'car',s:1666,x:3.5,len:75},{kind:'buoy',s:1733,x:-3.2},{kind:'drone',s:1755,x:-2.65,lv:2}],
  forks:[[500,650],[1160,1310]],   // M6B: split sections (median island; risky branch = boost pads + hazards, safe branch = clear; sides swap per lap)
  crowd:[[-46,34,0],[190,250,1],[492,552,-1],[1481,1526,0],[1691,1726,-1]],party:[-14,220,570,1503,1701],
- city:{sides:[-1],f0:2,f1:7,dp0:9,dpR:5,gap:.4},lampSides:[-1],
+ city:{sides:[-1],f0:2,f1:7,dp0:9,dpR:5,gap:.4,chunks:1},lampSides:[-1],
  mirrorY:-.6,walk:4.5,far:{n:60,h0:12,h1:46,y0:-.6},
  pal:{fog:0x2a4a6a,fogD:.0045,env:[[0,'#0a1a3a'],[.42,'#1f5a8a'],[.5,'#ff8ab8'],[.56,'#203050'],[1,'#081020']],neon:[0xff4fd8,0x35f2ff,0xffc26a,0x7affc8],
   bg:[[0,'#06142e'],[.36,'#123a66'],[.55,'#2fa3c0'],[.66,'#ff8ab8'],[.8,'#ffb88a'],[1,'#ffd0a0']],hemi:[0x80a8e0,0x182838,.62],key:[0xffb090,1.1,[60,30,-120]],rim:[0x80e8ff,.75],

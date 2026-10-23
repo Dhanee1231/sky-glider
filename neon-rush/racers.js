@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import {sample,wrap,FEAT,rampAt} from './world.js';
 import {VMAX,VBOOST_AI as VBOOST,ACC,getLaps,LEAD_GAP,LEAD_SLOW,LEAD_RAMP,TRAIL_GAP,TRAIL_HELP,TRAIL_RAMP,AIR_G,HOP_G,HOP_VY,getDiff} from './tuning.js';
-import {RIVAL_LOOKS,buildRivals} from './karts.js';
+import {RIVAL_LOOKS,NEW_LOOKS,buildRivals} from './karts.js';
 // driving styles: pace (x VMAX), acc (x ACC), line (racing-line strength), xmax, sway (wide drifter lines), margin (obstacle gap),
 //   miss (chance to clip an obstacle), itemDelay [min,max] s, late (final-lap surge), hunt (steers to item boxes), bumpy (leans on others)
 export const STYLES={   // M4: paces +.015 for the ~1.2-1.4 km laps (kid bot 65-75% wins)
@@ -15,10 +15,14 @@ export const STYLES={   // M4: paces +.015 for the ~1.2-1.4 km laps (kid bot 65-
 // grid slots (s, x); the player starts at GRID_PLAYER
 export const GRID=[[-5,2.4],[-5,-2.4],[-9,2.4],[-13,2.4],[-13,-2.4],[-17,0]];export const GRID_PLAYER=[-9,-2.4];
 const ORDER=['Pip','Bolt','Kiki','Mochi','Coco','Shelly'];   // grid order (front to back)
+const BENCH=['Sprinkle','Ember','Pebble','Twinkle'];   // unused racers; one stands in when she is also a rival
+// Her face and a rival's face must not match. If she picked a rival, that grid slot becomes the first bench racer.
+export function fieldNames(playerName){const names=ORDER.slice();const i=typeof playerName==='string'?names.indexOf(playerName):-1;if(i>=0){const sub=BENCH.find(n=>!names.includes(n));if(sub)names[i]=sub;}return names;}
+const lookOf=n=>RIVAL_LOOKS.find(l=>l.name===n)||NEW_LOOKS.find(l=>l.name===n);
 const fresh=()=>({v:0,y:0,vy:0,air:0,boost:0,shield:0,rocket:0,hop:0,floaty:0,spin:0,wiggle:0,bounce:0,item:null,itemT:0,finished:false,time:0,obCd:0,drT:0,bumpCd:0,place:0,avoid:null,avoidX:0,huntX:null,slow:0,zapWind:0,emp:0,empF:1,mega:0,storm:0});
-export function createRacers(kit){
- const looks=ORDER.map(n=>RIVAL_LOOKS.find(l=>l.name===n));const RV=buildRivals(kit,looks);
- const list=looks.map((lk,i)=>Object.assign({name:lk.name,css:lk.css,svg:lk.svg,idx:i,st:STYLES[lk.name],s:GRID[i][0],x:GRID[i][1],xs:GRID[i][1],mesh:new THREE.Object3D()},fresh()));
+export function createRacers(kit,playerName){
+ const names=fieldNames(playerName);const looks=names.map(lookOf);const RV=buildRivals(kit,looks);
+ const list=looks.map((lk,i)=>Object.assign({name:lk.name,css:lk.css,svg:lk.svg,idx:i,st:STYLES[ORDER[i]],s:GRID[i][0],x:GRID[i][1],xs:GRID[i][1],mesh:new THREE.Object3D()},fresh()));
  let rnd=Math.random;
  function reset(){zapT=8;list.forEach((F,i)=>Object.assign(F,fresh(),{s:GRID[i][0],x:GRID[i][1],xs:GRID[i][1]}));}
  const o={},o2={};let zapT=0;
@@ -28,7 +32,8 @@ export function createRacers(kit){
 
   for(const F of list){if(F.finished&&F.s>LAPS*L+60){F.v=Math.max(0,F.v-10*dt);F.s+=F.v*dt;continue;}
    const st=F.st;sample(F.s,o2);const gap=F.s-P.s;const lap=Math.floor(F.s/L);
-   let vmax=VMAX*D.pace*(st.pace/.95)*(ctx.pace||1)*(1+Math.sin(ctx.raceT*.37+F.idx*1.7)*.012);   // ctx.pace: per-track rival pace (TRACK.pace)
+   const tp=(D.lv|0)===0&&ctx.easyPace?ctx.easyPace:(ctx.pace||1);   // Candy Easy only: a slightly quicker pack (other levels keep TRACK.pace)
+   let vmax=VMAX*D.pace*(st.pace/.95)*tp*(1+Math.sin(ctx.raceT*.37+F.idx*1.7)*.012);   // ctx.pace: per-track rival pace (TRACK.pace)
    if(st.late)vmax*=lap>=LAPS-1?st.late:.985;
    if(!P.finished){if(gap>LEAD_GAP)vmax*=1-Math.min(LEAD_SLOW*D.rubber,(gap-LEAD_GAP)*LEAD_RAMP*D.rubber);else if(gap<-TRAIL_GAP){const tr=D.rubber>1?.5:D.rubber;vmax*=1+Math.min(TRAIL_HELP*tr,(-gap-TRAIL_GAP)*TRAIL_RAMP*tr);}}
    if(F.slow>0){F.slow=Math.max(0,F.slow-dt);vmax*=.62;}
@@ -85,4 +90,5 @@ export function createRacers(kit){
  const bySDesc=(a,b)=>b.s-a.s;const rows=list.map(r=>({name:r.name,css:r.css,svg:r.svg,s:0,me:false,r})),meRow={name:'You',s:0,me:true,r:null},all=[meRow,...rows],res={place:1,total:rows.length+1,order:all};
  function standings(P){meRow.s=P.finished?1e9-P.time:P.s;for(const w of rows)w.s=w.r.finished?1e9-w.r.time:w.r.s;
   all.sort(bySDesc);let place=1;for(let i=0;i<all.length;i++){if(all[i].me)place=i+1;else all[i].r.place=i+1;}res.place=place;return res;}
- return {list,RV,reset,update,place,standings,setRandom(f){rnd=f;}};}
+ function dispose(){for(const m of RV.meshes){m.removeFromParent();if(m.geometry)m.geometry.dispose();if(m.material)m.material.dispose();}}
+ return {list,RV,reset,update,place,standings,setRandom(f){rnd=f;},dispose};}

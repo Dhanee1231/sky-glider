@@ -2,7 +2,7 @@
 // kid-fair obstacles, party lights. Flow: title -> track select (-> garage) -> countdown -> race -> finish. Arcade, spline-relative physics. Original IP only.
 import * as THREE from 'three';
 import {buildWorld,setTrack,sample,pointAt,wrap,rampAt,heightAt,inTunnel,tunnelCover,L,W,FEAT} from './world.js';
-import {load,save,getBest,setBest,getTrackDiff} from './save.js';
+import {load,save,getBest,setBest,getTrackDiff,RACERS} from './save.js';
 import {checkRaceEnd,checkCupEnd,VOICE_IDS} from './unlocks.js';
 import {startCup,recordRace,currentRace,snapshotRun,restoreRun,standInTrack,registerTrack,rainbowOpen,VOICE_IDS as CUP_VOICE} from './cups.js';
 import * as Audio from './audio.js';
@@ -16,6 +16,7 @@ import {createItems,NAMES,ROWS} from './items.js';
 import {createParty} from './b_party.js';
 import {createMinimap} from './minimap.js';
 import {HERO_LOOK,RIVAL_LOOKS,applyKart} from './karts.js';
+import {createLook} from './fx.js';
 import SKY from './tracks/sky.js';import HARBOR from './tracks/harbor.js';import SKYWAY from './tracks/skyway.js';import BEACH from './tracks/beach.js';import CANDY from './tracks/candy.js';
 
 const $=id=>document.getElementById(id);
@@ -34,6 +35,7 @@ R.setPixelRatio(dprFor(!HIGH));R.setSize(innerWidth,innerHeight);R.shadowMap.ena
 R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=.95;R.outputColorSpace=THREE.SRGBColorSpace;R.info.autoReset=false;
 $('stage').appendChild(R.domElement);
 let S=new THREE.Scene();const cam=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,560);
+const look=createLook();
 let mm=null,world,hero,kit,rain,obstacles,racers,items,party,curTrack='';
 let lowRuntime=false,raceSeed=1;
 // M5b Low mode: no bloom / composer, no mirror, no shadow map, pixel ratio <= 1.25, shorter view distance (far props drop out), no balconies / AC units / wires
@@ -58,7 +60,7 @@ function resetRace(){const spec=cupLive&&ST.cupRun?currentRace(ST):null;
  else{setDifficulty(getTrackDiff(ST,curTrack));forceNight=0;}
  Object.assign(P,PFRESH());P.bestLap=0;heroSc=1;hero.scale.setScalar(1);
  raceSeed=Q.has('seed')?(+Q.get('seed')|0):newSeed();obstacles.setSeed(raceSeed);items.setSeed(raceSeed);   // M6B: each race has its own seed (?seed=N repeats one)
- racers.reset();obstacles.reset();obstacles.applyDiff();items.reset();raceT=0;lastLap=1;prevPlace=0;passT=0;jumps=0;inTun=false;onBr=false;UI.resetHud();UI.hud(0,P);placeKarts(0);}
+ racers.reset();obstacles.reset();obstacles.applyDiff();items.reset();raceT=0;lastLap=1;prevPlace=0;passT=0;jumps=0;inTun=false;onBr=false;UI.resetHud();UI.hud(0,P);placeKarts(0);look.reset();}
 // input
 const input={l:0,r:0,kl:0,kr:0};
 function bindZone(el,key){const ids=new Set();
@@ -178,10 +180,10 @@ const fmt=ms=>{const s=ms/1000;return `${Math.floor(s/60)}:${(s%60).toFixed(1).p
 const ord=n=>n+'<sup>'+(['st','nd','rd'][n-1]||'th')+'</sup>';
 function show(id,on){$(id).classList.toggle('show',on);}
 let toastT=0;function toast(t){$('toast').textContent=t;$('toast').classList.add('show');toastT=2.2;}
-let popT=0;function popup(t){$('pop').textContent=t;$('pop').classList.add('show');popT=1.6;}
+let popT=0;function popup(t){if(mode==='finish')return;$('pop').textContent=t;$('pop').classList.add('show');popT=1.6;}
 // standings ladder: 7 portraits, re-ordered (CSS order) only when the order changes
 const ladder=$('ladder');const ptEl=new Map();
-function buildLadder(){ladder.innerHTML='';ptEl.clear();for(const r of[{name:'You',css:HERO_LOOK.css,svg:HERO_LOOK.svg},...racers.list]){const d=document.createElement('div');d.className='pt'+(r.name==='You'?' me':'');d.style.background=r.css;d.style.color=r.css;
+function buildLadder(){ladder.innerHTML='';ptEl.clear();const you=UI.youLook();for(const r of[{name:'You',css:you.css,svg:you.svg},...racers.list]){const d=document.createElement('div');d.className='pt'+(r.name==='You'?' me':'');d.style.background=r.css;d.style.color=r.css;
  d.innerHTML='<svg viewBox="0 0 24 24">'+r.svg+'</svg>';d.setAttribute('aria-label',r.name);ladder.appendChild(d);ptEl.set(r.name,d);}lastOrderKey='';}
 $('titleRivals').innerHTML=RIVAL_LOOKS.filter(r=>r.name!=='You').map(r=>`<div class="pt" style="background:${r.css};color:${r.css}"><svg viewBox="0 0 24 24">${r.svg}</svg></div>`).join('');
 let lastOrderKey='';
@@ -192,8 +194,9 @@ function hud(){const fk=obstacles.forkAt(P.s,75,P.s);if(fk&&fk.key!==lastFork&&P
  let key='';for(const a of st.order)key+=a.name[0]+a.name[1];if(key!==lastOrderKey){lastOrderKey=key;st.order.forEach((a,i)=>{ptEl.get(a.name).style.order=i;});$('place').innerHTML=ord(st.place);
   // passing callouts (kid-paced: one at a time)
   if(prevPlace&&raceT>3&&raceT-passT>2.2&&st.place!==prevPlace){passT=raceT;const nb=st.order[st.place-1+(st.place<prevPlace?1:-1)];const nm=nb&&!nb.me?nb.name:'';
-   if(st.place<prevPlace){if(st.place===1){popup("You're in 1st!");say('b_first',12);}else{popup(nm?'You passed '+nm+'!':'Nice pass!');say(nm==='Pip'?'passed':nm?'b_pass_'+nm.toLowerCase():'b_pass',4);}}
-   else{popup(nm?nm+' zoomed past!':'Catch them!');say(nm==='Pip'?'pippass':nm?'b_zoom_'+nm.toLowerCase():'b_zoom',8);}}
+   const named=nm&&RNAMES.includes(nm.toLowerCase());   // bench stand-ins have no name clip; the generic pass line already exists
+   if(st.place<prevPlace){if(st.place===1){popup("You're in 1st!");say('b_first',12);}else{popup(nm?'You passed '+nm+'!':'Nice pass!');say(nm==='Pip'?'passed':named?'b_pass_'+nm.toLowerCase():'b_pass',4);}}
+   else{popup(nm?nm+' zoomed past!':'Catch them!');say(nm==='Pip'?'pippass':named?'b_zoom_'+nm.toLowerCase():'b_zoom',8);}}
   prevPlace=st.place;}
  if(lap!==lastLap){const lt=raceT-P.lapStart;P.bestLap=P.bestLap?Math.min(P.bestLap,lt):lt;P.lapStart=raceT;lastLap=lap;if(lap===LAPS){popup('Final lap!');say('final');Audio.music('final',curTrack);}else{popup('Lap '+lap+'!');say('lap2');}}}
 // countdown
@@ -220,12 +223,16 @@ async function goFull(){try{if(!document.fullscreenElement&&document.documentEle
 
 // ---------- tracks: build / switch (everything of the old track is disposed) ----------
 // the new track is built into a fresh scene and compiled BEFORE the old one is disposed, so shared shader programs are reused
+function playerRacerName(){const i=ST.kart?ST.kart.racer|0:0;return (i>0&&RACERS[i])||'';}
+function mountRacers(){if(racers&&racers.dispose)racers.dispose();racers=createRacers(kit,playerRacerName());
+ ALL.length=0;ALL.push(P,...racers.list);F=racers.list.find(r=>r.name==='Pip')||racers.list[0];rctx.all=ALL;ictx.all=ALL;buildLadder();}
 function loadTrack(id){const def=trackDef(id);if(def.id===curTrack&&world)return;
  const old=world;S=new THREE.Scene();
  setTrack(def);ROWS.length=0;ROWS.push(...def.items);   // item-box rows are per track (items.js reads ROWS when it builds)
  world=buildWorld(R,S,cam,HIGH&&!lowRuntime,ST.kart);hero=world.hero;kit=world.kit;world.resize();hero.rotation.order='YXZ';
- rain=createRain(kit,cam);obstacles=createObstacles(kit);obstacles.onWarn=()=>{if(mode==='race'&&raceT-moveWarnT>2){moveWarnT=raceT;blip('warn');}};racers=createRacers(kit);items=createItems(kit);party=createParty(kit);
- ALL.length=0;ALL.push(P,...racers.list);F=racers.list.find(r=>r.name==='Pip');Object.assign(rctx,{obstacles,items,L,all:ALL,pace:def.pace||1});ictx.all=ALL;
+ look.bind({S,world,cam,low:!HIGH||lowRuntime,track:def.id});
+ rain=createRain(kit,cam);obstacles=createObstacles(kit);obstacles.onWarn=()=>{if(mode==='race'&&raceT-moveWarnT>2){moveWarnT=raceT;blip('warn');}};mountRacers();items=createItems(kit);party=createParty(kit);
+ Object.assign(rctx,{obstacles,items,L,all:ALL,pace:def.pace||1,easyPace:def.easyPace||0});
  if(!HIGH)lowLook();curTrack=def.id;buildLadder();if(!mm)mm=createMinimap($('minimap'),sample,(i,s)=>obstacles.riskOf(i,s));mm.setTrack(L,def.forks||[]);if(HIGH&&lowRuntime)lowTweaks();
  rainG.hero=hero;resetRace();updateCam(0,true);
  if(old){try{R.compile(S,cam);}catch(e){}old.dispose();}}
@@ -279,7 +286,7 @@ function cupView(spec,rec,unlocks,newBest,ms){const next=currentRace(ST);
  return {cup:rec.cup,level:rec.level,cupName:spec.cupName,raceNo:(spec.index|0)+1,trackName:spec.name,nextName:next?next.name:'',place:rec.place,racePlace:rec.racePlace,outcome:rec.outcome,table:rec.table,unlocks,newBest,time:fmt(ms),best:fmt(Math.round((P.bestLap||0)*1000))};}
 UI.init({ST,save:()=>save(ST),Audio,say,TRACKS:TRACKS.map(t=>({id:t.id,name:t.name})),onPick:id=>{cupLive=false;forceNight=0;startTrack(id);},
  onCupStart,onCupContinue,onCupAgain,onCupNext,
- onGarageDone:c=>{try{applyKart(hero,c);}catch(e){}try{world.setEmblem(c.emblem,c.emblemColor);}catch(e){}buildLadder();}});
+ onGarageDone:c=>{try{applyKart(hero,c);}catch(e){}try{world.setEmblem(c.emblem,c.emblemColor);}catch(e){}if(kit)mountRacers();}});
 // finish
 function finishRace(){mode='finish';$('pop').classList.remove('show');popT=0;Audio.music('finish',curTrack);show('count',false);$('tapPrompt').classList.remove('show');P.finished=true;P.time=raceT;engineSet(0,false);releaseWake();const fst=racers.standings(P);const won=fst.place===1;
  const ms=Math.round(raceT*1000),lt=raceT-P.lapStart;P.bestLap=P.bestLap?Math.min(P.bestLap,lt):lt;ST.races++;if(won)ST.wins++;
@@ -295,9 +302,9 @@ function finishRace(){mode='finish';$('pop').classList.remove('show');popT=0;Aud
    show('finish',false);if(rec.done&&rec.outcome.ribbon)UI.showCupRibbon(view);else if(rec.done)UI.showCupPodium(view);else UI.showCupBetween(view);return;}}
  save(ST);
  const winner=fst.order[0];$('finTitle').innerHTML=ord(fst.place)+' place!';const cheer=getDiff().cheer;$('finSub').textContent=won?'You won the race!':cheer?'You did it! Great racing!':fst.place<=3?`Great racing! ${winner.name} won this time.`:`Great racing! ${winner.name} won. Try again!`;
- $('finPod').innerHTML=fst.order.slice(0,3).map((a,i)=>`<div class="pt${a.me?' me':''}" style="background:${a.me?HERO_LOOK.css:a.css};color:${a.me?HERO_LOOK.css:a.css}"><svg viewBox="0 0 24 24">${a.me?HERO_LOOK.svg:a.svg}</svg><b>${i+1}</b></div>`).join('');
- $('finTime').textContent=fmt(ms);$('finBest').textContent=fmt(Math.round(P.bestLap*1000));P.item=null;UI.resetHud();show('finish',true);say(won?'win':fst.place<=3?'second':'b_finish');UI.showUnlocks(unlocked);
- if(newBest)setTimeout(()=>{if(mode==='finish'){popup('New best time!');UI.newBest();}},2400);
+ const you=UI.youLook();$('finPod').innerHTML=fst.order.slice(0,3).map((a,i)=>`<div class="pt${a.me?' me':''}" style="background:${a.me?you.css:a.css};color:${a.me?you.css:a.css}"><svg viewBox="0 0 24 24">${a.me?you.svg:a.svg}</svg><b>${i+1}</b></div>`).join('');
+ $('finTime').textContent=fmt(ms);$('finBest').textContent=fmt(Math.round(P.bestLap*1000));P.item=null;UI.resetHud();show('finish',true);look.onFinish($('finish'),fst.place,newBest);say(won?'win':fst.place<=3?'second':'b_finish');UI.showUnlocks(unlocked);look.settleFinish($('finish'));
+ if(newBest)setTimeout(()=>{if(mode==='finish')UI.newBest();},2400);
  else if(!won&&!cheer)setTimeout(()=>{if(mode==='finish')say(winner.name==='Pip'?'pip_win':'b_rival_win');},2600);}
 
 // ---------- fps meter + auto quality ----------
@@ -320,6 +327,7 @@ function frame(now){const raw=Math.max(0,Math.min(.25,(now-last)/1000)),dt=Math.
  placeKarts(dt);updateCam(dt,false);
  rainG.heroS=P.s;rainG.cover=Math.max(tunnelCover(P.s),tunnelCover(P.s-3));rain.update(mode==='paused'?dt*.25:dt,rainG);party.update(mode==='paused'?0:dt,cam,P.s);
  world.updateFx(dt,{lap:lastLap,heroS:P.s,speed01:Math.min(1,P.v/VMAX),drift:P.drift,boost:P.boost,air:P.air,cover:rainG.cover,night:(forceNight&&(mode==='race'||mode==='count'||mode==='paused'||mode==='finish')||(mode==='race'&&P.s>=2*L))?1:0,mode});
+ look.post(dt,{mode,cam,P,calm:!!ST.settings.calm,world,low:!world.composer||lowRuntime,raw,track:curTrack});
  R.info.reset();world.render();meter(dt,raw);
  requestAnimationFrame(frame);}
 loadTrack(Q.get('track')||ST.track||'sky');fovKick=innerHeight>innerWidth?70:58;
@@ -337,4 +345,5 @@ window.__nr={DIFF,get _dbg(){return {world,R,S,cam};},get racers(){return racers
  loadTrack,startTrack,get track(){return curTrack;},TRACKS:TRACKS.map(t=>t.id),
  snap:()=>{placeKarts(0);updateCam(0,true);},dbg:()=>({cam:cam.position.toArray(),hero:hero.position.toArray(),fov:cam.fov,look:camLook.toArray()}),P,get F(){return F;},get mode(){return mode},set mode(m){mode=m},get L(){return L;},input,finishRace,useItem,giveItem:it=>{P.item=it;UI.hud(0,P);},
  finishCup:(ev)=>{const fresh=checkCupEnd(ST,ev||{});save(ST);try{UI.showUnlocks(fresh);}catch(e){}return fresh;},
- stats:()=>({calls:R.info.render.calls,tris:R.info.render.triangles,high:HIGH&&!lowRuntime,mem:{...R.info.memory},programs:R.info.programs?.length})};
+ stats:()=>({calls:R.info.render.calls,tris:R.info.render.triangles,high:HIGH&&!lowRuntime,mem:{...R.info.memory},programs:R.info.programs?.length,fxMs:look.ms}),
+ get fx(){return look.stats;}};

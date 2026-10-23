@@ -1,4 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-uLhD/r2Bu+yRMzVNGyOPQhGusfjjpgJEKiXwWQIiBOQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; worker-src 'self'; manifest-src 'self'; connect-src 'self'; font-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#1a0b2e"><link rel="manifest" href="../home/manifest.json"><link rel="icon" href="icon.svg">
 <title>Neon Rush</title>
@@ -238,6 +239,15 @@ body:has(#title.show,#trackSel.show,#garage.show,#settings.show,#finish.show,#cu
 .cup-title{flex:none;font-size:clamp(22px,calc(var(--u)*6),40px)}
 #cupEnd h2,#cupShelf h2,#cupSel h2{font-size:clamp(22px,calc(var(--u)*6),40px)}
 .cup-body{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:6px;align-items:center;width:100%}
+/* B5: unlock chips sit under the trophy at every size, above the long standings */
+#cupEndBody > h2,#cupEndBody > .cup-part{order:1}
+#cupEndBody > .sub{order:2}
+#cupEndBody > .trophy-art{order:3}
+#cupEndBody > .fin-unlock{order:4}
+#cupEndBody > .cup-pod{order:5}
+#cupEndBody > .cup-meta{order:6}
+#cupEndBody > .cup-stand{order:7}
+#cupEndBody > .cup-best{order:8}
 .cup-levels{display:flex;gap:6px;justify-content:center;flex:none;width:100%}
 .cup-levels .chip{flex:1 1 0;max-width:140px}
 #cupCont:empty{display:none}
@@ -286,6 +296,7 @@ body:has(#title.show,#trackSel.show,#garage.show,#settings.show,#finish.show,#cu
 @media (min-aspect-ratio:1/1){
  .cup-row{flex-direction:row;align-items:stretch}
  .cup-card{width:auto;flex:1 1 0;min-width:0}
+ .ts-row .tcard[aria-pressed="true"]{transform:none}   /* B6: a scaled card clips the glow in a short landscape row */
 }
 @media (max-width:520px){
  #trackSel .mn-bar .big{flex-direction:column;font-size:15px;padding:6px 4px;min-height:52px;gap:0}
