@@ -6,7 +6,7 @@
   const sd = () => SV.data;
   const PACKS = Object.values(CM_PACKS).sort((a, b) => a.order - b.order);
   const HOOK = {}, API = {};   // photo.js registers screen hooks here (show + leave) and the back-gesture handler
-  let scr = 'start', prev = 'start', G = null, paused = false, panMode = false, lockQ = false, lastFill = 0, wandOn = false, burstArmed = false, selPack = 0, noWorker = false;
+  let scr = 'start', prev = 'start', G = null, paused = false, panMode = false, lockQ = false, lastFill = 0, wandOn = false, burstArmed = false, selPack = 0, packReady = false, noWorker = false;
   let raf = 0, last = 0, slow = 0, fastT = 0, fpsN = 0, fpsT = 0, fps = 60, lastVP = [innerWidth, innerHeight], relayT = 0, galMap = new Map(), progMap = new Map(), galFree = new Map(), thumbs = new Map();
   const dpr = () => window.devicePixelRatio || 1;
   const calm = () => !!(FZ && FZ.calm());
@@ -14,11 +14,12 @@
   const nav = f => { try { return f(); } catch (e) { } };
 
   // ---------- icons into buttons ----------
-  const IC = { hHome: 'home', hSet: 'gear', pBack: 'back', bUndo: 'undo', bPause: 'pause', bHint: 'hint', bWand: 'wand', bHand: 'hand', pPlay: 'play', pPacks: 'packs', pGal: 'gallery', pWand: 'wand', fNext: 'next', fReplay: 'replay', fGal: 'gallery', fShow: 'eye', fPaint: 'brush', gBack: 'back', sBack: 'back', bBurst: 'burst', vBack: 'back', vPlay: 'play', vVer: 'eye', vFrame: 'frame', vPaint: 'brush', vSave: 'save', vDel: 'trash' };
+  const IC = { hHome: 'home', hSet: 'gear', pBack: 'back', bUndo: 'undo', bPause: 'pause', bHint: 'hint', bWand: 'wand', bHand: 'hand', pPlay: 'play', pPacks: 'packs', pGal: 'gallery', pWand: 'wand', fNext: 'next', fReplay: 'replay', fGal: 'gallery', fShow: 'eye', fPaint: 'brush', gBack: 'back', sBack: 'back', bBurst: 'burst', bPeek: 'eye', vBack: 'back', vPlay: 'play', vVer: 'eye', vFrame: 'frame', vPaint: 'brush', vSave: 'save', vDel: 'trash' };
   for (const id in IC) { const e = document.getElementById(id); if (e) e.innerHTML = A.icon(IC[id]); }
   $$('[data-i]').forEach(e => e.innerHTML = A.icon(e.dataset.i)); $$('[data-set]').forEach(e => e.innerHTML = A.icon('gear'));
   $('#chev').innerHTML = A.icon('next');
   $('#tPacks').innerHTML = A.icon('packs') + '<span>Pictures</span>'; $('#tPhoto').innerHTML = A.icon('photo') + '<span>My Photo</span>'; $('#tGal').innerHTML = A.icon('gallery') + '<span>Gallery</span>';
+  $$('.tabs button').forEach(b => { b.innerHTML = A.icon(b.dataset.tab === 'packs' ? 'packs' : b.dataset.tab === 'photo' ? 'photo' : 'gallery'); b.onclick = () => { if (b.dataset.tab !== scr) go(b.dataset.tab); }; });
   $('#logo').innerHTML = '<svg viewBox="0 0 100 100"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9bd2"/><stop offset="1" stop-color="#b56cff"/></linearGradient></defs><path d="M50 90C12 62 6 44 6 32a22 22 0 0 1 44-5 22 22 0 0 1 44 5c0 12-6 30-44 58z" fill="url(#lg)" stroke="#fff" stroke-width="5" stroke-linejoin="round"/><path d="M50 30 68 44 50 70 32 44z" fill="#ffe27a" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M32 44h36M50 30v40" stroke="#fff" stroke-opacity=".7" stroke-width="2"/></svg>';
 
   // ---------- screens + history guard ----------
@@ -32,6 +33,12 @@
     if (s !== 'play' && s !== 'fin' && FZ && FZ.breakCheck) FZ.breakCheck({ muted: true });
     AU.whoosh(); AU.bed(s === 'play' && !paused);
     if (from !== s) { const v = SCR_SAY[s]; if (v) AU.say(v); }
+    syncTabs();
+  }
+  function syncTabs() {
+    const photo = !!(sd().set && sd().set.photo);
+    $$('.tabs [data-tab=photo]').forEach(b => { b.hidden = !photo; });
+    $$('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === scr));
   }
   const SCR_SAY = { packs: 'packs', gal: 'gallery', photo: 'photo' };
   nav(() => { history.replaceState({ cm: 1 }, ''); history.pushState({ cm: 2 }, ''); });
@@ -50,7 +57,7 @@
     const s = sd().set; AU.set({ sfx: s.mus, voice: s.voice, music: s.music, vol: s.vol / 100 * (FZ ? FZ.vol() : 1), calm: calm() }); AU.attach(sd().seen); AU.bed(scr === 'play' && !paused);
     if (R.S) { R.S.nums = s.nums; R.S.hl = true; R.S.calm = calm(); R.invalidate(); }
     $('#bHint').hidden = !s.helpers; if (!s.helpers) burstArmed = false; syncWand();
-    $('#tPhoto').hidden = !s.photo;
+    $('#tPhoto').hidden = !s.photo; syncTabs();
   }
   if (FZ && FZ.onChange) FZ.onChange(applySettings);
 
@@ -69,7 +76,7 @@
     const W = pic.w || 2048, H = pic.h || 2048, k = size / Math.max(W, H), sc = scale > 0 ? scale : 1, c = document.createElement('canvas');
     c.width = Math.max(1, Math.ceil(W * k * sc - 1e-6)); c.height = Math.max(1, Math.ceil(H * k * sc - 1e-6));
     const g = c.getContext('2d'); g.setTransform(c.width / W, 0, 0, c.height / H, 0, 0);
-    const P = liteP(pic); const f = new Uint8Array(P.n); if (fc) f.set(fc.subarray ? fc.subarray(0, P.n) : fc); R.drawFlat(g, { P, pal: pic.pal, fc: f }, {}); return c;
+    const P = liteP(pic); const f = new Uint8Array(P.n); if (fc) f.set(fc.subarray ? fc.subarray(0, P.n) : fc); R.drawFlat(g, { P, pal: pic.pal, fc: f, reveal: pic.reveal || null }, {}); return c;
   }
   function mountThumb(parent, pic, fc, size) {
     const s = pxScale(); let c = thumb(pic, fc, size, s); parent.appendChild(c);
@@ -89,7 +96,31 @@
     if (!picBy(m[1], m[2])) return null;
     return { pk: m[1], id: m[2], level: m[3] === '3' ? 3 : 2 };
   }
-  const isCustom = id => typeof id === 'string' && (/^ph:[a-z0-9]+$/.test(id) || /^pk:[a-z0-9]+\.[a-z0-9]+:px\d+p\d+s?$/.test(id) || !!isDetail(id));
+  // Photo packs: pk:<pack>.<pic>:L2 (Easy, photo level 2) and :L4 (Hard, photo level 4). Additive ids; cartoon ids are unchanged.
+  function isPhotoPz(id) {
+    const m = /^pk:([a-z0-9]+)\.([a-z0-9]+):L([24])$/.exec(id);
+    if (!m) return null;
+    const pic = picBy(m[1], m[2]);
+    if (!pic || !pic.photo) return null;
+    return { pk: m[1], id: m[2], level: m[3] === '4' ? 4 : 2 };
+  }
+  const photoId = (pk, id, level) => 'pk:' + pk + '.' + id + ':L' + level;
+  function photoRec(pk, pic) {
+    let best = null;
+    for (const n of [2, 4]) { const r = progMap.get(photoId(pk, pic.id, n)); if (r && (!best || (r.t || 0) >= (best.t || 0))) best = r; }
+    return best;
+  }
+  // Mosaic ids are new: cartoon pk:<pack>.<pic>t3/t4, photo pk:<pack>.<pic>:T3/:T4. Personal photos keep ph: and may set pmeta.tier.
+  function isMosaic(id) {
+    const c = /^pk:([a-z0-9]+)\.([a-z0-9]+)t([34])$/.exec(id);
+    if (c && picBy(c[1], c[2]) && !picBy(c[1], c[2] + 't' + c[3]) && !picBy(c[1], c[2]).photo) return { pk: c[1], id: c[2], tier: c[3] === '4' ? 4 : 3, kind: 'cartoon' };
+    const p = /^pk:([a-z0-9]+)\.([a-z0-9]+):T([34])$/.exec(id);
+    if (p) { const pic = picBy(p[1], p[2]); if (pic && pic.photo) return { pk: p[1], id: p[2], tier: p[3] === '4' ? 4 : 3, kind: 'photo' }; }
+    return null;
+  }
+  const mosaicId = (pk, id, tier, photo) => photo ? ('pk:' + pk + '.' + id + ':T' + tier) : (pidOf(pk, id) + 't' + tier);
+  const mosaicHidden = id => !sd().set.mosaic && !!isMosaic(id);
+  const isCustom = id => typeof id === 'string' && (/^ph:[a-z0-9]+$/.test(id) || /^pk:[a-z0-9]+\.[a-z0-9]+:px\d+p\d+s?$/.test(id) || !!isDetail(id) || !!isPhotoPz(id) || !!isMosaic(id));
   async function loadMaps() {
     progMap.clear(); galMap.clear(); galFree.clear();
     for (const r of await SV.allProg()) {
@@ -98,19 +129,40 @@
     }
     for (const r of await SV.allGal()) { const m = /^pk:([a-z0-9]+)\.([a-z0-9]+)$/.exec(r.pid); if ((m && !isDetail(r.pid) && picBy(m[1], m[2])) || isCustom(r.pid)) (r.free ? galFree : galMap).set(r.pid, r); else SV.quarantine.set('gallery:' + r.id, r); }
   }
-  const fracOf = (pk, pic) => { const r = progMap.get(pidOf(pk, pic.id)); return r && r.order ? Math.min(1, r.order.length / pic.shapes.length) : 0; };
+  const fracOf = (pk, pic) => {
+    if (pic.photo) { const r = photoRec(pk, pic); return r && r.n ? Math.min(1, r.order.length / r.n) : 0; }
+    const r = progMap.get(pidOf(pk, pic.id)); return r && r.order ? Math.min(1, r.order.length / pic.shapes.length) : 0;
+  };
   const fracRec = r => r && r.order && r.n ? Math.min(1, r.order.length / r.n) : 0;
 
   // ---------- start ----------
   async function showStart() {
     await loadMaps(); const k = $('#keep'); let best = null;
-    for (const p of PACKS) for (const pic of p.pics) { const r = progMap.get(pidOf(p.id, pic.id)); if (r && r.order.length && r.order.length < pic.shapes.length && (!best || r.t > best.r.t)) best = { p, pic, r }; }
-    for (const [id, r] of progMap) if (isCustom(id) && r.order.length && r.order.length < r.n && (!best || r.t > best.r.t)) best = { cid: id, r };
+    for (const p of PACKS) for (const pic of p.pics) {
+      if (pic.photo) { const r = photoRec(p.id, pic); if (r && r.order.length && r.order.length < r.n && (!best || r.t > best.r.t)) best = { p, pic, r, cid: r.id }; continue; }
+      const r = progMap.get(pidOf(p.id, pic.id)); if (r && r.order.length && r.order.length < pic.shapes.length && (!best || r.t > best.r.t)) best = { p, pic, r };
+    }
+    for (const [id, r] of progMap) if (isCustom(id) && !mosaicHidden(id) && r.order.length && r.order.length < r.n && (!best || r.t > best.r.t)) best = { cid: id, r };
     k.hidden = !best; if (best) {
       const c = k.querySelector('canvas'), s = pxScale(), rect = c.getBoundingClientRect(), cssW = rect.width >= 2 ? rect.width : 96, cssH = rect.height >= 2 ? rect.height : cssW;
       c.width = Math.max(1, Math.ceil(cssW * s - 1e-4)); c.height = Math.max(1, Math.ceil(cssH * s - 1e-4));
       const cx = c.getContext('2d'); cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, c.width, c.height); k.querySelector('span').innerHTML = A.icon('play');
-      if (best.cid) { k.onclick = () => API.openByPid(best.cid); if (API.thumbOf) API.thumbOf(best.cid).then(im => { if (im && !k.hidden) { cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, c.width, c.height); const q = Math.min(c.width / im.width, c.height / im.height); cx.imageSmoothingQuality = 'high'; cx.drawImage(im, 0, 0, im.width * q, im.height * q); } }); }
+      if (best.cid) {
+        k.onclick = () => API.openByPid(best.cid);
+        (async () => {
+          let drew = false;
+          try {
+            const pic = API.loadPic ? await API.loadPic(best.cid) : null;
+            if (pic && !k.hidden && pic.shapes && pic.shapes.length) {
+              const P = R.prep(pic), fc = new Uint8Array(pic.shapes.length);
+              for (const i of best.r.order) if (i < fc.length) fc[i] = P.col[i] + 1;
+              const t = thumb(pic, fc, Math.max(cssW, cssH), s);
+              cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, c.width, c.height); cx.drawImage(t, 0, 0, c.width, c.height); drew = true;
+            }
+          } catch (e) { /* the stored preview still shows the picture */ }
+          if (!drew && API.thumbOf) { const im = await API.thumbOf(best.cid); if (im && !k.hidden) { cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, c.width, c.height); const q = Math.min(c.width / im.width, c.height / im.height); cx.imageSmoothingQuality = 'high'; cx.drawImage(im, 0, 0, im.width * q, im.height * q); } }
+        })();
+      }
       else { const t = thumb(best.pic, fcFromOrder(best.pic, best.r.order), Math.max(cssW, cssH), s); cx.drawImage(t, 0, 0, c.width, c.height); k.onclick = () => openPic(best.p.id, best.pic.id); }
     }
     applySettings();
@@ -124,34 +176,132 @@
 
   // ---------- packs ----------
   const covers = new Map();   // pack id -> finished cover canvas (never changes)
+  function notePack(pk) {
+    const i = PACKS.findIndex(p => p.id === pk); if (i < 0) return;
+    selPack = i; packReady = true; if (sd().last.pack !== pk) { sd().last.pack = pk; SV.write(); }
+  }
+  function rememberNav() {
+    const p = PACKS[selPack]; if (!p || scr !== 'packs') return;
+    sd().last.pack = p.id; sd().last.scroll = $('#picGrid').scrollTop | 0; sd().last.packX = $('#packRow').scrollLeft | 0; SV.write();
+  }
+  let navT = 0;
+  for (const id of ['picGrid', 'packRow']) document.getElementById(id).addEventListener('scroll', () => { clearTimeout(navT); navT = setTimeout(rememberNav, 180); }, { passive: true });
+  // R6: a fold changes the scroller's box. Keep the place she was, and do not rebuild the grid.
+  function keepScroll(el) {
+    let x = el.scrollLeft, y = el.scrollTop, w = el.clientWidth, h = el.clientHeight, lock = 0;
+    el.addEventListener('scroll', () => { if (lock) return; x = el.scrollLeft; y = el.scrollTop; }, { passive: true });
+    if (!window.ResizeObserver) return;
+    new ResizeObserver(() => {
+      const nw = el.clientWidth, nh = el.clientHeight; if (nw === w && nh === h) return;
+      const sx = x, sy = y; w = nw; h = nh; lock++;
+      const put = () => { el.scrollLeft = sx; el.scrollTop = sy; };
+      requestAnimationFrame(() => { put(); requestAnimationFrame(() => { put(); setTimeout(() => { lock = Math.max(0, lock - 1); }, 0); }); });
+    }).observe(el);
+  }
+  for (const id of ['picGrid', 'galGrid', 'phGrid', 'packRow']) keepScroll(document.getElementById(id));
   async function showPacks() {
-    await loadMaps(); const row = $('#packRow'); row.innerHTML = '';
+    await loadMaps();
+    if (!packReady) { const i = PACKS.findIndex(p => p.id === sd().last.pack); if (i >= 0) selPack = i; packReady = true; }
+    const row = $('#packRow'); row.innerHTML = '';
     PACKS.forEach((p, i) => {
       const b = document.createElement('button'); b.className = 'pcov' + (i === selPack ? ' sel' : ''); const done = p.pics.filter(x => fracOf(p.id, x) >= 1).length;
       row.appendChild(b);
-      let cv = covers.get(p.id); if (!cv) { cv = mountThumb(b, p.pics[0], fcFromOrder(p.pics[0], p.pics[0].shapes.map((s, k) => k)), 200); covers.set(p.id, cv); } else b.appendChild(cv);
+      if (p.photo) { const im = document.createElement('img'); im.alt = ''; im.loading = 'lazy'; im.decoding = 'async'; im.width = 320; im.height = 240; im.src = p.pics[0].thumb; b.appendChild(im); }
+      else { let cv = covers.get(p.id); if (!cv) { cv = thumb(p.pics[0], fcFromOrder(p.pics[0], p.pics[0].shapes.map((s, k) => k)), 200, Math.min(pxScale(), 1.15)); covers.set(p.id, cv); } b.appendChild(cv); }
       const t = document.createElement('div'); t.textContent = p.name + ' ' + done + '/' + p.pics.length; b.appendChild(t);
-      b.onclick = () => { if (selPack === i) return; selPack = i; $$('#packRow .pcov').forEach((e, k) => e.classList.toggle('sel', k === i)); showGrid(); AU.tick(); };
+      b.onclick = () => { if (selPack === i) return; selPack = i; $$('#packRow .pcov').forEach((e, k) => e.classList.toggle('sel', k === i)); showGrid(); rememberNav(); const said = { fall: 'fall', winter: 'winter', spring: 'spring', summer: 'summer', holidays: 'holidays', flowers: 'flowers' }[p.id]; if (said) AU.say(said); AU.tick(); };
     });
     $('#chev').hidden = PACKS.length < 2;
+    const x = sd().last.pack === PACKS[selPack].id ? (sd().last.packX | 0) : 0;
     showGrid();
+    if (x) requestAnimationFrame(() => { const r = $('#packRow'); if (r) r.scrollLeft = x; });
+  }
+  // R6: picture thumbs are drawn when they scroll near the grid, one at a time during idle, and kept as an ImageBitmap per picture.
+  const bitCache = new WeakMap();
+  let gridGen = 0, gridIO = null, thumbBusy = false;
+  const thumbQ = [];
+  function fillSig(fc) {
+    if (!fc) return 'e';
+    let h = 2166136261, n = 0;
+    for (let i = 0; i < fc.length; i++) if (fc[i]) { n++; h ^= i + 1; h = Math.imul(h, 16777619); }
+    return n + ':' + (h >>> 0).toString(16);
+  }
+  function bitOf(pic, sig) { const m = bitCache.get(pic); return m ? m.get(sig) : null; }
+  function bitPut(pic, sig, bm) {
+    let m = bitCache.get(pic); if (!m) { m = new Map(); bitCache.set(pic, m); }
+    const prev = m.get(sig); if (prev && prev !== bm && prev.close) prev.close();
+    m.set(sig, bm);
+    while (m.size > 2) { const k = m.keys().next().value, b = m.get(k); m.delete(k); if (b && b !== bm && b.close) b.close(); }
+  }
+  function blitBit(c, bm) {
+    const s = pxScale(), r = c.getBoundingClientRect();
+    const tw = Math.min(256, Math.max(1, Math.ceil((r.width >= 2 ? r.width : 160) * s - 1e-4))), th = Math.min(256, Math.max(1, Math.ceil((r.height >= 2 ? r.height : 160) * s - 1e-4)));
+    if (c.width !== tw) c.width = tw; if (c.height !== th) c.height = th;
+    const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.clearRect(0, 0, tw, th); g.drawImage(bm, 0, 0, tw, th);
+  }
+  function pumpThumbs() {
+    if (thumbBusy) return;
+    const job = thumbQ.shift(); if (!job) return;
+    const run = () => {
+      if (job.gen !== gridGen || !job.el.isConnected) { pumpThumbs(); return; }
+      const sig = fillSig(job.fc), hit = bitOf(job.pic, sig);
+      let c = job.el.querySelector('canvas');
+      if (!c) { c = document.createElement('canvas'); job.el.insertBefore(c, job.el.firstChild); }
+      if (hit) { blitBit(c, hit); setTimeout(pumpThumbs, 0); return; }
+      thumbBusy = true;
+      const src = thumb(job.pic, job.fc, 220, pxScale());
+      const fin = bm => {
+        bitPut(job.pic, sig, bm); src.width = src.height = 0; thumbBusy = false;
+        if (job.gen === gridGen && job.el.isConnected) blitBit(c, bm);
+        pumpThumbs();
+      };
+      if (typeof createImageBitmap === 'function') createImageBitmap(src).then(fin, () => { thumbBusy = false; if (job.gen === gridGen && job.el.isConnected) c.replaceWith(src); else src.width = src.height = 0; pumpThumbs(); });
+      else { thumbBusy = false; c.replaceWith(src); pumpThumbs(); }
+    };
+    if (window.requestIdleCallback) requestIdleCallback(run, { timeout: 320 }); else setTimeout(run, 0);
+  }
+  function watchThumb(el, pic, fc, gen) {
+    const job = { el, pic, fc, gen }; el._tj = job;
+    if (!window.IntersectionObserver) { thumbQ.push(job); pumpThumbs(); return; }
+    const io = gridIO || (gridIO = new IntersectionObserver(ents => {
+      for (const en of ents) {
+        if (!en.isIntersecting) continue;
+        gridIO.unobserve(en.target);
+        const j = en.target._tj; if (!j || j.gen !== gridGen) continue;
+        thumbQ.push(j); pumpThumbs();
+      }
+    }, { root: $('#picGrid'), rootMargin: '180px 0px' }));
+    io.observe(el);
   }
   function showGrid() {
-    const grid = $('#picGrid'); grid.innerHTML = ''; grid.scrollTop = 0; const p = PACKS[selPack]; const jobs = [];
+    const grid = $('#picGrid'); grid.innerHTML = ''; const p = PACKS[selPack]; const gen = ++gridGen; thumbQ.length = 0;
+    const y = sd().last.pack === p.id ? (sd().last.scroll | 0) : 0;
     for (const pic of p.pics) {
       const b = document.createElement('button'); b.className = 'pic'; const f = fracOf(p.id, pic), r = progMap.get(pidOf(p.id, pic.id));
       grid.appendChild(b);
       const st = document.createElement('div'); st.className = 'st'; st.innerHTML = A.hearts(pic.stars); b.appendChild(st);
       const ring = document.createElement('div'); if (f >= 1) { ring.className = 'crown'; ring.innerHTML = A.icon('gem'); } else if (f > 0) { ring.className = 'ring'; ring.innerHTML = '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="14" fill="none" stroke="#ffd0ea" stroke-width="6"/><circle cx="20" cy="20" r="14" fill="none" stroke="#d6339f" stroke-width="6" stroke-dasharray="' + (88 * f).toFixed(1) + ' 88" transform="rotate(-90 20 20)" stroke-linecap="round"/></svg>'; }
       if (ring.className) b.appendChild(ring);
-      b.onclick = () => { if (API.pickPack && !r && !galMap.has(pidOf(p.id, pic.id))) API.pickPack(p.id, pic.id); else openPic(p.id, pic.id); };
-      jobs.push([b, pic, r ? fcFromOrder(pic, r.order) : null]);
+      b.onclick = () => { if (pic.photo) { openPic(p.id, pic.id); return; } if (API.pickPack && !r && !galMap.has(pidOf(p.id, pic.id))) API.pickPack(p.id, pic.id); else openPic(p.id, pic.id); };
+      if (pic.photo) { const im = document.createElement('img'); im.alt = ''; im.loading = 'lazy'; im.decoding = 'async'; im.width = 160; im.height = 160; im.src = pic.thumb; b.insertBefore(im, b.firstChild); }
+      else watchThumb(b, pic, r ? fcFromOrder(pic, r.order) : null, gen);
     }
-    for (const j of jobs) mountThumb(j[0], j[1], j[2], 200);   // after the grid has its columns, so the backing store matches the CSS box
+    const pin = () => { if (grid.isConnected && scr === 'packs') grid.scrollTop = y; };
+    pin(); requestAnimationFrame(pin);
   }
 
   // ---------- opening a picture ----------
-  async function openPic(pk, id, o) { const pic = picBy(pk, id); if (!pic) return; return openGame(pk, pic, pidOf(pk, id), o); }
+  async function openPic(pk, id, o) {
+    const pic = picBy(pk, id); if (!pic) return; notePack(pk);
+    o = o || {};
+    if (pic.photo) {
+      const rec = photoRec(pk, pic);
+      if (o.free) { if (rec) return API.openByPid(rec.id, o); return; }
+      if (rec && !o.pick) return API.openByPid(rec.id, o);
+      return API.pickPack(pk, id);
+    }
+    return openGame(pk, pic, pidOf(pk, id), o);
+  }
   async function openGame(pk, pic, pid, o) {
     o = o || {}; await loadMaps();
     const free = !!o.free;
@@ -167,7 +317,7 @@
   function buildGame(pk, pic, pid, rec, free) {
     const n = pic.shapes.length, fc = new Uint8Array(n), order = [];
     if (rec) { if (free && rec.free) { for (let i = 0; i < n; i++) fc[i] = rec.free[i] || 0; } else if (!free) for (const i of rec.order) { fc[i] = pic.shapes[i][0] + 1; order.push(i); } }
-    const S = R.setPuzzle(pic, pic.pal, fc, { nums: !free && sd().set.nums, calm: calm() });
+    const S = R.setPuzzle(pic, pic.pal, fc, { nums: !free && sd().set.nums, calm: calm(), reveal: free ? null : pic.reveal || null, wantReveal: !free && (!!pic.photo || !!pic.reveal), tier: pic.tier | 0 });
     // D 6: a pack shape that later shapes cover completely has no spot at all (lab [.., 0]) and could never be tapped: count it as coloured
     if (!free && !pic.pre) for (let i = 0; i < n; i++) if (!fc[i] && S.P.lab[i][2] <= 0) { fc[i] = S.P.col[i] + 1; order.push(i); }
     G = { pk, pic, pid, free, n, custom: !!pic.custom, fc, order, ops: [], rem: [], tot: [], sel: 0, t0: performance.now(), ms: rec ? rec.ms : 0, step: 0, P: S.P, done: false, guide: -1 };
@@ -180,7 +330,14 @@
     selectSwatch(G.sel, true); updateMeter(); updateGlow(); R.S.hl = !free;
     lastFill = performance.now(); wandOn = false; syncWand();
     if (!free && !sd().seen.first && pk === 'gems' && pic.id === 'hg1') guide();
-    $('#bUndo').style.visibility = 'visible'; R.invalidate();
+    $('#bUndo').style.visibility = 'visible'; R.invalidate(); syncPeek();
+    if (!free && pic.photo && !pic.reveal && R.loadReveal) {
+      const mine = pic;
+      R.loadReveal(pic.photo, pic.w || 2048, pic.h || 1536).then(bm => {
+        if (!bm || !G || G.pic !== mine) return;
+        mine.reveal = bm; R.setReveal(bm); kick(); syncPeek();
+      }).catch(() => {});
+    }
   }
   function guide() { // first launch: swatch 1 bounces and one big region pulses
     const sw = $('.sw[data-c="' + G.sel + '"]'); if (sw) sw.classList.add('bounce');
@@ -193,18 +350,53 @@
   function buildPalette() {
     const pal = $('#pal'); pal.innerHTML = '';
     for (const c of G.used) {
-      const b = document.createElement('button'); b.className = 'sw'; b.dataset.c = c + 1; b.style.background = G.pic.pal[c]; b.style.color = lum(G.pic.pal[c]) > 0.62 ? '#5a1040' : '#fff'; b.setAttribute('aria-label', 'Color ' + (c + 1));
-      b.innerHTML = '<span>' + (c + 1) + '</span><svg class="pr" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18.5" stroke-dasharray="116.2" stroke-dashoffset="116.2"/></svg>';
+      const b = document.createElement('button'); b.className = 'sw'; b.dataset.c = c + 1; b.setAttribute('aria-label', 'Color ' + (c + 1));
+      b.innerHTML = '<span class="face"><span>' + (c + 1) + '</span></span><svg class="pr" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18.5" stroke-dasharray="116.2" stroke-dashoffset="116.2"/></svg>';
+      const face = b.firstChild; face.style.background = G.pic.pal[c]; face.style.color = lum(G.pic.pal[c]) > 0.62 ? '#5a1040' : '#fff';
       b.onclick = () => { selectSwatch(c + 1); AU.tick(); }; pal.appendChild(b);
     }
-    ringQ.clear(); refreshRings();
+    ringQ.clear(); refreshRings(); requestAnimationFrame(palSync);
   }
   const ringQ = new Set();   // colours whose ring changed since the last refresh (empty = all)
-  function refreshRings() { const list = ringQ.size ? [...ringQ] : G.used; ringQ.clear(); for (const c of list) { const b = $('.sw[data-c="' + (c + 1) + '"]'); if (!b) continue; const f = G.free ? 0 : 1 - G.rem[c] / G.tot[c]; b.querySelector('circle').style.strokeDashoffset = (116.2 * (1 - f)).toFixed(1); b.classList.toggle('done', !G.free && G.rem[c] === 0); } }
+  function refreshRings() { const list = ringQ.size ? [...ringQ] : G.used; ringQ.clear(); for (const c of list) { const b = $('.sw[data-c="' + (c + 1) + '"]'); if (!b) continue; const f = G.free ? 0 : 1 - G.rem[c] / G.tot[c]; b.querySelector('circle').style.strokeDashoffset = (116.2 * (1 - f)).toFixed(1); b.classList.toggle('done', !G.free && G.rem[c] === 0); } palSync(); }
   function selectSwatch(num, quiet) {
     G.sel = num; R.S.sel = num; $$('.sw').forEach(b => { b.classList.toggle('sel', +b.dataset.c === num); b.classList.remove('bounce'); });
-    const b = $('.sw[data-c="' + num + '"]'); if (b && b.scrollIntoView) nav(() => b.scrollIntoView({ block: 'nearest', inline: 'center' })); R.invalidateFx(); kick();
+    const b = $('.sw[data-c="' + num + '"]'); if (b && b.scrollIntoView) nav(() => b.scrollIntoView({ block: 'center', inline: 'center' })); R.invalidateFx(); kick(); palSync();
   }
+  function palSync() {
+    const pal = $('#pal'), prev = $('#palPrev'), next = $('#palNext'); if (!pal || !prev || !next) return;
+    if (!G || scr !== 'play') { prev.hidden = next.hidden = true; pal.classList.remove('fadeS', 'fadeE'); return; }
+    const land = matchMedia('(orientation: landscape)').matches, box = pal.getBoundingClientRect();
+    const offS = el => { const r = el.getBoundingClientRect(); return land ? r.top < box.top - 1 : r.left < box.left - 1; };
+    const offE = el => { const r = el.getBoundingClientRect(); return land ? r.bottom > box.bottom + 1 : r.right > box.right + 1; };
+    const used = G.used, i0 = Math.max(0, used.indexOf((G.sel | 0) - 1));
+    const open = k => !G.free && G.rem[k] > 0;
+    let prevU = null, nextU = null;
+    for (let k = 1; k < used.length; k++) { const c = used[(i0 - k + used.length) % used.length]; if (open(c)) { prevU = c + 1; break; } }
+    for (let k = 1; k < used.length; k++) { const c = used[(i0 + k) % used.length]; if (open(c)) { nextU = c + 1; break; } }
+    const moreS = land ? pal.scrollTop > 4 : pal.scrollLeft > 4;
+    const moreE = land ? pal.scrollTop + pal.clientHeight < pal.scrollHeight - 4 : pal.scrollLeft + pal.clientWidth < pal.scrollWidth - 4;
+    const setBtn = (btn, num, off, more, dir) => {
+      const el = num ? $('.sw[data-c="' + num + '"]') : null;
+      if (el && off(el)) { btn.hidden = false; btn.classList.add('gold'); btn.dataset.act = 'jump'; btn.dataset.c = String(num); btn.setAttribute('aria-label', 'Next colour'); }
+      else if (more) { btn.hidden = false; btn.classList.remove('gold'); btn.dataset.act = 'page'; btn.dataset.dir = String(dir); btn.setAttribute('aria-label', dir < 0 ? 'Previous colours' : 'More colours'); }
+      else btn.hidden = true;
+    };
+    setBtn(prev, prevU, offS, moreS, -1); setBtn(next, nextU, offE, moreE, 1);
+    const gapS = $('#palGapS'), gapE = $('#palGapE'); if (gapS) gapS.hidden = prev.hidden; if (gapE) gapE.hidden = next.hidden;
+    pal.classList.toggle('fadeS', moreS); pal.classList.toggle('fadeE', moreE);
+  }
+  function palNavClick(e) {
+    const b = e.currentTarget, pal = $('#pal'); if (!pal || b.hidden) return;
+    if (b.dataset.act === 'jump') selectSwatch(+b.dataset.c);
+    else {
+      const land = matchMedia('(orientation: landscape)').matches, dir = +b.dataset.dir || 1, d = dir * (land ? pal.clientHeight : pal.clientWidth) * 0.75;
+      pal.scrollBy(land ? { top: d, behavior: calm() ? 'auto' : 'smooth' } : { left: d, behavior: calm() ? 'auto' : 'smooth' });
+    }
+    AU.tick();
+  }
+  $('#palPrev').onclick = palNavClick; $('#palNext').onclick = palNavClick;
+  $('#pal').addEventListener('scroll', palSync, { passive: true });
   function updateMeter() { const f = G.free ? 0 : 1 - G.left / G.n; $('#meter i').style.width = (f * 100).toFixed(1) + '%'; $('#meter').style.visibility = G.free ? 'hidden' : 'visible'; }
   function updateGlow() {
     R.glow.clear(); if (G.free) return;
@@ -247,7 +439,7 @@
     if (burstArmed) { burstArmed = false; if (burstAt(i)) return; syncWand(); }
     if (G.fc[i]) { AU.tick(); return; }
     const c = G.P.col[i];
-    if (c + 1 !== G.sel) { AU.boop(); AU.say('look'); const b = $('.sw[data-c="' + (c + 1) + '"]'); if (b) { b.classList.remove('nudge'); void b.offsetWidth; b.classList.add('nudge'); nav(() => b.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: calm() ? 'auto' : 'smooth' })); setTimeout(() => b.classList.remove('nudge'), 1900); } return; }
+    if (c + 1 !== G.sel) { AU.boop(); AU.say('look'); const b = $('.sw[data-c="' + (c + 1) + '"]'); if (b) { b.classList.remove('nudge'); void b.offsetWidth; b.classList.add('nudge'); nav(() => b.scrollIntoView({ block: 'center', inline: 'center', behavior: calm() ? 'auto' : 'smooth' })); setTimeout(() => b.classList.remove('nudge'), 1900); } return; }
     pushOp([[i, 0]]); fillRegion(i); AU.pop(G.tot[c] - G.rem[c] - 1); afterFill(false, c);
   }
   function undo() {
@@ -292,6 +484,19 @@
   $('#bUndo').onclick = undo; $('#bHint').onclick = hint; $('#bWand').onclick = () => wand(); $('#pWand').onclick = () => { setPaused(false); wand(true); };
   $('#bBurst').onclick = () => { burstArmed = !burstArmed; syncWand(); AU.tick(); toast(burstArmed ? 'burst' : null); };
   $('#bHand').onclick = () => { panMode = !panMode; $('#bHand').classList.toggle('on', panMode); };
+  // R2 Peek: hold the eye to see the whole photo over the canvas (same camera), release to go back. Only when the picture has a photo to show.
+  let peeking = 0;
+  const syncPeek = () => { const b = $('#bPeek'); if (b) b.hidden = !(G && !G.free && G.pic && G.pic.reveal); if (b && b.hidden) peekOff(); };
+  function peekOn() {
+    if (peeking || !G || G.free || !G.pic.reveal || scr !== 'play' || paused) return; const cv = $('#peekCv'), art = $('#art'), bm = G.pic.reveal, [WW, WH] = R.world, z = R.zoom, cam = R.cam, d = R.dpr, [cw, ch] = R.size;
+    cv.width = art.width; cv.height = art.height; const g = cv.getContext('2d'); g.fillStyle = '#fff1ee'; g.fillRect(0, 0, cv.width, cv.height);
+    g.setTransform(z * d, 0, 0, z * d, (cw / 2 - cam.x * z) * d, (ch / 2 - cam.y * z) * d); g.imageSmoothingQuality = 'high'; g.drawImage(bm, 0, 0, bm.width, bm.height, 0, 0, WW, WH);
+    cv.hidden = false; peeking = 1; $('#bPeek').classList.add('on'); AU.say('peek');
+  }
+  function peekOff() { if (!peeking) return; peeking = 0; const cv = $('#peekCv'); cv.hidden = true; cv.width = cv.height = 1; $('#bPeek').classList.remove('on'); }
+  { const b = $('#bPeek'); b.addEventListener('pointerdown', e => { e.preventDefault(); try { b.setPointerCapture(e.pointerId); } catch (x) { } peekOn(); }); for (const t of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(t, peekOff); b.addEventListener('contextmenu', e => e.preventDefault()); }
+  document.addEventListener('visibilitychange', peekOff); addEventListener('resize', peekOff);
+
 
   // ---------- progress save ----------
   function saveProg() {
@@ -311,7 +516,7 @@
   }
 
   // ---------- pause / fold ----------
-  function setPaused(p) { paused = p; AU.hold(p); AU.bed(scr === 'play' && !p); $('#pauseOv').classList.toggle('on', p); if (p) { $('#pTitle').innerHTML = A.icon('pause'); syncWand(); saveProg(); SV.flush(); saveFreeGal(); stopLoop(); if (G) G.ms += performance.now() - G.t0; } else { if (G) G.t0 = performance.now(); lastFill = performance.now(); startLoop(); } syncWand(); }
+  function setPaused(p) { paused = p; if (p) peekOff(); AU.hold(p); AU.bed(scr === 'play' && !p); $('#pauseOv').classList.toggle('on', p); if (p) { $('#pTitle').innerHTML = A.icon('pause'); syncWand(); saveProg(); SV.flush(); saveFreeGal(); stopLoop(); if (G) G.ms += performance.now() - G.t0; } else { if (G) G.t0 = performance.now(); lastFill = performance.now(); startLoop(); } syncWand(); }
   function pause() { if (scr === 'play' && !paused && G) { endPaint(); pointers.clear(); setPaused(true); AU.say('pause'); } }
   $('#bPause').onclick = pause; $('#pPlay').onclick = () => setPaused(false); $('#pPacks').onclick = () => { go('packs'); }; $('#pGal').onclick = () => go('gal');
   document.addEventListener('visibilitychange', () => { if (document.hidden) { pause(); stopLoop(); } else if (scr === 'play') kick(); });
@@ -323,7 +528,7 @@
     if (scr !== 'play') { lastVP = [innerWidth, innerHeight]; return; }
     const a0 = lastVP[0] * lastVP[1], a1 = innerWidth * innerHeight, flip = (lastVP[0] > lastVP[1]) !== (innerWidth > innerHeight);
     if (Math.abs(a1 - a0) / a0 > 0.25 || flip) pause();
-    endPaint(); pointers.clear(); layoutNow(false);
+    endPaint(); pointers.clear(); layoutNow(false); nav(palSync);
   }
   addEventListener('resize', () => { clearTimeout(relayT); relayT = setTimeout(relayout, 250); });
   if (window.ResizeObserver) new ResizeObserver(() => { if (scr === 'play') { clearTimeout(relayT); relayT = setTimeout(relayout, 250); } }).observe($('#wrap'));
@@ -347,7 +552,7 @@
   }
   function endPaint() { if (paint && paint.on && paint.op.length && G) { G.ops.push(paint.op); if (G.ops.length > 200) G.ops.shift(); } paint = null; }
   wrap.addEventListener('pointerdown', e => {
-    if (e.target.closest('#rail,#toast')) return; if (paused) return; pointers.set(e.pointerId, rel(e)); nav(() => wrap.setPointerCapture(e.pointerId));
+    if (e.target.closest('#rail,#toast,#peekBox')) return; if (paused) return; pointers.set(e.pointerId, rel(e)); nav(() => wrap.setPointerCapture(e.pointerId));
     if (pointers.size === 1) { tapOk = true; startXY = rel(e); paint = (G && G.pic.pre && G.pic.pre.mode === 'pixel' && !panMode && !burstArmed && sd().set.dragPaint) ? { on: false, op: [], cell: -1, k: 0 } : null; } else { tapOk = false; pinch = null; endPaint(); }
   });
   wrap.addEventListener('pointermove', e => {
@@ -376,8 +581,8 @@
     if (ms > 20) { if (++slow >= 3 && R.q < 2) { slow = 0; fastT = 0; if (qUp) { qUp = false; qNoUp = true; } R.setQuality(R.q + 1); layoutNow(); } } else { slow = 0; if (ms < 12) { fastT += ms; if (fastT > 10000 && R.q > 0 && !qNoUp) { fastT = 0; qUp = true; R.setQuality(R.q - 1); layoutNow(); } } else fastT = 0; }
   }
   // v9 QA P2: a big canvas (Fold inner screen, tablets: over 2.2M device px at the 2x cap) starts at the lowest tile step
-  // (cap / LOD / sparkles) instead of stepping down during the first fills. On a canvas >= 800 CSS px the art layer stays at
-  // 2x rather than the old 1.5 step: min(DPR, 2.5) was 4.8 fps slower than v9 here at 4x CPU. Phones keep the v9 dpr caps.
+  // (cap / LOD / sparkles) instead of stepping down during the first fills. Fold-class screens (short side or device-px
+  // area, render.js) keep the art layer at 2x. Phones keep the v9 dpr caps, including the 1.5 step at the lowest quality.
   // qUp: it did step up; a later step down then stops further step-ups for this visit (no back and forth).
   let qUp = false, qNoUp = false;
   function pickQ() { if (lockQ || qUp || R.q >= 2) return; const s = R.size, k = Math.min(dpr(), 2); if (s[0] * s[1] * k * k > 2.2e6) R.setQuality(2); }
@@ -448,7 +653,7 @@
     if (FC.fin && FC.fin.close) FC.fin.close(); FC.fin = null; FC.job = null; FC.tl = false; FC.specks = []; for (let i = 0; i < (calm() ? 30 : [90, 60, 30][Math.min(2, R.q)]); i++) FC.specks.push([Math.random() * WW, Math.random() * WH, 18 + Math.random() * 40, Math.random() * 6.28]);
     drawFin(0); FC.map = mapOf($('#fc'), $('#fconf'), 1, WW, WH); const k = $('#fconf'); pcClear(); pcDraw(k, g => glitter(g, 0));
   }
-  function stFor(m) { const f = new Uint8Array(G.n); for (let j = 0; j < m; j++) { const i = G.order[j]; f[i] = G.P.col[i] + 1; } return { P: G.P, pal: G.pic.pal, fc: f }; }
+  function stFor(m) { const f = new Uint8Array(G.n); for (let j = 0; j < m; j++) { const i = G.order[j]; f[i] = G.P.col[i] + 1; } return { P: G.P, pal: G.pic.pal, fc: f, reveal: G.free ? null : G.pic.reveal || null }; }
   function mkSpk() {
     const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); g.fillStyle = '#fff'; g.translate(32, 32); g.beginPath(); for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, r = i % 2 ? 6 : 30; g[i ? 'lineTo' : 'moveTo'](Math.cos(a) * r, Math.sin(a) * r); } g.closePath(); g.fill(); return c;
   }
@@ -476,6 +681,12 @@
   function finFlush(c) { if (!flc) { flc = document.createElement('canvas'); flc.width = flc.height = 1; } flc.getContext('2d').drawImage(c, 0, 0, 1, 1, 0, 0, 1, 1); }
   function finBuild(key, fra) {
     const px = FC.px, py = FC.py, job = FC.job = { key, px, py, i: 0 }, g0 = G, pic = G.pic;
+    if (pic.reveal && !G.free) {
+      const f = document.createElement('canvas');
+      R.renderArt(pic, stFor(G.order.length).fc, { into: f, sheen: false, long: Math.max(px, py), frame: fra && fra.a ? fra : null, P: G.P, reveal: pic.reveal });
+      if (FC.job !== job || G !== g0) return;
+      FC.fin = f; FC.finKey = key; FC.job = null; finShow(f, px, py); return;
+    }
     if (noWorker || !window.Worker || typeof OffscreenCanvas === 'undefined' || typeof ImageBitmap === 'undefined') { finSlices(job, fra); return; }
     (async () => {
       const m = { cmd: 'export', gen: 1, fc: stFor(G.order.length).fc, frame: fra && fra.a ? { id: fra.id, a: fra.a, b: fra.b } : null, long: Math.max(px, py), sheen: true, bitmap: true };
@@ -495,7 +706,7 @@
     const st = stFor(G.order.length), n = G.P.n, all = !!G.P.grid, g0 = G, key = job.key, per = Math.max(3, Math.ceil(n / 30));   // ~30 frames; canvas paints later than the call, so count, not time
     const step = () => {
       if (FC.job !== job) return; if (G !== g0 || scr !== 'fin') { FC.job = null; return; }   // left the screen: the next Finished screen starts again
-      const to = all ? n : Math.min(n, job.i + per); R.drawFlat(fg, st, { sheen: true, from: job.i, to }); job.i = to;
+      const to = all ? n : Math.min(n, job.i + per); R.drawFlat(fg, st, { sheen: !st.reveal, from: job.i, to }); job.i = to;
       if (job.i < n) { requestAnimationFrame(step); return; }
       fg.setTransform(1, 0, 0, 1, 0, 0); if (fra && fra.a) A.drawFrame(fg, px, py, fra);
       FC.fin = f; FC.finKey = key; FC.job = null; finShow(f, px, py);
@@ -514,11 +725,12 @@
       $('#finFrs').innerHTML = A.FRAMES.filter(f => f.a).map(f => '<i class="' + (sd().frames[f.id] ? 'on' : '') + '" style="background:linear-gradient(135deg,' + f.a + ',' + f.b + ')"></i>').join('');
       $('#fPaint').hidden = !galMap.has(G.pid) || G.free; $('#fNext').hidden = G.free;
       if (!FC.fromGal) celebrate();
+      { const c = $('#fc'); c.classList.remove('rvin'); if (G.pic.reveal && !G.free && !FC.fromGal) { void c.offsetWidth; c.classList.add('rvin'); } }   // R2: the finished picture fades in to the full photo
     }, 30);
   }
   // finish celebration: pooled confetti + sparkles over the glittering art; the sweep and specks run for ~5 s, then it rests (loop stops)
   function celebrate() {
-    if (!FC.map) return; cancelAnimationFrame(FC.anim); const k = $('#fconf'), t0 = performance.now(), d = 1, W = k.width / (k._s || 1), H = k.height / (k._s || 1); pcClear(); if (!pcSpr) pcBuild(); AU.say('finish', { delay: 650, then: FC.then }); FC.then = null;
+    if (!FC.map) return; cancelAnimationFrame(FC.anim); const k = $('#fconf'), t0 = performance.now(), d = 1, W = k.width / (k._s || 1), H = k.height / (k._s || 1); pcClear(); if (!pcSpr) pcBuild(); AU.say((G.custom && G.pic && G.pic.reveal) ? 'real' : 'finish', { delay: 650, then: FC.then }); FC.then = null;
     if (!calm()) for (let i = 0, n = pcCap(); i < n; i++) pcSpawn(0, Math.random() * W, -Math.random() * H * 0.6, (Math.random() - 0.5) * 60, 60 + Math.random() * 140, 22 + Math.random() * 26, (Math.random() * 8) | 0, 5);
     const m = FC.map; let lastT = t0, acc = 0, tt = 0; const under = g => glitter(g, tt);
     const step = t => {
@@ -535,7 +747,7 @@
     const lk = Math.min(1, 640 / Math.max(T.can.width, T.can.height)), lw = Math.max(1, Math.round(T.can.width * lk)), lh = Math.max(1, Math.round(T.can.height * lk));
     T.can.width = lw; T.can.height = lh;   // CSS size is fixed, so the browser scales the small canvas; done() re-fits the sharp one
     const lg = T.can.getContext('2d'); lg.setTransform(lw / T.W, 0, 0, lh / T.H, 0, 0);
-    const fc = new Uint8Array(T.P.n), st = { P: T.P, pal: T.pic.pal, fc }, dur = calm() ? 1200 : 3000, t0 = performance.now(); let shown = 0, drawnAt = -1e9, lastT = t0; AU.say('timelapse');
+    const fc = new Uint8Array(T.P.n), st = { P: T.P, pal: T.pic.pal, fc, reveal: T.pic.reveal || null }, dur = calm() ? 1200 : 3000, t0 = performance.now(); let shown = 0, drawnAt = -1e9, lastT = t0; AU.say('timelapse');
     const step = t => {
       const u = Math.min(1, (t - t0) / dur), m = Math.round(N * u), dt = Math.min(0.05, (t - lastT) / 1000); lastT = t;
       if (m > shown) {
@@ -556,16 +768,18 @@
   $('#fReplay').onclick = replay; $('#fc').onclick = replay;
   $('#fGal').onclick = () => go('gal');
   $('#fShow').onclick = () => { const o = $('#showOv'), c = $('#showC'); o.classList.add('on'); c.width = innerWidth * Math.min(dpr(), 2); c.height = innerHeight * Math.min(dpr(), 2); const g = c.getContext('2d'), fcv = $('#fc'), sc = Math.min(c.width / fcv.width, c.height / fcv.height); g.fillStyle = '#000'; g.fillRect(0, 0, c.width, c.height); g.drawImage(fcv, (c.width - fcv.width * sc) / 2, (c.height - fcv.height * sc) / 2, fcv.width * sc, fcv.height * sc); o.onclick = () => o.classList.remove('on'); };
-  $('#fNext').onclick = () => { if (G.custom && !CM_PACKS[G.pk]) { go('photo'); return; } const p = CM_PACKS[G.pk], idx = p.pics.findIndex(x => x.id === (G.pic.base || G.pic.id)); let nx = null; for (let k = 1; k <= p.pics.length; k++) { const c = p.pics[(idx + k) % p.pics.length]; if (!galMap.has(pidOf(G.pk, c.id))) { nx = c; break; } } if (!nx) { go('packs'); return; } openPic(G.pk, nx.id); };
+  $('#fNext').onclick = () => { if (G.custom && !CM_PACKS[G.pk]) { go('photo'); return; } notePack(G.pk); const p = CM_PACKS[G.pk], idx = p.pics.findIndex(x => x.id === (G.pic.base || G.pic.id)); let nx = null; for (let k = 1; k <= p.pics.length; k++) { const c = p.pics[(idx + k) % p.pics.length]; const done = c.photo ? [2, 4].some(n => galMap.has(photoId(G.pk, c.id, n))) : galMap.has(pidOf(G.pk, c.id)); if (!done) { nx = c; break; } } if (!nx) { go('packs'); return; } openPic(G.pk, nx.id); };
   $('#fPaint').onclick = () => { if (G.custom) API.openByPid(G.pid, { free: true }); else openPic(G.pk, G.pic.id, { free: true }); };
 
   // ---------- gallery ----------
   async function showGal() {
-    await loadMaps(); thumbs.forEach(u => URL.revokeObjectURL(u)); thumbs.clear(); const grid = $('#galGrid'); grid.innerHTML = ''; const list = [...galMap.values(), ...galFree.values()].sort((a, b) => b.done - a.done);
-    $('#jarBox').innerHTML = A.hearts(Math.min(14, galMap.size), '#ff5fa2'); $('#jarN').textContent = galMap.size;
+    await loadMaps(); thumbs.forEach(u => URL.revokeObjectURL(u)); thumbs.clear(); const grid = $('#galGrid'); grid.innerHTML = '';
+    const list = [...galMap.values(), ...galFree.values()].filter(r => !mosaicHidden(r.pid)).sort((a, b) => b.done - a.done);
+    let jar = 0; for (const r of galMap.values()) if (!mosaicHidden(r.pid)) jar++;
+    $('#jarBox').innerHTML = A.hearts(Math.min(14, jar), '#ff5fa2'); $('#jarN').textContent = jar;
     if (!list.length) { grid.innerHTML = '<div class="empty" style="grid-column:1/-1">' + A.icon('heart') + A.icon('gallery') + '</div>'; return; }
     for (const r of list) {
-      const b = document.createElement('button'); b.className = 'gi ' + (r.frame || ''); b.setAttribute('aria-label', r.free ? 'My colors' : 'Picture'); const im = document.createElement('img'); im.alt = '';
+      const b = document.createElement('button'); b.className = 'gi ' + (r.frame || ''); b.setAttribute('aria-label', r.free ? 'My colors' : 'Picture'); const im = document.createElement('img'); im.alt = ''; im.loading = 'lazy'; im.decoding = 'async'; im.width = 160; im.height = 160;
       if (r.thumb) { const u = URL.createObjectURL(r.thumb); thumbs.set(r.id, u); im.src = u; } b.appendChild(im);
       if (r.free) { const f = document.createElement('i'); f.className = 'fr'; f.innerHTML = A.icon('brush'); b.appendChild(f); }
       b.onclick = () => openView(r.pid, r.free ? 'free' : 'orig'); grid.appendChild(b);
@@ -592,7 +806,8 @@
   const frameOfView = () => { const r = galMap.get(V.pid) || galFree.get(V.pid), id = r && r.frame; return id ? A.FRAMES.find(f => f.id === id && f.a) || null : null; };
   function viewDraw() {
     const W = V.pic.w || 2048, H = V.pic.h || 2048, c = $('#vc'), f = fitCanvas($('#viewArt'), c, $('#vconf'), W, H); V.d = f.d;
-    R.renderArt(V.pic, viewFc(), { long: Math.max(c.width, c.height), sheen: true, frame: V.frameOn ? frameOfView() : null, into: c, P: V.P });
+    const reveal = V.which === 'free' ? null : (V.pic.reveal || null);
+    R.renderArt(V.pic, viewFc(), { long: Math.max(c.width, c.height), sheen: !reveal, frame: V.frameOn ? frameOfView() : null, into: c, P: V.P, reveal });
     c.style.width = Math.round(c.width / f.d) + 'px'; c.style.height = Math.round(c.height / f.d) + 'px'; V.map = mapOf(c, $('#vconf'), 1, V.pic.w || 2048, V.pic.h || 2048);
   }
   function showView() {
@@ -619,8 +834,8 @@
   }
   const ymd = () => { const d = new Date(), z = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()); };
   async function renderPng(long) {   // worker first (P5: the 2048 canvas stays out of the page heap), main thread as the fallback
-    const fc = viewFc(), frame = V.frameOn ? frameOfView() : null, pic = V.pic;
-    if (!noWorker && window.Worker && typeof OffscreenCanvas !== 'undefined') {
+    const fc = viewFc(), frame = V.frameOn ? frameOfView() : null, pic = V.pic, reveal = V.which === 'free' ? null : (pic.reveal || null);
+    if (!reveal && !noWorker && window.Worker && typeof OffscreenCanvas !== 'undefined') {
       try {
         const job = { cmd: 'export', gen: 1, fc, frame: frame ? { id: frame.id, a: frame.a, b: frame.b } : null, long, sheen: true };
         if (pic.custom) job.pz = await API.loadPz(V.pid); else job.pic = { w: pic.w, h: pic.h, pal: pic.pal, bg: pic.bg, shapes: pic.shapes, line: pic.line, lab: pic.lab };
@@ -632,7 +847,7 @@
         return { blob: r.blob, w: r.w, h: r.h, via: 'worker' };
       } catch (e) { /* fall through to the main thread */ }
     }
-    const c = R.renderArt(pic, fc, { long, sheen: true, frame, P: V.P, make: (w, h) => { const k = document.createElement('canvas'); k.width = w; k.height = h; return k; } });
+    const c = R.renderArt(pic, fc, { long, sheen: !reveal, frame, P: V.P, reveal, make: (w, h) => { const k = document.createElement('canvas'); k.width = w; k.height = h; return k; } });
     const blob = await new Promise(r => c.toBlob(b => r(b), 'image/png')); const out = { blob, w: c.width, h: c.height, via: 'main' }; c.width = 0; return out;
   }
   async function deliver(blob) {   // share sheet when the browser can share a file, else a plain download (S5). No url / text / title is ever shared.
@@ -648,7 +863,7 @@
     askGate('Saved pictures may copy to the cloud if phone backup is on.', async () => {
       if (!V) return; V.busy = true; $('#vSave').classList.add('busy'); AU.say('export');
       // 4K puzzle + Super sharp switch on: 3840 px PNG (2K if that fails); everything else stays 2048
-      try { const big = V.pic.k4 && SV.data.set.sharp; let r = null; if (big) r = await renderPng(3840).catch(() => null); if (!r || !r.blob) r = await renderPng(2048); if (r && r.blob) await deliver(r.blob); } catch (e) { toast('sparkle'); }
+      try { const big = V.pic.k4 && SV.data.set.sharp; let r = null; if (big) r = await renderPng(3840).catch(() => null); const small = !!big && (!r || !r.blob); if (!r || !r.blob) r = await renderPng(2048); if (r && r.blob) { await deliver(r.blob); if (small) toast('sparkle'); } } catch (e) { toast('sparkle'); }
       finally { if (V) V.busy = false; $('#vSave').classList.remove('busy'); }
     });
   };
@@ -675,7 +890,7 @@
     const bind = (id, k) => $('#' + id).onclick = e => { s[k] = !s[k]; e.currentTarget.classList.toggle('on', s[k]); SV.write(); applySettings(); };
     bind('sMus', 'mus'); bind('sVoice', 'voice'); bind('sMusic', 'music'); bind('sNums', 'nums');
     $$('#sOut button').forEach(b => b.onclick = () => { s.outl = +b.dataset.n; $$('#sOut button').forEach(x => x.classList.toggle('on', x === b)); SV.write(); });
-    $('#sLock').onclick = () => { const h = $('#guHost'); if (h.firstChild) return; AU.say('grown'); if (FZ && FZ.gate) FZ.gate(h, () => { h.innerHTML = tg('gHelp', 'Helpers', 'hint', s.helpers) + tg('gPhoto', 'My Photo', 'photo', s.photo) + tg('gGrid', 'Big grids', 'squares', s.bigGrid) + tg('gAll', 'All levels', 'gem', s.allLevels) + tg('gSharp', '4K Super sharp', 'photo', s.sharp) + '<div class="set"><label><span id="gSt"></span></label></div><div id="gPh"></div>'; bind('gHelp', 'helpers'); bind('gPhoto', 'photo'); bind('gGrid', 'bigGrid'); bind('gAll', 'allLevels'); bind('gSharp', 'sharp'); stor(); if (API.storagePage) API.storagePage($('#gPh')); }, () => { }); };
+    $('#sLock').onclick = () => { const h = $('#guHost'); if (h.firstChild) return; AU.say('grown'); if (FZ && FZ.gate) FZ.gate(h, () => { h.innerHTML = tg('gHelp', 'Helpers', 'hint', s.helpers) + tg('gPhoto', 'My Photo', 'photo', s.photo) + tg('gGrid', 'Big grids', 'squares', s.bigGrid) + tg('gAll', 'All levels', 'gem', s.allLevels) + tg('gSharp', '4K Super sharp', 'photo', s.sharp) + tg('gMosaic', 'Mosaic levels', 'gem', s.mosaic) + '<div class="set"><label><span id="gSt"></span></label></div><div id="gPh"></div>'; bind('gHelp', 'helpers'); bind('gPhoto', 'photo'); bind('gGrid', 'bigGrid'); bind('gAll', 'allLevels'); bind('gSharp', 'sharp'); bind('gMosaic', 'mosaic'); stor(); if (API.storagePage) API.storagePage($('#gPh')); }, () => { }); };
   }
   async function stor() { let t = 'Saved here'; try { const e = await navigator.storage.estimate(); t = Math.round((e.usage || 0) / 1048576 * 10) / 10 + ' MB'; } catch (e) { } if (SV.quarantine.size) t += ' - ' + SV.quarantine.size + ' unreadable'; if (SV.warn) t += ' - not saving!'; const e = $('#gSt'); if (e) e.textContent = t; }
 
@@ -688,7 +903,7 @@
   });
 
   // ---------- hooks for photo.js ----------
-  Object.assign(API, { galFree, go, nav, A, R, SV, AU, FZ, sd, toast, loadMaps, galMap, progMap, openGame, openPic, picBy, pidOf, isCustom, isDetail, thumb, calm, applySettings, fracRec, stor });
+  Object.assign(API, { galFree, go, nav, A, R, SV, AU, FZ, sd, toast, loadMaps, galMap, progMap, openGame, openPic, picBy, pidOf, isCustom, isDetail, isPhotoPz, isMosaic, mosaicId, photoId, thumb, calm, applySettings, fracRec, stor });
   Object.defineProperties(API, { scr: { get: () => scr }, prev: { get: () => prev }, G: { get: () => G } });   // live views (Object.assign would copy the current value only)
   window.CMApp = { API, HOOK };
 

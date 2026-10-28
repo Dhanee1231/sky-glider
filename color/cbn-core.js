@@ -196,7 +196,7 @@
       }
       if (moved < 1e-5) break; yield;
     }
-    return { C, cnt, k };
+    return { C, cnt, k, asg };
   }
 
   // merge close centres, vividness boost, optional Sparkle snap, sort by hue/lightness. Returns {tgt: Float32Array(3m) (for mapping), pal: [hex], m}
@@ -331,7 +331,8 @@
   }
 
   // ---------- number spots: two-pass chamfer (3-4) distance over the region map, pole of inaccessibility per region + bbox ----------
-  function* labelSpots(reg, n, w, h) {
+  // wantExtra: long regions also keep up to 2 local maxima at least 3r from the main spot and from each other.
+  function* labelSpots(reg, n, w, h, wantExtra) {
     const dist = new Uint16Array(w * h);
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) { const p = y * w + x, r = reg[p]; dist[p] = (x === 0 || y === 0 || x === w - 1 || y === h - 1 || reg[p - 1] !== r || reg[p + 1] !== r || reg[p - w] !== r || reg[p + w] !== r) ? 0 : 30000; }
@@ -354,8 +355,67 @@
         if ((y & 7) === 7) yield;
       }
     }
-    return { best, bx, by, x0, y0, x1, y1 };
+    let ex = null, ey = null, ed = null;
+    if (wantExtra) {
+      ex = new Int16Array(n * 2).fill(-1); ey = new Int16Array(n * 2).fill(-1); ed = new Uint16Array(n * 2);
+      const long = new Uint8Array(n);
+      for (let r = 0; r < n; r++) {
+        if (!best[r]) continue;
+        const rad = best[r] / 3; if (rad < 1.5) continue;
+        if (Math.max(x1[r] - x0[r], y1[r] - y0[r]) >= rad * 6) long[r] = 1;
+      }
+      const put = (r, x, y, d) => {
+        const sep = best[r] + 1.5, sep2 = sep * sep;   // 3r plus a pixel, so rounding into world space stays at least 3r apart
+        const dx0 = x - bx[r], dy0 = y - by[r]; if (dx0 * dx0 + dy0 * dy0 < sep2) return;
+        let slot = -1, worst = 65535;
+        for (let k = 0; k < 2; k++) {
+          const ox = ex[r * 2 + k];
+          if (ox < 0) { slot = k; break; }
+          const dx = x - ox, dy = y - ey[r * 2 + k];
+          if (dx * dx + dy * dy < sep2) { if (d > ed[r * 2 + k]) { ex[r * 2 + k] = x; ey[r * 2 + k] = y; ed[r * 2 + k] = d; } return; }
+          if (ed[r * 2 + k] < worst) { worst = ed[r * 2 + k]; slot = k; }
+        }
+        if (slot < 0 || (ex[r * 2 + slot] >= 0 && d <= ed[r * 2 + slot])) return;
+        ex[r * 2 + slot] = x; ey[r * 2 + slot] = y; ed[r * 2 + slot] = d;
+      };
+      for (let y = 1; y < h - 1; y++) {
+        for (let x = 1; x < w - 1; x++) {
+          const p = y * w + x, d = dist[p]; if (d < 9) continue;
+          const r = reg[p]; if (!long[r]) continue;
+          if (d < dist[p - 1] || d < dist[p + 1] || d < dist[p - w] || d < dist[p + w] || d < dist[p - w - 1] || d < dist[p - w + 1] || d < dist[p + w - 1] || d < dist[p + w + 1]) continue;
+          put(r, x, y, d);
+        }
+        if ((y & 7) === 7) yield;
+      }
+    }
+    return { best, bx, by, x0, y0, x1, y1, ex, ey, ed };
   }
+  function zoomDeep(cfg) { const t = cfg && (cfg.tier | 0); return t === 4 ? 32 : t === 3 ? 24 : 12; }
+  function spotSize(r, loose) { return Math.round(clamp(1.6 * Math.max(0, r), loose ? 8 : 16, 240)); }
+  function writeMain(labs, i, x, y, r, loose) {
+    labs[i * 4] = Math.round(x); labs[i * 4 + 1] = Math.round(y);
+    labs[i * 4 + 2] = Math.round(loose ? Math.max(0, r) : Math.max(20, r));
+    labs[i * 4 + 3] = spotSize(r, loose);
+  }
+  // Reveal zoom zr = 11 css px / digit size, so a spot appears once it is readable. Extras whose own r would stay under 11 css px even at the tier's deepest zoom are dropped.
+  function extraLabs(sp, n, s, loose, zDeep) {
+    if (!sp.ex) return null;
+    const minR = 11 / (1.6 * (zDeep || 12)), xlab = new Int16Array(n * 8);
+    for (let i = 0; i < xlab.length; i++) xlab[i] = -1;
+    let any = 0;
+    for (let i = 0; i < n; i++) {
+      if (sp.best[i] / 3 * s < minR) continue;
+      for (let k = 0; k < 2; k++) {
+        const ex = sp.ex[i * 2 + k]; if (ex < 0) continue;
+        const r = sp.ed[i * 2 + k] / 3 * s; if (r < minR) continue;
+        const o = i * 8 + k * 4;
+        xlab[o] = Math.round((ex + 0.5) * s); xlab[o + 1] = Math.round((sp.ey[i * 2 + k] + 0.5) * s);
+        xlab[o + 2] = Math.round(loose ? Math.max(0, r) : Math.max(20, r)); xlab[o + 3] = spotSize(r, loose); any++;
+      }
+    }
+    return any ? xlab : null;
+  }
+  function spotRec(x, y, r, size) { const sz = size | 0; return [x | 0, y | 0, r | 0, sz, sz > 0 ? 11 / sz : 99]; }
   // v9 QA P1: a region with no inner pixel (every pixel touches another region or the picture edge, the same test labelSpots
   // uses) can never get a number spot: anti-aliased fringe pixels of the Expert splits (54% of Expert regions) and thin slivers
   // left after a photo merge. Each such pixel joins the neighbouring region that has an inner pixel (4-neighbours count
@@ -1002,18 +1062,23 @@
   }
   function* packShapePuzzle(reg, col, pal, w, h, n, cfg, ctx) {
     const N = w * h;
-    ctx.begin('spots', 0.62); ctx.alloc('dist', N * 2); const sp = yield* labelSpots(reg, n, w, h); ctx.free('dist');
+    ctx.begin('spots', 0.62); ctx.alloc('dist', N * 2); const sp = yield* labelSpots(reg, n, w, h, true); ctx.free('dist');
     ctx.begin('trace', 0.75); ctx.alloc('vis', N); const per = yield* trace(reg, n, w, h, cfg.eps || 0.7); ctx.free('vis');
     ctx.begin('pack', 0.92);
-    const s = WORLD / Math.max(w, h), bb = new Int16Array(n * 4), labs = new Int16Array(n * 4);
+    const loose = !!cfg.mosaic, s = WORLD / Math.max(w, h), bb = new Int16Array(n * 4), labs = new Int16Array(n * 4);
     for (let i = 0; i < n; i++) {
       bb[i * 4] = Math.max(0, Math.floor(sp.x0[i] * s - 6)); bb[i * 4 + 1] = Math.max(0, Math.floor(sp.y0[i] * s - 6)); bb[i * 4 + 2] = Math.ceil((sp.x1[i] + 1) * s + 6); bb[i * 4 + 3] = Math.ceil((sp.y1[i] + 1) * s + 6);
-      const r = sp.best[i] / 3 * s; labs[i * 4] = Math.round((sp.bx[i] + 0.5) * s); labs[i * 4 + 1] = Math.round((sp.by[i] + 0.5) * s); labs[i * 4 + 2] = Math.round(Math.max(20, r)); labs[i * 4 + 3] = Math.round(clamp(1.6 * r, 16, 240));
+      writeMain(labs, i, (sp.bx[i] + 0.5) * s, (sp.by[i] + 0.5) * s, sp.best[i] / 3 * s, loose);
     }
+    const xlab = extraLabs(sp, n, s, loose, zoomDeep(cfg));
     const rings = encodeRings(per), rle = rleEnc(reg); ctx.end();
     const stored = { diff: cfg.diff, pal: cfg.pal, seed: cfg.seed, sparkle: !!cfg.sparkle, eps: cfg.eps || 0.7 };
     if (cfg.detail) stored.detail = cfg.detail;
-    return { pv: PV, mode: 'shapes', w, h, W: Math.round(w * s), H: Math.round(h * s), s, pal, n, cfg: stored, data: { col, bb, lab: labs, rings, rle }, T: ctx.T, memPeak: ctx.peak };
+    if (cfg.tier) stored.tier = cfg.tier | 0;
+    if (cfg.mosaic) stored.mosaic = 1;
+    if (cfg.k4) stored.k4 = 1;
+    const data = { col, bb, lab: labs, rings, rle }; if (xlab) data.xlab = xlab;
+    return { pv: PV, mode: 'shapes', w, h, W: Math.round(w * s), H: Math.round(h * s), s, pal, n, cfg: stored, data, T: ctx.T, memPeak: ctx.peak };
   }
 
   // input src {rgba (Uint8ClampedArray), w, h}. Returns a puzzle object with typed arrays (transferable). Throws E(code).
@@ -1069,16 +1134,18 @@
     for (let i = 0; i < td.m; i++) if (used[i]) { remap[i] = q++; pal.push(td.pal[i]); }
     const col = Uint8Array.from(fsp.col, c => remap[c]), n = fsp.n;
     const face = mask ? yield* faceStats(reg, n, col, pal, mask, N, maskFrac, baseMin, skinMin, featureMin) : null; mask = null;
-    ctx.begin('spots', 0.62); ctx.alloc('dist', N * 2); const sp = yield* labelSpots(reg, n, w, h); ctx.free('dist');
+    ctx.begin('spots', 0.62); ctx.alloc('dist', N * 2); const sp = yield* labelSpots(reg, n, w, h, true); ctx.free('dist');
     ctx.begin('trace', 0.75); ctx.alloc('vis', N); let eps = cfg.eps; let per = yield* trace(reg, n, w, h, eps); ctx.free('vis');
     ctx.begin('pack', 0.92);
     const s = WORLD / Math.max(w, h), bb = new Int16Array(n * 4), labs = new Int16Array(n * 4);
     for (let i = 0; i < n; i++) {
       bb[i * 4] = Math.max(0, Math.floor(sp.x0[i] * s - 6)); bb[i * 4 + 1] = Math.max(0, Math.floor(sp.y0[i] * s - 6)); bb[i * 4 + 2] = Math.ceil((sp.x1[i] + 1) * s + 6); bb[i * 4 + 3] = Math.ceil((sp.y1[i] + 1) * s + 6);
-      const r = sp.best[i] / 3 * s; labs[i * 4] = Math.round((sp.bx[i] + 0.5) * s); labs[i * 4 + 1] = Math.round((sp.by[i] + 0.5) * s); labs[i * 4 + 2] = Math.round(Math.max(20, r)); labs[i * 4 + 3] = Math.round(clamp(1.6 * r, 16, 240));
+      writeMain(labs, i, (sp.bx[i] + 0.5) * s, (sp.by[i] + 0.5) * s, sp.best[i] / 3 * s, false);
     }
+    const xlab = extraLabs(sp, n, s, false, zoomDeep(cfg));
     const rings = encodeRings(per), rle = yield* rleEncG(reg); ctx.end();
-    const out = { pv: PV, mode: 'shapes', w, h, W: Math.round(w * s), H: Math.round(h * s), s, pal, n, cfg: { diff: cfg.diff, pal: cfg.pal, seed: cfg.seed, sparkle: cfg.sparkle, eps }, data: { col, bb, lab: labs, rings, rle }, T: ctx.T, memPeak: ctx.peak };
+    const data = { col, bb, lab: labs, rings, rle }; if (xlab) data.xlab = xlab;
+    const out = { pv: PV, mode: 'shapes', w, h, W: Math.round(w * s), H: Math.round(h * s), s, pal, n, cfg: { diff: cfg.diff, pal: cfg.pal, seed: cfg.seed, sparkle: cfg.sparkle, eps }, data, T: ctx.T, memPeak: ctx.peak };
     if (cfg.k4) out.cfg.k4 = 1;   // additive: older code ignores it
     if (face) out.face = face;
     return out;
@@ -1136,10 +1203,18 @@
       const rs = per[i]; if (simp) for (let k = 0; k < rs.length; k++) rs[k] = dpRing(Array.from(rs[k]), veps);
       paths.push(ringPath(P2D, rs, pz.s)); per[i] = null; if ((i & 7) === 7) yield;
     }
-    for (let i = 0; i < n; i++) { bb.push([d.bb[i * 4], d.bb[i * 4 + 1], d.bb[i * 4 + 2], d.bb[i * 4 + 3]]); lab.push([d.lab[i * 4], d.lab[i * 4 + 1], d.lab[i * 4 + 2], d.lab[i * 4 + 3]]); }
+    const extra = new Array(n);
+    for (let i = 0; i < n; i++) {
+      bb.push([d.bb[i * 4], d.bb[i * 4 + 1], d.bb[i * 4 + 2], d.bb[i * 4 + 3]]);
+      lab.push(spotRec(d.lab[i * 4], d.lab[i * 4 + 1], d.lab[i * 4 + 2], d.lab[i * 4 + 3]));
+      if (!d.xlab || d.xlab.length !== n * 8) continue;
+      const xs = [];
+      for (let k = 0; k < 2; k++) { const o = i * 8 + k * 4; if (d.xlab[o] < 0) continue; xs.push(spotRec(d.xlab[o], d.xlab[o + 1], d.xlab[o + 2], d.xlab[o + 3])); }
+      if (xs.length) extra[i] = xs;
+    }
     const map = yield* rleDecG(d.rle, pz.w * pz.h);
     for (let i = 0; i < map.length; i++) { if (map[i] >= n) throw E('bad'); if ((i & 262143) === 262143) yield; }
-    return { mode: 'shapes', paths, bb, lab, col: d.col, map, mw: pz.w, mh: pz.h, s: pz.s };
+    return { mode: 'shapes', paths, bb, lab, extra, col: d.col, map, mw: pz.w, mh: pz.h, s: pz.s };
   }
   const inflate = (pz, P2D, view) => drain(inflateG(pz, P2D, view));
   // finished-look thumbnail, long side `size`, drawn straight from the paths (P5: no big framebuffer). mk(w,h) makes a canvas
@@ -1154,13 +1229,29 @@
     }
     return c;
   }
+  // small flat-colour thumb from the label map. Mosaic outlines are too heavy to stroke into a preview.
+  function drawMapThumb(pz, size, mk) {
+    const map = rleDec(pz.data.rle, pz.w * pz.h), k = size / Math.max(pz.w, pz.h);
+    const cw = Math.max(1, Math.round(pz.w * k)), ch = Math.max(1, Math.round(pz.h * k)), c = mk(cw, ch), x = c.getContext('2d');
+    const id = x.createImageData(cw, ch), rgb = new Uint8Array(pz.pal.length * 3), d = id.data, col = pz.data.col;
+    for (let i = 0; i < pz.pal.length; i++) { const v = parseInt(pz.pal[i].slice(1), 16); rgb[i * 3] = (v >> 16) & 255; rgb[i * 3 + 1] = (v >> 8) & 255; rgb[i * 3 + 2] = v & 255; }
+    for (let y = 0; y < ch; y++) {
+      const sy = Math.min(pz.h - 1, (y * pz.h / ch) | 0), row = sy * pz.w;
+      for (let x0 = 0; x0 < cw; x0++) {
+        const ci = col[map[row + Math.min(pz.w - 1, (x0 * pz.w / cw) | 0)]] * 3, o = (y * cw + x0) * 4;
+        d[o] = rgb[ci]; d[o + 1] = rgb[ci + 1]; d[o + 2] = rgb[ci + 2]; d[o + 3] = 255;
+      }
+    }
+    x.putImageData(id, 0, 0); return c;
+  }
   // sanity check of a stored puzzle (throws on anything odd, so the caller can quarantine the record)
   function check(pz) {
-    if (!pz || pz.pv !== PV || !Array.isArray(pz.pal) || !pz.pal.length || pz.pal.length > 32 || !(pz.n > 0) || pz.n > 65000 || !pz.data) throw E('bad');
+    if (!pz || pz.pv !== PV || !Array.isArray(pz.pal) || !pz.pal.length || pz.pal.length > 48 || !(pz.n > 0) || pz.n > 65000 || !pz.data) throw E('bad');
     for (const c of pz.pal) if (typeof c !== 'string' || !/^#[0-9a-f]{6}$/i.test(c)) throw E('bad');
     const d = pz.data;
     if (pz.mode === 'pixel') { if (!(d.cells instanceof Uint8Array) || d.cells.length !== pz.w * pz.h || pz.w * pz.h !== pz.n) throw E('bad'); for (let i = 0; i < d.cells.length; i++) if (d.cells[i] >= pz.pal.length) throw E('bad'); return true; }
     if (pz.mode !== 'shapes' || !(d.col instanceof Uint8Array) || d.col.length !== pz.n || !(d.rings instanceof Int16Array) || !(d.bb instanceof Int16Array) || d.bb.length !== pz.n * 4 || !(d.lab instanceof Int16Array) || d.lab.length !== pz.n * 4 || !(d.rle instanceof Uint8Array)) throw E('bad');
+    if (d.xlab && (!(d.xlab instanceof Int16Array) || d.xlab.length !== pz.n * 8)) throw E('bad');
     for (let i = 0; i < d.col.length; i++) if (d.col[i] >= pz.pal.length) throw E('bad');
     const st = d.rings; let p = 0;   // walk the delta stream: every count must stay inside the array and end exactly at its length
     for (let i = 0; i < pz.n; i++) { if (p >= st.length) throw E('bad'); const nr = st[p++]; if (nr < 0 || nr > 5000) throw E('bad'); for (let k = 0; k < nr; k++) { if (p >= st.length) throw E('bad'); const m = st[p++]; if (m < 3 || p + 2 * m > st.length) throw E('bad'); p += 2 * m; } }
@@ -1168,5 +1259,290 @@
     return true;
   }
 
-  g.CBN = { PV, WORLD, PRE, cfgFor, rng, sniff, decodeFile, downscale, smooth, kmeans, tidy, modeFilter, labelRegions, mergeRegions, labelSpots, foldSpotless, trace, dpRing, encodeRings, decodeRings, resimplify, rleEnc, rleDec, run, drain, creep, drainTick, inflate, inflateG, ringsToPath, drawThumb, check, toLab, fromLab, E, MAXB, MPX, skinLab, isSkinHex, prepFace, rasterShapes, detailRun };
+  // ---------- Expert / Extreme mosaic (seeded SLIC in CIE Lab). Kid and Detailed never call this. ----------
+  const MOSAIC_TIER = {
+    3: { tier: 3, pieces: 690, pal: 28, minD: 12, nseg: 760 },
+    4: { tier: 4, pieces: 1650, pal: 44, minD: 8, nseg: 1780 }
+  };
+  function mosaicCfg(tier, seed, opt) {
+    const t = MOSAIC_TIER[tier === 4 ? 4 : 3]; opt = opt || {};
+    const c = { mode: 'shapes', tier: t.tier, pieces: t.pieces, pal: t.pal, minD: t.minD, nseg: t.nseg, seed: (seed >>> 0) || 1, sparkle: false, eps: 0.7, diff: 6, mosaic: 1, spatial: !!opt.spatial };
+    if (opt.k4) c.k4 = 1;
+    return c;
+  }
+  function cieHex(L, a, b) {
+    let y = (L + 16) / 116, x = a / 500 + y, z = y - b / 200;
+    const f = t => { const t3 = t * t * t; return t3 > 0.008856 ? t3 : (t - 16 / 116) / 7.787037; };
+    const X = 0.95047 * f(x), Y = f(y), Z = 1.08883 * f(z);
+    return hex([enc(3.2404542 * X - 1.5371385 * Y - 0.4985314 * Z), enc(-0.969266 * X + 1.8760108 * Y + 0.041556 * Z), enc(0.0556434 * X - 0.2040259 * Y + 1.0572252 * Z)]);
+  }
+  function pushApart(C, k) {
+    for (let it = 0; it < 40; it++) {
+      let bi = -1, bj = -1, bd = 7.4;
+      for (let i = 0; i < k; i++) for (let j = i + 1; j < k; j++) {
+        const d = Math.hypot(C[i * 3] - C[j * 3], C[i * 3 + 1] - C[j * 3 + 1], C[i * 3 + 2] - C[j * 3 + 2]);
+        if (d < bd) { bd = d; bi = i; bj = j; }
+      }
+      if (bi < 0) return;
+      let dL = C[bi * 3] - C[bj * 3], dA = C[bi * 3 + 1] - C[bj * 3 + 1], dB = C[bi * 3 + 2] - C[bj * 3 + 2], d = Math.hypot(dL, dA, dB);
+      if (d < 0.25) { dL = 6; dA = (it & 1) ? 2 : -2; dB = 0; d = Math.hypot(dL, dA, dB); }
+      const sc = (7.6 - d) / 2 / d;
+      C[bi * 3] = clamp(C[bi * 3] + dL * sc, 4, 96); C[bj * 3] = clamp(C[bj * 3] - dL * sc, 4, 96);
+      C[bi * 3 + 1] += dA * sc; C[bj * 3 + 1] -= dA * sc; C[bi * 3 + 2] += dB * sc; C[bj * 3 + 2] -= dB * sc;
+    }
+  }
+  function sortPalette(C, k, asg, nAsg) {
+    const ord = [];
+    for (let i = 0; i < k; i++) {
+      const L = C[i * 3], a = C[i * 3 + 1], b = C[i * 3 + 2], ch = Math.hypot(a, b);
+      ord.push({ i, neu: ch < 8 ? 0 : 1, hue: Math.atan2(b, a), L });
+    }
+    ord.sort((x, y) => x.neu - y.neu || (x.neu ? x.hue - y.hue : 0) || x.L - y.L || x.i - y.i);
+    const map = new Uint8Array(k), C2 = new Float32Array(k * 3);
+    for (let j = 0; j < k; j++) { map[ord[j].i] = j; C2.set(C.subarray(ord[j].i * 3, ord[j].i * 3 + 3), j * 3); }
+    C.set(C2); for (let i = 0; i < nAsg; i++) asg[i] = map[asg[i]];
+  }
+  function palFromCie(C, k) {
+    const pal = [], seen = new Set();
+    for (let i = 0; i < k; i++) {
+      let L = C[i * 3], a = C[i * 3 + 1], b = C[i * 3 + 2], h = cieHex(L, a, b), g = 0;
+      while (seen.has(h) && g++ < 12) { b += 2.5; a += (g & 1) ? 1.5 : -1.5; if (g > 6) L = clamp(L + 1.2, 4, 96); h = cieHex(L, a, b); }
+      seen.add(h); pal.push(h); C[i * 3] = L; C[i * 3 + 1] = a; C[i * 3 + 2] = b;
+    }
+    return pal;
+  }
+  function* ciePlanes(rgba, w, h) {
+    const N = w * h, L = new Float32Array(N), A = new Float32Array(N), B = new Float32Array(N);
+    const f = t => t > 0.008856 ? Math.cbrt(t) : 7.787037 * t + 16 / 116;
+    for (let p = 0, o = 0; p < N; p++, o += 4) {
+      const R = LIN[rgba[o]], G = LIN[rgba[o + 1]], Bl = LIN[rgba[o + 2]];
+      const X = 0.4124564 * R + 0.3575761 * G + 0.1804375 * Bl, Y = 0.2126729 * R + 0.7151522 * G + 0.072175 * Bl, Z = 0.0193339 * R + 0.119192 * G + 0.9503041 * Bl;
+      const fx = f(X / 0.95047), fy = f(Y), fz = f(Z / 1.08883);
+      L[p] = 116 * fy - 16; A[p] = 500 * (fx - fy); B[p] = 200 * (fy - fz);
+      if ((p & 8191) === 8191) yield;
+    }
+    return { L, A, B };
+  }
+  function* slic(L, A, B, w, h, nseg, mask) {
+    const N = w * h, S = Math.max(4, Math.sqrt(N / Math.max(1, nseg))), m2 = (12 / S) * (12 / S), rad = S * 2;
+    const gw = Math.max(1, Math.round(w / S)), gh = Math.max(1, Math.round(h / S)), nc = gw * gh;
+    const CX = new Float32Array(nc), CY = new Float32Array(nc), CL = new Float32Array(nc), CA = new Float32Array(nc), CB = new Float32Array(nc), CS = mask ? new Int32Array(nc) : null;
+    const stepX = w / gw, stepY = h / gh; let c = 0;
+    for (let gy = 0; gy < gh; gy++) for (let gx = 0; gx < gw; gx++) {
+      let x = Math.min(w - 2, Math.max(1, Math.round((gx + 0.5) * stepX))), y = Math.min(h - 2, Math.max(1, Math.round((gy + 0.5) * stepY)));
+      let bg = 1e18, bx = x, by = y;
+      for (let yy = y - 1; yy <= y + 1; yy++) for (let xx = x - 1; xx <= x + 1; xx++) {
+        const p = yy * w + xx, g = (L[p + 1] - L[p - 1]) ** 2 + (A[p + 1] - A[p - 1]) ** 2 + (B[p + 1] - B[p - 1]) ** 2 + (L[p + w] - L[p - w]) ** 2 + (A[p + w] - A[p - w]) ** 2 + (B[p + w] - B[p - w]) ** 2;
+        if (g < bg) { bg = g; bx = xx; by = yy; }
+      }
+      const p = by * w + bx; CX[c] = bx; CY[c] = by; CL[c] = L[p]; CA[c] = A[p]; CB[c] = B[p]; if (CS) CS[c] = mask[p]; c++;
+      if ((c & 63) === 0) yield;
+    }
+    const dist = new Float32Array(N), lab = new Int32Array(N);
+    for (let it = 0; it < 4; it++) {
+      dist.fill(1e15); lab.fill(-1);
+      for (let ci = 0; ci < nc; ci++) {
+        const cx = CX[ci], cy = CY[ci], cL = CL[ci], cA = CA[ci], cB = CB[ci], sid = CS ? CS[ci] : 0;
+        const x0 = Math.max(0, (cx - rad) | 0), x1 = Math.min(w - 1, (cx + rad) | 0), y0 = Math.max(0, (cy - rad) | 0), y1 = Math.min(h - 1, (cy + rad) | 0);
+        for (let y = y0; y <= y1; y++) {
+          const dy = y - cy, row = y * w;
+          for (let x = x0; x <= x1; x++) {
+            const p = row + x; if (mask && mask[p] !== sid) continue;
+            const dL = L[p] - cL, dA = A[p] - cA, dB = B[p] - cB, dx = x - cx, d = dL * dL + dA * dA + dB * dB + m2 * (dx * dx + dy * dy);
+            if (d < dist[p]) { dist[p] = d; lab[p] = ci; }
+          }
+        }
+        if ((ci & 7) === 7) yield;
+      }
+      if (it === 3) break;
+      const sL = new Float64Array(nc), sA = new Float64Array(nc), sB = new Float64Array(nc), sX = new Float64Array(nc), sY = new Float64Array(nc), cnt = new Int32Array(nc);
+      for (let p = 0; p < N; p++) { const ci = lab[p]; if (ci < 0) continue; sL[ci] += L[p]; sA[ci] += A[p]; sB[ci] += B[p]; sX[ci] += p % w; sY[ci] += (p / w) | 0; cnt[ci]++; if ((p & 65535) === 65535) yield; }
+      for (let ci = 0; ci < nc; ci++) if (cnt[ci]) { CL[ci] = sL[ci] / cnt[ci]; CA[ci] = sA[ci] / cnt[ci]; CB[ci] = sB[ci] / cnt[ci]; CX[ci] = sX[ci] / cnt[ci]; CY[ci] = sY[ci] / cnt[ci]; }
+    }
+    return { lab, nc, S };
+  }
+  function* fillHoles(lab, w, h, mask) {
+    const N = w * h;
+    for (let pass = 0; pass < 6; pass++) {
+      let left = 0;
+      for (let p = 0; p < N; p++) if (lab[p] < 0) {
+        const x = p % w, y = (p / w) | 0, sid = mask ? mask[p] : 0; let b = -1;
+        const take = q => { if (b < 0 && lab[q] >= 0 && (!mask || mask[q] === sid)) b = lab[q]; };
+        if (x > 0) take(p - 1); if (b < 0 && y > 0) take(p - w); if (b < 0 && x + 1 < w) take(p + 1); if (b < 0 && y + 1 < h) take(p + w);
+        if (b >= 0) lab[p] = b; else left++;
+      }
+      yield; if (!left) break;
+    }
+  }
+  function* enforceConn(lab, w, h, minsize) {
+    const N = w * h, comp = new Int32Array(N).fill(-1), stack = new Int32Array(N), areas = new Int32Array(N); let nc = 0;
+    for (let p0 = 0; p0 < N; p0++) {
+      if (comp[p0] >= 0) continue;
+      const id = lab[p0]; let sp = 0, area = 0; stack[sp++] = p0; comp[p0] = nc;
+      while (sp) {
+        const p = stack[--sp]; area++; const x = p % w, y = (p / w) | 0;
+        if (x > 0 && comp[p - 1] < 0 && lab[p - 1] === id) { comp[p - 1] = nc; stack[sp++] = p - 1; }
+        if (x + 1 < w && comp[p + 1] < 0 && lab[p + 1] === id) { comp[p + 1] = nc; stack[sp++] = p + 1; }
+        if (y > 0 && comp[p - w] < 0 && lab[p - w] === id) { comp[p - w] = nc; stack[sp++] = p - w; }
+        if (y + 1 < h && comp[p + w] < 0 && lab[p + w] === id) { comp[p + w] = nc; stack[sp++] = p + w; }
+      }
+      areas[nc++] = area; if ((p0 & 65535) === 65535) yield;
+    }
+    const parent = new Int32Array(nc); for (let i = 0; i < nc; i++) parent[i] = i;
+    for (let p = 0; p < N; p++) {
+      const a = comp[p]; if (areas[a] >= minsize || parent[a] !== a) continue;
+      const x = p % w, y = (p / w) | 0; let b = -1;
+      if (x > 0 && comp[p - 1] !== a) b = comp[p - 1];
+      else if (x + 1 < w && comp[p + 1] !== a) b = comp[p + 1];
+      else if (y > 0 && comp[p - w] !== a) b = comp[p - w];
+      else if (y + 1 < h && comp[p + w] !== a) b = comp[p + w];
+      if (b >= 0 && (areas[b] >= minsize || b < a)) parent[a] = b;
+      if ((p & 65535) === 65535) yield;
+    }
+    const map = new Int32Array(nc).fill(-1), out = new Int32Array(N); let nid = 0;
+    for (let p = 0; p < N; p++) {
+      let a = comp[p], g = 0; while (parent[a] !== a && g++ < 16) a = parent[a];
+      if (map[a] < 0) map[a] = nid++; out[p] = map[a];
+    }
+    return { lab: out, nc: nid };
+  }
+  function* spatialCol(cnt, sumL, sumA, sumB, sx, sy, nc, K, rnd) {
+    const base = new Int32Array(nc).fill(-1), bL = [], bA = [], bB = [], bW = [];
+    for (let i = 0; i < nc; i++) {
+      if (!cnt[i]) continue;
+      const L = sumL[i] / cnt[i], a = sumA[i] / cnt[i], b = sumB[i] / cnt[i]; let bi = -1, bd = 36;
+      for (let j = 0; j < bL.length; j++) { const d = (L - bL[j]) ** 2 + (a - bA[j]) ** 2 + (b - bB[j]) ** 2; if (d < bd) { bd = d; bi = j; } }
+      if (bi < 0) { bi = bL.length; bL.push(L); bA.push(a); bB.push(b); bW.push(0); }
+      base[i] = bi; bW[bi] += cnt[i];
+      if ((i & 255) === 255) yield;
+    }
+    if (!bL.length) { bL.push(70); bA.push(10); bB.push(0); bW.push(1); }
+    while (bL.length > K) {
+      let bi = 0, bj = 1, bd = 1e18;
+      for (let i = 0; i < bL.length; i++) for (let j = i + 1; j < bL.length; j++) { const d = (bL[i] - bL[j]) ** 2 + (bA[i] - bA[j]) ** 2 + (bB[i] - bB[j]) ** 2; if (d < bd) { bd = d; bi = i; bj = j; } }
+      const w = bW[bi] + bW[bj]; bL[bi] = (bL[bi] * bW[bi] + bL[bj] * bW[bj]) / w; bA[bi] = (bA[bi] * bW[bi] + bA[bj] * bW[bj]) / w; bB[bi] = (bB[bi] * bW[bi] + bB[bj] * bW[bj]) / w; bW[bi] = w;
+      bL.splice(bj, 1); bA.splice(bj, 1); bB.splice(bj, 1); bW.splice(bj, 1);
+      for (let i = 0; i < nc; i++) { if (base[i] === bj) base[i] = bi; else if (base[i] > bj) base[i]--; }
+    }
+    const B = bL.length, slots = new Int32Array(B).fill(1); let left = K - B, p = 0;
+    const order = []; for (let i = 0; i < B; i++) order.push(i); order.sort((i, j) => bW[j] - bW[i] || i - j);
+    while (left > 0) { slots[order[p % B]]++; left--; p++; }
+    const off = new Int32Array(B); for (let i = 1; i < B; i++) off[i] = off[i - 1] + slots[i - 1];
+    const C = new Float32Array(K * 3), asg = new Uint8Array(nc), phase = (rnd() * 1024) | 0;
+    for (let i = 0; i < B; i++) {
+      const s = slots[i];
+      for (let sl = 0; sl < s; sl++) {
+        const o = (off[i] + sl) * 3, t = s === 1 ? 0 : sl - (s - 1) / 2;
+        C[o] = clamp(bL[i] + t * (7.2 / Math.max(1, (s - 1) / 2)), 4, 96); C[o + 1] = bA[i] + t * 1.5; C[o + 2] = bB[i] + ((sl & 1) ? 1 : -1);
+      }
+    }
+    for (let i = 0; i < nc; i++) {
+      if (base[i] < 0) { asg[i] = 0; continue; }
+      const s = slots[base[i]], cell = (((sx[i] / 26) | 0) * 3 + ((sy[i] / 26) | 0) + phase);
+      asg[i] = off[base[i]] + ((cell % s) + s) % s;
+    }
+    return { C, asg, k: K };
+  }
+  function* fitPieces(reg, n, w, h, col, target, minBest) {
+    const lo = Math.ceil(target * 0.9 - 1e-9), hi = Math.floor(target * 1.1 + 1e-9);
+    const sp = yield* labelSpots(reg, n, w, h); let smallN = 0;
+    for (let i = 0; i < n; i++) if (sp.best[i] < minBest) smallN++;
+    if (!smallN && n >= lo && n <= hi) return { n, col, short: false };
+    const N = w * h, area = new Int32Array(n), adj = new Array(n);
+    for (let i = 0; i < n; i++) adj[i] = new Map();
+    for (let p = 0; p < N; p++) { area[reg[p]]++; if ((p & 262143) === 262143) yield; }
+    const edge = (a, b) => { if (a === b) return; adj[a].set(b, (adj[a].get(b) || 0) + 1); adj[b].set(a, (adj[b].get(a) || 0) + 1); };
+    for (let y = 0; y < h; y++) { for (let x = 0; x < w; x++) { const p = y * w + x, r = reg[p]; if (x + 1 < w) edge(r, reg[p + 1]); if (y + 1 < h) edge(r, reg[p + w]); } if ((y & 3) === 3) yield; }
+    const par = new Int32Array(n), dead = new Uint8Array(n); for (let i = 0; i < n; i++) par[i] = i; let live = n;
+    const fuse = (a, b) => {
+      if (a === b || dead[a] || dead[b] || !adj[a]) return;
+      for (const [c, wgt] of adj[a]) { if (c === b) continue; adj[c].delete(a); adj[c].set(b, (adj[c].get(b) || 0) + wgt); adj[b].set(c, (adj[b].get(c) || 0) + wgt); }
+      adj[b].delete(a); adj[a] = null; area[b] += area[a]; if (sp.best[a] > sp.best[b]) sp.best[b] = sp.best[a]; dead[a] = 1; par[a] = b; live--;
+    };
+    const pick = a => {
+      if (!adj[a]) return -1; let bn = -1, bw = -1, same = -1, sw = -1;
+      for (const [c, wgt] of adj[a]) { if (dead[c]) continue; if (wgt > bw || (wgt === bw && (bn < 0 || c < bn))) { bw = wgt; bn = c; } if (col[c] === col[a] && (wgt > sw || (wgt === sw && (same < 0 || c < same)))) { sw = wgt; same = c; } }
+      return same >= 0 ? same : bn;
+    };
+    if (smallN) {
+      const small = []; for (let i = 0; i < n; i++) if (area[i] && sp.best[i] < minBest) small.push(i);
+      small.sort((a, b) => area[a] - area[b] || a - b);
+      for (let i = 0; i < small.length; i++) { const a = small[i]; if (dead[a] || sp.best[a] >= minBest) continue; const b = pick(a); if (b >= 0) fuse(a, b); if ((i & 15) === 15) yield; }
+    }
+    let guard = 0;
+    while (live > hi && guard++ < n) {
+      let a = -1, ba = 1e15; for (let i = 0; i < n; i++) if (!dead[i] && area[i] < ba) { ba = area[i]; a = i; }
+      if (a < 0) break; const b = pick(a); if (b < 0) break; fuse(a, b); if ((guard & 15) === 0) yield;
+    }
+    const nid = new Int32Array(n).fill(-1), colOut = []; let m = 0;
+    for (let i = 0; i < n; i++) if (!dead[i]) { nid[i] = m++; colOut.push(col[i]); }
+    for (let i = 0; i < n; i++) if (dead[i]) { let a = i, g = 0; while (dead[a] && g++ < 32) a = par[a]; nid[i] = nid[a]; }
+    for (let p = 0; p < N; p++) { reg[p] = nid[reg[p]]; if ((p & 65535) === 65535) yield; }
+    return { n: m, col: Uint8Array.from(colOut), short: m < lo };
+  }
+  function* mosaicOnce(planes, w, h, mask, nseg, K, target, minBest, spatial, rnd) {
+    const N = w * h, raw = yield* slic(planes.L, planes.A, planes.B, w, h, nseg, mask);
+    yield* fillHoles(raw.lab, w, h, mask);
+    const conn = yield* enforceConn(raw.lab, w, h, Math.max(8, raw.S * raw.S * 0.25));
+    const nc = conn.nc, lab = conn.lab, cnt = new Int32Array(nc), sumL = new Float64Array(nc), sumA = new Float64Array(nc), sumB = new Float64Array(nc), sx = new Float64Array(nc), sy = new Float64Array(nc);
+    for (let p = 0; p < N; p++) { const c = lab[p]; cnt[c]++; sumL[c] += planes.L[p]; sumA[c] += planes.A[p]; sumB[c] += planes.B[p]; sx[c] += p % w; sy[c] += (p / w) | 0; if ((p & 65535) === 65535) yield; }
+    for (let i = 0; i < nc; i++) if (cnt[i]) { sx[i] /= cnt[i]; sy[i] /= cnt[i]; }
+    let C, asg, k;
+    if (spatial) { const sc = yield* spatialCol(cnt, sumL, sumA, sumB, sx, sy, nc, K, rnd); C = sc.C; asg = sc.asg; k = sc.k; }
+    else {
+      const map = new Int32Array(nc).fill(-1); let m = 0; const means = new Float32Array(nc * 3);
+      for (let i = 0; i < nc; i++) if (cnt[i]) { map[i] = m; means[m * 3] = sumL[i] / cnt[i]; means[m * 3 + 1] = sumA[i] / cnt[i]; means[m * 3 + 2] = sumB[i] / cnt[i]; m++; }
+      const km = yield* kmeans(means, m, Math.min(K, m), rnd);
+      C = new Float32Array(K * 3); C.set(km.C.subarray(0, km.k * 3)); k = km.k;
+      while (k < K) { const o = k * 3, f = (k % Math.max(1, km.k)) * 3; C[o] = clamp(C[f] + 7, 4, 96); C[o + 1] = C[f + 1] + 4; C[o + 2] = C[f + 2] - 3; k++; }
+      asg = new Uint8Array(nc); for (let i = 0; i < nc; i++) asg[i] = map[i] < 0 ? 0 : km.asg[map[i]];
+    }
+    pushApart(C, k); sortPalette(C, k, asg, nc); const pal = palFromCie(C, k);
+    // A piece is a superpixel. Same-colour neighbours stay separate unless they are under the tier's min size (fitPieces).
+    const reg = new Uint16Array(N), col = new Uint8Array(nc);
+    for (let i = 0; i < nc; i++) col[i] = asg[i];
+    for (let p = 0; p < N; p++) { reg[p] = lab[p]; if ((p & 65535) === 65535) yield; }
+    const fit = yield* fitPieces(reg, nc, w, h, col, target, minBest);
+    const fs = yield* foldSpotless(reg, fit.n, w, h, fit.col);
+    return { reg, col: fs.col, n: fs.n, pal, short: fs.n < Math.ceil(target * 0.9 - 1e-9) || fit.short };
+  }
+  function* paintRast(rast, cols, pal) {
+    const w = rast.w, h = rast.h, rgba = new Uint8ClampedArray(w * h * 4), rgb = [];
+    for (let i = 0; i < pal.length; i++) { const v = parseInt(pal[i].slice(1), 16); rgb.push([(v >> 16) & 255, (v >> 8) & 255, v & 255]); }
+    for (let p = 0; p < rast.ids.length; p++) {
+      const s = rast.ids[p], ci = cols && s < cols.length ? cols[s] : 0, c = rgb[ci] || rgb[0] || [255, 241, 238];
+      rgba[p * 4] = c[0]; rgba[p * 4 + 1] = c[1]; rgba[p * 4 + 2] = c[2]; rgba[p * 4 + 3] = 255;
+      if ((p & 65535) === 65535) yield;
+    }
+    return rgba;
+  }
+  function* mosaicRun(src, hooks) {
+    const cfg = src.tier && src.pieces ? src : mosaicCfg(src.tier, src.seed, { k4: src.k4, spatial: !!(src.spatial || src.rast) });
+    const ctx = newCtx(hooks); let rgba, w, h, mask = null;
+    ctx.begin('prep', 0.02);
+    if (src.rast) { rgba = yield* paintRast(src.rast, src.cols, src.pal || []); w = src.rast.w; h = src.rast.h; mask = src.rast.ids; cfg.spatial = true; }
+    else {
+      rgba = src.rgba; w = src.w | 0; h = src.h | 0; if (!w || !h || !rgba || rgba.length < w * h * 4) throw E('decode');
+      const cap = cfg.k4 ? 1920 : 1280, k = Math.min(1, cap / Math.max(w, h));
+      if (k < 1) { const tw = Math.max(1, Math.round(w * k)), th = Math.max(1, Math.round(h * k)); rgba = yield* downscaleG(rgba, w, h, tw, th); w = tw; h = th; }
+    }
+    ctx.begin('cie', 0.08); const planes = yield* ciePlanes(rgba, w, h); rgba = null;
+    const target = cfg.pieces, K = cfg.pal, s = WORLD / Math.max(w, h), minBest = cfg.minD * 1.5 / s;
+    let nseg = cfg.nseg, best = null;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      ctx.begin(attempt ? 'slic2' : 'slic', 0.18);
+      const rnd = rng(cfg.seed);
+      const got = yield* mosaicOnce(planes, w, h, mask, nseg, K, target, minBest, !!cfg.spatial, rnd);
+      if (!best || Math.abs(got.n - target) < Math.abs(best.n - target)) best = got;
+      if (!got.short && got.n <= Math.floor(target * 1.1 + 1e-9)) break;
+      const next = clamp(Math.round(nseg * target / Math.max(1, got.n)), Math.round(target * 0.6), Math.round(target * 8));
+      if (next === nseg) break; nseg = next;
+    }
+    cfg.pal = best.pal.length;
+    const pz = yield* packShapePuzzle(best.reg, best.col, best.pal, w, h, best.n, cfg, ctx);
+    pz.mosaic = { tier: cfg.tier, regions: best.n, pal: best.pal.length };
+    return pz;
+  }
+
+  g.CBN = { PV, WORLD, PRE, cfgFor, rng, sniff, decodeFile, downscale, smooth, kmeans, tidy, modeFilter, labelRegions, mergeRegions, labelSpots, foldSpotless, trace, dpRing, encodeRings, decodeRings, resimplify, rleEnc, rleDec, run, drain, creep, drainTick, inflate, inflateG, ringsToPath, drawThumb, drawMapThumb, check, toLab, fromLab, E, MAXB, MPX, skinLab, isSkinHex, prepFace, rasterShapes, detailRun, mosaicCfg, mosaicRun };
 })(typeof self !== 'undefined' ? self : this);

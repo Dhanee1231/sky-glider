@@ -6,6 +6,8 @@
   const FZ = window.FunZone, DIR = 'audio/';
   const LINES = {
     hello: "Hi! Let's make something beautiful!", back: "Welcome back! Let's keep coloring.", packs: 'Pick a picture to color!', photo: "Pick a photo, and I'll make it magic!",
+    fall: 'Fall!', winter: 'Winter!', spring: 'Spring!', summer: 'Summer!', holidays: 'Holidays!', flowers: 'Flowers!', peek: 'Peek!', real: 'Ta-da, your real photo!',
+    kid: 'Kid!', detailed: 'Detailed!', extreme: 'Extreme!',
     sq: 'Little squares!', sh: 'Big shapes!', d1: 'Tiny sparkle!', d2: 'Pretty picture!', d3: 'Big adventure!', d4: 'Giant quest!', d5: 'Super star!', d6: 'Master artist!', d7: 'Super sharp!', easy: 'Easy!', hard: 'Hard!', expert: 'Expert!', more: 'More colors!', fewer: 'Fewer colors!',
     make: 'Color magic!', making: 'Mixing your magic colors...', ready: 'Your picture is ready!', oops: "Hmm, let's try a different picture.", look: 'Look for this number!',
     half: 'Halfway there! Keep going!', few: 'A few sparkles left!', hint: "Look, here's one!", wand: 'Magic wand, whoosh!', burst: 'Sparkle burst!', pause: 'Paused! Tap play to keep coloring.',

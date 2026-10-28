@@ -130,3 +130,5 @@ Pack 12: Seasons & Weather (9 pictures) - Grok 4.7 (paths only), Oct 2026
   sw9   Thunder Boom
 
 Total: 92 pictures in 12 packs.
+
+Photo packs (v10, Oct 21 2026): 48 pictures made with Grok Imagine for this app, re-encoded WebP q85 at 1152x864, no upscale, no EXIF. See photos/CREDITS.json.

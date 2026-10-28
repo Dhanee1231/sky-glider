@@ -1,0 +1,527 @@
+{
+ "v": 1,
+ "packs": [
+  {
+   "id": "flowers",
+   "name": "Flowers",
+   "order": 1.5,
+   "pics": [
+    {
+     "id": "dahlias",
+     "name": "Dahlias",
+     "file": "flowers/dahlias.webp",
+     "thumb": "flowers/dahlias.t.webp",
+     "bytes": 96282,
+     "thumbBytes": 24036,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "hydrangea",
+     "name": "Hydrangea",
+     "file": "flowers/hydrangea.webp",
+     "thumb": "flowers/hydrangea.t.webp",
+     "bytes": 191750,
+     "thumbBytes": 38144,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "lavender",
+     "name": "Lavender",
+     "file": "flowers/lavender.webp",
+     "thumb": "flowers/lavender.t.webp",
+     "bytes": 202638,
+     "thumbBytes": 33876,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "lotus",
+     "name": "Lotus",
+     "file": "flowers/lotus.webp",
+     "thumb": "flowers/lotus.t.webp",
+     "bytes": 148380,
+     "thumbBytes": 32406,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "orchid",
+     "name": "Orchid",
+     "file": "flowers/orchid.webp",
+     "thumb": "flowers/orchid.t.webp",
+     "bytes": 111692,
+     "thumbBytes": 21348,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "pansies",
+     "name": "Pansies",
+     "file": "flowers/pansies.webp",
+     "thumb": "flowers/pansies.t.webp",
+     "bytes": 190250,
+     "thumbBytes": 38232,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "peony",
+     "name": "Peony",
+     "file": "flowers/peony.webp",
+     "thumb": "flowers/peony.t.webp",
+     "bytes": 121502,
+     "thumbBytes": 28682,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "poppies",
+     "name": "Poppies",
+     "file": "flowers/poppies.webp",
+     "thumb": "flowers/poppies.t.webp",
+     "bytes": 237548,
+     "thumbBytes": 44692,
+     "w": 1152,
+     "h": 864
+    }
+   ]
+  },
+  {
+   "id": "fall",
+   "name": "Fall",
+   "order": 1.6,
+   "pics": [
+    {
+     "id": "apples",
+     "name": "Apples",
+     "file": "fall/apples.webp",
+     "thumb": "fall/apples.t.webp",
+     "bytes": 251156,
+     "thumbBytes": 48176,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "bridge",
+     "name": "Bridge",
+     "file": "fall/bridge.webp",
+     "thumb": "fall/bridge.t.webp",
+     "bytes": 337472,
+     "thumbBytes": 46428,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "hedgehog",
+     "name": "Hedgehog",
+     "file": "fall/hedgehog.webp",
+     "thumb": "fall/hedgehog.t.webp",
+     "bytes": 180412,
+     "thumbBytes": 34748,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "lake",
+     "name": "Lake",
+     "file": "fall/lake.webp",
+     "thumb": "fall/lake.t.webp",
+     "bytes": 162302,
+     "thumbBytes": 25408,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "leaf",
+     "name": "Leaf",
+     "file": "fall/leaf.webp",
+     "thumb": "fall/leaf.t.webp",
+     "bytes": 240872,
+     "thumbBytes": 38644,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "path",
+     "name": "Path",
+     "file": "fall/path.webp",
+     "thumb": "fall/path.t.webp",
+     "bytes": 410970,
+     "thumbBytes": 58882,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "pumpkinpatch",
+     "name": "Pumpkin Patch",
+     "file": "fall/pumpkinpatch.webp",
+     "thumb": "fall/pumpkinpatch.t.webp",
+     "bytes": 254208,
+     "thumbBytes": 40228,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "squirrel",
+     "name": "Squirrel",
+     "file": "fall/squirrel.webp",
+     "thumb": "fall/squirrel.t.webp",
+     "bytes": 127602,
+     "thumbBytes": 24620,
+     "w": 1152,
+     "h": 864
+    }
+   ]
+  },
+  {
+   "id": "winter",
+   "name": "Winter",
+   "order": 1.7,
+   "pics": [
+    {
+     "id": "aurora",
+     "name": "Aurora",
+     "file": "winter/aurora.webp",
+     "thumb": "winter/aurora.t.webp",
+     "bytes": 158520,
+     "thumbBytes": 19670,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "cabin",
+     "name": "Cabin",
+     "file": "winter/cabin.webp",
+     "thumb": "winter/cabin.t.webp",
+     "bytes": 202670,
+     "thumbBytes": 33426,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "cardinal",
+     "name": "Cardinal",
+     "file": "winter/cardinal.webp",
+     "thumb": "winter/cardinal.t.webp",
+     "bytes": 162342,
+     "thumbBytes": 30638,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "cocoa",
+     "name": "Cocoa",
+     "file": "winter/cocoa.webp",
+     "thumb": "winter/cocoa.t.webp",
+     "bytes": 126700,
+     "thumbBytes": 26604,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "fox",
+     "name": "Fox",
+     "file": "winter/fox.webp",
+     "thumb": "winter/fox.t.webp",
+     "bytes": 121156,
+     "thumbBytes": 27276,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "penguins",
+     "name": "Penguins",
+     "file": "winter/penguins.webp",
+     "thumb": "winter/penguins.t.webp",
+     "bytes": 142316,
+     "thumbBytes": 26296,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "snowflakes",
+     "name": "Snowflakes",
+     "file": "winter/snowflakes.webp",
+     "thumb": "winter/snowflakes.t.webp",
+     "bytes": 312950,
+     "thumbBytes": 54428,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "snowman",
+     "name": "Snowman",
+     "file": "winter/snowman.webp",
+     "thumb": "winter/snowman.t.webp",
+     "bytes": 165726,
+     "thumbBytes": 37448,
+     "w": 1152,
+     "h": 864
+    }
+   ]
+  },
+  {
+   "id": "spring",
+   "name": "Spring",
+   "order": 1.8,
+   "pics": [
+    {
+     "id": "bunny",
+     "name": "Bunny",
+     "file": "spring/bunny.webp",
+     "thumb": "spring/bunny.t.webp",
+     "bytes": 147282,
+     "thumbBytes": 31168,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "butterfly",
+     "name": "Butterfly",
+     "file": "spring/butterfly.webp",
+     "thumb": "spring/butterfly.t.webp",
+     "bytes": 96930,
+     "thumbBytes": 21704,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "cherry",
+     "name": "Cherry",
+     "file": "spring/cherry.webp",
+     "thumb": "spring/cherry.t.webp",
+     "bytes": 359002,
+     "thumbBytes": 55020,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "ducklings",
+     "name": "Ducklings",
+     "file": "spring/ducklings.webp",
+     "thumb": "spring/ducklings.t.webp",
+     "bytes": 148716,
+     "thumbBytes": 29798,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "ladybug",
+     "name": "Ladybug",
+     "file": "spring/ladybug.webp",
+     "thumb": "spring/ladybug.t.webp",
+     "bytes": 137016,
+     "thumbBytes": 28280,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "nest",
+     "name": "Nest",
+     "file": "spring/nest.webp",
+     "thumb": "spring/nest.t.webp",
+     "bytes": 172190,
+     "thumbBytes": 34196,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "rainbow",
+     "name": "Rainbow",
+     "file": "spring/rainbow.webp",
+     "thumb": "spring/rainbow.t.webp",
+     "bytes": 148410,
+     "thumbBytes": 26178,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "tulips",
+     "name": "Tulips",
+     "file": "spring/tulips.webp",
+     "thumb": "spring/tulips.t.webp",
+     "bytes": 232168,
+     "thumbBytes": 39398,
+     "w": 1152,
+     "h": 864
+    }
+   ]
+  },
+  {
+   "id": "summer",
+   "name": "Summer",
+   "order": 1.9,
+   "pics": [
+    {
+     "id": "balloons",
+     "name": "Balloons",
+     "file": "summer/balloons.webp",
+     "thumb": "summer/balloons.t.webp",
+     "bytes": 133362,
+     "thumbBytes": 22822,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "beach",
+     "name": "Beach",
+     "file": "summer/beach.webp",
+     "thumb": "summer/beach.t.webp",
+     "bytes": 169496,
+     "thumbBytes": 28848,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "dolphin",
+     "name": "Dolphin",
+     "file": "summer/dolphin.webp",
+     "thumb": "summer/dolphin.t.webp",
+     "bytes": 224552,
+     "thumbBytes": 37892,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "lighthouse",
+     "name": "Lighthouse",
+     "file": "summer/lighthouse.webp",
+     "thumb": "summer/lighthouse.t.webp",
+     "bytes": 143066,
+     "thumbBytes": 22486,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "meadow",
+     "name": "Meadow",
+     "file": "summer/meadow.webp",
+     "thumb": "summer/meadow.t.webp",
+     "bytes": 287718,
+     "thumbBytes": 43660,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "picnic",
+     "name": "Picnic",
+     "file": "summer/picnic.webp",
+     "thumb": "summer/picnic.t.webp",
+     "bytes": 175056,
+     "thumbBytes": 29934,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "reef",
+     "name": "Reef",
+     "file": "summer/reef.webp",
+     "thumb": "summer/reef.t.webp",
+     "bytes": 226278,
+     "thumbBytes": 39800,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "sunflowers",
+     "name": "Sunflowers",
+     "file": "summer/sunflowers.webp",
+     "thumb": "summer/sunflowers.t.webp",
+     "bytes": 178530,
+     "thumbBytes": 34580,
+     "w": 1152,
+     "h": 864
+    }
+   ]
+  },
+  {
+   "id": "holidays",
+   "name": "Holidays",
+   "order": 1.95,
+   "pics": [
+    {
+     "id": "christmas",
+     "name": "Christmas Ornaments",
+     "file": "holidays/christmas.webp",
+     "thumb": "holidays/christmas.t.webp",
+     "bytes": 183370,
+     "thumbBytes": 33772,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "diwali",
+     "name": "Diwali Diyas",
+     "file": "holidays/diwali.webp",
+     "thumb": "holidays/diwali.t.webp",
+     "bytes": 177068,
+     "thumbBytes": 33262,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "easter",
+     "name": "Easter Eggs",
+     "file": "holidays/easter.webp",
+     "thumb": "holidays/easter.t.webp",
+     "bytes": 143282,
+     "thumbBytes": 34062,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "halloween",
+     "name": "Halloween Pumpkin",
+     "file": "holidays/halloween.webp",
+     "thumb": "holidays/halloween.t.webp",
+     "bytes": 103716,
+     "thumbBytes": 21334,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "july4",
+     "name": "July 4 Fireworks",
+     "file": "holidays/july4.webp",
+     "thumb": "holidays/july4.t.webp",
+     "bytes": 223838,
+     "thumbBytes": 32862,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "newyear",
+     "name": "New Year Fireworks",
+     "file": "holidays/newyear.webp",
+     "thumb": "holidays/newyear.t.webp",
+     "bytes": 222546,
+     "thumbBytes": 34010,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "thanksgiving",
+     "name": "Thanksgiving Harvest",
+     "file": "holidays/thanksgiving.webp",
+     "thumb": "holidays/thanksgiving.t.webp",
+     "bytes": 180998,
+     "thumbBytes": 33416,
+     "w": 1152,
+     "h": 864
+    },
+    {
+     "id": "valentines",
+     "name": "Valentine Roses",
+     "file": "holidays/valentines.webp",
+     "thumb": "holidays/valentines.t.webp",
+     "bytes": 114034,
+     "thumbBytes": 20136,
+     "w": 1152,
+     "h": 864
+    }
+   ]
+  }
+ ]
+}
