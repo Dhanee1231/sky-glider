@@ -1,6 +1,7 @@
 // Neon Rush new look (v8 N). One instanced mesh for speed streaks, shared later with sparks.
 // Layer 1 keeps the mesh out of the wet-road mirror.
 import * as THREE from 'three';
+import * as pfx from './pixelfx-glue.js';
 
 const PAL=[0x35f2ff,0xff3fd8,0xffd23a,0xa070ff].map(c=>new THREE.Color(c));
 const WHITE=new THREE.Color(1,1,1);
@@ -165,7 +166,7 @@ export function createLook(){
  function clearFinish(f){if(!f)return;f.classList.remove('nl');
   for(const n of f.querySelectorAll('.nlrank,.nlstats,.nltw'))n.remove();
   const sub=f.querySelector('#finSub');if(sub)sub.hidden=false;
-  const old=f.querySelector('.stats');if(old)old.hidden=false;}
+  const old=f.querySelector('.stats');if(old)old.hidden=false;pfx.clearFinish();}
  function stat(label,value){const d=document.createElement('div');d.className='nlstat';const s=document.createElement('span');s.textContent=label;const b=document.createElement('b');b.textContent=value;d.append(s,b);return d;}
  function placeHead(n){const h=document.createElement('h2');h.append(String(n));const sup=document.createElement('sup');sup.textContent=(['st','nd','rd'][n-1]||'th');h.append(sup,document.createTextNode(' place!'));return h;}
  function onFinish(f,place,newBest){if(!f)return;clearFinish(f);f.classList.add('nl');
@@ -190,7 +191,7 @@ export function createLook(){
   const tw=document.createElement('div');tw.className='nltw';
   [[2,3,.5],[10,2,.4],[90,2,.45],[97,4,.4],[1,16,.35],[2,78,.4],[98,20,.4],[97,74,.35],[4,96,.4],[18,97,.35],[82,97,.4],[96,96,.45],[1,46,.3],[99,50,.3]].forEach(([x,y,k],i)=>tw.appendChild(sparkle(x,y,k,(i*.29)%1.8)));
   f.prepend(tw);
-  requestAnimationFrame(()=>settleFinish(f));}
+  requestAnimationFrame(()=>settleFinish(f));pfx.onFinish(f,place);}
  function settleFinish(f){if(!f)return;
   const boxes=[...f.querySelectorAll('#finTitle,.nlranktxt,.nlbadge span,#finUnlock p,.nlstat,.big,.lbtn,.nlbest')].map(e=>e.getBoundingClientRect()).filter(r=>r.width>1&&r.height>1);
   for(const sp of f.querySelectorAll('.nlsp')){const r=sp.getBoundingClientRect();

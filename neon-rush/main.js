@@ -300,7 +300,7 @@ function finishRace(){mode='finish';$('pop').classList.remove('show');popT=0;Aud
   let fresh=[];if(rec&&rec.done)fresh=checkCupEnd(ST,{cup:rec.cup,level:rec.level,place:rec.place,trophy:rec.outcome.trophy});
   save(ST);P.item=null;UI.resetHud();
   if(rec){lastCup={cup:rec.cup,level:rec.level};cupLive=false;const view=cupView(cupSpec,rec,unlocked.concat(fresh),newBest,ms);
-   show('finish',false);if(rec.done&&rec.outcome.ribbon)UI.showCupRibbon(view);else if(rec.done)UI.showCupPodium(view);else UI.showCupBetween(view);return;}}
+   show('finish',false);if(rec.done&&rec.outcome.ribbon)UI.showCupRibbon(view);else if(rec.done)UI.showCupPodium(view);else UI.showCupBetween(view);pfx.onFinish($('cupEnd'),fst.place);return;}}
  save(ST);
  const winner=fst.order[0];$('finTitle').innerHTML=ord(fst.place)+' place!';const cheer=getDiff().cheer;$('finSub').textContent=won?'You won the race!':cheer?'You did it! Great racing!':fst.place<=3?`Great racing! ${winner.name} won this time.`:`Great racing! ${winner.name} won. Try again!`;
  const you=UI.youLook();$('finPod').innerHTML=fst.order.slice(0,3).map((a,i)=>`<div class="pt${a.me?' me':''}" style="background:${a.me?you.css:a.css};color:${a.me?you.css:a.css}"><svg viewBox="0 0 24 24">${a.me?you.svg:a.svg}</svg><b>${i+1}</b></div>`).join('');
