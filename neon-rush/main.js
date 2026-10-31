@@ -17,6 +17,7 @@ import {createParty} from './b_party.js';
 import {createMinimap} from './minimap.js';
 import {HERO_LOOK,RIVAL_LOOKS,applyKart} from './karts.js';
 import {createLook} from './fx.js';
+import * as pfx from './pixelfx-glue.js';
 import SKY from './tracks/sky.js';import HARBOR from './tracks/harbor.js';import SKYWAY from './tracks/skyway.js';import BEACH from './tracks/beach.js';import CANDY from './tracks/candy.js';
 
 const $=id=>document.getElementById(id);
@@ -60,7 +61,7 @@ function resetRace(){const spec=cupLive&&ST.cupRun?currentRace(ST):null;
  else{setDifficulty(getTrackDiff(ST,curTrack));forceNight=0;}
  Object.assign(P,PFRESH());P.bestLap=0;heroSc=1;hero.scale.setScalar(1);
  raceSeed=Q.has('seed')?(+Q.get('seed')|0):newSeed();obstacles.setSeed(raceSeed);items.setSeed(raceSeed);   // M6B: each race has its own seed (?seed=N repeats one)
- racers.reset();obstacles.reset();obstacles.applyDiff();items.reset();raceT=0;lastLap=1;prevPlace=0;passT=0;jumps=0;inTun=false;onBr=false;UI.resetHud();UI.hud(0,P);placeKarts(0);look.reset();}
+ racers.reset();obstacles.reset();obstacles.applyDiff();items.reset();raceT=0;lastLap=1;prevPlace=0;passT=0;jumps=0;inTun=false;onBr=false;UI.resetHud();UI.hud(0,P);placeKarts(0);look.reset();pfx.dispose();}
 // input
 const input={l:0,r:0,kl:0,kr:0};
 function bindZone(el,key){const ids=new Set();
@@ -116,11 +117,11 @@ function stepPlayer(dt){const steer=(AUTO||BOT.on||P.rocket>0)?autoSteer():Math.
  // auto drift: holding a strong turn on a bend at speed -> sparks blue/orange/pink, boost on release
  const turning=Math.abs(steer)>0&&Math.abs(o.k)>.008&&P.v>18&&P.air<=0;
  if(turning){P.driftT+=dt;P.driftDir=steer;P.drift=P.driftT>2.1?3:P.driftT>1.3?2:P.driftT>.55?1:0;}
- else if(P.driftT>0){if(P.drift>0){P.boost=Math.max(P.boost,[0,.5,.9,1.3][P.drift]);blip('whoosh');if(P.drift>=2)say('boost',4);}P.driftT=0;P.drift=0;}
+ else if(P.driftT>0){if(P.drift>0){P.boost=Math.max(P.boost,[0,.5,.9,1.3][P.drift]);blip('whoosh');if(P.drift>=2)say('boost',4);pfx.boost();}P.driftT=0;P.drift=0;}
  P.boost=Math.max(0,P.boost-dt);P.wiggle=Math.max(0,P.wiggle-dt);
  // boost pads
- for(const b of FEAT.boost){const d=wrap(P.s)-b;if(d>-1.5&&d<1.5&&Math.abs(P.x)<1.7&&P.air<=0&&P.boost<1){P.boost=1.2;blip('whoosh');say('boost',3);}}
- if(P.air<=0&&P.boost<1&&obstacles.padAt(P.s,P.x)){P.boost=1.2;blip('whoosh');say('boost',3);}   // M6B: the risky branch of a fork has boost pads
+ for(const b of FEAT.boost){const d=wrap(P.s)-b;if(d>-1.5&&d<1.5&&Math.abs(P.x)<1.7&&P.air<=0&&P.boost<1){P.boost=1.2;blip('whoosh');say('boost',3);pfx.boost();}}
+ if(P.air<=0&&P.boost<1&&obstacles.padAt(P.s,P.x)){P.boost=1.2;blip('whoosh');say('boost',3);pfx.boost();}   // M6B: the risky branch of a fork has boost pads
  // ramp + jump
  const r=rampAt(P.s),rs=r?wrap(P.s)-r.s0:-1;
  if(P.air<=0){if(r&&rs>=0&&rs<r.len){P.y=r.h*rs/r.len;}else if(r&&rs>=r.len&&rs<r.len+1.5&&P.y>.3){P.air=1;P.vy=4.6+P.v*.08;P.trick=0;P.trickA=0;jumps++;$('tapPrompt').classList.add('show');say('jump',3);}else P.y=0;}
@@ -136,7 +137,7 @@ function stepPlayer(dt){const steer=(AUTO||BOT.on||P.rocket>0)?autoSteer():Math.
 }
 // obstacle / hit feedback for the player (gentle: sound + a little shake + a friendly voice line)
 function onObstacle(ev){const k=EVENTS[ev]||ev;
- if(ev==='blocked'){blip('shield');say('b_saved',6);popup('Shield saved you!');return;}
+ if(ev==='blocked'){blip('shield');say('b_saved',6);popup('Shield saved you!');pfx.shieldOff();return;}
  if(ev==='smash'){blip('crate');return;}
  if(ev==='wave'){shake=.12;blip('splash');say('b_splash',10);popup('Splash!');return;}
  if(ev==='car'){shake=.25;blip('boing');blip('barrel');say('t_honk',10);popup('Beep beep!');return;}
@@ -150,10 +151,10 @@ function onObstacle(ev){const k=EVENTS[ev]||ev;
 function useItem(){if(mode!=='race'||!P.item||P.finished||(!SIM&&UI.isRolling()))return;items.use(P,ictx);UI.hud(0,P);}
 let SIM=false;   // headless sims run synchronously: no roulette (it is timer-driven)
 let warnT=-9,moveWarnT=-9;
-const ictx={all:ALL,onWarn:()=>{if(raceT-warnT<4)return;warnT=raceT;popup('Watch out!');say('b_watch',8);},onPickup:(k,it)=>{if(k.isPlayer){blip('boxhit');blip('pickup');if(!SIM)UI.roulette(it,()=>{});}},
- onItem:(k,got,was)=>{if(k.isPlayer){const line={speed:'boost',shield:'b_shield',rocket:'b_rocket',hop:'b_hop',dart:'b_zap',orb:'b_zap',mine:'b_zap',emp:'b_zap',tdart:'b_triple',mine3:'b_zap',hrocket:'b_homing',comet:'b_comet',mega:'b_mega',storm:'b_storm'}[got];
+const ictx={all:ALL,onWarn:()=>{if(raceT-warnT<4)return;warnT=raceT;popup('Watch out!');say('b_watch',8);},onPickup:(k,it)=>{if(k.isPlayer){blip('boxhit');blip('pickup');if(!SIM)UI.roulette(it,()=>{});pfx.pickup(k);}},
+ onItem:(k,got,was)=>{if(k.isPlayer){pfx.item(k,got,was);const line={speed:'boost',shield:'b_shield',rocket:'b_rocket',hop:'b_hop',dart:'b_zap',orb:'b_zap',mine:'b_zap',emp:'b_zap',tdart:'b_triple',mine3:'b_zap',hrocket:'b_homing',comet:'b_comet',mega:'b_mega',storm:'b_storm'}[got];
    if(was==='box'){popup('Surprise! '+NAMES[got]+'!');say('b_mystery');}else{popup(NAMES[got]+'!');say(line);}blip({speed:'whoosh',dart:'whoosh',tdart:'whoosh',hrocket:'rocket',comet:'rocket',mega:'rocket',storm:'splash',mine3:'barrel',orb:'boing',mine:'barrel',emp:'whoosh'}[got]||got);if(got==='speed'||got==='rocket'||got==='mega')shake=.12;}},
- onHit:(k,r,by)=>{if(k.isPlayer){if(r==='spin'){blip('boing');if(curTrack==='beach'&&by&&by!==k){say('b_splash',6);popup('Splash!');}else{say('b_spin',6);popup('Whoa! Spinny!');}}else if(r==='blocked'){blip('shield');say('b_saved',6);popup('Shield saved you!');}else if(r==='wiggle')blip('boing');}}};
+ onHit:(k,r,by)=>{if(k.isPlayer){if(r==='spin'){blip('boing');if(curTrack==='beach'&&by&&by!==k){say('b_splash',6);popup('Splash!');}else{say('b_spin',6);popup('Whoa! Spinny!');}}else if(r==='blocked'){blip('shield');say('b_saved',6);popup('Shield saved you!');pfx.shieldOff();}else if(r==='wiggle')blip('boing');}}};
 const rctx=Object.assign({},ictx,{player:P,raceT:0,obstacles:null,items:null,L:1,onBump:()=>{if(P.wallCd<=0){blip('boing');P.wallCd=.5;}}});
 function stepRivals(dt){rctx.raceT=raceT;racers.update(dt,rctx);items.update(dt,rctx);}
 const tmpV=new THREE.Vector3();
@@ -227,7 +228,7 @@ function playerRacerName(){const i=ST.kart?ST.kart.racer|0:0;return (i>0&&RACERS
 function mountRacers(){if(racers&&racers.dispose)racers.dispose();racers=createRacers(kit,playerRacerName());
  ALL.length=0;ALL.push(P,...racers.list);F=racers.list.find(r=>r.name==='Pip')||racers.list[0];rctx.all=ALL;ictx.all=ALL;buildLadder();}
 function loadTrack(id){const def=trackDef(id);if(def.id===curTrack&&world)return;
- const old=world;S=new THREE.Scene();
+ const old=world;pfx.dispose();S=new THREE.Scene();pfx.bind(S);
  setTrack(def);ROWS.length=0;ROWS.push(...def.items);   // item-box rows are per track (items.js reads ROWS when it builds)
  world=buildWorld(R,S,cam,HIGH&&!lowRuntime,ST.kart);hero=world.hero;kit=world.kit;world.resize();hero.rotation.order='YXZ';
  look.bind({S,world,cam,low:!HIGH||lowRuntime,track:def.id});
@@ -324,7 +325,7 @@ function frame(now){const raw=Math.max(0,Math.min(.25,(now-last)/1000)),dt=Math.
  else if(mode==='title'||mode==='menu'){P.s+=dt*2;for(const r of racers.list)r.s+=dt*2;obstacles.update(dt,0,P.s,0);}
  if(toastT>0&&(toastT-=dt)<=0)$('toast').classList.remove('show');if(popT>0&&(popT-=dt)<=0)$('pop').classList.remove('show');
  if(mode==='race'||mode==='count'||mode==='paused')mm.update(dt,clock,P,racers.list,ST.kart);
- placeKarts(dt);updateCam(dt,false);
+ placeKarts(dt);updateCam(dt,false);pfx.sync(dt,P,hero,cam,mode,!HIGH||lowRuntime);
  rainG.heroS=P.s;rainG.cover=Math.max(tunnelCover(P.s),tunnelCover(P.s-3));rain.update(mode==='paused'?dt*.25:dt,rainG);party.update(mode==='paused'?0:dt,cam,P.s);
  world.updateFx(dt,{lap:lastLap,heroS:P.s,speed01:Math.min(1,P.v/VMAX),drift:P.drift,boost:P.boost,air:P.air,cover:rainG.cover,night:(forceNight&&(mode==='race'||mode==='count'||mode==='paused'||mode==='finish')||(mode==='race'&&P.s>=2*L))?1:0,mode});
  look.post(dt,{mode,cam,P,calm:!!ST.settings.calm,world,low:!world.composer||lowRuntime,raw,track:curTrack});
