@@ -72,7 +72,7 @@ export default {
    solid.push(paintCol(new THREE.ConeGeometry(1.7,1.6,12).translate(lx,22.4,lz),C(0xff3a6a)));lampPos.push(V(lx,20,lz));
    const bg=new THREE.ConeGeometry(6,80,20,1,true).translate(0,-40,0).rotateZ(Math.PI/2);const n=bg.attributes.position.count,a=new Float32Array(n*3);
    for(let i=0;i<n;i++){const v=(1-bg.attributes.position.getX(i)/80)*.18+.02;a[i*3]=v;a[i*3+1]=v*.95;a[i*3+2]=v*.7;}bg.setAttribute('color',new THREE.BufferAttribute(a,3));
-   beam=new THREE.Mesh(bg,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));beam.position.set(lx,20.7,lz);beam.layers.set(1);beam.renderOrder=6;S.add(beam);}
+   beam=new THREE.Mesh(bg,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,forceSinglePass:true,fog:false}));beam.position.set(lx,20.7,lz);beam.layers.set(1);beam.renderOrder=6;S.add(beam);}
   // lantern boats bobbing on the sea (2 palette meshes: lit hulls + glowing lanterns)
   const boats=[];const hulls=[],lights=[];const BC=[0x2a6aa0,0xd04060,0xf0f0f0,0x30a070,0xffb03a,0x8a5ac0];
   [[60,22],[230,30],[741,26],[1154,-34],[1621,24],[1721,34]].forEach(([s,off],i)=>{sample(s,o);const side=off>0?1:-1,x=o.x-o.tz*off,z=o.z+o.tx*off;boats.push({x,z,y:SEA,yaw:Math.atan2(o.tx,o.tz)+(rnd()-.5)*.8,ph:i*1.3});

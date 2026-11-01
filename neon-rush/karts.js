@@ -288,7 +288,7 @@ function makeFx(kit){const {S,cam,tex,cv,glowT}=kit,TR=40;
   const tm=new THREE.InstancedMesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:T.glow,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}),TR);
   tm.frustumCulled=false;tm.layers.set(1);tm.renderOrder=7;tm.visible=false;S.add(tm);
   const fg=[];for(const x of[-.28,.28])for(const yaw of[0,.3,-.3]){const p=new THREE.PlaneGeometry(.26,1.3).rotateX(-Math.PI/2).rotateY(yaw).translate(x,.3,1.75);fg.push(p);}
-  const flames=new THREE.Mesh(kit.merge(fg),new THREE.MeshBasicMaterial({map:flameT,color:new THREE.Color(2,1.2,.5),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+  const flames=new THREE.Mesh(kit.merge(fg),new THREE.MeshBasicMaterial({map:flameT,color:new THREE.Color(2,1.2,.5),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,forceSinglePass:true}));
   flames.renderOrder=7;flames.layers.set(1);flames.visible=false;
   const pt=[];for(let i=0;i<TR;i++)pt.push({x:0,y:0,z:0,vx:0,vy:0,vz:0,l:0,m:1,h:0,s:1});
   return {tm,flames,pt,T,n:0,acc:0,t:0,mapKey:'glow',cam,TR,m:new THREE.Matrix4(),q:new THREE.Quaternion(),v:new THREE.Vector3(),sc:new THREE.Vector3(),c:new THREE.Color(),hop:0,ugBase:null};}

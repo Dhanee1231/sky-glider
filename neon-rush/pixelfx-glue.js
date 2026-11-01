@@ -19,8 +19,8 @@ const SCREEN_CAP = 0.22;
 // fx-2: at most 3 collect-burst, and at most 3 one-shots total (collect-burst + confetti).
 const BURST_CAP = 3;
 const SHOT_CAP = 3;
-// Low graphics: at most 3 extra sprites during a race.
-const LOW_SPRITE_CAP = 3;
+// Low graphics draws no PixelFX sprites (the 59-call budget has no room).
+const LOW_SPRITE_CAP = 0;
 
 const KIND = {
   burst: { mod: collectBurst, palette: MAGENTA, anchor: [0, 0.75, 0], dom: false },
@@ -32,6 +32,7 @@ const KIND = {
 };
 
 const slots = [];
+let bornN = 0;
 const state = { scene: null, hero: null, cam: null, mode: '', low: false };
 const at = new THREE.Vector3();
 
@@ -86,6 +87,7 @@ function take(kind) {
   slot.alive = true;
   slot.stopping = false;
   slot.kind = kind;
+  slot.born = ++bornN;
   slot.anchor = spec.anchor;
   // fx-3: divine-shield gets an empty actor. Never null, omitted, [], or {}.
   const opts = kind === 'shield'
@@ -120,6 +122,12 @@ function shotCounts() {
   let burst = 0, shot = 0;
   for (const s of slots) if (s.alive && (s.kind === 'burst' || s.kind === 'confetti')) { shot++; if (s.kind === 'burst') burst++; }
   return { burst, shot };
+}
+
+function oldestBurst() {
+  let best = null;
+  for (const s of slots) if (s.alive && s.kind === 'burst' && (!best || s.born < best.born)) best = s;
+  return best;
 }
 
 function live(kind) {
@@ -260,6 +268,8 @@ export function sync(dt, P, hero, cam, mode, low) {
   state.cam = cam || state.cam;
   state.mode = mode || '';
   state.low = !!low;
+  // A drop to Low must not leave sprites that were spawned on High.
+  if (state.low) for (const s of slots) if (s.alive && !s.domMode) release(s);
   const racing = mode === 'race' || mode === 'paused';
   if (P && racing) {
     if (P.rocket > 0) hold('star'); else end('star');
@@ -289,14 +299,16 @@ export function shieldOff() { end('shield'); }
 export function onFinish(root, place) {
   if (!root) return;
   clearFinish();
-  const shot = shotCounts();
-  if (shot.shot < SHOT_CAP) {
-    const slot = take('confetti');
-    mountView(slot, root, null);
+  // Finish confetti always plays. If three one-shots are already up, drop the oldest collect-burst first so the cap stays at 3.
+  if (shotCounts().shot >= SHOT_CAP) {
+    const old = oldestBurst();
+    if (old) release(old);
   }
+  const slot = take('confetti');
+  mountView(slot, root, null);
   if (place === 1) {
-    const slot = take('sun');
-    mountView(slot, root, firstBadge(root));
+    const sun = take('sun');
+    mountView(sun, root, firstBadge(root));
   }
 }
 

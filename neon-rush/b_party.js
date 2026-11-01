@@ -45,7 +45,7 @@ export function createParty(kit){const {S,W,L,sample,cv,tex,rnd,HIGH}=kit;const 
   parts.push({g,slot:i});
   const sp=new THREE.PlaneGeometry(3.4,3.4).rotateX(-Math.PI/2);parts.push({g:kit.paintCol(sp,C(b.col,.55)),slot:NB+i});});
  const spotT=tex(cv(128,128,(g)=>{const r=g.createRadialGradient(64,64,0,64,64,64);r.addColorStop(0,'rgba(255,255,255,1)');r.addColorStop(.5,'rgba(255,255,255,.6)');r.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=r;g.fillRect(0,0,128,128);}),false,false);
- const bm=palMesh(S,parts,new THREE.MeshBasicMaterial({map:spotT,vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}),NB*2,'rgb');bm.mesh.renderOrder=5;
+ const bm=palMesh(S,parts,new THREE.MeshBasicMaterial({map:spotT,vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,forceSinglePass:true}),NB*2,'rgb');bm.mesh.renderOrder=5;
  const m=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(0,0,0,'YXZ'),v=new THREE.Vector3(),one=new THREE.Vector3(1,1,1),sc=new THREE.Vector3(),DN=new THREE.Vector3();let T=0;
  function update(dt,cam,heroS){T+=dt;const hs=((heroS%L)+L)%L;
   // crowd: face the camera (Y only), bounce; extra cheer when the hero is close
