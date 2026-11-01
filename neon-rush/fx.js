@@ -1,6 +1,7 @@
 // Neon Rush new look (v8 N). One instanced mesh for speed streaks, shared later with sparks.
 // Layer 1 keeps the mesh out of the wet-road mirror.
 import * as THREE from 'three';
+import * as pfx from './pixelfx-glue.js';
 
 const PAL=[0x35f2ff,0xff3fd8,0xffd23a,0xa070ff].map(c=>new THREE.Color(c));
 const WHITE=new THREE.Color(1,1,1);
@@ -109,7 +110,7 @@ export function createLook(){
    band(300*s,[[-20*s,0x20e0ff,.0],[0,0x20e0ff,.35],[10*s,0x20c8ff,.22],[30*s,0x2080ff,.0]],bseg,false);
    band(190*s,[[-20*s,0xff3fc8,.0],[-4*s,0xff3fc8,.5],[12*s,0xff50d0,.3],[38*s,0xa02cff,.0]],bseg,false);}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,4));g.setIndex(idx);
-  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,depthWrite:false,fog:false,side:THREE.DoubleSide}));
+  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,depthWrite:false,fog:false,side:THREE.BackSide}));
   m.frustumCulled=false;m.renderOrder=-10;m.name='nlsky';return m;}
  function boostGlow(){if(!world)return;const S=world.kit&&world.kit.S;if(!S)return;
   S.traverse(o=>{const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];for(const m of ms){
@@ -126,11 +127,11 @@ export function createLook(){
   for(let i=0;i<capS;i++)sp.push({p:V(),v:V(),life:0,max:1,c:0,w:1});
   for(let i=0;i<capT;i++)st.push(newStreak(true));
   const S=ctx.S;
-  fx=new THREE.InstancedMesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:streakTex(),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.DoubleSide}),capS+capT);
+  fx=new THREE.InstancedMesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:streakTex(),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.DoubleSide,forceSinglePass:true}),capS+capT);
   fx.frustumCulled=false;fx.layers.set(1);fx.count=0;fx.visible=false;fx.renderOrder=5;fx.name='nlfx';fx.material.userData.nl=1;fx.setColorAt(0,WHITE);S.add(fx);
   const gg=new THREE.BufferGeometry();const pos=new Float32Array(24),uv=new Float32Array([0,0,.5,0,.5,1,0,1, .5,0,1,0,1,1,.5,1]);gCol=new Float32Array(32);
   gg.setAttribute('position',new THREE.BufferAttribute(pos,3));gg.setAttribute('uv',new THREE.BufferAttribute(uv,2));gg.setAttribute('color',new THREE.BufferAttribute(gCol,4));gg.setIndex([0,1,2,0,2,3,4,5,6,4,6,7]);
-  ground=new THREE.Mesh(gg,new THREE.MeshBasicMaterial({map:groundTex(),vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-4}));
+  ground=new THREE.Mesh(gg,new THREE.MeshBasicMaterial({map:groundTex(),vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.DoubleSide,forceSinglePass:true,polygonOffset:true,polygonOffsetFactor:-4}));
   ground.frustumCulled=false;ground.renderOrder=4;ground.layers.set(1);ground.visible=false;ground.name='nlground';ground.material.userData.nl=1;gAttr=gg.attributes;S.add(ground);
   sky=buildSky(low,!low);sky.layers.set(1);sky.material.userData.nl=1;S.add(sky);
   // the sky dome covers the whole view, so the scene background would be a wasted draw call: drop it in the main pass, keep it for the wet-road mirror pass
@@ -165,7 +166,7 @@ export function createLook(){
  function clearFinish(f){if(!f)return;f.classList.remove('nl');
   for(const n of f.querySelectorAll('.nlrank,.nlstats,.nltw'))n.remove();
   const sub=f.querySelector('#finSub');if(sub)sub.hidden=false;
-  const old=f.querySelector('.stats');if(old)old.hidden=false;}
+  const old=f.querySelector('.stats');if(old)old.hidden=false;pfx.clearFinish();}
  function stat(label,value){const d=document.createElement('div');d.className='nlstat';const s=document.createElement('span');s.textContent=label;const b=document.createElement('b');b.textContent=value;d.append(s,b);return d;}
  function placeHead(n){const h=document.createElement('h2');h.append(String(n));const sup=document.createElement('sup');sup.textContent=(['st','nd','rd'][n-1]||'th');h.append(sup,document.createTextNode(' place!'));return h;}
  function onFinish(f,place,newBest){if(!f)return;clearFinish(f);f.classList.add('nl');
@@ -190,7 +191,7 @@ export function createLook(){
   const tw=document.createElement('div');tw.className='nltw';
   [[2,3,.5],[10,2,.4],[90,2,.45],[97,4,.4],[1,16,.35],[2,78,.4],[98,20,.4],[97,74,.35],[4,96,.4],[18,97,.35],[82,97,.4],[96,96,.45],[1,46,.3],[99,50,.3]].forEach(([x,y,k],i)=>tw.appendChild(sparkle(x,y,k,(i*.29)%1.8)));
   f.prepend(tw);
-  requestAnimationFrame(()=>settleFinish(f));}
+  requestAnimationFrame(()=>settleFinish(f));pfx.onFinish(f,place);}
  function settleFinish(f){if(!f)return;
   const boxes=[...f.querySelectorAll('#finTitle,.nlranktxt,.nlbadge span,#finUnlock p,.nlstat,.big,.lbtn,.nlbest')].map(e=>e.getBoundingClientRect()).filter(r=>r.width>1&&r.height>1);
   for(const sp of f.querySelectorAll('.nlsp')){const r=sp.getBoundingClientRect();

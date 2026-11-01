@@ -91,7 +91,7 @@ export function createItems(kit){const {S,sample,cv,tex,L,W}=kit;let rnd=Math.ra
  const pjM=new THREE.InstancedMesh(new THREE.SphereGeometry(.3,8,6),new THREE.MeshBasicMaterial({color:0xffffff,fog:false}),NPJ);
  const mnG=BEACH?kit.merge([new THREE.CylinderGeometry(.6,.7,.3,10).translate(0,.15,0),new THREE.CylinderGeometry(.3,.38,.7,8).translate(0,.65,0),new THREE.ConeGeometry(.4,.45,8).translate(0,1.2,0),new THREE.CylinderGeometry(.2,.24,.5,6).translate(.45,.5,.2),new THREE.CylinderGeometry(.2,.24,.5,6).translate(-.4,.5,-.25)]):new THREE.OctahedronGeometry(.62,0);
  const mnM=new THREE.InstancedMesh(mnG,new THREE.MeshBasicMaterial({color:0xffffff}),NMN);
- const rgM=new THREE.InstancedMesh(new THREE.RingGeometry(.9,1,40).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}),NRG);
+ const rgM=new THREE.InstancedMesh(new THREE.RingGeometry(.9,1,40).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,forceSinglePass:true,fog:false}),NRG);
  for(const mm of[pjM,mnM,rgM]){mm.frustumCulled=false;mm.layers.set(1);mm.visible=false;mm.count=0;S.add(mm);}rgM.renderOrder=4;
  function strike(k,by,ctx){if(k.finished||k.rocket>0||k.mega>0)return null;if(!k.isPlayer&&k.obCd>0)return null;const D=getDiff();let r;
   if(k.shield>0){k.shield=0;r='blocked';}
