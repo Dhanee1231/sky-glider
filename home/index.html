@@ -1,5 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-tdjwOhB0qtd2P8LlYi/WlUQ6SEDv+eAOIzEdA3iMH2Y='; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self'; worker-src 'self'; manifest-src 'self'; connect-src 'self'; font-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-EJ/lPZ00ujmCSu7B6Vk4E/vNx3dyF8M00i94wOzC5r0='; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self'; worker-src 'self'; manifest-src 'self'; connect-src 'self'; font-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ff5fb4"><title>Our Fun Zone</title>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon-192.png">
@@ -61,11 +61,11 @@ box-shadow:0 4px 0 rgba(80,0,70,.4),inset 0 -6px 10px rgba(200,140,0,.25);positi
 .plq svg{height:70%;width:auto;flex:0 0 auto;max-width:34%}
 .plq .v{display:flex;flex-direction:column;align-items:flex-start;line-height:1;font-weight:900;font-size:clamp(14px,1.6vmin + 8px,22px);white-space:nowrap;min-width:0}
 .plq .v span{display:block}
-.plq.dim{filter:saturate(.35);opacity:.8}
+.plq.dim .a,.plq.dim .b{opacity:.75}.plq .n{display:none;font-size:11px;font-weight:800;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media (min-width:700px) and (min-height:700px){.plq .n{display:block}}
 #gear{flex:0 0 auto;width:48px;align-self:center;height:48px;border-radius:50%;border:3px solid #e9e9f5;background:linear-gradient(145deg,#fff,#c8c8d8);font-size:22px;display:grid;place-items:center;cursor:pointer;position:relative;touch-action:none;box-shadow:0 3px 0 #8a809e}
 #gear i{position:absolute;inset:-5px;border-radius:50%;border:4px solid #f5c542;clip-path:inset(0 100% 0 0);pointer-events:none}
 #gear.hold i{transition:clip-path 3s linear;clip-path:inset(0 0 0 0)}
-@media (max-width:430px){.plq{flex-direction:column;padding:2px;gap:1px}.plq svg{height:16px;max-width:none}.plq .v{font-size:14px;align-items:center}}
+@media (max-width:430px){.plq{flex-direction:column;padding:2px;gap:1px}.plq svg{height:24px;max-width:none}.plq .v{font-size:14px;align-items:center}}
 @media (max-height:480px){#shelf{height:50px;margin-top:6px}main{margin-top:6px}.plq .v{flex-direction:row;gap:10px;font-size:19px;align-items:center}}
 #tdlg,#gdlg{width:min(94vw,460px);max-height:92vh;overflow-y:auto;text-align:left}
 #tdlg h2,#gdlg h2{text-align:center;font-size:24px;margin-bottom:6px}
@@ -111,10 +111,10 @@ html.fz-calm :not(.speed>i),html.fz-calm ::before,html.fz-calm ::after{animation
 <header><div class="title"><h1>Our Fun Zone</h1><div id="greet" role="button" tabindex="0">Hi, <b id="nm">Superstar</b><span>! 💖</span><span style="font-size:.8em">✏️</span></div></div>
 <button class="btn" id="fs" aria-label="Full screen" hidden></button><button class="btn" id="mute" aria-label="Sound on/off">🔊</button></header>
 <section id="shelf" aria-label="Treasure shelf">
-<button class="plq dim" id="pSG" style="--d:0s" aria-label="Sky Glider trophies"><svg viewBox="0 0 120 120"><path d="M14 60 L110 28 L62 98 L54 70Z" fill="#fff" stroke="#9a9ab0" stroke-width="5" stroke-linejoin="round"/><path d="M54 70 L110 28 L44 76Z" fill="#ffb6dd" stroke="#e05aa8" stroke-width="4" stroke-linejoin="round"/></svg><div class="v"><span class="a">🏆 0</span><span class="b">⭐ 0</span></div></button>
-<button class="plq dim" id="pCC" style="--d:.6s" aria-label="Crystal Cave trophies"><svg viewBox="0 0 120 120"><path d="M60 6 L88 34 L74 112 L46 112 L32 34Z" fill="#8fe3ff" stroke="#5b7cff" stroke-width="5" stroke-linejoin="round"/><path d="M32 34 L60 46 L88 34 M60 46 V112" stroke="#fff" stroke-width="4" fill="none"/></svg><div class="v"><span class="a">🏆 0</span><span class="b">⭐ 0</span></div></button>
-<button class="plq dim" id="pGT" style="--d:1.2s" aria-label="Gem Tiles trophies"><svg viewBox="0 0 120 120"><path d="M60 104 L22 60 Q12 34 38 30 Q52 28 60 46 Q68 28 82 30 Q108 34 98 60Z" fill="#ff5fb4" stroke="#b0106e" stroke-width="5" stroke-linejoin="round"/><circle cx="44" cy="48" r="7" fill="#fff"/></svg><div class="v"><span class="a">🏆 0</span><span class="b">⭐ 0</span></div></button>
-<button class="plq dim" id="pLN" style="--d:1.8s" aria-label="Things I know"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="#fff3a8" stroke="#f5c542" stroke-width="6"/><path d="M36 62 L54 80 L86 40" stroke="#2fae5a" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="v"><span class="a">0</span></div></button>
+<button class="plq dim" id="pGT" style="--d:0s" aria-label="Gem Tiles trophies"><svg viewBox="0 0 120 120"><path d="M60 104 L22 60 Q12 34 38 30 Q52 28 60 46 Q68 28 82 30 Q108 34 98 60Z" fill="#ff5fb4" stroke="#b0106e" stroke-width="5" stroke-linejoin="round"/><circle cx="44" cy="48" r="7" fill="#fff"/></svg><div class="v"><span class="n">Gem Tiles</span><span class="a">🏆 0</span><span class="b">⭐ 0</span></div></button>
+<button class="plq dim" id="pSG" style="--d:.6s" aria-label="Sky Glider trophies"><svg viewBox="0 0 120 120"><path d="M14 60 L110 28 L62 98 L54 70Z" fill="#fff" stroke="#9a9ab0" stroke-width="5" stroke-linejoin="round"/><path d="M54 70 L110 28 L44 76Z" fill="#ffb6dd" stroke="#e05aa8" stroke-width="4" stroke-linejoin="round"/></svg><div class="v"><span class="n">Sky Glider</span><span class="a">🏆 0</span><span class="b">⭐ 0</span></div></button>
+<button class="plq dim" id="pCC" style="--d:1.2s" aria-label="Crystal Cave trophies"><svg viewBox="0 0 120 120"><path d="M60 6 L88 34 L74 112 L46 112 L32 34Z" fill="#8fe3ff" stroke="#5b7cff" stroke-width="5" stroke-linejoin="round"/><path d="M32 34 L60 46 L88 34 M60 46 V112" stroke="#fff" stroke-width="4" fill="none"/></svg><div class="v"><span class="n">Crystal Cave</span><span class="a">🏆 0</span><span class="b">⭐ 0</span></div></button>
+<button class="plq dim" id="pLN" style="--d:1.8s" aria-label="Things I know"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="#fff3a8" stroke="#f5c542" stroke-width="6"/><path d="M36 62 L54 80 L86 40" stroke="#2fae5a" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="v"><span class="n">Things I know</span><span class="a">0</span></div></button>
 <button id="gear" aria-label="Grown-ups (hold)">⚙️<i></i></button>
 </section>
 <main>
@@ -246,9 +246,9 @@ try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persisted(
 const J=k=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}};
 const isO=v=>!!v&&typeof v==='object'&&!Array.isArray(v);
 const NF=new Intl.NumberFormat('en-US');
-const GAMES=[{id:'SG',key:'skyglider.records.v1',name:'Sky Glider',best:b=>b.n+' · '+(b.st|0)+' ⭐'},
- {id:'CC',key:'crystalcave.records.v1',name:'Crystal Cave',best:b=>b.n+' · '+(b.s|0)+'%'},
- {id:'GT',key:'gemtiles.records.v1',name:'Gem Tiles',best:b=>b.n+' · '+NF.format(b.s|0)}];
+const GAMES=[{id:'GT',key:'gemtiles.records.v1',name:'Gem Tiles',best:b=>b.n+' · '+NF.format(b.s|0)},
+ {id:'SG',key:'skyglider.records.v1',name:'Sky Glider',best:b=>b.n+' · '+(b.st|0)+' ⭐'},
+ {id:'CC',key:'crystalcave.records.v1',name:'Crystal Cave',best:b=>b.n+' · '+(b.s|0)+'%'}];
 function recInfo(g){const d=J(g.key),o={cups:0,stars:0,best:null};if(!isO(d))return o;
  if(isO(d.top))for(const k in d.top){const l=d.top[k];if(Array.isArray(l)&&isO(l[0])){o.cups++;o.stars+=Math.max(0,Math.min(3,l[0].st|0));}}
  if(isO(d.best))o.best=d.best;return o;}
