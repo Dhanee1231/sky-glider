@@ -6,6 +6,7 @@
   var KEY = 'funzone.a2hs.v1';
   var promptEv = null;
   window.addEventListener('beforeinstallprompt', function (e) {
+    if (!document.getElementById('fzA2hsChip')) return;
     e.preventDefault();
     promptEv = e;
   });
@@ -23,7 +24,8 @@
   }
 
   var css = document.createElement('style');
-  css.textContent = '#fzA2hsChip{display:flex;align-items:center;gap:4px;margin:6px 0 0;width:max-content;max-width:100%;min-height:48px;padding:0 0 0 12px;border-radius:99px;border:2px solid #fff;background:rgba(255,255,255,.94);color:#8a1270;font:800 14px/1.15 "Trebuchet MS",system-ui,sans-serif;box-shadow:0 2px 0 rgba(80,0,70,.25);cursor:pointer;touch-action:manipulation}' +
+  css.textContent = '#fzA2hsChip{display:flex;align-items:center;gap:4px;margin:6px 0 0;width:max-content;max-width:100%;min-height:48px;padding:0 0 0 12px;border-radius:99px;border:2px solid #fff;background:rgba(255,255,255,.94);color:#8a1270;font:800 14px/1.15 "Trebuchet MS",system-ui,sans-serif;box-shadow:0 2px 0 rgba(80,0,70,.25);cursor:pointer;touch-action:manipulation;white-space:nowrap}' +
+    '@media (max-width:400px){#fzA2hsChip{font-size:12.5px}}' +
     '#fzA2hsChip i{font-style:normal;width:48px;height:48px;flex:0 0 48px;border-radius:50%;background:#e9d5f5;display:grid;place-items:center;font-size:13px}' +
     '#fzA2hs .steps{display:flex;flex-direction:column;gap:8px;margin:8px 0}' +
     '#fzA2hs .step{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:14px;font-weight:700}' +
@@ -91,16 +93,7 @@
   chip.innerHTML = '👨‍👧 📲 Add to Home screen <i aria-label="Dismiss">✕</i>';
   title.appendChild(chip);
   mark();
-  chip.addEventListener('click', function (e) {
-    var x = e.target && e.target.closest ? e.target.closest('i') : null;
-    if (x) { chip.remove(); return; }
-    var gear = document.getElementById('gear');
-    if (!gear) return;
-    try {
-      gear.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true, pointerId: 1, pointerType: 'touch' }));
-      setTimeout(function () {
-        try { gear.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, cancelable: true, pointerId: 1, pointerType: 'touch' })); } catch (e2) {}
-      }, 3100);
-    } catch (err) {}
+  chip.addEventListener('click', function () {
+    chip.remove();
   });
 })();
