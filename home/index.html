@@ -1,5 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-EJ/lPZ00ujmCSu7B6Vk4E/vNx3dyF8M00i94wOzC5r0='; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self'; worker-src 'self'; manifest-src 'self'; connect-src 'self'; font-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-oCLFjqJocYJd9U4hPuWwCTtuu/W/rVF19skEL3NjYp4='; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self'; worker-src 'self'; manifest-src 'self'; connect-src 'self'; font-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ff5fb4"><title>Our Fun Zone</title>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon-192.png">
@@ -22,6 +22,7 @@ animation:shine 5s linear infinite;filter:drop-shadow(0 2px 0 #7a1066) drop-shad
 #greet b{color:#fff3a8;min-width:0;overflow:hidden;text-overflow:ellipsis}
 #greet>span{flex:none}#greet b+span{margin-left:-5px}
 .btn{flex:0 0 auto;display:grid;place-items:center;width:48px;height:48px;border-radius:50%;border:3px solid #e9e9f5;background:linear-gradient(145deg,#fff,#d8d8e8);font-size:22px;cursor:pointer;box-shadow:0 3px 0 #9a8fb0}
+#mute{background:linear-gradient(145deg,#ffc1e3,#ff7ac8);border-color:#ffd1ec;box-shadow:0 3px 0 #c84a96}#mute.off{box-shadow:0 3px 0 #c84a96,0 0 0 3px #e02323}
 main{position:relative;z-index:1;flex:1;min-height:0;display:grid;gap:12px;margin-top:10px;grid-template-columns:1fr 1fr;grid-auto-rows:1fr}
 @media (min-aspect-ratio:4/3){main{grid-template-columns:repeat(8,1fr)}a.card{grid-column:span 2}a.card:nth-of-type(5){grid-column:2/span 2}}
 @media (max-aspect-ratio:4/3){a.card:nth-of-type(odd):last-of-type{grid-column:1/-1;width:calc((100% - 12px)/2);justify-self:center}}
@@ -176,7 +177,7 @@ let name=LS.get('funzone-name','Superstar');
 const FZ=window.FunZone,AD={dir:'audio/'};
 const nickObj=()=>{try{const id=FZ.me().nick;return FZ.NICKS.find(n=>n.id===id)||null}catch(e){return null}};
 const showName=()=>{const n=nickObj();nm.textContent=n?n.label:name;};showName();
-let muted=LS.get('funzone-muted','0')==='1';const setM=()=>mute.textContent=muted?'🔇':'🔊';setM();
+let muted=LS.get('funzone-muted','0')==='1';const setM=()=>{mute.textContent=muted?'🔇':'🔊';mute.classList.toggle('off',muted);};setM();
 let ac=null;
 function chime(){if(muted)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const t=ac.currentTime;
 [880,1320,1760].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t+i*.06);g.gain.linearRampToValueAtTime(.12,t+i*.06+.01);g.gain.exponentialRampToValueAtTime(.0005,t+i*.06+.35);o.connect(g).connect(ac.destination);o.start(t+i*.06);o.stop(t+i*.06+.4);});}catch(e){}}
