@@ -1,5 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-LtPcu0BKjc4YGwZ4cD/G4vJiiyQnnwR4nvEq58sbwEk='; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self'; worker-src 'self'; manifest-src 'self'; connect-src 'self'; font-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-N/Jxl+vMnpMRsaKhTGKzCvM5pTPKAT/Un3+6Bd6IzLo='; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self'; worker-src 'self'; manifest-src 'self'; connect-src 'self'; font-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ff5fb4"><title>Our Fun Zone</title>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon-192.png">
@@ -22,9 +22,11 @@ animation:shine 5s linear infinite;filter:drop-shadow(0 2px 0 #7a1066) drop-shad
 #greet b{color:#fff3a8;min-width:0;overflow:hidden;text-overflow:ellipsis}
 #greet>span{flex:none}#greet b+span{margin-left:-5px}
 .btn{flex:0 0 auto;display:grid;place-items:center;width:48px;height:48px;border-radius:50%;border:3px solid #e9e9f5;background:linear-gradient(145deg,#fff,#d8d8e8);font-size:22px;cursor:pointer;box-shadow:0 3px 0 #9a8fb0}
+#mute{background:linear-gradient(145deg,#ffc1e3,#ff7ac8);border-color:#ffd1ec;box-shadow:0 3px 0 #c84a96}#mute.off{box-shadow:0 3px 0 #c84a96,0 0 0 3px #e02323}
 main{position:relative;z-index:1;flex:1;min-height:0;display:grid;gap:12px;margin-top:10px;grid-template-columns:1fr 1fr;grid-auto-rows:1fr}
 @media (min-aspect-ratio:4/3){main{grid-template-columns:repeat(8,1fr)}a.card{grid-column:span 2}a.card:nth-of-type(5){grid-column:2/span 2}}
-a.card:nth-of-type(odd):last-of-type{grid-column:1/-1}@media (min-aspect-ratio:4/3){a.card:nth-of-type(odd):last-of-type{grid-column:span 2}}
+@media (max-aspect-ratio:4/3){a.card:nth-of-type(odd):last-of-type{grid-column:1/-1;width:calc((100% - 12px)/2);justify-self:center}}
+@media (min-aspect-ratio:4/3){a.card:nth-of-type(odd):last-of-type{grid-column:span 2;width:auto;justify-self:stretch}}
 /* Color Magic tile (7 cards): landscape is 4 + 3 cards (an 8-column grid, every card spans 2, the second row is centred), so names stay on one line */
 @media (min-aspect-ratio:4/3){a.card .name{white-space:nowrap;font-size:min(clamp(17px,2.4vmin + 8px,30px),2.3vw)}}
 a.card{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;text-decoration:none;color:#fff;
@@ -42,7 +44,7 @@ a.card::after{content:"";position:absolute;inset:0;background:linear-gradient(11
 .name{font-size:clamp(17px,2.4vmin + 8px,30px);font-weight:800;line-height:1.05;text-shadow:0 2px 0 rgba(0,0,0,.25);flex:0 0 auto;margin-top:4px}
 .desc{font-size:clamp(12px,1.2vmin + 7px,18px);opacity:.95;line-height:1.15;flex:0 0 auto;margin-top:3px}
 /* Sparkle follow-up: its pale sky card needs a darker outline under the white text to be readable */
-a.card[data-cp="sparkle-kingdom-"] .name,a.card[data-cp="sparkle-kingdom-"] .desc{opacity:1;text-shadow:0 1px 0 #3d1580,0 -1px 0 #3d1580,1px 0 0 #3d1580,-1px 0 0 #3d1580,0 2px 6px rgba(40,8,90,.8)}
+a.card[data-cp="sparkle-kingdom-"] .name,a.card[data-cp="sparkle-kingdom-"] .desc{opacity:1;color:#3d1580;text-shadow:0 2px 0 rgba(0,0,0,.25)}
 dialog{margin:auto;border:4px solid #f5c542;border-radius:24px;padding:18px;background:linear-gradient(160deg,#ffe0f1,#fff);color:#8a1270;text-align:center;font:inherit;width:min(90vw,340px)}
 dialog::backdrop{background:rgba(40,0,40,.6)}
 dialog input{font:inherit;font-size:22px;width:100%;margin:12px 0;padding:8px;border-radius:14px;border:3px solid #ff7ac8;text-align:center;color:#8a1270}
@@ -60,11 +62,11 @@ box-shadow:0 4px 0 rgba(80,0,70,.4),inset 0 -6px 10px rgba(200,140,0,.25);positi
 .plq svg{height:70%;width:auto;flex:0 0 auto;max-width:34%}
 .plq .v{display:flex;flex-direction:column;align-items:flex-start;line-height:1;font-weight:900;font-size:clamp(14px,1.6vmin + 8px,22px);white-space:nowrap;min-width:0}
 .plq .v span{display:block}
-.plq.dim{filter:saturate(.35);opacity:.8}
+.plq.dim .a,.plq.dim .b{opacity:.75}.plq .v span.n{display:none;font-size:11px;font-weight:800;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media (min-width:700px) and (min-height:700px){.plq .v span.n{display:block}}
 #gear{flex:0 0 auto;width:48px;align-self:center;height:48px;border-radius:50%;border:3px solid #e9e9f5;background:linear-gradient(145deg,#fff,#c8c8d8);font-size:22px;display:grid;place-items:center;cursor:pointer;position:relative;touch-action:none;box-shadow:0 3px 0 #8a809e}
 #gear i{position:absolute;inset:-5px;border-radius:50%;border:4px solid #f5c542;clip-path:inset(0 100% 0 0);pointer-events:none}
 #gear.hold i{transition:clip-path 3s linear;clip-path:inset(0 0 0 0)}
-@media (max-width:430px){.plq{flex-direction:column;padding:2px;gap:1px}.plq svg{height:16px;max-width:none}.plq .v{font-size:14px;align-items:center}}
+@media (max-width:430px){.plq{flex-direction:column;padding:2px;gap:1px}.plq svg{height:24px;max-width:none}.plq .v{font-size:14px;align-items:center}}
 @media (max-height:480px){#shelf{height:50px;margin-top:6px}main{margin-top:6px}.plq .v{flex-direction:row;gap:10px;font-size:19px;align-items:center}}
 #tdlg,#gdlg{width:min(94vw,460px);max-height:92vh;overflow-y:auto;text-align:left}
 #tdlg h2,#gdlg h2{text-align:center;font-size:24px;margin-bottom:6px}
@@ -110,10 +112,10 @@ html.fz-calm :not(.speed>i),html.fz-calm ::before,html.fz-calm ::after{animation
 <header><div class="title"><h1>Our Fun Zone</h1><div id="greet" role="button" tabindex="0">Hi, <b id="nm">Superstar</b><span>! 💖</span><span style="font-size:.8em">✏️</span></div></div>
 <button class="btn" id="fs" aria-label="Full screen" hidden></button><button class="btn" id="mute" aria-label="Sound on/off">🔊</button></header>
 <section id="shelf" aria-label="Treasure shelf">
-<button class="plq dim" id="pSG" style="--d:0s" aria-label="Sky Glider trophies"><svg viewBox="0 0 120 120"><path d="M14 60 L110 28 L62 98 L54 70Z" fill="#fff" stroke="#9a9ab0" stroke-width="5" stroke-linejoin="round"/><path d="M54 70 L110 28 L44 76Z" fill="#ffb6dd" stroke="#e05aa8" stroke-width="4" stroke-linejoin="round"/></svg><div class="v"><span class="a">🏆 0</span><span class="b">⭐ 0</span></div></button>
-<button class="plq dim" id="pCC" style="--d:.6s" aria-label="Crystal Cave trophies"><svg viewBox="0 0 120 120"><path d="M60 6 L88 34 L74 112 L46 112 L32 34Z" fill="#8fe3ff" stroke="#5b7cff" stroke-width="5" stroke-linejoin="round"/><path d="M32 34 L60 46 L88 34 M60 46 V112" stroke="#fff" stroke-width="4" fill="none"/></svg><div class="v"><span class="a">🏆 0</span><span class="b">⭐ 0</span></div></button>
-<button class="plq dim" id="pGT" style="--d:1.2s" aria-label="Gem Tiles trophies"><svg viewBox="0 0 120 120"><path d="M60 104 L22 60 Q12 34 38 30 Q52 28 60 46 Q68 28 82 30 Q108 34 98 60Z" fill="#ff5fb4" stroke="#b0106e" stroke-width="5" stroke-linejoin="round"/><circle cx="44" cy="48" r="7" fill="#fff"/></svg><div class="v"><span class="a">🏆 0</span><span class="b">⭐ 0</span></div></button>
-<button class="plq dim" id="pLN" style="--d:1.8s" aria-label="Things I know"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="#fff3a8" stroke="#f5c542" stroke-width="6"/><path d="M36 62 L54 80 L86 40" stroke="#2fae5a" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="v"><span class="a">0</span></div></button>
+<button class="plq dim" id="pGT" style="--d:0s" aria-label="Gem Tiles trophies"><svg viewBox="0 0 120 120"><path d="M60 104 L22 60 Q12 34 38 30 Q52 28 60 46 Q68 28 82 30 Q108 34 98 60Z" fill="#ff5fb4" stroke="#b0106e" stroke-width="5" stroke-linejoin="round"/><circle cx="44" cy="48" r="7" fill="#fff"/></svg><div class="v"><span class="n">Gem Tiles</span><span class="a">🏆 0</span><span class="b">⭐ 0</span></div></button>
+<button class="plq dim" id="pSG" style="--d:.6s" aria-label="Sky Glider trophies"><svg viewBox="0 0 120 120"><path d="M14 60 L110 28 L62 98 L54 70Z" fill="#fff" stroke="#9a9ab0" stroke-width="5" stroke-linejoin="round"/><path d="M54 70 L110 28 L44 76Z" fill="#ffb6dd" stroke="#e05aa8" stroke-width="4" stroke-linejoin="round"/></svg><div class="v"><span class="n">Sky Glider</span><span class="a">🏆 0</span><span class="b">⭐ 0</span></div></button>
+<button class="plq dim" id="pCC" style="--d:1.2s" aria-label="Crystal Cave trophies"><svg viewBox="0 0 120 120"><path d="M60 6 L88 34 L74 112 L46 112 L32 34Z" fill="#8fe3ff" stroke="#5b7cff" stroke-width="5" stroke-linejoin="round"/><path d="M32 34 L60 46 L88 34 M60 46 V112" stroke="#fff" stroke-width="4" fill="none"/></svg><div class="v"><span class="n">Crystal Cave</span><span class="a">🏆 0</span><span class="b">⭐ 0</span></div></button>
+<button class="plq dim" id="pLN" style="--d:1.8s" aria-label="Things I know"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="#fff3a8" stroke="#f5c542" stroke-width="6"/><path d="M36 62 L54 80 L86 40" stroke="#2fae5a" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="v"><span class="n">Things I know</span><span class="a">0</span></div></button>
 <button id="gear" aria-label="Grown-ups (hold)">⚙️<i></i></button>
 </section>
 <main>
@@ -144,7 +146,7 @@ html.fz-calm :not(.speed>i),html.fz-calm ::before,html.fz-calm ::after{animation
 <circle cx="60" cy="62" r="26" fill="#a8ff9e" stroke="#2f9a55" stroke-width="3"/><circle cx="51" cy="58" r="7" fill="#fff" stroke="#2f9a55" stroke-width="2"/><circle cx="69" cy="58" r="7" fill="#fff" stroke="#2f9a55" stroke-width="2"/><circle cx="52" cy="59" r="3.6" fill="#2b1257"/><circle cx="70" cy="59" r="3.6" fill="#2b1257"/>
 <path d="M52 72 Q60 80 68 72" stroke="#2b1257" stroke-width="3.5" fill="none" stroke-linecap="round"/><ellipse cx="42" cy="70" rx="5" ry="3" fill="#ff8fb8"/><ellipse cx="78" cy="70" rx="5" ry="3" fill="#ff8fb8"/>
 <path d="M84 44 C92 30 108 34 104 46 C100 56 88 52 84 44Z" fill="#ffb6e6" stroke="#fff" stroke-width="2" opacity=".9"/><path d="M96 10 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3z" fill="#fff"/></svg></div>
-<div class="name">Sparkle Kingdom</div><div class="desc">Glide with Glimmer and pop the puffs!</div></a>
+<div class="name">Sparkle Kingdom</div><div class="desc">Pop the puffs!</div></a>
 <a class="card" data-cp="neon-rush-" href="../neon-rush/" style="--bg:linear-gradient(160deg,#3a1a8a,#ff2d9a);--d:2s"><span class="off" aria-label="Ready offline" role="img">✔</span>
 <div class="icon"><svg viewBox="0 0 120 120"><path d="M30 112 L52 40 H68 L90 112Z" fill="#2a0f5c" stroke="#3ff0ff" stroke-width="3" stroke-linejoin="round"/><path d="M60 46V58M60 70V84M60 96V110" stroke="#fff3a8" stroke-width="4" stroke-linecap="round"/>
 <path d="M96 10 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3z" fill="#fff"/><circle cx="20" cy="22" r="3" fill="#3ff0ff"/><circle cx="104" cy="52" r="2.5" fill="#ff8fd8"/>
@@ -175,7 +177,7 @@ let name=LS.get('funzone-name','Superstar');
 const FZ=window.FunZone,AD={dir:'audio/'};
 const nickObj=()=>{try{const id=FZ.me().nick;return FZ.NICKS.find(n=>n.id===id)||null}catch(e){return null}};
 const showName=()=>{const n=nickObj();nm.textContent=n?n.label:name;};showName();
-let muted=LS.get('funzone-muted','0')==='1';const setM=()=>mute.textContent=muted?'🔇':'🔊';setM();
+let muted=LS.get('funzone-muted','0')==='1';const setM=()=>{mute.textContent=muted?'🔇':'🔊';mute.classList.toggle('off',muted);};setM();
 let ac=null;
 function chime(){if(muted)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const t=ac.currentTime;
 [880,1320,1760].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t+i*.06);g.gain.linearRampToValueAtTime(.12,t+i*.06+.01);g.gain.exponentialRampToValueAtTime(.0005,t+i*.06+.35);o.connect(g).connect(ac.destination);o.start(t+i*.06);o.stop(t+i*.06+.4);});}catch(e){}}
@@ -203,7 +205,7 @@ const fsIcon=()=>{const on=isFS();fsb.innerHTML=on?IC_OUT:IC_IN;fsb.setAttribute
 const fsGo=on=>{try{const p=on?(de.requestFullscreen||de.webkitRequestFullscreen).call(de,{navigationUI:'hide'}):(document.exitFullscreen||document.webkitExitFullscreen).call(document);if(p&&p.catch)p.catch(()=>{});}catch(e){}};
 if(canFS){fsb.hidden=false;fsIcon();
  fsb.onclick=()=>{const on=!isFS();LS.set('funzone-fs',on?'1':'0');fsGo(on);chime();setTimeout(fsIcon,300);};
- ['fullscreenchange','webkitfullscreenchange'].forEach(n=>document.addEventListener(n,()=>{if(!isFS()&&!leaving)LS.set('funzone-fs','0');fsIcon();}));
+ ['fullscreenchange','webkitfullscreenchange'].forEach(n=>document.addEventListener(n,()=>{fsIcon();}));
  let tried=false;const back=e=>{if(tried||e.target.closest('a.card,#fs,dialog'))return;tried=true;if(fsWant()&&!isFS())fsGo(true);};
  ['pointerup','touchend','click'].forEach(n=>document.addEventListener(n,back,true));}
 document.querySelectorAll('a.card').forEach(a=>a.addEventListener('click',e=>{if(e.metaKey||e.ctrlKey)return;e.preventDefault();leaving=true;chime();burst(e.clientX,e.clientY);a.classList.add('pop');setTimeout(()=>location.href=a.getAttribute('href'),muted?220:380)}));
@@ -245,9 +247,9 @@ try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persisted(
 const J=k=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}};
 const isO=v=>!!v&&typeof v==='object'&&!Array.isArray(v);
 const NF=new Intl.NumberFormat('en-US');
-const GAMES=[{id:'SG',key:'skyglider.records.v1',name:'Sky Glider',best:b=>b.n+' · '+(b.st|0)+' ⭐'},
- {id:'CC',key:'crystalcave.records.v1',name:'Crystal Cave',best:b=>b.n+' · '+(b.s|0)+'%'},
- {id:'GT',key:'gemtiles.records.v1',name:'Gem Tiles',best:b=>b.n+' · '+NF.format(b.s|0)}];
+const GAMES=[{id:'GT',key:'gemtiles.records.v1',name:'Gem Tiles',best:b=>b.n+' · '+NF.format(b.s|0)},
+ {id:'SG',key:'skyglider.records.v1',name:'Sky Glider',best:b=>b.n+' · '+(b.st|0)+' ⭐'},
+ {id:'CC',key:'crystalcave.records.v1',name:'Crystal Cave',best:b=>b.n+' · '+(b.s|0)+'%'}];
 function recInfo(g){const d=J(g.key),o={cups:0,stars:0,best:null};if(!isO(d))return o;
  if(isO(d.top))for(const k in d.top){const l=d.top[k];if(Array.isArray(l)&&isO(l[0])){o.cups++;o.stars+=Math.max(0,Math.min(3,l[0].st|0));}}
  if(isO(d.best))o.best=d.best;return o;}
@@ -260,7 +262,7 @@ shelf();addEventListener('pageshow',shelf);document.addEventListener('visibility
 const tdlg=document.getElementById('tdlg'),show=d=>{d.showModal?d.showModal():d.setAttribute('open','')},hide=d=>{d.close?d.close():d.removeAttribute('open')};
 function openShelf(){let h='';for(const g of GAMES){const i=recInfo(g),ic=document.getElementById('p'+g.id).querySelector('svg').outerHTML;
   h+='<div class="trow">'+ic+'<div><b>🏆 '+i.cups+' &nbsp; ⭐ '+i.stars+'</b><small>'+esc(g.name)+(i.best?' · Best: '+esc(g.best(i.best)):'')+'</small></div></div>';}
- const L=learnInfo();h+='<div class="trow">'+document.getElementById('pLN').querySelector('svg').outerHTML+'<div><b>✔ '+(L?L.mastered.length:0)+'</b><small>Things I know by heart</small></div></div>';
+ const L=learnInfo();h+='<div class="trow">'+document.getElementById('pLN').querySelector('svg').outerHTML+'<div><b>✔ '+(L?L.mastered.length:0)+'</b><small>Things I know</small></div></div>';
  document.getElementById('tlist').innerHTML=h;show(tdlg);chime();}
 document.querySelectorAll('.plq').forEach(b=>b.addEventListener('click',e=>{burst(e.clientX,e.clientY);openShelf();}));
 document.getElementById('tok').onclick=()=>hide(tdlg);
