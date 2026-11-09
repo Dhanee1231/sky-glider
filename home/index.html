@@ -1,5 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-oCLFjqJocYJd9U4hPuWwCTtuu/W/rVF19skEL3NjYp4='; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self'; worker-src 'self'; manifest-src 'self'; connect-src 'self'; font-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-N/Jxl+vMnpMRsaKhTGKzCvM5pTPKAT/Un3+6Bd6IzLo='; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self'; worker-src 'self'; manifest-src 'self'; connect-src 'self'; font-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ff5fb4"><title>Our Fun Zone</title>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon-192.png">
@@ -262,7 +262,7 @@ shelf();addEventListener('pageshow',shelf);document.addEventListener('visibility
 const tdlg=document.getElementById('tdlg'),show=d=>{d.showModal?d.showModal():d.setAttribute('open','')},hide=d=>{d.close?d.close():d.removeAttribute('open')};
 function openShelf(){let h='';for(const g of GAMES){const i=recInfo(g),ic=document.getElementById('p'+g.id).querySelector('svg').outerHTML;
   h+='<div class="trow">'+ic+'<div><b>🏆 '+i.cups+' &nbsp; ⭐ '+i.stars+'</b><small>'+esc(g.name)+(i.best?' · Best: '+esc(g.best(i.best)):'')+'</small></div></div>';}
- const L=learnInfo();h+='<div class="trow">'+document.getElementById('pLN').querySelector('svg').outerHTML+'<div><b>✔ '+(L?L.mastered.length:0)+'</b><small>Things I know by heart</small></div></div>';
+ const L=learnInfo();h+='<div class="trow">'+document.getElementById('pLN').querySelector('svg').outerHTML+'<div><b>✔ '+(L?L.mastered.length:0)+'</b><small>Things I know</small></div></div>';
  document.getElementById('tlist').innerHTML=h;show(tdlg);chime();}
 document.querySelectorAll('.plq').forEach(b=>b.addEventListener('click',e=>{burst(e.clientX,e.clientY);openShelf();}));
 document.getElementById('tok').onclick=()=>hide(tdlg);
